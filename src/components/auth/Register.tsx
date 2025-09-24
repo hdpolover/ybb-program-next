@@ -55,8 +55,9 @@ const Register: React.FC<RegisterProps> = ({ onSubmit, isLoading, error }) => {
           email: data.email,
           referralCode: data.referralCode
         });
-        toast.success("Registration successful! Please check your email for verification.");
-        router.push(YBB_ROUTES.AUTH.LOGIN);
+        toast.success("Registration successful! Welcome to YBB Platform!");
+        // For now, redirect to dashboard. In production, you might want to verify email first
+        router.push(YBB_ROUTES.PARTICIPANT.DASHBOARD);
       }
     } catch (error: unknown) {
       console.error("Registration error:", error);
