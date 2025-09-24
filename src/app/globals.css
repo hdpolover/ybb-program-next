@@ -40,7 +40,20 @@
   font-weight: 600;
 }
 
-.navbar-nav .nav-link.active::after {
+.navbar-nav .nav-link.active:not(.dropdown-toggle)::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: #0d6efd;
+  border-radius: 50%;
+}
+
+/* Active dropdown toggle indicator - use a different approach */
+.navbar-nav .dropdown-toggle.active::before {
   content: '';
   position: absolute;
   bottom: -1px;
@@ -119,6 +132,12 @@
   opacity: 0.7;
   vertical-align: middle;
   transition: all 0.2s ease;
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .navbar-nav .dropdown-toggle:hover::after {
@@ -126,8 +145,13 @@
 }
 
 .navbar-nav .dropdown-toggle[aria-expanded="true"]::after,
-.navbar-nav .dropdown-toggle.show::after {
+.navbar-nav .dropdown-toggle.show::after,
+.navbar-nav .dropdown-toggle.active::after {
   opacity: 1;
+}
+
+.navbar-nav .dropdown-toggle[aria-expanded="true"]::after,
+.navbar-nav .dropdown-toggle.show::after {
   transform: rotate(180deg);
 }
 
@@ -905,7 +929,11 @@ main {
     border-radius: 0.5rem;
   }
   
-  .navbar-nav .nav-link.active::after {
+  .navbar-nav .nav-link.active:not(.dropdown-toggle)::after {
+    display: none;
+  }
+  
+  .navbar-nav .dropdown-toggle.active::before {
     display: none;
   }
   

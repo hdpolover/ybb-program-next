@@ -263,9 +263,6 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
             </ul>
 
             <div className="d-flex gap-2">
-              <Link href={YBB_ROUTES.AUTH.LOGIN} className="btn btn-outline-primary">
-                Sign In
-              </Link>
               <Link href={YBB_ROUTES.AUTH.REGISTER} className="btn btn-primary">
                 Get Started
               </Link>
