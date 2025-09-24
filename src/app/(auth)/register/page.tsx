@@ -1,6 +1,5 @@
 "use client";
 import Register from "@/components/auth/Register";
-import AuthLayout from "@/layouts/AuthLayout";
 import { RegisterForm } from "@/types/ybb";
 
 export default function RegisterPage() {
@@ -10,12 +9,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <AuthLayout>
-      <Register 
-        onSubmit={handleRegister}
-        isLoading={false}
-        error={null}
-      />
-    </AuthLayout>
+    <Register 
+      onSubmit={handleRegister}
+      isLoading={false}
+      error={null}
+    />
   );
 }

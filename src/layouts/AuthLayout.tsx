@@ -1,99 +1,57 @@
-import React, { useState } from "react";
+"use client";
+import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { YBB_ROUTES } from "@/constants/ybb";
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const router = useRouter();
-
-  const navigation = [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Users", href: "/dashboard/users" },
-    { name: "Settings", href: "/dashboard/settings" },
-  ];
-
-  const handleLogout = () => {
-    // TODO: Implement logout logic
-    router.push("/login");
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-4 border-b">
-            <Link href="/dashboard" className="text-xl font-bold text-blue-600">
-              Your App
-            </Link>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
-            {navigation.map(item => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`block px-4 py-2 rounded-md ${
-                  router.pathname === item.href ||
-                  router.pathname.startsWith(`${item.href}/`)
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* User Menu */}
-          <div className="p-4 border-t">
-            <button
-              onClick={handleLogout}
-              className="w-full px-4 py-2 text-left text-gray-600 hover:bg-gray-50 rounded-md"
-            >
-              Logout
-            </button>
+    <div className="min-h-screen bg-light d-flex">
+      {/* Left side - Branding */}
+      <div className="d-none d-lg-flex flex-column justify-content-center align-items-center bg-primary text-white" style={{ width: "40%" }}>
+        <div className="text-center px-4">
+          <h1 className="display-4 fw-bold mb-4">YBB Platform</h1>
+          <h2 className="h3 mb-4">Young Business Builder</h2>
+          <p className="lead mb-4">
+            Empowering young leaders to create lasting global impact through innovation and collaboration.
+          </p>
+          <div className="d-flex justify-content-center gap-4 mt-5">
+            <div className="text-center">
+              <h4 className="h2 fw-bold">4000+</h4>
+              <small>Participants</small>
+            </div>
+            <div className="text-center">
+              <h4 className="h2 fw-bold">120+</h4>
+              <small>Countries</small>
+            </div>
+            <div className="text-center">
+              <h4 className="h2 fw-bold">10+</h4>
+              <small>Programs</small>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div
-        className={`${isSidebarOpen ? "ml-64" : "ml-0"} min-h-screen transition-margin duration-300`}
-      >
-        {/* Header */}
-        <header className="bg-white shadow-sm">
-          <div className="flex items-center justify-between px-4 py-3">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
-            <div className="text-gray-600">Welcome, User!</div>
+      {/* Right side - Auth Form */}
+      <div className="d-flex flex-column justify-content-center align-items-center flex-grow-1 px-4">
+        <div className="w-100" style={{ maxWidth: "400px" }}>
+          {/* Logo for mobile */}
+          <div className="text-center mb-4 d-lg-none">
+            <Link href={YBB_ROUTES.HOME} className="text-decoration-none">
+              <h3 className="text-primary fw-bold">YBB Platform</h3>
+            </Link>
           </div>
-        </header>
 
-        {/* Page Content */}
-        <main className="p-6">{children}</main>
+          {/* Auth Form Content */}
+          {children}
+
+          {/* Back to home link */}
+          <div className="text-center mt-4">
+            <Link href={YBB_ROUTES.HOME} className="text-muted text-decoration-none">
+              <i className="ri-arrow-left-line me-1"></i>
+              Back to Home
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

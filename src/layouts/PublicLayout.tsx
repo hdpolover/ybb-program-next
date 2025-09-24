@@ -13,6 +13,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const menuItems = getPublicMenuItems();
 
   const toggleNav = () => {
@@ -22,8 +23,8 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   // Check if a dropdown should be expanded (only for mobile when manually controlling)
   const shouldExpandDropdown = (item: MenuItem) => {
     if (!item.subItems) return false;
-    // Only show dropdown as expanded on mobile when actively opened
-    return window.innerWidth <= 992 && activeDropdown === item.id;
+    // Only show dropdown as expanded when actively opened
+    return activeDropdown === item.id;
   };
 
   // Check if current route matches any submenu item or is under the parent path
@@ -50,16 +51,13 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
     return pathname === submenuItem.link;
   };
 
-  // Handle dropdown toggle for mobile
+  // Handle dropdown toggle
   const handleDropdownToggle = (itemId: number, event?: React.MouseEvent) => {
-    // Only handle manually for mobile or when Bootstrap isn't working
-    if (window.innerWidth <= 992) {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      setActiveDropdown(prevActive => prevActive === itemId ? null : itemId);
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
     }
+    setActiveDropdown(prevActive => prevActive === itemId ? null : itemId);
   };
 
   // Close mobile nav and dropdown when navigating
@@ -76,7 +74,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
 
   // Bootstrap dropdown integration and cleanup
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (isClient) {
       // Close all Bootstrap dropdowns when component mounts or path changes
       const dropdowns = document.querySelectorAll('.dropdown-menu.show');
       dropdowns.forEach(dropdown => {
@@ -89,31 +87,28 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
         toggle.setAttribute('aria-expanded', 'false');
       });
       
-      // Let Bootstrap handle dropdowns on desktop
-      if (window.innerWidth > 992) {
-        setActiveDropdown(null);
-      }
+      setActiveDropdown(null);
     }
-  }, [pathname]);
+  }, [pathname, isClient]);
 
-  // Force cleanup on component mount
+  // Client-side hydration and cleanup
   useEffect(() => {
+    setIsClient(true);
+    
     const cleanup = () => {
-      if (typeof window !== 'undefined') {
-        setActiveDropdown(null);
-        setIsNavOpen(false);
-        
-        // Force close any Bootstrap dropdowns
-        const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
-        openDropdowns.forEach(dropdown => {
-          dropdown.classList.remove('show');
-        });
-        
-        const openToggles = document.querySelectorAll('.dropdown-toggle[aria-expanded="true"]');
-        openToggles.forEach(toggle => {
-          toggle.setAttribute('aria-expanded', 'false');
-        });
-      }
+      setActiveDropdown(null);
+      setIsNavOpen(false);
+      
+      // Force close any Bootstrap dropdowns
+      const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+      openDropdowns.forEach(dropdown => {
+        dropdown.classList.remove('show');
+      });
+      
+      const openToggles = document.querySelectorAll('.dropdown-toggle[aria-expanded="true"]');
+      openToggles.forEach(toggle => {
+        toggle.setAttribute('aria-expanded', 'false');
+      });
     };
 
     cleanup();
@@ -224,7 +219,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
                           isParentActive(item) ? 'active' : ''
                         }`}
                         role="button"
-                        data-bs-toggle={typeof window !== 'undefined' && window.innerWidth > 992 ? "dropdown" : undefined}
+                        data-bs-toggle="dropdown"
                         aria-expanded={activeDropdown === item.id}
                         onClick={(e) => handleDropdownToggle(item.id, e)}
                       >
@@ -263,7 +258,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
             </ul>
 
             <div className="d-flex gap-2">
-              <Link href={YBB_ROUTES.AUTH.REGISTER} className="btn btn-primary">
+              <Link href={YBB_ROUTES.AUTH.LOGIN} className="btn btn-primary">
                 Get Started
               </Link>
             </div>

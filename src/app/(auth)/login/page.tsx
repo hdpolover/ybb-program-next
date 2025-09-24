@@ -1,6 +1,5 @@
 "use client";
 import Login from "@/components/auth/Login";
-import AuthLayout from "@/layouts/AuthLayout";
 import { LoginForm } from "@/types/ybb";
 
 export default function LoginPage() {
@@ -10,12 +9,10 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthLayout>
-      <Login 
-        onSubmit={handleLogin}
-        isLoading={false}
-        error={null}
-      />
-    </AuthLayout>
+    <Login 
+      onSubmit={handleLogin}
+      isLoading={false}
+      error={null}
+    />
   );
 }
