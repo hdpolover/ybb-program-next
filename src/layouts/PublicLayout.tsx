@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getPublicMenuItems } from "@/layouts/MenuData";
+import { getPublicMenuItems, MenuItem } from "@/layouts/MenuData";
 import { YBB_ROUTES } from "@/constants/ybb";
 
 interface PublicLayoutProps {
@@ -12,11 +12,116 @@ interface PublicLayoutProps {
 const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const menuItems = getPublicMenuItems();
 
   const toggleNav = () => {
     setIsNavOpen(!isNavOpen);
   };
+
+  // Check if a dropdown should be expanded (only for mobile when manually controlling)
+  const shouldExpandDropdown = (item: MenuItem) => {
+    if (!item.subItems) return false;
+    // Only show dropdown as expanded on mobile when actively opened
+    return window.innerWidth <= 992 && activeDropdown === item.id;
+  };
+
+  // Check if current route matches any submenu item or is under the parent path
+  const isParentActive = (item: MenuItem) => {
+    // Direct match with item link
+    if (pathname === item.link) return true;
+    
+    if (!item.subItems) return false;
+    
+    // Check if any submenu item matches exactly
+    const exactMatch = item.subItems.some(subItem => pathname === subItem.link);
+    if (exactMatch) return true;
+    
+    // For Programs menu, also check if current path starts with /programs
+    if (item.label === 'Programs' && pathname.startsWith('/programs')) {
+      return true;
+    }
+    
+    return false;
+  };
+
+  // Check if a specific submenu item is active
+  const isSubmenuActive = (submenuItem: MenuItem) => {
+    return pathname === submenuItem.link;
+  };
+
+  // Handle dropdown toggle for mobile
+  const handleDropdownToggle = (itemId: number, event?: React.MouseEvent) => {
+    // Only handle manually for mobile or when Bootstrap isn't working
+    if (window.innerWidth <= 992) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      setActiveDropdown(prevActive => prevActive === itemId ? null : itemId);
+    }
+  };
+
+  // Close mobile nav and dropdown when navigating
+  const handleNavigation = () => {
+    setIsNavOpen(false);
+    setActiveDropdown(null);
+  };
+
+  // Close dropdown when pathname changes (navigation occurs)
+  useEffect(() => {
+    setActiveDropdown(null);
+    setIsNavOpen(false);
+  }, [pathname]);
+
+  // Bootstrap dropdown integration and cleanup
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Close all Bootstrap dropdowns when component mounts or path changes
+      const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+      dropdowns.forEach(dropdown => {
+        dropdown.classList.remove('show');
+      });
+      
+      // Reset dropdown toggle aria-expanded states
+      const toggles = document.querySelectorAll('.dropdown-toggle[aria-expanded="true"]');
+      toggles.forEach(toggle => {
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+      
+      // Let Bootstrap handle dropdowns on desktop
+      if (window.innerWidth > 992) {
+        setActiveDropdown(null);
+      }
+    }
+  }, [pathname]);
+
+  // Force cleanup on component mount
+  useEffect(() => {
+    const cleanup = () => {
+      if (typeof window !== 'undefined') {
+        setActiveDropdown(null);
+        setIsNavOpen(false);
+        
+        // Force close any Bootstrap dropdowns
+        const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+        openDropdowns.forEach(dropdown => {
+          dropdown.classList.remove('show');
+        });
+        
+        const openToggles = document.querySelectorAll('.dropdown-toggle[aria-expanded="true"]');
+        openToggles.forEach(toggle => {
+          toggle.setAttribute('aria-expanded', 'false');
+        });
+      }
+    };
+
+    cleanup();
+    
+    // Also cleanup on window focus (in case of browser back/forward)
+    window.addEventListener('focus', cleanup);
+    return () => window.removeEventListener('focus', cleanup);
+  }, []);
 
   // Check if current page should show hero section
   const isMainPage = () => {
@@ -31,7 +136,22 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   };
 
   const getPageInfo = () => {
-    const currentItem = menuItems.find(item => item.link === pathname);
+    // First, try to find the current item in main menu items
+    let currentItem = menuItems.find(item => item.link === pathname);
+    
+    // If not found, search in sub-items
+    if (!currentItem) {
+      for (const item of menuItems) {
+        if (item.subItems) {
+          const subItem = item.subItems.find(subItem => subItem.link === pathname);
+          if (subItem) {
+            currentItem = subItem;
+            break;
+          }
+        }
+      }
+    }
+    
     if (currentItem) {
       return {
         title: currentItem.label,
@@ -45,9 +165,12 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   const getPageDescription = (pageTitle: string) => {
     const descriptions: Record<string, string> = {
       'Programs': 'Discover comprehensive business training programs designed to empower young entrepreneurs with essential skills and knowledge.',
-      'Insights': 'Explore valuable business tips, industry trends, and entrepreneurial wisdom from successful business leaders.',
+      'Program Overview': 'Discover comprehensive business training programs designed to empower young entrepreneurs with essential skills and knowledge.',
+      'Insights & Analytics': 'Explore program analytics, participant statistics, and impact data from our global youth leadership initiatives.',
+      'Photo Gallery': 'Browse visual highlights and memorable moments from our international youth programs and summits.',
+      'Testimonials': 'Read inspiring stories and experiences from young leaders who participated in our transformative programs.',
       'Announcements': 'Stay updated with the latest news, program updates, and important information from YBB Platform.',
-      'Partners': 'Meet our valued sponsors, strategic partners, and collaborators who make our programs possible.',
+      'Partners & Sponsors': 'Meet our valued sponsors, strategic partners, and collaborators who make our programs possible.',
       'About': 'Learn about our mission to empower young entrepreneurs and our impact on the global business community.'
     };
     return descriptions[pageTitle] || 'Young Business Builder Program';
@@ -56,9 +179,12 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   const getPageIcon = (pageTitle: string) => {
     const icons: Record<string, string> = {
       'Programs': '🎓',
-      'Insights': '💡',
+      'Program Overview': '🎓',
+      'Insights & Analytics': '📊',
+      'Photo Gallery': '📸',
+      'Testimonials': '�',
       'Announcements': '📢',
-      'Partners': '🤝',
+      'Partners & Sponsors': '🤝',
       'About': 'ℹ️'
     };
     return icons[pageTitle] || '🚀';
@@ -89,14 +215,49 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
           <div className={`collapse navbar-collapse ${isNavOpen ? 'show' : ''}`} id="navbarSupportedContent">
             <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
               {menuItems.map((item) => (
-                <li key={item.id} className="nav-item">
-                  <Link
-                    href={item.link || "#"}
-                    className={`nav-link ${pathname === item.link ? 'active' : ''}`}
-                    onClick={() => setIsNavOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
+                <li key={item.id} className={`nav-item ${item.subItems ? 'dropdown' : ''}`}>
+                  {item.subItems ? (
+                    <>
+                      <a
+                        href="#"
+                        className={`nav-link dropdown-toggle ${
+                          isParentActive(item) ? 'active' : ''
+                        }`}
+                        role="button"
+                        data-bs-toggle={typeof window !== 'undefined' && window.innerWidth > 992 ? "dropdown" : undefined}
+                        aria-expanded={activeDropdown === item.id}
+                        onClick={(e) => handleDropdownToggle(item.id, e)}
+                      >
+                        {item.label}
+                      </a>
+                      <ul 
+                        className={`dropdown-menu ${
+                          activeDropdown === item.id ? 'show' : ''
+                        }`}
+                      >
+                        {item.subItems.map((subItem) => (
+                          <li key={subItem.id}>
+                            <Link
+                              href={subItem.link || "#"}
+                              className={`dropdown-item ${isSubmenuActive(subItem) ? 'active' : ''}`}
+                              onClick={handleNavigation}
+                            >
+                              {subItem.icon && <i className={`${subItem.icon} me-2`}></i>}
+                              {subItem.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <Link
+                      href={item.link || "#"}
+                      className={`nav-link ${pathname === item.link ? 'active' : ''}`}
+                      onClick={handleNavigation}
+                    >
+                      {item.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

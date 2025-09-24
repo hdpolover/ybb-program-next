@@ -11,10 +11,19 @@ export const YBB_ROUTES = {
   // Public routes
   HOME: "/",
   PROGRAMS: "/programs",
-  INSIGHTS: "/insights", 
+  INSIGHTS: "/programs/insights", 
+  GALLERY: "/programs/gallery",
+  TESTIMONIALS: "/programs/testimonials",
   ANNOUNCEMENTS: "/announcements",
   PARTNERS: "/partners",
   ABOUT: "/about",
+  CONTACT: "/contact",
+  
+  // Program specific routes
+  PROGRAM_DETAIL: "/programs/istanbul-youth-summit-2026",
+  APPLY: "/apply",
+  REGISTER_SELF_FUNDED: "/apply?type=self-funded",
+  REGISTER_FULLY_FUNDED: "/apply?type=fully-funded",
   
   // Authentication routes
   AUTH: {

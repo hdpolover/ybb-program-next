@@ -30,30 +30,44 @@ export const getPublicMenuItems = (): MenuItem[] => {
       label: "Programs",
       icon: "ri-graduation-cap-line",
       link: YBB_ROUTES.PROGRAMS,
+      subItems: [
+        {
+          id: 21,
+          label: "Program Overview",
+          link: YBB_ROUTES.PROGRAMS,
+          icon: "ri-information-line"
+        },
+        {
+          id: 22,
+          label: "Insights & Analytics",
+          link: YBB_ROUTES.INSIGHTS,
+          icon: "ri-bar-chart-line"
+        },
+        {
+          id: 23,
+          label: "Photo Gallery",
+          link: YBB_ROUTES.GALLERY,
+          icon: "ri-image-line"
+        },
+        {
+          id: 24,
+          label: "Testimonials",
+          link: YBB_ROUTES.TESTIMONIALS,
+          icon: "ri-chat-quote-line"
+        }
+      ]
     },
     {
       id: 3,
-      label: "Insights",
-      icon: "ri-lightbulb-line",
-      link: YBB_ROUTES.INSIGHTS,
-    },
-    {
-      id: 4,
-      label: "Announcements",
-      icon: "ri-notification-2-line",
-      link: YBB_ROUTES.ANNOUNCEMENTS,
-    },
-    {
-      id: 5,
-      label: "Partners",
+      label: "Partners & Sponsors",
       icon: "ri-team-line",
       link: YBB_ROUTES.PARTNERS,
     },
     {
-      id: 6,
-      label: "About",
-      icon: "ri-information-line",
-      link: YBB_ROUTES.ABOUT,
+      id: 4,
+      label: "Announcements",
+      icon: "ri-megaphone-line",
+      link: YBB_ROUTES.ANNOUNCEMENTS,
     }
   ];
 };
