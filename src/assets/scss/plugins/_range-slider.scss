@@ -1,3 +1,5 @@
+@use 'sass:map';
+
 //
 // _range-slider.scss
 //
@@ -211,7 +213,7 @@
 }
 
 // rangeslider color
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   [data-slider-color='#{$state}'] {
     .noUi-connect {
       background: var(--#{$prefix}#{$state});

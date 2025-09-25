@@ -1,28 +1,64 @@
 "use client";
 
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Collapse } from "reactstrap";
+import { useSelector, useDispatch } from "react-redux";
+import { createSelector } from "reselect";
 import { YBB_ROUTES } from "../constants/ybb";
+// Ensure custom dashboard styles are loaded
+import "@/assets/scss/custom-dashboard.scss";
+import "@/styles/participant-dashboard.css";
+import {
+  LAYOUT_TYPES,
+  LAYOUT_MODE_TYPES,
+  LAYOUT_WIDTH_TYPES,
+  LAYOUT_POSITION_TYPES,
+} from "../constants/layout";
 
 interface MenuItem {
   id: string;
   label: string;
   icon: string;
   link?: string;
-  subItems?: MenuItem[];
-  stateVariable?: boolean;
 }
 
 const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useDispatch();
 
-  // State for menu items
-  const [isDashboard, setIsDashboard] = useState<boolean>(false);
-  const [isSubmissions, setIsSubmissions] = useState<boolean>(false);
-  const [isProfile, setIsProfile] = useState<boolean>(false);
+  // Layout state selector following Velzon pattern
+  const selectLayoutState = (state: any) => state.Layout;
+  const selectLayoutProperties = createSelector(
+    selectLayoutState,
+    (layout) => ({
+      layoutType: layout.layoutType,
+      leftSidebarType: layout.leftSidebarType,
+      layoutModeType: layout.layoutModeType,
+      layoutWidthType: layout.layoutWidthType,
+      layoutPositionType: layout.layoutPositionType,
+      topbarThemeType: layout.topbarThemeType,
+      leftsidbarSizeType: layout.leftsidbarSizeType,
+      leftSidebarViewType: layout.leftSidebarViewType,
+      leftSidebarImageType: layout.leftSidebarImageType,
+      preloader: layout.preloader,
+      sidebarVisibilitytype: layout.sidebarVisibilitytype,
+    })
+  );
+
+  const {
+    layoutType,
+    leftSidebarType,
+    layoutModeType,
+    layoutWidthType,
+    layoutPositionType,
+    topbarThemeType,
+    leftsidbarSizeType,
+    leftSidebarViewType,
+    leftSidebarImageType,
+    sidebarVisibilitytype,
+  } = useSelector(selectLayoutProperties);
 
   // Menu data for participant dashboard
   const menuItems: MenuItem[] = [
@@ -30,55 +66,155 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
       id: "dashboard",
       label: "Dashboard",
       icon: "ri-dashboard-2-line",
-      link: YBB_ROUTES.PARTICIPANT.DASHBOARD,
+      link: "/dashboard",
     },
     {
       id: "submissions", 
       label: "Submissions",
       icon: "ri-file-text-line",
-      link: YBB_ROUTES.PARTICIPANT.SUBMISSIONS,
+      link: "/submissions",
     },
     {
       id: "documents",
       label: "Documents", 
       icon: "ri-folder-line",
-      link: YBB_ROUTES.PARTICIPANT.DOCUMENTS,
+      link: "/documents",
     },
     {
       id: "payments",
       label: "Payments",
       icon: "ri-bank-card-line", 
-      link: YBB_ROUTES.PARTICIPANT.PAYMENTS,
+      link: "/payments",
     },
     {
       id: "profile",
       label: "Profile",
       icon: "ri-user-line",
-      link: YBB_ROUTES.PARTICIPANT.PROFILE,
+      link: "/profile",
     },
   ];
 
-  // Responsive sidebar handling
+  // Initialize layout attributes based on Redux state following Velzon documentation
+  useEffect(() => {
+    // Set layout attributes from Redux state
+    document.documentElement.setAttribute("data-layout", layoutType || LAYOUT_TYPES.VERTICAL);
+    document.documentElement.setAttribute("data-topbar", topbarThemeType || "light");
+    document.documentElement.setAttribute("data-sidebar", leftSidebarType || "light");
+    document.documentElement.setAttribute("data-sidebar-size", leftsidbarSizeType || "lg");
+    document.documentElement.setAttribute("data-sidebar-view", leftSidebarViewType || "default");
+    document.documentElement.setAttribute("data-sidebar-image", leftSidebarImageType || "none");
+    document.documentElement.setAttribute("data-preloader", "disable");
+    document.documentElement.setAttribute("data-theme", "default");
+    document.documentElement.setAttribute("data-theme-colors", "default");
+    document.documentElement.setAttribute("data-bs-theme", layoutModeType || "light");
+    document.documentElement.setAttribute("data-layout-width", layoutWidthType || "fluid");
+    document.documentElement.setAttribute("data-layout-position", layoutPositionType || "fixed");
+    
+    // Set body attributes
+    document.body.setAttribute("data-layout", layoutType || LAYOUT_TYPES.VERTICAL);
+    document.body.setAttribute("data-sidebar", leftSidebarType || "light");
+    
+    // Add CSS variables for Velzon following documentation
+    const prefix = "vz";
+    document.documentElement.style.setProperty(`--${prefix}-vertical-menu-width`, "250px");
+    document.documentElement.style.setProperty(`--${prefix}-header-height`, "70px");
+    document.documentElement.style.setProperty(`--${prefix}-horizontal-menu-height`, "70px");
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [
+    layoutType,
+    leftSidebarType,
+    layoutModeType,
+    layoutWidthType,
+    layoutPositionType,
+    topbarThemeType,
+    leftsidbarSizeType,
+    leftSidebarViewType,
+    leftSidebarImageType,
+  ]);
+
+  // Initialize menu and set active states
+  useEffect(() => {
+    const initMenu = () => {
+      const ul = document.getElementById("navbar-nav");
+      if (!ul) return;
+      
+      const items = ul.getElementsByTagName("a");
+      const itemsArray = Array.from(items);
+      
+      // Remove previous active states
+      itemsArray.forEach(item => {
+        item.classList.remove("active");
+      });
+      
+      // Find and activate current page based on pathname
+      const matchingMenuItem = itemsArray.find(item => {
+        const href = item.getAttribute("href");
+        // Match relative paths with current pathname
+        if (href) {
+          // Remove /participant prefix from pathname for comparison
+          const currentPage = pathname.replace("/participant", "");
+          return href === currentPage || (href === "/dashboard" && currentPage === "/dashboard");
+        }
+        return false;
+      });
+      
+      if (matchingMenuItem) {
+        matchingMenuItem.classList.add("active");
+      }
+    };
+    
+    initMenu();
+  }, [pathname]);
+
+  // Responsive sidebar handling following Velzon documentation
   const resizeSidebarMenu = useCallback(() => {
     const windowSize = document.documentElement.clientWidth;
     const hamburgerIcon = document.querySelector(".hamburger-icon") as HTMLElement;
     
     if (windowSize >= 1025) {
-      document.documentElement.setAttribute("data-sidebar-size", "lg");
+      if (document.documentElement.getAttribute("data-layout") === "vertical") {
+        document.documentElement.setAttribute("data-sidebar-size", leftsidbarSizeType || "lg");
+      }
       if (hamburgerIcon) {
         hamburgerIcon.classList.remove("open");
       }
     } else if (windowSize < 1025 && windowSize > 767) {
-      document.documentElement.setAttribute("data-sidebar-size", "sm");
+      if (document.documentElement.getAttribute("data-layout") === "vertical") {
+        document.documentElement.setAttribute("data-sidebar-size", "sm");
+      }
       if (hamburgerIcon) {
         hamburgerIcon.classList.add("open");
       }
     } else if (windowSize <= 767) {
       document.body.classList.remove("vertical-sidebar-enable");
-      document.documentElement.setAttribute("data-sidebar-size", "lg");
+      if (document.documentElement.getAttribute("data-layout") !== "horizontal") {
+        document.documentElement.setAttribute("data-sidebar-size", "lg");
+      }
       if (hamburgerIcon) {
         hamburgerIcon.classList.add("open");
       }
+    }
+  }, [leftsidbarSizeType]);
+
+  const toggleSidebar = useCallback(() => {
+    const body = document.body;
+    const hamburgerIcon = document.querySelector(".hamburger-icon");
+    const hamburgerButton = document.querySelector("#topnav-hamburger-icon");
+    
+    // Toggle sidebar visibility
+    body.classList.toggle("vertical-sidebar-enable");
+    
+    // Toggle hamburger icon animation
+    if (hamburgerIcon) {
+      hamburgerIcon.classList.toggle("open");
+    }
+    
+    // Update aria attributes for accessibility
+    if (hamburgerButton) {
+      const isExpanded = body.classList.contains("vertical-sidebar-enable");
+      hamburgerButton.setAttribute("aria-expanded", isExpanded.toString());
     }
   }, []);
 
@@ -89,71 +225,23 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
     };
   }, [resizeSidebarMenu]);
 
-  // Initialize menu and set active states
+  // Initialize participant-specific layout settings
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    
+    // Initialize sidebar menu on route change
     const initMenu = () => {
-      const ul = document.getElementById("navbar-nav") as HTMLElement;
-      if (!ul) return;
-      
-      const items: any = ul.getElementsByTagName("a");
-      let itemsArray = [...items];
-      removeActivation(itemsArray);
-      
-      let matchingMenuItem = itemsArray.find(x => {
-        return x.pathname === pathname;
-      });
-      
-      if (matchingMenuItem) {
-        activateParentDropdown(matchingMenuItem);
-      }
+      resizeSidebarMenu();
     };
     
     initMenu();
-  }, [pathname]);
-
-  function activateParentDropdown(item: any) {
-    item.classList.add("active");
-    let parentCollapseDiv = item.closest(".collapse.menu-dropdown");
-
-    if (parentCollapseDiv) {
-      parentCollapseDiv.classList.add("show");
-      parentCollapseDiv.parentElement.children[0].classList.add("active");
-      parentCollapseDiv.parentElement.children[0].setAttribute("aria-expanded", "true");
-    }
-    return false;
-  }
-
-  const removeActivation = (items: any) => {
-    let actiItems = items.filter((x: any) => x.classList.contains("active"));
-
-    actiItems.forEach((item: any) => {
-      if (item.classList.contains("menu-link")) {
-        if (!item.classList.contains("active")) {
-          item.setAttribute("aria-expanded", false);
-        }
-        if (item.nextElementSibling) {
-          item.nextElementSibling.classList.remove("show");
-        }
-      }
-      if (item.classList.contains("nav-link")) {
-        if (item.nextElementSibling) {
-          item.nextElementSibling.classList.remove("show");
-        }
-        item.setAttribute("aria-expanded", false);
-      }
-      item.classList.remove("active");
-    });
-  };
+  }, [pathname, resizeSidebarMenu]);
 
   const handleLogout = () => {
-    // TODO: Implement logout logic
+    // TODO: Implement logout logic  
     router.push(YBB_ROUTES.HOME);
   };
 
   return (
-    <div className="layout-wrapper">
+    <div id="layout-wrapper">
       {/* Header */}
       <header id="page-topbar">
         <div className="layout-width">
@@ -163,33 +251,30 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
               <div className="navbar-brand-box horizontal-logo">
                 <Link href={YBB_ROUTES.HOME} className="logo logo-dark">
                   <span className="logo-sm">
-                    <img src="/images/logo-sm.png" alt="" height="22" />
+                    <span className="fw-bold text-primary">YBB</span>
                   </span>
                   <span className="logo-lg">
-                    <img src="/images/logo-dark.png" alt="" height="17" />
+                    <span className="fw-bold text-primary">YBB Platform</span>
                   </span>
                 </Link>
                 <Link href={YBB_ROUTES.HOME} className="logo logo-light">
                   <span className="logo-sm">
-                    <img src="/images/logo-sm.png" alt="" height="22" />
+                    <span className="fw-bold text-white">YBB</span>
                   </span>
                   <span className="logo-lg">
-                    <img src="/images/logo-light.png" alt="" height="17" />
+                    <span className="fw-bold text-white">YBB Platform</span>
                   </span>
                 </Link>
               </div>
 
               <button
                 type="button"
-                className="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger"
+                className="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger material-shadow-none"
                 id="topnav-hamburger-icon"
-                onClick={() => {
-                  const hamburgerIcon = document.querySelector(".hamburger-icon");
-                  if (hamburgerIcon) {
-                    hamburgerIcon.classList.toggle("open");
-                  }
-                  document.body.classList.toggle("vertical-sidebar-enable");
-                }}
+                onClick={toggleSidebar}
+                aria-label="Toggle navigation"
+                aria-expanded="false"
+                aria-controls="navbar-nav"
               >
                 <span className="hamburger-icon">
                   <span></span>
@@ -204,7 +289,7 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
               <div className="dropdown ms-sm-3 header-item topbar-user">
                 <button
                   type="button"
-                  className="btn"
+                  className="btn material-shadow-none"
                   id="page-header-user-dropdown"
                   data-bs-toggle="dropdown"
                   aria-haspopup="true"
@@ -215,19 +300,21 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
                       className="rounded-circle header-profile-user"
                       src="/images/users/avatar-1.jpg"
                       alt="Header Avatar"
+                      width="32"
+                      height="32"
                     />
                     <span className="text-start ms-xl-2">
                       <span className="d-none d-xl-inline-block ms-1 fw-medium user-name-text">
-                        Participant
+                        John Doe
                       </span>
                       <span className="d-none d-xl-block ms-1 fs-12 user-name-sub-text text-muted">
-                        Dashboard
+                        Participant
                       </span>
                     </span>
                   </span>
                 </button>
                 <div className="dropdown-menu dropdown-menu-end">
-                  <h6 className="dropdown-header">Welcome Participant!</h6>
+                  <h6 className="dropdown-header">Welcome John!</h6>
                   <Link className="dropdown-item" href={YBB_ROUTES.PARTICIPANT.PROFILE}>
                     <i className="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i>
                     <span className="align-middle">Profile</span>
@@ -235,9 +322,7 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
                   <div className="dropdown-divider"></div>
                   <button className="dropdown-item" onClick={handleLogout}>
                     <i className="mdi mdi-logout text-muted fs-16 align-middle me-1"></i>
-                    <span className="align-middle" data-key="t-logout">
-                      Logout
-                    </span>
+                    <span className="align-middle">Logout</span>
                   </button>
                 </div>
               </div>
@@ -246,28 +331,28 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
 
-      {/* Vertical Sidebar */}
+      {/* Vertical Sidebar - Following Velzon Documentation Structure */}
       <div className="app-menu navbar-menu">
         <div className="navbar-brand-box">
           <Link href={YBB_ROUTES.HOME} className="logo logo-dark">
             <span className="logo-sm">
-              <img src="/images/logo-sm.png" alt="" height="22" />
+              <span className="fw-bold text-primary">YBB</span>
             </span>
             <span className="logo-lg">
-              <img src="/images/logo-dark.png" alt="" height="17" />
+              <span className="fw-bold text-primary">YBB Platform</span>
             </span>
           </Link>
           <Link href={YBB_ROUTES.HOME} className="logo logo-light">
             <span className="logo-sm">
-              <img src="/images/logo-sm.png" alt="" height="22" />
+              <span className="fw-bold text-white">YBB</span>
             </span>
             <span className="logo-lg">
-              <img src="/images/logo-light.png" alt="" height="17" />
+              <span className="fw-bold text-white">YBB Platform</span>
             </span>
           </Link>
           <button
             type="button"
-            className="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"
+            className="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover material-shadow-none"
             id="vertical-hover"
           >
             <i className="ri-record-circle-line"></i>
@@ -278,37 +363,41 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="container-fluid">
             <div id="two-column-menu"></div>
             <ul className="navbar-nav" id="navbar-nav">
-              <li className="menu-title">
-                <span>Participant Portal</span>
-              </li>
-              {menuItems.map((item, key) => (
-                <li className="nav-item" key={key}>
-                  <Link
-                    className="nav-link menu-link"
-                    href={item.link || "#"}
-                  >
-                    <i className={item.icon}></i>
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              ))}
+              {menuItems.map((item) => {
+                const isActive = pathname === item.link;
+                return (
+                  <li className="nav-item" key={item.id}>
+                    <Link
+                      className={`nav-link menu-link ${isActive ? 'active' : ''}`}
+                      href={item.link || "#"}
+                    >
+                      <i className={item.icon}></i>
+                      <span data-key={`t-${item.id}`}>{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
               
               {/* Divider */}
               <li className="menu-title">
-                <span>Quick Actions</span>
+                <span data-key="t-actions">Quick Actions</span>
               </li>
               
               <li className="nav-item">
                 <Link className="nav-link menu-link" href={YBB_ROUTES.HOME}>
                   <i className="ri-home-line"></i>
-                  <span>Back to Main Site</span>
+                  <span data-key="t-home">Back to Main Site</span>
                 </Link>
               </li>
               
               <li className="nav-item">
-                <button className="nav-link menu-link" onClick={handleLogout}>
+                <button 
+                  className="nav-link menu-link text-start border-0 bg-transparent w-100" 
+                  onClick={handleLogout}
+                  type="button"
+                >
                   <i className="ri-logout-box-line"></i>
-                  <span>Logout</span>
+                  <span data-key="t-logout">Logout</span>
                 </button>
               </li>
             </ul>
@@ -319,7 +408,7 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       {/* Left Sidebar End */}
-      <div className="vertical-overlay"></div>
+      <div className="vertical-overlay" onClick={toggleSidebar}></div>
 
       {/* Main Content */}
       <div className="main-content">
@@ -333,11 +422,13 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="container-fluid">
             <div className="row">
               <div className="col-sm-6">
-                {new Date().getFullYear()} © YBB Platform
+                <div className="text-sm-start d-none d-sm-block">
+                  {new Date().getFullYear()} © YBB Platform.
+                </div>
               </div>
               <div className="col-sm-6">
                 <div className="text-sm-end d-none d-sm-block">
-                  Participant Dashboard
+                  Design & Develop by Velzon
                 </div>
               </div>
             </div>

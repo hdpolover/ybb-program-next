@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // ribbons.scss
 //
@@ -308,7 +309,7 @@
 }
 
 //loop
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .ribbon-three-#{$state} {
     span {
       background: var(--#{$prefix}#{$state});

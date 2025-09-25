@@ -79,7 +79,7 @@ export const initialState: LayoutState = {
   layoutThemeType: LAYOUT_THEME.DEFAULT,
   layoutThemeColorType: LAYOUT_THEME_COLOR.DEFAULT,
   layoutModeType: LAYOUT_MODE_TYPES.LIGHTMODE,
-  leftSidebarType: LAYOUT_SIDEBAR_TYPES.DARK,
+  leftSidebarType: LAYOUT_SIDEBAR_TYPES.DARK, // Changed to DARK for better contrast in participant dashboard
   layoutWidthType: LAYOUT_WIDTH_TYPES.FLUID,
   layoutPositionType: LAYOUT_POSITION_TYPES.FIXED,
   topbarThemeType: LAYOUT_TOPBAR_THEME_TYPES.LIGHT,

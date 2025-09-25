@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // accordion.scss
 //
@@ -122,7 +123,7 @@
 }
 
 //accordion Color
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .accordion-#{$state} {
     .accordion-item {
       border-color: rgba(var(--#{$prefix}#{$state}-rgb), 0.6);

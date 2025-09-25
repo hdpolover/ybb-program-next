@@ -10,14 +10,14 @@ File: Main Css File
 //Fonts
 @import 'fonts/fonts';
 
-//Core files
+// Bootstrap core files
 @import 'bootstrap/scss/functions';
-@import './node_modules/bootstrap/scss/variables';
+@import 'bootstrap/scss/variables';
 @import 'variables';
 @import 'variables-custom';
 @import 'variables-dark';
 @import 'variables-galaxy-dark';
-@import './node_modules/bootstrap/scss/mixins';
+@import 'bootstrap/scss/mixins';
 
 @import 'theme/default';
 @import 'theme/corporate';
@@ -132,3 +132,6 @@ File: Main Css File
 @import 'pages/jobs';
 @import 'pages/job-landing';
 @import 'pages/blog';
+
+// YBB Custom Dashboard Styles
+@import 'custom-dashboard';

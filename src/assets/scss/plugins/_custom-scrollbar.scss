@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // _custom-scrollbar.scss
 //
@@ -218,7 +219,7 @@
   height: 100%;
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   [data-simplebar-track='#{$state}'] {
     .simplebar-scrollbar:before {
       background: var(--#{$prefix}#{$state});

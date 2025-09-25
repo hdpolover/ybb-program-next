@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // _table.scss
 //
@@ -39,7 +40,7 @@
   }
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .border-#{$state} {
     &.table {
       > thead {

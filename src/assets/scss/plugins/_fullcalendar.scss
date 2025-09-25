@@ -1,3 +1,5 @@
+@use 'sass:color';
+@use 'sass:map';
 //
 // _fullcalendar.scss
 //
@@ -160,7 +162,7 @@
   }
 
   td.fc-today {
-    background: lighten($gray-200, 2%);
+    background: color.adjust($gray-200, $lightness: 2%);
   }
 }
 
@@ -353,7 +355,7 @@
   border-color: var(--#{$prefix}border-color);
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .fc-daygrid-event-harness {
     .fc-daygrid-event {
       &.bg-#{$state}-subtle {

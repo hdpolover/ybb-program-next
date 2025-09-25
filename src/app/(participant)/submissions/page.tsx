@@ -117,7 +117,7 @@ const SubmissionsPage = () => {
       <Row>
         {submissions.map((submission) => (
           <Col lg={12} key={submission.id}>
-            <Card className="mb-3">
+            <Card className="mb-3 material-shadow">
               <CardBody>
                 <Row className="align-items-center">
                   <Col lg={8}>
@@ -252,7 +252,7 @@ const SubmissionsPage = () => {
       {submissions.length === 0 && (
         <Row>
           <Col lg={12}>
-            <Card>
+            <Card className="material-shadow">
               <CardBody className="text-center py-5">
                 <div className="avatar-lg mx-auto mb-4">
                   <div className="avatar-title bg-soft-primary text-primary rounded-circle fs-1">
@@ -275,7 +275,7 @@ const SubmissionsPage = () => {
       {/* Statistics Cards */}
       <Row className="mt-4">
         <Col xl={3} lg={6}>
-          <Card className="card-animate">
+          <Card className="card-animate material-shadow">
             <CardBody>
               <div className="d-flex align-items-center">
                 <div className="flex-grow-1">
@@ -299,7 +299,7 @@ const SubmissionsPage = () => {
         </Col>
 
         <Col xl={3} lg={6}>
-          <Card className="card-animate">
+          <Card className="card-animate material-shadow">
             <CardBody>
               <div className="d-flex align-items-center">
                 <div className="flex-grow-1">
@@ -325,7 +325,7 @@ const SubmissionsPage = () => {
         </Col>
 
         <Col xl={3} lg={6}>
-          <Card className="card-animate">
+          <Card className="card-animate material-shadow">
             <CardBody>
               <div className="d-flex align-items-center">
                 <div className="flex-grow-1">
@@ -351,7 +351,7 @@ const SubmissionsPage = () => {
         </Col>
 
         <Col xl={3} lg={6}>
-          <Card className="card-animate">
+          <Card className="card-animate material-shadow">
             <CardBody>
               <div className="d-flex align-items-center">
                 <div className="flex-grow-1">

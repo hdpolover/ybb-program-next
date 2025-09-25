@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // _form-check.scss
 //
@@ -224,7 +225,7 @@
 }
 
 // loop
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   // Radio
   .form-radio-outline {
     &.form-radio-#{$state} {

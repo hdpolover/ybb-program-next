@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // _profile.scss
 //
@@ -62,7 +63,7 @@
   border-left: 3px solid var(--#{$prefix}border-color);
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .profile-project-card {
     &.profile-project-#{$state} {
       border-left-color: var(--#{$prefix}#{$state});

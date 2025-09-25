@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // _buttons.scss
 //
@@ -55,7 +56,7 @@ a {
 // Soft Buttons
 //
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .btn-#{$state} {
     --#{$prefix}btn-bg: var(--#{$prefix}#{$state});
     --#{$prefix}btn-border-color: var(--#{$prefix}#{$state});
@@ -191,7 +192,7 @@ a {
   }
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .btn-#{$state} {
     &.btn-animation {
       background-color: var(--#{$prefix}#{$state});

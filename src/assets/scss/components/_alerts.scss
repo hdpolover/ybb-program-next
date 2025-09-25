@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // alerts.scss
 //
@@ -85,7 +86,7 @@
 }
 
 // Alert example loop
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   // alert border left
   .alert-border-left {
     &.alert-#{$state} {

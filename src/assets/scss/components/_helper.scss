@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // _helper.scss
 //
@@ -105,7 +106,7 @@ $border-style-mixing: double, dashed, groove, outset, ridge, dotted, inset;
   fill: rgba($gray-500, 0.16);
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .icon-dual-#{$state} {
     color: var(--#{$prefix}#{$state});
     fill: rgba(var(--#{$prefix}#{$state}-rgb), 0.16);

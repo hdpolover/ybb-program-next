@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // toast.scss
 //
@@ -9,7 +10,7 @@
   }
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .toast-border-#{$state} {
     .toast-body {
       color: var(--#{$prefix}#{$state});

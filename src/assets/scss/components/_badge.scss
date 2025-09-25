@@ -1,3 +1,5 @@
+@use 'sass:color';
+@use 'sass:map';
 //
 // badge.scss
 //
@@ -6,7 +8,7 @@
   line-height: 0.95;
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .badge-label {
     &.bg-#{$state} {
       &:before {
@@ -37,7 +39,7 @@
 
 //Badge Gradient Style
 $gradients: ();
-$gradients: map-merge(
+$gradients: map.merge(
   (
     primary: linear-gradient(
         135deg,
@@ -55,7 +57,11 @@ $gradients: map-merge(
         var(--#{$prefix}danger) 0%,
         var(--#{$prefix}secondary) 100%
       ),
-    warning: linear-gradient(135deg, $warning 0%, darken($warning, 15%) 100%),
+    warning: linear-gradient(
+        135deg,
+        $warning 0%,
+        color.adjust($warning, $lightness: -15%) 100%
+      ),
     info: linear-gradient(
         135deg,
         var(--#{$prefix}info) 0%,

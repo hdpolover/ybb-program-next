@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // _form-input-spin.scss
 //
@@ -75,7 +76,7 @@
 }
 
 // loop
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .input-step {
     &.step-#{$state} {
       button {

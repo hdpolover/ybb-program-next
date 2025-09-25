@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // _progress.scss
 //
@@ -125,7 +126,7 @@
   }
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .progress-#{$state} {
     .progress-bar {
       background-color: var(--#{$prefix}#{$state});

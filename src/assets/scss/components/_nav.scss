@@ -1,3 +1,4 @@
+@use 'sass:map';
 //
 // _nav.scss
 //
@@ -489,7 +490,7 @@
   }
 }
 
-@each $state in map-keys($theme-colors) {
+@each $state in map.keys($theme-colors) {
   .nav-border-top-#{$state} {
     .nav-link {
       &.active {
