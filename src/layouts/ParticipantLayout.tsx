@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
@@ -235,6 +235,48 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
     initMenu();
   }, [pathname, resizeSidebarMenu]);
 
+  // Mock data for participant's program participations - in real app this would come from API
+  const participantPrograms = [
+    {
+      id: "iys-2025-part1",
+      title: "IYS 2025 - Part 1",
+      year: "2025",
+      status: "completed",
+      role: "Participant",
+      dateParticipated: "Feb 2025"
+    },
+    {
+      id: "iys-2025-part2", 
+      title: "IYS 2025 - Part 2",
+      year: "2025",
+      status: "active",
+      role: "Participant",
+      dateParticipated: "Aug 2025"
+    },
+    {
+      id: "iys-2024-part1",
+      title: "IYS 2024 - Part 1", 
+      year: "2024",
+      status: "completed",
+      role: "Participant",
+      dateParticipated: "Mar 2024"
+    }
+  ];
+
+  // Get currently selected program (default to most recent active or completed)
+  const [currentProgram, setCurrentProgram] = useState(
+    participantPrograms.find(p => p.status === 'active') || participantPrograms[0]
+  );
+
+  const handleProgramSwitch = (programId: string) => {
+    const selectedProgram = participantPrograms.find(p => p.id === programId);
+    if (selectedProgram) {
+      setCurrentProgram(selectedProgram);
+      // TODO: Update the context/state to switch dashboard data to selected program
+      // This would typically update a global state or context that other components use
+    }
+  };
+
   const handleLogout = () => {
     // TODO: Implement logout logic  
     router.push(YBB_ROUTES.HOME);
@@ -285,6 +327,84 @@ const ParticipantLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             <div className="d-flex align-items-center">
+              {/* Program Selector Dropdown */}
+              <div className="dropdown ms-sm-3 header-item">
+                <button
+                  type="button"
+                  className="btn btn-ghost-primary material-shadow-none d-flex align-items-center"
+                  id="program-selector-dropdown"
+                  data-bs-toggle="dropdown"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                >
+                  <div className="me-2">
+                    <i className="ri-calendar-event-line fs-16"></i>
+                  </div>
+                  <div className="text-start d-none d-lg-block">
+                    <div className="fs-14 fw-medium">{currentProgram.title}</div>
+                    <div className="fs-12 text-muted">{currentProgram.dateParticipated}</div>
+                  </div>
+                  <div className="ms-2">
+                    <i className="ri-arrow-down-s-line fs-16"></i>
+                  </div>
+                </button>
+                <div className="dropdown-menu dropdown-menu-end" style={{ minWidth: "280px" }}>
+                  <div className="dropdown-header">
+                    <h6 className="mb-0">My Programs</h6>
+                    <small className="text-muted">Switch between your program participations</small>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  {participantPrograms.map((program) => (
+                    <button
+                      key={program.id}
+                      className={`dropdown-item d-flex align-items-center p-3 ${
+                        currentProgram.id === program.id ? 'active' : ''
+                      }`}
+                      onClick={() => handleProgramSwitch(program.id)}
+                    >
+                      <div className="flex-shrink-0 me-3">
+                        <div className={`avatar-xs ${
+                          program.status === 'active' 
+                            ? 'bg-success-subtle text-success' 
+                            : 'bg-secondary-subtle text-secondary'
+                        } rounded-circle d-flex align-items-center justify-content-center`}>
+                          <i className={
+                            program.status === 'active' 
+                              ? 'ri-play-circle-line' 
+                              : 'ri-checkbox-circle-line'
+                          }></i>
+                        </div>
+                      </div>
+                      <div className="flex-grow-1">
+                        <div className="fw-medium">{program.title}</div>
+                        <div className="fs-13 text-muted d-flex align-items-center">
+                          <span className="me-2">{program.dateParticipated}</span>
+                          <span className={`badge ${
+                            program.status === 'active' 
+                              ? 'bg-success-subtle text-success' 
+                              : 'bg-secondary-subtle text-secondary'
+                          } fs-11`}>
+                            {program.status === 'active' ? 'Active' : 'Completed'}
+                          </span>
+                        </div>
+                      </div>
+                      {currentProgram.id === program.id && (
+                        <div className="flex-shrink-0">
+                          <i className="ri-check-line text-success"></i>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                  <div className="dropdown-divider"></div>
+                  <div className="dropdown-item-text p-3 text-center">
+                    <Link href="/apply" className="btn btn-soft-primary btn-sm">
+                      <i className="ri-add-line me-1"></i>
+                      Join New Program
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
               {/* User Dropdown */}
               <div className="dropdown ms-sm-3 header-item topbar-user">
                 <button
