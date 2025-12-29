@@ -1,0 +1,21 @@
+{
+  "common": {
+    "welcome": "Selamat Datang",
+    "home": "Beranda",
+    "about": "Tentang",
+    "contact": "Kontak",
+    "loading": "Memuat...",
+    "error": "Kesalahan",
+    "success": "Berhasil",
+    "submit": "Kirim",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "close": "Tutup"
+  },
+  "home": {
+    "title": "Selamat Datang di Japan Youth Summit",
+    "description": "Aplikasi Next.js modern dan scalable yang dibangun dengan standar internasional"
+  }
+}
