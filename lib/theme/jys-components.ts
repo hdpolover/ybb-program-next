@@ -165,20 +165,58 @@ export const jysSectionTheme = {
     silverOrgDesc: 'text-sm text-slate-700',
     silverOrgCardWide:
       'rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300 sm:col-span-2',
-    othersCard:
-      'mt-14 rounded-2xl bg-white/90 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
-    othersHeader: 'mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between',
-    othersTitle: 'text-lg font-extrabold text-blue-900',
-    othersSubtitle: 'text-sm text-slate-600',
-    othersGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
-    othersLogoCard:
+  },
+  partnersProven: {
+    sectionWrapper: 'px-6 py-14 sm:py-16 md:py-20 lg:px-8 bg-slate-50/60',
+    container: 'mx-auto max-w-7xl',
+    subtitle: 'mx-auto -mt-6 mb-2 max-w-2xl text-center text-sm text-slate-600 sm:mb-0 sm:text-base',
+    layout:
+      'mt-10 grid items-center gap-10 md:grid-cols-[minmax(0,0.35fr)_minmax(0,1fr)]',
+    impactCol: 'space-y-3 text-blue-950',
+    impactValue: 'text-3xl md:text-4xl font-extrabold tracking-tight text-blue-950',
+    impactLabel: 'text-sm md:text-base text-slate-700 max-w-xs',
+    card:
+      'rounded-2xl bg-white/90 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
+    cardHeader: 'mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between',
+    cardTitle: 'text-lg font-extrabold text-blue-900',
+    cardSubtitle: 'text-sm text-slate-600',
+    logosGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
+    logoCard:
       'flex items-center justify-center rounded-xl bg-white p-4 transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(15,23,42,0.18)] focus:outline-none focus:ring-2 focus:ring-pink-300',
-    othersLogoImg: 'h-12 w-auto object-contain',
+    logoImg: 'h-12 w-auto object-contain',
   },
   partnersImpact: {
     sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8',
     container: 'mx-auto max-w-7xl',
     grid: 'grid gap-6 sm:grid-cols-2 lg:grid-cols-4',
+  },
+  partnersRequire: {
+    sectionWrapper: 'px-6 py-16 sm:py-20 lg:py-24 lg:px-8 bg-white',
+    container: 'mx-auto max-w-4xl',
+    subtitle:
+      'mx-auto -mt-6 mb-6 max-w-2xl text-center text-sm text-slate-600 sm:mb-8 sm:text-base',
+    formGrid: 'grid gap-6 sm:grid-cols-2',
+    fieldGroup: 'flex flex-col gap-2',
+    fieldGroupFull: 'flex flex-col gap-2 sm:col-span-2',
+    // Slightly larger, more prominent field labels
+    label: 'text-xs font-semibold uppercase tracking-wide text-slate-700 sm:text-[13px]',
+    iconFieldWrapper:
+      'mt-1 relative flex items-center overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-0 focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-200',
+    iconFieldWrapperTextarea:
+      'mt-1 relative flex items-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-0 focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-200',
+    // Plain icon without background bubble
+    icon: 'pointer-events-none ml-3 flex h-9 w-9 items-center justify-center text-pink-600',
+    inputWithIcon:
+      'h-11 w-full border-0 bg-transparent px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-0',
+    textareaWithIcon:
+      'w-full min-h-[132px] border-0 bg-transparent px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-0 resize-none',
+    input:
+      'mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-0 transition focus:border-pink-400 focus:ring-2 focus:ring-pink-200',
+    textarea:
+      'mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-0 transition focus:border-pink-400 focus:ring-2 focus:ring-pink-200 resize-none',
+    actionsRow: 'sm:col-span-2 mt-4 flex justify-end',
+    submitButton:
+      'inline-flex items-center justify-center rounded-full bg-pink-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
   },
   alumniStories: {
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
@@ -873,7 +911,31 @@ export const jysSectionTheme = {
       'mt-1 inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200',
   },
   partnersDetail: {
-    iconCircle: 'inline-grid h-10 w-10 place-items-center rounded-full bg-pink-600 text-white',
+    sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8 bg-white',
+    container: 'mx-auto max-w-5xl',
+    card:
+      'relative overflow-hidden rounded-3xl bg-white p-6 shadow-[0_14px_45px_rgba(15,23,42,0.12)] ring-1 ring-slate-200 sm:p-8',
+    headerRow: 'relative z-10 mb-4 flex items-baseline justify-between gap-4',
+    title: 'text-lg font-extrabold text-blue-900 sm:text-xl',
+    bestForLabel: 'mt-1 text-sm text-slate-600',
+    priceText: 'relative z-10 text-xl font-extrabold text-[#5C3BFF] whitespace-nowrap sm:text-2xl',
+    bodyGrid: 'relative z-10 mt-3 grid gap-2 text-sm text-slate-700',
+    bulletRow: 'flex items-start gap-2',
+    bulletIcon: 'mt-0.5 h-4 w-4 text-emerald-500',
+    bulletText: 'text-sm text-slate-700',
+    // Right-side gradient overlay behind price & bullets
+    // Slightly wider so color is more visible
+    gradientRightBase:
+      'pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l to-transparent z-0',
+    // Match hues with partnersOpportunities card backgrounds but a bit stronger
+    // communityCard: bg-gradient-to-t from-blue-50 to-white
+    gradientRightCommunity: 'from-blue-100 via-blue-50',
+    // silverCard: bg-gradient-to-t from-slate-50 to-white
+    gradientRightSilver: 'from-slate-100 via-slate-50',
+    // goldCard: bg-gradient-to-t from-amber-50 to-white
+    gradientRightGold: 'from-amber-100 via-amber-50',
+    // diamondCard: bg-gradient-to-t from-pink-50 to-white
+    gradientRightDiamond: 'from-pink-100 via-pink-50',
   },
   programDetail: {
     // Hero section
