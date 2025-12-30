@@ -9,6 +9,13 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
 COPY . .
+
+# Build-time variables
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_S3_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_S3_URL=$NEXT_PUBLIC_S3_URL
+
 RUN npm run build
 
 FROM node:20-alpine AS runner
