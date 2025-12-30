@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  ybb-program-next:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_S3_URL: ${NEXT_PUBLIC_S3_URL}
+    container_name: ybb-program-next
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_S3_URL=${NEXT_PUBLIC_S3_URL}
+    # ports:
+    #   - "3000:3000"
+    networks:
+      - ybb-network
+      - web_gateway
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ybb-program-next.rule=Host(`test.japanyouthsummit.com`)"
+      - "traefik.http.routers.ybb-program-next.entrypoints=websecure"
+      - "traefik.http.routers.ybb-program-next.tls.certresolver=myresolver"
+      - "traefik.http.services.ybb-program-next.loadbalancer.server.port=3000"
+
+networks:
+  ybb-network:
+    external: true
+    name: ybb-platform_ybb-network
+  web_gateway:
+    external: true

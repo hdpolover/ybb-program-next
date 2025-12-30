@@ -1,0 +1,6 @@
+version: '3.8'
+
+services:
+  ybb-program-next:
+    ports:
+      - "3000:3000" # Expose Next.js on port 3000 for local dev
