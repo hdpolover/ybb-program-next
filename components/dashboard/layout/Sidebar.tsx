@@ -1,4 +1,15 @@
 'use client';
+import Image from 'next/image';
+import {
+  CreditCard,
+  FileText,
+  FolderClosed,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  Upload,
+  UserCircle2,
+} from 'lucide-react';
 import { dashboardNav } from '@/lib/dashboard/nav';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -30,10 +41,26 @@ export default function Sidebar() {
       window.localStorage.setItem('dashboard_sidebar_open', JSON.stringify(open));
     } catch {}
   }, [open, mounted]);
+
+  const renderIcon = (href: string) => {
+    if (href === '/dashboard') return <LayoutDashboard className="h-4 w-4" />;
+    if (href.startsWith('/dashboard/submission')) return <Upload className="h-4 w-4" />;
+    if (href.startsWith('/dashboard/documents')) return <FolderClosed className="h-4 w-4" />;
+    if (href.startsWith('/dashboard/payments')) return <CreditCard className="h-4 w-4" />;
+    return <FileText className="h-4 w-4" />;
+  };
   return (
-    <aside className="sticky top-20 h-[calc(100dvh-5rem)] w-full max-w-[260px] shrink-0 overflow-auto rounded-2xl bg-[url('/img/bg3striplurus.png')] bg-cover bg-center p-3 shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200">
-      <nav className="space-y-1 rounded-xl bg-white/70 p-2 backdrop-blur ring-1 ring-white/40">
-        {dashboardNav.map(item => {
+    <aside className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-slate-200 bg-[#e53b8c] px-3 py-6">
+      {/* Logo header */}
+      <div className="mb-5 flex justify-start">
+        <div className="relative h-14 w-32">
+          <Image src="/img/jysfooters.png" alt="Japan Youth Summit" fill className="object-contain" />
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-between gap-4">
+        <nav className="w-full space-y-1">
+          {dashboardNav.map(item => {
           const active =
             pathname === item.href ||
             (item.href !== '/dashboard' && pathname.startsWith(item.href));
@@ -46,12 +73,17 @@ export default function Sidebar() {
                   type="button"
                   onClick={() => setOpen(prev => ({ ...prev, [item.href]: !prev[item.href] }))}
                   className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-semibold transition ${
-                    active ? 'bg-pink-50 text-pink-700 ring-1 ring-pink-200' : 'text-slate-700 hover:bg-slate-50'
+                    active
+                      ? 'bg-white text-pink-700 ring-1 ring-pink-200'
+                      : 'text-white/85 hover:bg-white/10'
                   }`}
                   aria-expanded={expanded}
                   aria-controls={`submenu-${item.href}`}
                 >
-                  <span>{item.label}</span>
+                  <span className="flex items-center gap-2">
+                    {renderIcon(item.href)}
+                    <span>{item.label}</span>
+                  </span>
                   <svg
                     aria-hidden
                     viewBox="0 0 20 20"
@@ -65,10 +97,15 @@ export default function Sidebar() {
                 <a
                   href={item.href}
                   className={`flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                    active ? 'bg-pink-50 text-pink-700 ring-1 ring-pink-200' : 'text-slate-700 hover:bg-slate-50'
+                    active
+                      ? 'bg-white text-pink-700 ring-1 ring-pink-200'
+                      : 'text-white/85 hover:bg-white/10'
                   }`}
                 >
-                  <span>{item.label}</span>
+                  <span className="flex items-center gap-2">
+                    {renderIcon(item.href)}
+                    <span>{item.label}</span>
+                  </span>
                   {active ? <span className="inline-block h-2 w-2 rounded-full bg-pink-600" /> : null}
                 </a>
               )}
@@ -87,8 +124,8 @@ export default function Sidebar() {
                           href={child.href}
                           className={`block rounded-lg px-2 py-1.5 text-[13px] font-medium transition ${
                             childActive
-                              ? 'bg-pink-50 text-pink-700 ring-1 ring-pink-200'
-                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                              ? 'bg-white text-pink-700 ring-1 ring-pink-200'
+                              : 'text-white/80 hover:bg-white/10 hover:text-white'
                           }`}
                         >
                           {child.label}
@@ -101,7 +138,48 @@ export default function Sidebar() {
             </div>
           );
         })}
-      </nav>
+        </nav>
+
+        {/* Bottom profile + settings */}
+        <div className="mt-4 space-y-3 border-t border-white/30 pt-4 text-sm text-white/90">
+          <div className="flex items-center gap-3">
+            <div className="relative h-9 w-9 overflow-hidden rounded-full bg-white/90 ring-2 ring-white/60">
+              <Image
+                src="/img/photoprofile.png"
+                alt="Dashboard profile"
+                fill
+                className="object-cover"
+                sizes="36px"
+              />
+            </div>
+            <div>
+              <div className="text-sm font-semibold leading-tight">Hilmi Farrel F.</div>
+              <div className="mt-0.5 inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">
+                JYS Participant
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-white/90 transition hover:bg-white/10"
+          >
+            <span className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span>Settings</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-white/90 transition hover:bg-white/10"
+          >
+            <span className="flex items-center gap-2">
+              <LogOut className="h-4 w-4" />
+              <span>Log out</span>
+            </span>
+          </button>
+        </div>
+      </div>
     </aside>
   );
 }

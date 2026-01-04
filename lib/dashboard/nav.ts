@@ -6,15 +6,8 @@ export type NavItem = {
 };
 
 export const dashboardNav: NavItem[] = [
-  { label: 'Overview', href: '/dashboard' },
+  { label: 'Dashboard', href: '/dashboard' },
   { label: 'Submission', href: '/dashboard/submission' },
-  {
-    label: 'Documents',
-    href: '/dashboard/documents',
-    children: [
-      { label: 'Program Documents', href: '/dashboard/documents/program' },
-      { label: 'Certificates', href: '/dashboard/documents/certificates' },
-    ],
-  },
   { label: 'Payments', href: '/dashboard/payments' },
+  { label: 'Document', href: '/dashboard/documents' },
 ];

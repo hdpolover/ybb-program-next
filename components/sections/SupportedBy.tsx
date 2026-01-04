@@ -5,7 +5,7 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 
 const supportedLogos = [
-  '/img/jysfooter.png',
+  '/img/jys.png',
   '/img/IYSlogo.png',
   '/img/YAFlogo.png',
   '/img/KYSlogo.png',

@@ -6,15 +6,15 @@ export default function AnnouncementsPage() {
   const awardAnnouncements = announcementsData.filter(item => item.category === 'awards');
   return (
     <main className="relative">
-      {/* Hero slider — highlight beberapa berita terbaru */}
+      {/* Hero slider - highlight beberapa berita terbaru */}
       <AnnouncementsHero />
 
-      {/* Section pengumuman — dipisah ke komponen biar clean */}
+      {/* Section pengumuman - dipisah ke komponen biar clean */}
       <section id="announcements">
         <AnnouncementsGrid items={announcementsData} />
       </section>
 
-      {/* Meet Our Awardees — news/announcements about winners using same layout */}
+      {/* Meet Our Awardees - news/announcements about winners using same layout */}
       {awardAnnouncements.length > 0 ? (
         <section id="awardees">
           <AnnouncementsGrid
