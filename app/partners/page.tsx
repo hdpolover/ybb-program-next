@@ -1,8 +1,10 @@
 import HeroSection from '@/components/ui/HeroSection';
 import WhyPartnerSection from '@/components/partners/WhyPartner';
 import SponsorTiersSection from '@/components/partners/SponsorTiers';
+import ProvenResultsSection from '@/components/partners/ProvenResults';
 import CommunityPartnersSection from '@/components/partners/CommunityPartners';
 import PartnershipOpportunitiesSection from '@/components/partners/PartnershipOpportunities';
+import RequireNowSection from '@/components/partners/RequireNow';
 // import PartnershipImpactSection from '@/components/partners/PartnershipImpact';
 import PartnershipJourneySection from '@/components/partners/PartnershipJourney';
 import PartnerFAQSection from '@/components/partners/PartnerFAQ';
@@ -25,7 +27,9 @@ export default function PartnersSponsorsPage() {
       <PartnershipOpportunitiesSection />
       <CommunityPartnersSection />
       <SponsorTiersSection />
+      <ProvenResultsSection />
       <PartnershipJourneySection />
+      <RequireNowSection />
       <PartnerFAQSection />
       {/* <PartnershipImpactSection /> */}
     </main>

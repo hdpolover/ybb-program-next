@@ -9,29 +9,29 @@ const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
 export type Level = 'high' | 'medium' | 'low' | 'none';
 
-// Simple mock categories; extend this with real data later.
-// Keys here adalah NAMA NEGARA persis dari geo.properties.NAME (bukan kode ISO).
+// Kategori dummy dulu; nanti tinggal diganti/extend sama data beneran.
+// Key di sini harus PERSIS nama negara dari geo.properties.NAME (bukan kode ISO).
 export const countryLevels: Record<string, Level> = {
-  // High participation examples
+  // Contoh negara dengan partisipasi tinggi
   Indonesia: 'high',
   Japan: 'high',
   Pakistan: 'high',
-  // Medium participation examples
+  // Contoh negara dengan partisipasi sedang
   India: 'medium',
   Malaysia: 'medium',
   Singapore: 'medium',
-  // Low participation examples
+  // Contoh negara dengan partisipasi rendah
   'United States of America': 'low',
   Canada: 'low',
   Australia: 'low',
   Brazil: 'low',
   Germany: 'low',
   France: 'low',
-  // Explicit no-participants example
+  // Contoh eksplisit negara yang belum ada peserta
   Kazakhstan: 'none',
 };
 
-// Mock participant counts per country (replace with real data later)
+// Jumlah peserta per negara masih dummy (nanti tinggal diganti ke data asli)
 export const countryParticipants: Record<string, number> = {
   Indonesia: 320,
   Japan: 260,
@@ -49,10 +49,10 @@ export const countryParticipants: Record<string, number> = {
 
 function getFillForCountry(nameKey: string): string {
   const level = (countryLevels[nameKey] ?? 'none') as Level;
-  if (level === 'high') return '#ef4444'; // red-500
-  if (level === 'medium') return '#facc15'; // yellow-400
-  if (level === 'low') return '#22c55e'; // emerald-500
-  return '#e5e7eb'; // gray-200 for no participants
+  if (level === 'high') return '#ef4444'; // merah (high participation)
+  if (level === 'medium') return '#facc15'; // kuning (medium participation)
+  if (level === 'low') return '#22c55e'; // hijau (low participation)
+  return '#e5e7eb'; // abu-abu kalau belum ada peserta
 }
 
 export default function ParticipantDistribution() {
@@ -70,7 +70,7 @@ export default function ParticipantDistribution() {
     ? `${selectedCountry.participants.toLocaleString()} participants`
     : '';
 
-  // Hitung Top 10 negara berdasarkan jumlah peserta (mock), untuk ditampilkan di bawah map
+  // Ngitung Top 10 negara berdasarkan jumlah peserta (masih mock), buat ditampilin di bawah map
   const all = Object.entries(countryParticipants).map(([name, count]) => ({
     name,
     count: Number(count),

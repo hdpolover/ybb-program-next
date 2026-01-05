@@ -165,20 +165,58 @@ export const jysSectionTheme = {
     silverOrgDesc: 'text-sm text-slate-700',
     silverOrgCardWide:
       'rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300 sm:col-span-2',
-    othersCard:
-      'mt-14 rounded-2xl bg-white/90 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
-    othersHeader: 'mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between',
-    othersTitle: 'text-lg font-extrabold text-blue-900',
-    othersSubtitle: 'text-sm text-slate-600',
-    othersGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
-    othersLogoCard:
+  },
+  partnersProven: {
+    sectionWrapper: 'px-6 py-14 sm:py-16 md:py-20 lg:px-8 bg-slate-50/60',
+    container: 'mx-auto max-w-7xl',
+    subtitle: 'mx-auto -mt-6 mb-2 max-w-2xl text-center text-sm text-slate-600 sm:mb-0 sm:text-base',
+    layout:
+      'mt-10 grid items-center gap-10 md:grid-cols-[minmax(0,0.35fr)_minmax(0,1fr)]',
+    impactCol: 'space-y-3 text-blue-950',
+    impactValue: 'text-3xl md:text-4xl font-extrabold tracking-tight text-blue-950',
+    impactLabel: 'text-sm md:text-base text-slate-700 max-w-xs',
+    card:
+      'rounded-2xl bg-white/90 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
+    cardHeader: 'mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between',
+    cardTitle: 'text-lg font-extrabold text-blue-900',
+    cardSubtitle: 'text-sm text-slate-600',
+    logosGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
+    logoCard:
       'flex items-center justify-center rounded-xl bg-white p-4 transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(15,23,42,0.18)] focus:outline-none focus:ring-2 focus:ring-pink-300',
-    othersLogoImg: 'h-12 w-auto object-contain',
+    logoImg: 'h-12 w-auto object-contain',
   },
   partnersImpact: {
     sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8',
     container: 'mx-auto max-w-7xl',
     grid: 'grid gap-6 sm:grid-cols-2 lg:grid-cols-4',
+  },
+  partnersRequire: {
+    sectionWrapper: 'px-6 py-16 sm:py-20 lg:py-24 lg:px-8 bg-white',
+    container: 'mx-auto max-w-4xl',
+    subtitle:
+      'mx-auto -mt-6 mb-6 max-w-2xl text-center text-sm text-slate-600 sm:mb-8 sm:text-base',
+    formGrid: 'grid gap-6 sm:grid-cols-2',
+    fieldGroup: 'flex flex-col gap-2',
+    fieldGroupFull: 'flex flex-col gap-2 sm:col-span-2',
+    // Slightly larger, more prominent field labels
+    label: 'text-xs font-semibold uppercase tracking-wide text-slate-700 sm:text-[13px]',
+    iconFieldWrapper:
+      'mt-1 relative flex items-center overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-0 focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-200',
+    iconFieldWrapperTextarea:
+      'mt-1 relative flex items-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-0 focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-200',
+    // Plain icon without background bubble
+    icon: 'pointer-events-none ml-3 flex h-9 w-9 items-center justify-center text-pink-600',
+    inputWithIcon:
+      'h-11 w-full border-0 bg-transparent px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-0',
+    textareaWithIcon:
+      'w-full min-h-[132px] border-0 bg-transparent px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-0 resize-none',
+    input:
+      'mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-0 transition focus:border-pink-400 focus:ring-2 focus:ring-pink-200',
+    textarea:
+      'mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-0 transition focus:border-pink-400 focus:ring-2 focus:ring-pink-200 resize-none',
+    actionsRow: 'sm:col-span-2 mt-4 flex justify-end',
+    submitButton:
+      'inline-flex items-center justify-center rounded-full bg-pink-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
   },
   alumniStories: {
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
@@ -873,7 +911,31 @@ export const jysSectionTheme = {
       'mt-1 inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200',
   },
   partnersDetail: {
-    iconCircle: 'inline-grid h-10 w-10 place-items-center rounded-full bg-pink-600 text-white',
+    sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8 bg-white',
+    container: 'mx-auto max-w-5xl',
+    card:
+      'relative overflow-hidden rounded-3xl bg-white p-6 shadow-[0_14px_45px_rgba(15,23,42,0.12)] ring-1 ring-slate-200 sm:p-8',
+    headerRow: 'relative z-10 mb-4 flex items-baseline justify-between gap-4',
+    title: 'text-lg font-extrabold text-blue-900 sm:text-xl',
+    bestForLabel: 'mt-1 text-sm text-slate-600',
+    priceText: 'relative z-10 text-xl font-extrabold text-[#5C3BFF] whitespace-nowrap sm:text-2xl',
+    bodyGrid: 'relative z-10 mt-3 grid gap-2 text-sm text-slate-700',
+    bulletRow: 'flex items-start gap-2',
+    bulletIcon: 'mt-0.5 h-4 w-4 text-emerald-500',
+    bulletText: 'text-sm text-slate-700',
+    // Right-side gradient overlay behind price & bullets
+    // Slightly wider so color is more visible
+    gradientRightBase:
+      'pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l to-transparent z-0',
+    // Match hues with partnersOpportunities card backgrounds but a bit stronger
+    // communityCard: bg-gradient-to-t from-blue-50 to-white
+    gradientRightCommunity: 'from-blue-100 via-blue-50',
+    // silverCard: bg-gradient-to-t from-slate-50 to-white
+    gradientRightSilver: 'from-slate-100 via-slate-50',
+    // goldCard: bg-gradient-to-t from-amber-50 to-white
+    gradientRightGold: 'from-amber-100 via-amber-50',
+    // diamondCard: bg-gradient-to-t from-pink-50 to-white
+    gradientRightDiamond: 'from-pink-100 via-pink-50',
   },
   programDetail: {
     // Hero section
@@ -1042,6 +1104,435 @@ export const jysSectionTheme = {
     countdownLabel:
       'mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-[11px]',
     note: 'mt-4 text-center text-[11px] text-slate-500 sm:text-xs',
+  },
+  dashboardDocuments: {
+    sectionWrapper: 'space-y-6',
+    tabsWrapper:
+      'inline-flex rounded-full border border-slate-200 bg-slate-50 p-1 text-sm font-medium text-slate-600',
+    tabButton:
+      'rounded-full px-4 py-1.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50',
+    tabButtonActive: 'bg-white text-pink-700 shadow-sm',
+    tabButtonInactive: 'text-slate-600 hover:text-slate-900 hover:bg-white/60',
+    tableCard:
+      'overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
+    tableHeader:
+      'items-center gap-4 bg-pink-600 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white',
+    tableHeaderSortButton: 'flex items-center gap-1 text-left',
+    tableHeaderSortButtonRight: 'ml-auto flex items-center gap-1 text-right',
+    tableHeaderSortIcon: 'text-[10px] leading-none',
+    tableBody: 'divide-y divide-slate-100 bg-white',
+    tableRow:
+      'items-center gap-4 px-6 py-3 text-sm text-slate-700 hover:bg-slate-50/80',
+    docNameCell: 'truncate font-semibold text-slate-900',
+    docDescriptionCell: 'truncate text-slate-600',
+    docTypeCell: 'text-slate-700',
+    actionCell: 'flex justify-end',
+    downloadButton:
+      'inline-flex items-center gap-1 rounded-full bg-pink-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-pink-700',
+    emptyStateWrapper:
+      'flex min-h-[260px] flex-col items-center justify-center bg-slate-50 px-6 py-10 text-center',
+    emptyStateImageWrapper: 'mb-4 flex items-center justify-center',
+    emptyStateTitle: 'text-base font-extrabold text-slate-900',
+    emptyStateText: 'mt-1 max-w-md text-sm text-slate-600',
+    certificatesSectionWrapper: 'space-y-4 pt-4',
+    certificatesTitle:
+      'text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl',
+    certificatesSubtitle:
+      'mt-1 max-w-2xl text-xs text-slate-500 sm:text-sm',
+    statusBadgeBase:
+      'inline-flex rounded-full px-3 py-0.5 text-xs font-semibold ring-1',
+    statusApproved: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
+    statusOngoing: 'bg-indigo-50 text-indigo-700 ring-indigo-100',
+    statusDefault: 'bg-slate-50 text-slate-700 ring-slate-200',
+  },
+  dashboardPayments: {
+    sectionWrapper: 'space-y-6',
+    summaryGrid: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4',
+    summaryCardBase: 'flex flex-col justify-between rounded-2xl p-4 text-sm shadow-sm',
+    summaryCompleteCard: 'border border-emerald-100 bg-emerald-50/60',
+    summaryPendingCard: 'border border-amber-100 bg-amber-50/70',
+    summaryOverdueCard: 'border border-rose-100 bg-rose-50/70',
+    summaryTotalCard: 'border border-slate-200 bg-slate-50',
+    summaryCardInner: 'flex items-center justify-between gap-3',
+    summaryEyebrow: 'text-xs font-semibold uppercase tracking-wide',
+    summaryCompleteEyebrow: 'text-emerald-700',
+    summaryPendingEyebrow: 'text-amber-700',
+    summaryOverdueEyebrow: 'text-rose-700',
+    summaryTotalEyebrow: 'text-slate-600',
+    summaryValue: 'mt-1 text-2xl font-extrabold',
+    summaryCompleteValue: 'text-emerald-900',
+    summaryPendingValue: 'text-amber-900',
+    summaryOverdueValue: 'text-rose-900',
+    summaryTotalValue: 'text-slate-900',
+    summaryIconCircle: 'flex h-9 w-9 items-center justify-center rounded-full text-white shadow-sm',
+    summaryCompleteIconCircle: 'bg-emerald-600',
+    summaryPendingIconCircle: 'bg-amber-500',
+    summaryOverdueIconCircle: 'bg-rose-500',
+    summaryTotalIconCircle: 'bg-slate-800',
+
+    categoryCard:
+      'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)]',
+    categoryHeader: 'flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between',
+    categoryTitle: 'text-sm font-extrabold uppercase tracking-wide text-slate-700',
+    categoryBodyText: 'space-y-1 text-sm text-slate-700',
+    categoryLabel: 'font-semibold text-slate-800',
+    categoryPill:
+      'inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100',
+    categoryPillIcon: 'h-4 w-4',
+    categoryStatusText: 'text-base font-extrabold text-emerald-700',
+    categoryDescription: 'text-xs leading-relaxed text-slate-600',
+    categoryBulletList: 'mt-1 space-y-1 text-sm text-slate-700',
+    categoryBulletItem: 'flex items-start gap-2',
+    categoryBulletIconBase:
+      'mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ring-1',
+    categoryBulletIconPrimary:
+      'bg-emerald-50 text-emerald-600 ring-emerald-100',
+    categoryBulletIconSecondary:
+      'bg-pink-50 text-pink-600 ring-pink-100',
+    categoryBulletIconTertiary:
+      'bg-violet-50 text-violet-600 ring-violet-100',
+    categoryBulletIconInner: 'h-3 w-3',
+    categoryPrimaryCta:
+      'inline-flex items-center gap-2 rounded-full bg-pink-600 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+
+    tableCard:
+      'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)]',
+    tableHeaderRow:
+      'mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
+    tableTitle: 'text-sm font-extrabold uppercase tracking-wide text-slate-700',
+    tableSubtitle: 'mt-1 text-xs text-slate-500',
+    tableControlsWrapper: 'flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4',
+    tableShowWrapper: 'flex items-center gap-2 text-xs text-slate-600',
+    tableShowSelect:
+      'h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-pink-500',
+    tableSearchWrapper:
+      'flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-600',
+    tableSearchInput:
+      'w-40 border-none bg-transparent text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:w-52',
+
+    tableOuter: 'overflow-x-auto',
+    table: 'min-w-full text-left text-sm',
+    tableHeadRow: 'bg-pink-600 text-xs font-semibold uppercase tracking-wide text-white',
+    tableHeadCell: 'px-4 py-3',
+    tableHeadCellRight: 'px-4 py-3 text-right',
+    tableBody: 'divide-y divide-slate-100 bg-white text-slate-800',
+    tableRow: '',
+    paymentInfoCell: 'px-4 py-3 text-sm font-medium text-slate-900',
+    statusCell: 'px-4 py-3',
+    periodCell: 'px-4 py-3 text-sm text-slate-700',
+    amountCell: 'px-4 py-3 text-sm font-semibold text-slate-900',
+    syncDateCell: 'px-4 py-3 text-sm text-slate-700',
+    actionsCell: 'px-4 py-3 text-right',
+    statusBadgeBase:
+      'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1',
+    statusBadgePaid: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    statusBadgeUnpaid: 'bg-rose-50 text-rose-700 ring-rose-200',
+    actionsWrapper: 'inline-flex items-center gap-2',
+    primaryIconButton:
+      'inline-flex h-7 w-7 items-center justify-center rounded-md border border-pink-600 bg-pink-600 text-slate-50 shadow-sm transition hover:bg-pink-700',
+    secondaryIconButton:
+      'inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-700 shadow-sm transition hover:bg-slate-100',
+    tertiaryIconButton:
+      'inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50',
+    tableFooterText: 'mt-3 text-xs text-slate-500',
+  },
+  dashboardOverview: {
+    sectionWrapper: 'space-y-6',
+
+    // top summary
+    summaryGrid: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4',
+    summaryCardBase: 'flex flex-col justify-between rounded-2xl p-4 text-sm shadow-sm',
+    summaryCompleteCard: 'border border-emerald-100 bg-emerald-50/60',
+    summaryPendingCard: 'border border-amber-100 bg-amber-50/70',
+    summaryOverdueCard: 'border border-rose-100 bg-rose-50/70',
+    summaryTotalCard: 'border border-slate-200 bg-slate-50',
+    summaryInnerRow: 'flex items-center justify-between gap-3',
+    summaryEyebrowBase: 'text-xs font-semibold uppercase tracking-wide',
+    summaryEyebrowComplete: 'text-emerald-700',
+    summaryEyebrowPending: 'text-amber-700',
+    summaryEyebrowOverdue: 'text-rose-700',
+    summaryEyebrowTotal: 'text-slate-600',
+    summaryValueBase: 'mt-1 text-2xl font-extrabold',
+    summaryValueComplete: 'text-emerald-900',
+    summaryValuePending: 'text-amber-900',
+    summaryValueOverdue: 'text-rose-900',
+    summaryValueTotal: 'text-slate-900',
+    summaryIconCircleBase:
+      'flex h-9 w-9 items-center justify-center rounded-full text-white shadow-sm',
+    summaryIconCircleComplete: 'bg-emerald-600',
+    summaryIconCirclePending: 'bg-amber-500',
+    summaryIconCircleOverdue: 'bg-rose-500',
+    summaryIconCircleTotal: 'bg-slate-800',
+
+    // main grid
+    mainGrid:
+      'grid gap-6 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]',
+    leftColumnWrapper: 'space-y-6',
+
+    // registration card
+    registrationCard:
+      'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)]',
+    registrationIconCircle:
+      'flex h-11 w-11 items-center justify-center rounded-full bg-pink-50 text-pink-600 ring-1 ring-pink-200',
+    registrationBodyWrapper: 'flex-1 space-y-3',
+    registrationHeaderRow:
+      'flex flex-wrap items-baseline justify-between gap-3',
+    registrationTitle:
+      'text-sm font-extrabold uppercase tracking-wide text-slate-700',
+    registrationSubtitle:
+      'mt-1 text-xs font-semibold uppercase tracking-wide text-pink-600',
+    registrationDescription:
+      'text-sm leading-relaxed text-slate-700',
+    registrationFooterRow:
+      'mt-3 flex flex-col items-start gap-3 border-t border-slate-100 pt-3 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between',
+    registrationSwitchIconCircle:
+      'mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-500',
+    registrationSwitchText:
+      'max-w-xl text-xs leading-relaxed text-slate-700 sm:text-sm',
+    registrationSwitchButton:
+      'inline-flex items-center gap-2 rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+
+    // program details
+    programCard:
+      'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)]',
+    programHeaderRow: 'mb-4 flex items-center justify-between gap-3',
+    programTitle:
+      'text-sm font-extrabold uppercase tracking-wide text-slate-700',
+    programSubtitle: 'mt-1 text-xs text-slate-500',
+    programGrid: 'grid gap-4 md:grid-cols-2',
+
+    programSelfCard:
+      'flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm',
+    programSelfInner: 'space-y-3',
+    programSelfHeaderRow: 'flex items-start gap-3',
+    programSelfIconCircle:
+      'mt-1 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100',
+    programSelfTitle: 'text-base font-semibold text-slate-900',
+    programSelfSubtitle: 'text-xs font-medium text-slate-500',
+    programSelfSectionLabel:
+      'text-xs font-semibold uppercase tracking-wide text-slate-600',
+    programSelfBenefitList: 'space-y-1 text-sm text-slate-700',
+    programSelfBenefitItem: 'flex items-start gap-2',
+    programSelfBenefitIcon:
+      'mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500',
+    programSelfPaymentText: 'mt-1 text-sm text-slate-700',
+
+    programFullyCard:
+      'flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-violet-50/80 p-4 text-sm',
+    programFullyInner: 'space-y-3',
+    programFullyHeaderRow: 'flex items-start gap-3',
+    programFullyIconCircle:
+      'mt-1 flex h-9 w-9 items-center justify-center rounded-full bg-violet-100 text-violet-700 ring-1 ring-violet-200',
+    programFullyTitle: 'text-base font-semibold text-slate-900',
+    programFullySubtitle: 'text-xs font-medium text-slate-500',
+    programFullySectionLabel:
+      'text-xs font-semibold uppercase tracking-wide text-slate-600',
+    programFullyBenefitList: 'space-y-1 text-sm text-slate-700',
+    programFullyBenefitItem: 'flex items-start gap-2',
+    programFullyBenefitIcon:
+      'mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500',
+    programFullyPaymentText: 'mt-1 text-sm text-slate-700',
+
+    // guidebook aside
+    guideAside:
+      'relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-900/5 p-5 shadow-[0_10px_35px_rgba(15,23,42,0.12)]',
+    guideInner: 'relative flex flex-col gap-3',
+    guideHeaderWrapper: 'space-y-2',
+    guideEyebrow:
+      'text-xs font-semibold uppercase tracking-wide text-pink-600',
+    guideTitle: 'text-base font-extrabold text-slate-900',
+    guideBodyText: 'text-xs leading-relaxed text-slate-700',
+    guideLinksWrapper: 'space-y-2',
+    guideLink:
+      'flex items-center justify-between gap-2 rounded-full border border-pink-600/80 bg-transparent px-3 py-2 text-xs font-semibold text-pink-700 shadow-sm transition hover:border-pink-700 hover:text-pink-800',
+    guideLeftLinkInner: 'inline-flex items-center gap-2',
+    guideBadgeCircle:
+      'flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white shadow-sm',
+    guideBadgeText: 'leading-none',
+    guideFileType:
+      'text-[10px] font-semibold uppercase tracking-wide text-pink-600',
+
+    // notification alert
+    notificationCard:
+      'rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-[0_8px_26px_rgba(251,191,36,0.3)]',
+    notificationRow:
+      'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
+    notificationLeftRow: 'flex items-start gap-3',
+    notificationIconCircle:
+      'mt-0.5 flex h-10 w-10 items-center justify-center rounded-full bg-white text-amber-600 shadow-sm ring-2 ring-amber-200',
+    notificationTextWrapper: 'space-y-1',
+    notificationTitleRow:
+      'flex flex-wrap items-baseline gap-2',
+    notificationEyebrow:
+      'text-xs font-semibold uppercase tracking-wide text-amber-700',
+    notificationStatusPill:
+      'inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800',
+    notificationBodyText:
+      'max-w-2xl text-xs leading-relaxed text-amber-900 sm:text-sm',
+    notificationButton:
+      'inline-flex items-center justify-center gap-2 rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+  },
+  dashboardSubmission: {
+    sectionWrapper: 'space-y-6 text-sm',
+
+    // read-only profile header
+    profileCard:
+      'rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_10px_40px_rgba(15,23,42,0.08)]',
+    profileRow: 'flex flex-col gap-6 md:flex-row md:items-center md:justify-between',
+    profileLeft: 'flex items-start gap-5',
+    profileAvatarWrapper: 'relative h-20 w-20',
+    profileAvatarInner:
+      'absolute inset-0 overflow-hidden rounded-full bg-pink-600 shadow-lg ring-4 ring-pink-100',
+    profileAvatarImage: 'object-cover',
+    profileAvatarButton:
+      'absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-white text-pink-600 shadow-md ring-1 ring-pink-100',
+    profileName: 'text-lg font-extrabold text-slate-900',
+    profileRole: 'text-[11px] font-semibold uppercase tracking-wide text-pink-600',
+    profileMeta: 'text-xs text-slate-600',
+    profileMetaLabel: 'font-semibold text-slate-700',
+    profileRightWrapper: 'max-w-md text-xs text-slate-600 md:text-right',
+    profileRightLabel:
+      'text-[11px] font-semibold uppercase tracking-wide text-slate-500',
+    profileRightText: 'mt-1 leading-relaxed text-slate-700',
+
+    // read-only tabs
+    tabsWrapper: 'flex flex-wrap items-center gap-2',
+    tabButtonBase:
+      'rounded-full px-4 py-1.5 text-xs font-semibold transition ring-1',
+    tabButtonActive: 'bg-pink-600 text-white shadow-sm ring-pink-500',
+    tabButtonInactive:
+      'bg-white/70 text-slate-700 ring-slate-200 hover:bg-white',
+
+    // read-only sections
+    readSectionWrapper: 'space-y-4',
+    readSectionHeader:
+      'flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-slate-700',
+    readSectionIconCircle:
+      'inline-flex h-6 w-6 items-center justify-center rounded-full bg-pink-50 text-pink-600',
+    readSectionTitle: '',
+    readSectionSubtitle: 'mt-1 text-xs text-slate-500',
+    readGrid: 'grid gap-4 md:grid-cols-2',
+    readFieldLabelWrapper: 'space-y-1 text-xs font-medium text-slate-700',
+    readFieldLabelText:
+      'block text-[11px] font-semibold uppercase tracking-wide text-slate-500',
+    readInputBase:
+      'w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200 read-only:bg-slate-50 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-100',
+    readInputWrapper:
+      'relative',
+    readInputIcon:
+      'pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400',
+
+    // edit: stepper
+    editSectionWrapper: 'space-y-6 text-sm',
+    stepperCard:
+      'rounded-2xl border border-slate-200 bg-white px-8 py-6 shadow-[0_10px_40px_rgba(15,23,42,0.06)]',
+    stepperRow:
+      'flex flex-col gap-6 md:flex-row md:items-center md:justify-between',
+    stepperButtonBase:
+      'flex flex-1 flex-col items-center gap-2 text-xs focus:outline-none',
+    stepperButtonLocked: 'cursor-not-allowed opacity-60',
+    stepperPillRow: 'flex items-center gap-3',
+    stepperCircle:
+      'flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition',
+    stepperCircleActive: 'bg-pink-600 text-white shadow-md',
+    stepperCircleDone: 'bg-emerald-600 text-white',
+    stepperCircleIdle: 'bg-slate-300 text-white',
+    stepperConnectorWrapper:
+      'hidden h-[2px] w-16 overflow-hidden rounded-full bg-slate-200 md:block',
+    stepperConnectorBar: 'h-full rounded-full transition-all',
+    stepperConnectorDone: 'w-full bg-pink-500',
+    stepperConnectorActive: 'w-1/2 bg-pink-400',
+    stepperConnectorIdle: 'w-0',
+    stepperTextWrapper: 'space-y-1 text-center',
+    stepperStepTitle:
+      'text-[11px] font-semibold uppercase tracking-wide text-slate-800',
+    stepperStatusPill:
+      'inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+    stepperStatusActive: 'bg-pink-50 text-pink-600',
+    stepperStatusDone: 'bg-emerald-50 text-emerald-600',
+    stepperStatusIdle: 'bg-slate-100 text-slate-500',
+
+    // edit: form card
+    formCard:
+      'rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_10px_40px_rgba(15,23,42,0.06)]',
+    formSectionWrapper: 'space-y-4',
+    formSectionTitle:
+      'text-sm font-extrabold uppercase tracking-wide text-slate-700',
+    formSectionSubtitle: 'mt-1 text-xs text-slate-500',
+    formGrid: 'grid gap-4 md:grid-cols-2',
+    editFieldLabelWrapper: 'space-y-1 text-xs font-medium text-slate-700',
+    editFieldLabelText:
+      'block text-[11px] font-semibold uppercase tracking-wide text-slate-500',
+    editInputWrapper: 'relative',
+    editInputIcon:
+      'pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400',
+    editInputBase:
+      'w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200',
+    editInputError:
+      'border-red-500 focus:border-red-500 focus:ring-red-200',
+    errorText: 'mt-1 text-[11px] text-red-600',
+
+    // edit: helper panels
+    helperPanelWrapper:
+      'grid gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-5 text-xs text-slate-700 md:grid-cols-2',
+    helperTitle:
+      'text-xs font-semibold uppercase tracking-wide text-slate-800',
+    helperBodyText: 'mt-1 text-[12px]',
+    helperList: 'mt-2 space-y-1.5',
+    helperListItem: 'flex items-start gap-1.5',
+    helperListIcon: 'mt-[2px] h-3 w-3 text-pink-500',
+
+    // edit: buttons
+    buttonRow: 'flex justify-end gap-3',
+    secondaryButton:
+      'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50',
+    primaryButton:
+      'rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+
+    // edit: resume upload
+    uploadOuter: 'space-y-2',
+    uploadLabelSrOnly: 'sr-only',
+    uploadDropzone:
+      'relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 px-6 py-8 text-center text-xs text-slate-600 transition hover:border-pink-400 hover:bg-pink-50/40',
+    uploadIcon: 'mb-3 h-8 w-8 text-pink-600',
+    uploadTitle:
+      'text-[11px] font-semibold uppercase tracking-wide text-slate-800',
+    uploadSubtitle: 'mt-1 text-[11px] text-slate-500',
+    uploadInput:
+      'absolute inset-0 h-full w-full cursor-pointer opacity-0',
+    uploadHintText: 'mt-1 text-[11px] text-slate-500',
+    uploadHintFileName: 'font-semibold',
+
+    // edit: preview cards
+    previewWrapper: 'space-y-4 text-xs text-slate-700',
+    previewCard:
+      'rounded-xl border border-slate-200 bg-slate-50 p-4',
+    previewCardHeader:
+      'mb-2 flex items-center justify-between gap-2',
+    previewCardTitle:
+      'text-[11px] font-semibold uppercase tracking-wide text-slate-500',
+    previewEditButton:
+      'inline-flex items-center gap-1 text-[11px] font-semibold text-pink-600 hover:text-pink-700',
+    previewEditIcon: 'h-3.5 w-3.5',
+    previewDefinitionList: 'mt-2 grid gap-2 md:grid-cols-2',
+    previewDt: 'text-[11px] text-slate-500',
+    previewDd: 'font-medium',
+    previewDdMultiline: 'font-medium whitespace-pre-line',
+
+    // edit: modal
+    modalOverlay:
+      'fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4',
+    modalCard: 'w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl',
+    modalTitle:
+      'text-sm font-extrabold uppercase tracking-wide text-slate-800',
+    modalBody:
+      'mt-3 space-y-3 text-xs leading-relaxed text-slate-700',
+    modalBodyHighlight: 'font-semibold text-slate-900',
+    modalButtonRow: 'mt-5 flex justify-end gap-3',
+    modalSecondaryButton:
+      'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50',
+    modalPrimaryLink:
+      'inline-flex items-center justify-center rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
   },
 } as const;
 

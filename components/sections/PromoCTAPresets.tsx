@@ -4,7 +4,7 @@ import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFur
 
 export function getCTAPreset(pathname: string | null | undefined) {
   const p = pathname || '/';
-  // Order matters: match most specific first
+  // Urutan ngecek path penting: yang paling spesifik dicek dulu
   if (p.startsWith('/apply/fully-funded') || p.startsWith('/apply/self-funded')) {
     return <ProgramsFurtherInformationSection />;
   }
@@ -64,6 +64,6 @@ export function getCTAPreset(pathname: string | null | undefined) {
       </section>
     );
   }
-  // Default fallback
+  // Fallback default kalau nggak kena kondisi di atas
   return <PromoCTA />;
 }

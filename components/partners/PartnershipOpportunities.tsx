@@ -51,7 +51,10 @@ export default function PartnershipOpportunitiesSection() {
               ))}
             </ul>
             <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
-              <a href="#apply" className={jysSectionTheme.partnersOpportunities.communityCta}>
+              <a
+                href="/partners/community-partner"
+                className={jysSectionTheme.partnersOpportunities.communityCta}
+              >
                 Become a Community Partner
               </a>
             </div>
@@ -93,7 +96,10 @@ export default function PartnershipOpportunitiesSection() {
               ))}
             </ul>
             <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
-              <a href="#apply" className={jysSectionTheme.partnersOpportunities.silverCta}>
+              <a
+                href="/partners/silver-partner"
+                className={jysSectionTheme.partnersOpportunities.silverCta}
+              >
                 Become a Silver Partner
               </a>
             </div>
@@ -135,7 +141,10 @@ export default function PartnershipOpportunitiesSection() {
               ))}
             </ul>
             <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
-              <a href="#apply" className={jysSectionTheme.partnersOpportunities.goldCta}>
+              <a
+                href="/partners/gold-partner"
+                className={jysSectionTheme.partnersOpportunities.goldCta}
+              >
                 Become a Gold Partner
               </a>
             </div>
@@ -176,7 +185,10 @@ export default function PartnershipOpportunitiesSection() {
               ))}
             </ul>
             <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
-              <a href="#apply" className={jysSectionTheme.partnersOpportunities.diamondCta}>
+              <a
+                href="/partners/diamond-partner"
+                className={jysSectionTheme.partnersOpportunities.diamondCta}
+              >
                 Become a Diamond Partner
               </a>
             </div>

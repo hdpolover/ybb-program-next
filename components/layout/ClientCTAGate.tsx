@@ -8,7 +8,9 @@ export default function ClientCTAGate() {
   if (
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/dashboard') ||
-    pathname?.startsWith('/programs')
+    pathname?.startsWith('/programs') ||
+    // Hide CTA on partners detail slug pages, but keep it on main /partners
+    (pathname?.startsWith('/partners/') && pathname !== '/partners')
   ) {
     return null;
   }

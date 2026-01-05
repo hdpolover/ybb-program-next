@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import DocumentsSection from "@/components/dashboard/sections/DocumentsSection";
 
-export default function DocumentsIndexRedirect() {
-  redirect('/dashboard/documents/program');
+export default function DocumentsPage() {
+  return <DocumentsSection />;
 }
