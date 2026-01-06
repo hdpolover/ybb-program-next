@@ -2,8 +2,12 @@ import { Building2, FileText, Mail, Phone, Tag, User } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 
+type RequireNowSectionProps = {
+  slug?: string;
+};
+
 // Section: Require Now — partnership inquiry form
-export default function RequireNowSection() {
+export default function RequireNowSection({ slug }: RequireNowSectionProps) {
   return (
     <section className={jysSectionTheme.partnersRequire.sectionWrapper} id="apply">
       <div className={jysSectionTheme.partnersRequire.container}>
@@ -98,14 +102,30 @@ export default function RequireNowSection() {
               <span className={jysSectionTheme.partnersRequire.icon}>
                 <Tag className="h-4 w-4" />
               </span>
-              <input
-                id="subject"
-                name="subject"
-                type="text"
-                required
-                className={jysSectionTheme.partnersRequire.inputWithIcon}
-                placeholder="Brief topic of your partnership inquiry"
-              />
+              {slug === 'affiliate-program' ? (
+                <select
+                  id="subject"
+                  name="subject"
+                  required
+                  className={jysSectionTheme.partnersRequire.inputWithIcon}
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Select affiliate type
+                  </option>
+                  <option value="Fully Funded Affiliate">Fully Funded Affiliate</option>
+                  <option value="Self Funded Affiliate">Self Funded Affiliate</option>
+                </select>
+              ) : (
+                <input
+                  id="subject"
+                  name="subject"
+                  type="text"
+                  required
+                  className={jysSectionTheme.partnersRequire.inputWithIcon}
+                  placeholder="Brief topic of your partnership inquiry"
+                />
+              )}
             </div>
           </div>
 
@@ -128,10 +148,26 @@ export default function RequireNowSection() {
             </div>
           </div>
 
-          <div className={jysSectionTheme.partnersRequire.actionsRow}>
-            <button type="submit" className={jysSectionTheme.partnersRequire.submitButton}>
+          <div className="sm:col-span-2 mt-4 flex flex-col gap-3">
+            <button
+              type="submit"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-pink-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2"
+            >
               Submit
             </button>
+
+            <div className="flex items-center justify-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              <span className="h-px w-8 bg-slate-200" aria-hidden="true" />
+              <span>OR</span>
+              <span className="h-px w-8 bg-slate-200" aria-hidden="true" />
+            </div>
+
+            <a
+              href="mailto:partnership@ybbglobal.org"
+              className="inline-flex w-full items-center justify-center rounded-xl border border-pink-500/70 bg-white px-6 py-3 text-sm font-semibold text-pink-600 shadow-sm transition hover:bg-pink-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+            >
+              Contact us Via Email
+            </a>
           </div>
         </form>
       </div>

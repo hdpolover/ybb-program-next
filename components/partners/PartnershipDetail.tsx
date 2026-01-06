@@ -46,6 +46,19 @@ const PACKAGES: Record<
       'Social media recognition',
     ],
   },
+  'affiliate-program': {
+    title: 'Affiliate Program',
+    bestFor: 'Best for: Individuals promoting YBB programs.',
+    price: 'Commission-based',
+    bullets: [
+      'Fully-funded Affiliate: Earn 20% commission per successful registration',
+      'Commission applies to registration fee',
+      'Performance-based partnership',
+      'Self-funded Affiliate: Earn 5% commission from program fees',
+      'No minimum referrals required',
+      'Flexible and results-driven',
+    ],
+  },
   'diamond-partner': {
     title: 'Diamond Partner',
     bestFor: 'Best for: Communities and service-based organizations.',
@@ -90,12 +103,42 @@ export default function PartnershipDetailSection({ slug }: { slug: string }) {
           </div>
 
           <div className={jysSectionTheme.partnersDetail.bodyGrid}>
-            {pkg.bullets.map(item => (
-              <div key={item} className={jysSectionTheme.partnersDetail.bulletRow}>
-                <Check className={jysSectionTheme.partnersDetail.bulletIcon} />
-                <span className={jysSectionTheme.partnersDetail.bulletText}>{item}</span>
-              </div>
-            ))}
+            {slug === 'affiliate-program' ? (
+              <>
+                <div className="pb-1 text-sm font-extrabold text-blue-900">Fully-funded Affiliate</div>
+                {[
+                  'Earn 20% commission per successful registration',
+                  'Commission applies to registration fee',
+                  'Performance-based partnership',
+                ].map(item => (
+                  <div key={`fully-${item}`} className={jysSectionTheme.partnersDetail.bulletRow}>
+                    <Check className={jysSectionTheme.partnersDetail.bulletIcon} />
+                    <span className={jysSectionTheme.partnersDetail.bulletText}>{item}</span>
+                  </div>
+                ))}
+
+                <div className="pt-3 pb-1 text-sm font-extrabold text-blue-900">
+                  Self-Funded Affiliate
+                </div>
+                {[
+                  'Earn 5% commission from program fees',
+                  'No minimum referrals required',
+                  'Flexible and results-driven',
+                ].map(item => (
+                  <div key={`self-${item}`} className={jysSectionTheme.partnersDetail.bulletRow}>
+                    <Check className={jysSectionTheme.partnersDetail.bulletIcon} />
+                    <span className={jysSectionTheme.partnersDetail.bulletText}>{item}</span>
+                  </div>
+                ))}
+              </>
+            ) : (
+              pkg.bullets.map(item => (
+                <div key={item} className={jysSectionTheme.partnersDetail.bulletRow}>
+                  <Check className={jysSectionTheme.partnersDetail.bulletIcon} />
+                  <span className={jysSectionTheme.partnersDetail.bulletText}>{item}</span>
+                </div>
+              ))
+            )}
           </div>
 
           <div

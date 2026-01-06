@@ -9,29 +9,23 @@ export default function PartnershipOpportunitiesSection() {
       <div className={jysSectionTheme.partnersOpportunities.container}>
         <SectionHeader eyebrow="Opportunities" title="Partnership Opportunities" />
         <p className={jysSectionTheme.partnersOpportunities.subtitle}>
-          Join us in creating lasting impact through strategic partnerships.
+          Choose the partnership path that best matches your role and goals with YBB.
         </p>
         <div className={jysSectionTheme.partnersOpportunities.grid}>
-          {/* Partner Community — termurah, di kiri */}
+          {/* Ambassador Program */}
           <div className={jysSectionTheme.partnersOpportunities.communityCard}>
             <div className={jysSectionTheme.partnersOpportunities.cardBody}>
-              <h3 className={jysSectionTheme.partnersOpportunities.title}>Community Partner</h3>
+              <h3 className={jysSectionTheme.partnersOpportunities.title}>Ambassador Program</h3>
               <p className={jysSectionTheme.partnersOpportunities.description}>
-                Ideal for universities, NGOs, and communities contributing services or in-kind
-                support.
-              </p>
-              <p className={jysSectionTheme.partnersOpportunities.priceLabel}>Start From:</p>
-              <p className={jysSectionTheme.partnersOpportunities.priceValue}>
-                Flexible (in-kind & services)
+                Best for: Content creators, youth leaders, and influencers.
               </p>
             </div>
             <ul className={jysSectionTheme.partnersOpportunities.benefitsList}>
               {[
-                'Website recognition',
-                'Social media mentions',
-                'Networking opportunities',
-                'Partnership certificate',
-                'Volunteer opportunities',
+                'Selected based on content quality and audience engagement',
+                "Aligned with YBB's vision and mission",
+                'Represent YBB through authentic content and campaigns',
+                'Build impact while growing personal influence',
               ].map((label, idx, arr) => (
                 <li
                   key={idx}
@@ -52,34 +46,58 @@ export default function PartnershipOpportunitiesSection() {
             </ul>
             <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
               <a
-                href="/partners/community-partner"
+                href="/apply/ambassador-program"
                 className={jysSectionTheme.partnersOpportunities.communityCta}
               >
-                Become a Community Partner
+                Choose Plan
               </a>
             </div>
           </div>
 
-          {/* Partner Silver */}
+          {/* Affiliate Program */}
           <div className={jysSectionTheme.partnersOpportunities.silverCard}>
             <div className={jysSectionTheme.partnersOpportunities.cardBody}>
-              <h3 className={jysSectionTheme.partnersOpportunities.title}>Silver Partner</h3>
+              <h3 className={jysSectionTheme.partnersOpportunities.title}>Affiliate Program</h3>
               <p className={jysSectionTheme.partnersOpportunities.description}>
-                Solid visibility and engagement for organizations starting strategic collaboration.
+                Best for: Individuals promoting YBB programs.
               </p>
-              <p className={jysSectionTheme.partnersOpportunities.priceLabel}>Start From:</p>
-              <p className={jysSectionTheme.partnersOpportunities.priceValue}>$10,000 - $24,999</p>
             </div>
             <ul className={jysSectionTheme.partnersOpportunities.benefitsList}>
+              <li className={jysSectionTheme.partnersOpportunities.affiliateSubheading}>
+                Fully-funded Affiliate
+              </li>
               {[
-                'Logo placement on website',
-                'Newsletter mentions',
-                'Event participation opportunities',
-                'Impact reports',
-                'Certificate of partnership',
+                'Earn 20% commission per successful registration',
+                'Commission applies to registration fee',
+                'Performance-based partnership',
               ].map((label, idx, arr) => (
                 <li
-                  key={idx}
+                  key={`fully-${idx}`}
+                  className={`${jysSectionTheme.partnersOpportunities.benefitItemBase} ${
+                    idx !== arr.length - 1
+                      ? jysSectionTheme.partnersOpportunities.benefitItemBordered
+                      : ''
+                  }`}
+                >
+                  <span className={jysSectionTheme.partnersOpportunities.checkCircle}>
+                    <Check className={jysSectionTheme.partnersOpportunities.checkIcon} />
+                  </span>
+                  <span className={jysSectionTheme.partnersOpportunities.benefitLabel}>
+                    {label}
+                  </span>
+                </li>
+              ))}
+
+              <li className={jysSectionTheme.partnersOpportunities.affiliateSubheadingSpaced}>
+                Self-Funded Affiliate
+              </li>
+              {[
+                'Earn 5% commission from program fees',
+                'No minimum referrals required',
+                'Flexible and results-driven',
+              ].map((label, idx, arr) => (
+                <li
+                  key={`self-${idx}`}
                   className={`${jysSectionTheme.partnersOpportunities.benefitItemBase} ${
                     idx !== arr.length - 1
                       ? jysSectionTheme.partnersOpportunities.benefitItemBordered
@@ -97,31 +115,33 @@ export default function PartnershipOpportunitiesSection() {
             </ul>
             <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
               <a
-                href="/partners/silver-partner"
+                href="/partners/affiliate-program"
                 className={jysSectionTheme.partnersOpportunities.silverCta}
               >
-                Become a Silver Partner
+                Choose Plan
               </a>
             </div>
           </div>
 
-          {/* Partner Gold */}
+          {/* Community & Institution */}
           <div className={jysSectionTheme.partnersOpportunities.goldCard}>
             <div className={jysSectionTheme.partnersOpportunities.cardBody}>
-              <h3 className={jysSectionTheme.partnersOpportunities.title}>Gold Partner</h3>
+              <div className="flex items-center gap-2">
+                <span className={jysSectionTheme.partnersOpportunities.popularChip}>Popular</span>
+              </div>
+              <h3 className={`${jysSectionTheme.partnersOpportunities.title} mt-2`}>
+                Community & Institution
+              </h3>
               <p className={jysSectionTheme.partnersOpportunities.description}>
-                Strong brand exposure and collaboration across main program activities.
+                Best for: Schools, universities, and communities.
               </p>
-              <p className={jysSectionTheme.partnersOpportunities.priceLabel}>Start From:</p>
-              <p className={jysSectionTheme.partnersOpportunities.priceValue}>$25,000 - $49,999</p>
             </div>
             <ul className={jysSectionTheme.partnersOpportunities.benefitsList}>
               {[
-                'Prominent logo placement',
-                'Workshop sponsorship opportunities',
-                'Alumni network access',
-                'Quarterly impact reports',
-                'Social media recognition',
+                'Group participant registration',
+                '1 free quota for every 15 registered participants',
+                'Free slot ideal for mentors or supervisors',
+                'Support participants throughout the program',
               ].map((label, idx, arr) => (
                 <li
                   key={idx}
@@ -142,54 +162,10 @@ export default function PartnershipOpportunitiesSection() {
             </ul>
             <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
               <a
-                href="/partners/gold-partner"
+                href="/apply/community-institution"
                 className={jysSectionTheme.partnersOpportunities.goldCta}
               >
-                Become a Gold Partner
-              </a>
-            </div>
-          </div>
-
-          {/* Partner Diamond — paling premium, di kanan */}
-          <div className={jysSectionTheme.partnersOpportunities.diamondCard}>
-            <div className={jysSectionTheme.partnersOpportunities.cardBody}>
-              <h3 className={jysSectionTheme.partnersOpportunities.title}>Diamond Partner</h3>
-              <p className={jysSectionTheme.partnersOpportunities.description}>
-                Maximum exposure, custom activations, and deep, long-term collaboration.
-              </p>
-              <p className={jysSectionTheme.partnersOpportunities.priceLabel}>Start From:</p>
-              <p className={jysSectionTheme.partnersOpportunities.priceValue}>$50,000+</p>
-            </div>
-            <ul className={jysSectionTheme.partnersOpportunities.benefitsList}>
-              {[
-                'Premier logo placement on all materials',
-                'Speaking opportunities at main events',
-                'Dedicated networking sessions',
-                'Annual partnership report',
-                'Direct access to alumni network',
-                'Custom partnership activities',
-              ].map((label, idx) => (
-                <li
-                  key={idx}
-                  className={`${jysSectionTheme.partnersOpportunities.benefitItemBase} ${
-                    idx !== 5 ? jysSectionTheme.partnersOpportunities.benefitItemBordered : ''
-                  }`}
-                >
-                  <span className={jysSectionTheme.partnersOpportunities.checkCircle}>
-                    <Check className={jysSectionTheme.partnersOpportunities.checkIcon} />
-                  </span>
-                  <span className={jysSectionTheme.partnersOpportunities.benefitLabel}>
-                    {label}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
-              <a
-                href="/partners/diamond-partner"
-                className={jysSectionTheme.partnersOpportunities.diamondCta}
-              >
-                Become a Diamond Partner
+                Choose Plan
               </a>
             </div>
           </div>

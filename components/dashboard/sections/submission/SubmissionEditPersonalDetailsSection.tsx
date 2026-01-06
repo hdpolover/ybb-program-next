@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Flag, Info, MapPin, Phone, Shirt, User, User2, UserRound } from "lucide-react";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 import type { PersonalDetails } from "../SubmissionEditSection";
@@ -43,6 +44,7 @@ export default function SubmissionEditPersonalDetailsSection({
   onSaveAndContinue,
 }: Props) {
   const base = inputBaseClass();
+  const [showShirtSizeModal, setShowShirtSizeModal] = React.useState(false);
 
   return (
     <div className={submissionTheme.formSectionWrapper}>
@@ -271,24 +273,34 @@ export default function SubmissionEditPersonalDetailsSection({
 
         <Field label="T-Shirt Size">
           <InputWrapper icon={<Shirt className="h-4 w-4" />}>
-            <select
-              className={`${base} pl-9 ${
-                showErrors && !personal.tshirtSize.trim() ? submissionTheme.editInputError : ""
-              }`}
-              value={personal.tshirtSize}
-              onChange={e =>
-                onChangePersonal({
-                  ...personal,
-                  tshirtSize: e.target.value,
-                })
-              }
-            >
-              <option value="S">S</option>
-              <option value="M">M</option>
-              <option value="L">L</option>
-              <option value="XL">XL</option>
-              <option value="XXL">XXL</option>
-            </select>
+            <div className="flex items-center gap-3">
+              <select
+                className={`${base} pl-9 flex-1 ${
+                  showErrors && !personal.tshirtSize.trim() ? submissionTheme.editInputError : ""
+                }`}
+                value={personal.tshirtSize}
+                onChange={e =>
+                  onChangePersonal({
+                    ...personal,
+                    tshirtSize: e.target.value,
+                  })
+                }
+              >
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+              </select>
+
+              <button
+                type="button"
+                className={submissionTheme.shirtSizeButton}
+                onClick={() => setShowShirtSizeModal(true)}
+              >
+                Shirt Size
+              </button>
+            </div>
           </InputWrapper>
           {showErrors && !personal.tshirtSize.trim() && (
             <p className={submissionTheme.errorText}>This field is required.</p>
@@ -329,6 +341,33 @@ export default function SubmissionEditPersonalDetailsSection({
           Save & Continue
         </button>
       </div>
+ 
+      {showShirtSizeModal && (
+        <div className={submissionTheme.modalOverlay}>
+          <div className={submissionTheme.modalCard}>
+            <h2 className={submissionTheme.modalTitle}>Shirt Size Guide</h2>
+            <div className={submissionTheme.modalBody}>
+              <Image
+                src="/img/shirtSize.webp"
+                alt="Shirt size guide"
+                width={800}
+                height={600}
+                className="h-auto w-full rounded-lg object-contain"
+              />
+            </div>
+
+            <div className={submissionTheme.modalButtonRow}>
+              <button
+                type="button"
+                className={submissionTheme.modalSecondaryButton}
+                onClick={() => setShowShirtSizeModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

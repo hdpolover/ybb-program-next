@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Konten utama dashboard */}
           <section className="flex-1 px-6 py-6 lg:px-8">
             <div className="mx-auto max-w-6xl space-y-4">
-              {/* Page header (hidden on payments pages) */}
+              {/* Header halaman (disembunyiin kalau lagi di halaman payments) */}
               {!pathname?.startsWith('/dashboard/payments') && (
                 <div className="space-y-1">
                   <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
@@ -88,12 +88,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               )}
 
-              {/* Greeting only on main dashboard overview page */}
+              {/* Greeting cuma nongol di halaman utama dashboard overview */}
               {pathname === '/dashboard' && (
                 <GreetingWithClock name="HILMI FARREL FIRJATULLAH" />
               )}
 
-              {/* Page Content */}
+              {/* Konten utama halaman */}
               {children}
             </div>
           </section>

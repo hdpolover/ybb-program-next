@@ -631,12 +631,42 @@ export const jysSectionTheme = {
   },
   login: {
     input:
-      'mt-2 w-full rounded-md border border-white/20 bg-white/90 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-200',
+      'mt-2 w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-200',
     checkbox: 'h-4 w-4 rounded border-white/30 bg-white/20 text-pink-600 focus:ring-pink-300',
     primaryButton:
       'inline-flex w-full items-center justify-center rounded-md bg-pink-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
     forgotPasswordLink: 'font-semibold text-pink-700 hover:text-pink-800',
     switchModeLink: 'font-semibold text-pink-700 underline hover:text-pink-800',
+    slideIndicatorWrapper:
+      'inline-flex gap-2 rounded-full border border-white/40 bg-white/15 px-3 py-1 shadow-sm shadow-black/20 backdrop-blur',
+    slideDotActive: 'h-2 w-2 rounded-full bg-pink-500 shadow-sm shadow-pink-500/40',
+    slideDotInactive: 'h-2 w-2 rounded-full bg-white/70',
+    heroEyebrow: 'text-xs font-semibold uppercase tracking-[0.24em] text-pink-100',
+    heroTitle: 'text-3xl font-extrabold leading-tight',
+    heroDescription: 'text-sm text-pink-50',
+    pageBackground: 'bg-slate-50',
+    imagePanelBackground: 'bg-slate-50',
+    heroOverlay:
+      'absolute inset-0 bg-gradient-to-t from-pink-700/85 via-pink-700/40 to-transparent',
+    heroTextContainer: 'absolute inset-x-0 bottom-0 px-8 pb-12 pt-6 text-white',
+    heroLogo: 'h-10 w-auto',
+    heroLogoWrapper: 'space-y-4',
+    formPanelOuter: 'flex items-center justify-start px-6 py-10 lg:px-20 lg:py-0',
+    formPanelInner: 'w-full max-w-xl',
+    formHeading: 'text-2xl font-extrabold tracking-tight text-pink-600 sm:text-3xl',
+    formSubheading: 'mt-2 text-sm text-slate-600',
+    card:
+      'space-y-4 rounded-2xl border border-slate-100 bg-white/80 p-6 shadow-sm',
+    fieldLabel: 'block text-xs font-semibold uppercase tracking-wide text-slate-700',
+    helperText: 'text-xs text-slate-600',
+    checkboxRow: 'flex items-center justify-between text-xs text-slate-600',
+    dividerRow:
+      'flex items-center justify-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400',
+    dividerLine: 'h-px w-8 bg-slate-200',
+    secondaryButton:
+      'inline-flex w-full items-center justify-center rounded-xl border border-pink-500/70 bg-white px-5 py-3 text-sm font-semibold text-pink-600 shadow-sm transition hover:bg-pink-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
+    termsLabel: 'mt-1 inline-flex items-center gap-2 text-xs text-slate-600',
+    termsLink: 'underline',
   },
   applyImportant: {
     card: 'overflow-hidden rounded-2xl bg-pink-50 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-pink-200 sm:p-8',
@@ -858,7 +888,7 @@ export const jysSectionTheme = {
     sectionWrapper: 'relative w-full py-16 sm:py-20',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
     subtitle: 'mx-auto -mt-6 mb-8 max-w-2xl text-center text-sm text-slate-600 sm:mb-10',
-    grid: 'grid gap-6 lg:grid-cols-4',
+    grid: 'mx-auto grid max-w-5xl gap-6 md:grid-cols-3',
     communityCard:
       'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-blue-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-blue-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     silverCard:
@@ -876,9 +906,14 @@ export const jysSectionTheme = {
     benefitItemBase:
       'flex items-center gap-3 py-3 transition-colors duration-200 hover:bg-slate-50',
     benefitItemBordered: 'border-b border-slate-200',
-    checkCircle: 'grid h-7 w-7 place-items-center rounded-full bg-pink-600 text-white',
+    checkCircle:
+      'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white',
     checkIcon: 'h-4 w-4',
     benefitLabel: 'text-sm font-medium text-blue-950',
+    affiliateSubheading: 'pb-1 text-sm font-extrabold text-blue-950',
+    affiliateSubheadingSpaced: 'pt-4 pb-1 text-sm font-extrabold text-blue-950',
+    popularChip:
+      'rounded-full bg-pink-50 px-2 py-0.5 text-xs font-semibold text-pink-700 ring-1 ring-pink-200',
     cardFooter: 'p-5 pt-0',
     communityCta:
       'inline-flex w-full items-center justify-center rounded-md bg-blue-700 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2',
@@ -1488,6 +1523,8 @@ export const jysSectionTheme = {
       'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50',
     primaryButton:
       'rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+    shirtSizeButton:
+      'inline-flex items-center justify-center rounded-full bg-pink-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-pink-700 ring-1 ring-pink-200 shadow-sm hover:bg-pink-100 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-offset-2',
 
     // edit: resume upload
     uploadOuter: 'space-y-2',

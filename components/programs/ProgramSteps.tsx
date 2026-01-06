@@ -92,7 +92,7 @@ const STEPS: Step[] = [
     title: 'Japan Youth Summit Program',
     icon: 'program',
     lines: [
-      'The Japan Youth Summit program will take place on February 25, 2026, in Osaka & Kyoto, Japan.',
+      'The Japan Youth Summit program will take place on February 2 - 5, 2026, in Osaka & Kyoto, Japan.',
     ],
   },
 ];

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Search as SearchIcon, Menu, X } from 'lucide-react';
 
-const navItems: string[] = ['Home', 'Programs', 'Partners & Sponsors', 'Announcements'];
+const navItems: string[] = ['Home', 'Programs', 'Partners & Sponsors', 'Announcements', 'FAQ'];
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -24,6 +24,8 @@ export function Navbar() {
         return '/partners';
       case 'Announcements':
         return '/announcements';
+      case 'FAQ':
+        return '/faq';
       default:
         return '/';
     }
