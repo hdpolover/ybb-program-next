@@ -21,7 +21,8 @@ services:
       - web_gateway
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ybb-program-next.rule=Host(`test.japanyouthsummit.com`)"
+      # Add all your domains here using the OR logic (||)
+      - "traefik.http.routers.ybb-program-next.rule=Host(`youthacademicforum.com`) || Host(`istanbulyouthsummit.com`) || Host(`test.japanyouthsummit.com`)"
       - "traefik.http.routers.ybb-program-next.entrypoints=websecure"
       - "traefik.http.routers.ybb-program-next.tls.certresolver=myresolver"
       - "traefik.http.services.ybb-program-next.loadbalancer.server.port=3000"
