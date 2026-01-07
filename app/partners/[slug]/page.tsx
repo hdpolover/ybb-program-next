@@ -24,7 +24,7 @@ export default async function PartnerDetailPage({
         decorVariant="compact"
       />
       <PartnershipDetailSection slug={slug} />
-      <RequireNowSection />
+      <RequireNowSection slug={slug} />
     </main>
   );
 }

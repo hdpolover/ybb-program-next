@@ -1,13 +1,23 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+
+const LOGIN_IMAGES = [
+  '/img/galeri2.png',
+  '/img/programhighlight1.jpg',
+  '/img/programoverview.png',
+  '/img/jysprogram1.jpg',
+  '/img/galeri3.png',
+  '/img/benefits.png',
+];
 
 export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
   const [loginForm, setLoginForm] = useState({
     email: '',
     password: '',
@@ -36,59 +46,90 @@ export default function LoginPage() {
     } else {
       console.log('Signup submit:', { ...signupForm, agree });
     }
-    // TODO: Nanti integrasi sama auth aseli
   };
 
+  useEffect(() => {
+    if (LOGIN_IMAGES.length <= 1) return;
+    const id = setInterval(() => {
+      setImageIndex(prev => (prev + 1) % LOGIN_IMAGES.length);
+    }, 7000);
+    return () => clearInterval(id);
+  }, []);
+
+  const loginImageSrc = LOGIN_IMAGES[imageIndex] ?? LOGIN_IMAGES[0];
+
   return (
-    <section className="min-h-screen w-full bg-white">
+    <section className={`min-h-screen w-full ${jysSectionTheme.login.pageBackground}`}>
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-        {/* Panel Gambar (selalu di kiri) */}
-        <div className="relative hidden bg-pink-500 lg:block">
-          <Image
-            src="/img/programhighlight1.jpg"
-            alt="Japan Youth Summit Highlight"
-            fill
-            priority
-            className="object-cover"
-            sizes="(min-width: 1024px) 50vw, 0px"
-          />
-          <div className="absolute inset-0 bg-pink-500/60" />
-          <div className="relative z-10 flex h-full flex-col px-10 py-10 text-white">
-            <div className="space-y-4">
-              <Image
-                src="/img/jysfooters.png"
-                alt="Japan Youth Summit"
-                width={120}
-                height={40}
-                className="h-10 w-auto"
-              />
-              <div className="max-w-sm space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-pink-100">
-                  Japan Youth Summit 2026
-                </p>
-                <h2 className="text-3xl font-extrabold leading-tight sm:text-4xl">
-                  Raise your hand,
-                  <br />
-                  Be the future leaders.
-                </h2>
-                <p className="text-sm text-pink-50">
-                  Join our global youth community and access your dashboard to manage your
-                  application and participation.
-                </p>
+        {/* Panel Gambar (selalu di kiri, dalam card dengan background full) */}
+        <div
+          className={`relative hidden items-center justify-center ${jysSectionTheme.login.imagePanelBackground} lg:flex`}
+        >
+          <div className="relative h-[680px] w-full max-w-xl overflow-hidden rounded-3xl shadow-[0_18px_45px_rgba(15,23,42,0.35)] ring-1 ring-pink-300/80">
+            <Image
+              src={loginImageSrc}
+              alt="Japan Youth Summit Highlight"
+              fill
+              priority
+              className="object-cover"
+              sizes="(min-width: 1024px) 32rem, 0px"
+            />
+            <div className={jysSectionTheme.login.heroOverlay} />
+
+            <div className={jysSectionTheme.login.heroTextContainer}>
+              <div className={jysSectionTheme.login.heroLogoWrapper}>
+                <Image
+                  src="/img/jysfooters.png"
+                  alt="Japan Youth Summit"
+                  width={120}
+                  height={40}
+                  className={jysSectionTheme.login.heroLogo}
+                />
+                <div className="space-y-3">
+                  <p className={jysSectionTheme.login.heroEyebrow}>
+                    Japan Youth Summit 2026
+                  </p>
+                  <h2 className={jysSectionTheme.login.heroTitle}>
+                    Raise your hand,
+                    <br />
+                    Be the future leaders.
+                  </h2>
+                  <p className={jysSectionTheme.login.heroDescription}>
+                    Join our global youth community and access your dashboard to manage your
+                    application and participation.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide indicator (non-interactive) */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+              <div className={jysSectionTheme.login.slideIndicatorWrapper}>
+                {LOGIN_IMAGES.map((_, i) => (
+                  <span
+                    key={i}
+                    aria-hidden="true"
+                    className={
+                      i === imageIndex
+                        ? jysSectionTheme.login.slideDotActive
+                        : jysSectionTheme.login.slideDotInactive
+                    }
+                  />
+                ))}
               </div>
             </div>
           </div>
         </div>
 
         {/* Panel Form (selalu di kanan) */}
-        <div className="flex items-center justify-start px-6 py-10 lg:px-20 lg:py-0">
-          <div className="w-full max-w-xl">
+        <div className={jysSectionTheme.login.formPanelOuter}>
+          <div className={jysSectionTheme.login.formPanelInner}>
             <div>
-              <h1 className="text-2xl font-extrabold tracking-tight text-pink-600 sm:text-3xl">
+              <h1 className={jysSectionTheme.login.formHeading}>
                 {mode === 'login' ? 'Welcome back!' : 'Create your account'}
               </h1>
             </div>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className={jysSectionTheme.login.formSubheading}>
               {mode === 'login'
                 ? 'Sign in to continue and manage your application.'
                 : 'Fill in your details below to start your journey.'}
@@ -97,9 +138,9 @@ export default function LoginPage() {
             <form onSubmit={onSubmit} className="mt-6 space-y-4">
               {mode === 'login' ? (
                 <>
-                  <div className="space-y-4 rounded-2xl border border-slate-100 bg-white/80 p-6 shadow-sm">
+                  <div className={jysSectionTheme.login.card}>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-700">
+                      <label className={jysSectionTheme.login.fieldLabel}>
                         Email
                       </label>
                       <input
@@ -113,7 +154,7 @@ export default function LoginPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-700">
+                      <label className={jysSectionTheme.login.fieldLabel}>
                         Password
                       </label>
                       <input
@@ -126,7 +167,7 @@ export default function LoginPage() {
                         placeholder="••••••••"
                       />
                     </div>
-                    <div className="flex items-center justify-between text-xs text-slate-600">
+                    <div className={jysSectionTheme.login.checkboxRow}>
                       <label className="inline-flex items-center gap-2">
                         <input
                           type="checkbox"
@@ -140,28 +181,42 @@ export default function LoginPage() {
                         Forgot Password?
                       </a>
                     </div>
-                    <div className="pt-2">
+                    <div className="pt-2 space-y-3">
                       <button type="submit" className={jysSectionTheme.login.primaryButton}>
                         Login
                       </button>
+
+                      <div className={jysSectionTheme.login.dividerRow}>
+                        <span className={jysSectionTheme.login.dividerLine} aria-hidden="true" />
+                        <span>OR</span>
+                        <span className={jysSectionTheme.login.dividerLine} aria-hidden="true" />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setMode('signup')}
+                        className={jysSectionTheme.login.secondaryButton}
+                      >
+                        Sign up for free
+                      </button>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-600">
-                    Don't have an account?{' '}
+                  <p className={jysSectionTheme.login.helperText}>
+                    Part of our program ambassadors?{' '}
                     <button
                       type="button"
-                      onClick={() => setMode('signup')}
+                      onClick={() => setMode('login')}
                       className={jysSectionTheme.login.switchModeLink}
                     >
-                      Sign up for free
+                      Sign in here
                     </button>
                   </p>
                 </>
               ) : (
                 <>
-                  <div className="space-y-4 rounded-2xl border border-slate-100 bg-white/80 p-6 shadow-sm">
+                  <div className={jysSectionTheme.login.card}>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-700">
+                      <label className={jysSectionTheme.login.fieldLabel}>
                         Fullname
                       </label>
                       <input
@@ -175,7 +230,7 @@ export default function LoginPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-700">
+                      <label className={jysSectionTheme.login.fieldLabel}>
                         Email
                       </label>
                       <input
@@ -190,7 +245,7 @@ export default function LoginPage() {
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-700">
+                        <label className={jysSectionTheme.login.fieldLabel}>
                           Password
                         </label>
                         <input
@@ -204,7 +259,7 @@ export default function LoginPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-700">
+                        <label className={jysSectionTheme.login.fieldLabel}>
                           Confirm Password
                         </label>
                         <input
@@ -219,7 +274,7 @@ export default function LoginPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-700">
+                      <label className={jysSectionTheme.login.fieldLabel}>
                         Referral Code (Optional)
                       </label>
                       <input
@@ -231,7 +286,7 @@ export default function LoginPage() {
                         placeholder="ABC-123"
                       />
                     </div>
-                    <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-600">
+                    <label className={jysSectionTheme.login.termsLabel}>
                       <input
                         type="checkbox"
                         className={jysSectionTheme.login.checkbox}
@@ -240,28 +295,42 @@ export default function LoginPage() {
                         required
                       />
                       I agree to the{' '}
-                      <a href="#" className="underline">
+                      <a href="#" className={jysSectionTheme.login.termsLink}>
                         Terms of Service
                       </a>
                       and{' '}
-                      <a href="#" className="underline">
+                      <a href="#" className={jysSectionTheme.login.termsLink}>
                         Privacy Policy
                       </a>
                     </label>
-                    <div className="pt-2">
+                    <div className="pt-2 space-y-3">
                       <button type="submit" className={jysSectionTheme.login.primaryButton}>
                         Create Account
                       </button>
+
+                      <div className={jysSectionTheme.login.dividerRow}>
+                        <span className={jysSectionTheme.login.dividerLine} aria-hidden="true" />
+                        <span>OR</span>
+                        <span className={jysSectionTheme.login.dividerLine} aria-hidden="true" />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setMode('login')}
+                        className={jysSectionTheme.login.secondaryButton}
+                      >
+                        Log in
+                      </button>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-600">
+                  <p className={jysSectionTheme.login.helperText}>
                     Already have an account?{' '}
                     <button
                       type="button"
                       onClick={() => setMode('login')}
                       className={jysSectionTheme.login.switchModeLink}
                     >
-                      Log in
+                      Sign in here
                     </button>
                   </p>
                 </>

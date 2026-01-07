@@ -10,6 +10,7 @@ export default function Footer() {
     { label: 'Programs', href: '/programs' },
     { label: 'Partners & Sponsors', href: '/partners' },
     { label: 'Announcements', href: '/announcements' },
+    { label: 'FAQ', href: '/faq' },
   ];
   // sublink programs sama seperti di navbar
   const pages = [
