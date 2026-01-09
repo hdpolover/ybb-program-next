@@ -69,6 +69,38 @@ export const jysSectionTheme = {
     mockupWrapper:
       'relative h-80 w-full max-w-xs -mt-6 sm:h-96 sm:max-w-sm lg:h-[420px] lg:max-w-md lg:-mt-10 drop-shadow-[0_26px_70px_rgba(15,23,42,0.65)]',
   },
+  homeWhatMakesSpecial: {
+    sectionWrapper: 'w-full bg-slate-50 py-16 sm:py-20',
+    container: 'mx-auto max-w-7xl px-6 lg:px-8',
+    grid:
+      'mt-10 grid gap-6 justify-items-center sm:grid-cols-2 lg:grid-cols-3 lg:gap-8',
+    card:
+      'flex h-full w-full max-w-md flex-col rounded-2xl bg-white/90 p-6 text-sm text-slate-800 shadow-[0_10px_35px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70 backdrop-blur-sm',
+    iconCircle:
+      'mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-pink-50 text-pink-600 shadow-sm',
+    icon: 'h-5 w-5',
+    cardTitle: 'text-base font-semibold text-slate-900',
+    cardDescription: 'mt-2 text-sm leading-relaxed text-slate-600',
+  },
+  homeProgramBenefits: {
+    sectionWrapper: 'w-full bg-[#ffffff72] py-16 sm:py-20',
+    container: 'mx-auto max-w-6xl px-6 lg:px-8',
+    backgroundImage: "/img/bgshorts60.jpg",
+    grid: 'mt-10 grid gap-1 md:grid-cols-2',
+    card:
+      'flex h-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white/95 text-sm text-slate-800 shadow-[0_10px_35px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/80 mx-auto',
+    imageWrapper:
+      'relative -mx-0 -mt-0 mb-0 h-44 w-full overflow-hidden',
+    image: 'h-full w-full object-cover',
+    cardTitle: 'px-6 pt-5 text-base font-semibold text-slate-900 text-center',
+    list: 'mt-3 space-y-1.5 px-6 pb-2 text-sm leading-relaxed text-slate-700',
+    listItem: 'flex items-start gap-2 text-sm leading-relaxed text-slate-700',
+    listCheckIcon: 'mt-[3px] h-4 w-4 flex-shrink-0 text-pink-600',
+    listText: 'text-sm leading-relaxed text-slate-700',
+    actionsRow: 'mt-auto flex justify-center pb-6',
+    readMoreButton:
+      'inline-flex min-w-[180px] items-center justify-center rounded-md bg-pink-600 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+  },
   testimonialsHome: {
     sectionWrapper: 'relative w-full overflow-x-hidden bg-pink-50 py-16 sm:py-20',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
@@ -1335,6 +1367,35 @@ export const jysSectionTheme = {
       'text-sm font-extrabold uppercase tracking-wide text-slate-700',
     programSubtitle: 'mt-1 text-xs text-slate-500',
     programGrid: 'grid gap-4 md:grid-cols-2',
+
+    // progress timeline (Your Progress)
+    progressTimeline:
+      'mt-4 grid grid-cols-[auto,1fr] gap-x-4 sm:gap-x-5',
+    progressLineCol: 'relative col-span-1 row-span-full',
+    progressLine:
+      'mx-auto h-full w-px bg-gradient-to-b from-pink-400 via-pink-200 to-transparent',
+    progressStepsCol:
+      'space-y-4 max-h-64 overflow-y-auto pr-1',
+    progressStepRow: 'grid grid-cols-[auto,1fr] gap-x-3 gap-y-1',
+    progressStepIconCol: 'relative col-span-1 flex flex-col items-center',
+    progressStepIndexCircleBase:
+      'flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-white shadow-sm',
+    progressStepIndexDone: 'bg-pink-600',
+    progressStepIndexCurrent: 'bg-blue-700',
+    progressStepIndexUpcoming: 'bg-slate-300',
+    progressStepConnector:
+      'mt-1 h-full w-px flex-1 bg-slate-200',
+    progressStepContent: 'col-span-1 space-y-1 text-sm',
+    progressStepTitle: 'text-sm font-semibold text-slate-900',
+    progressStepBody: 'text-xs leading-relaxed text-slate-600',
+    progressStatusChipBase:
+      'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1',
+    progressStatusChipDone:
+      'bg-pink-50 text-pink-700 ring-pink-200',
+    progressStatusChipWaiting:
+      'bg-amber-50 text-amber-700 ring-amber-200',
+    progressStatusChipUpcoming:
+      'bg-slate-50 text-slate-700 ring-slate-200',
 
     programSelfCard:
       'flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm',

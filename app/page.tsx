@@ -9,6 +9,8 @@ import MomentsIn60Section from '@/components/sections/MomentsIn60Section';
 import GlobalProgramImpact from '@/components/sections/GlobalProgramImpact';
 import ParticipantDistribution from '@/components/sections/ParticipantDistribution';
 import FurtherInformationSection from '@/components/sections/FurtherInformation';
+import WhatMakesUsSpecialSection from '@/components/sections/WhatMakesUsSpecial';
+import ProgramBenefitsSection from '@/components/sections/ProgramBenefitsSection';
 import AlumniStoriesSection from '@/components/sections/AlumniStories';
 import PhotoGallery from '@/components/sections/PhotoGallery';
 import RecognitionAwards from '@/components/sections/AwardeeDelegate';
@@ -32,6 +34,8 @@ export default function Home() {
       <GlobalProgramImpact />
       <ParticipantDistribution />
       <FurtherInformationSection />
+      <WhatMakesUsSpecialSection />
+      <ProgramBenefitsSection />
       <AlumniStoriesSection />
       <Testimonials />
       <PhotoGallery mode="home" />
