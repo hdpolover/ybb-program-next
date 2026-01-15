@@ -70,7 +70,7 @@ export const jysSectionTheme = {
       'relative h-80 w-full max-w-xs -mt-6 sm:h-96 sm:max-w-sm lg:h-[420px] lg:max-w-md lg:-mt-10 drop-shadow-[0_26px_70px_rgba(15,23,42,0.65)]',
   },
   homeWhatMakesSpecial: {
-    sectionWrapper: 'w-full bg-slate-50 py-16 sm:py-20',
+    sectionWrapper: 'w-full py-16 sm:py-20',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
     grid:
       'mt-10 grid gap-6 justify-items-center sm:grid-cols-2 lg:grid-cols-3 lg:gap-8',
@@ -1172,6 +1172,30 @@ export const jysSectionTheme = {
       'mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-[11px]',
     note: 'mt-4 text-center text-[11px] text-slate-500 sm:text-xs',
   },
+  dashboardSearch: {
+    resultsWrapper: 'mt-5 space-y-3',
+    summaryText: 'text-xs text-slate-500 sm:text-sm',
+    summaryKeyword: 'font-semibold text-pink-600',
+    list: 'space-y-3',
+    itemCard:
+      'rounded-2xl bg-white p-4 text-sm text-slate-800 shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
+    itemInnerRow: 'flex items-start gap-3',
+    itemIconCircle:
+      'mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-pink-50 text-pink-600',
+    itemIcon: 'h-4 w-4',
+    itemTitle: 'text-sm leading-relaxed text-slate-800',
+    itemHighlight: 'font-semibold text-pink-600',
+    itemBreadcrumb: 'mt-2 text-[11px] text-slate-500',
+    itemBreadcrumbActive: 'font-semibold text-pink-600',
+    emptyWrapper:
+      'flex min-h-[220px] flex-col items-center justify-center space-y-3 text-center',
+    emptyIconCircle:
+      'inline-flex h-14 w-14 items-center justify-center rounded-full border-2 border-rose-300 bg-rose-50 text-rose-500',
+    emptyIcon: 'h-7 w-7',
+    emptyKeyword: 'font-semibold text-pink-600',
+    emptyTextMain: 'text-sm text-slate-700',
+    emptyTextSub: 'text-xs text-slate-500',
+  },
   dashboardDocuments: {
     sectionWrapper: 'space-y-6',
     tabsWrapper:
@@ -1578,12 +1602,98 @@ export const jysSectionTheme = {
     helperListItem: 'flex items-start gap-1.5',
     helperListIcon: 'mt-[2px] h-3 w-3 text-pink-500',
 
+    // edit: essay guidelines panel (image helper, currently unused but kept)
+    essayPanelWrapper:
+      'mt-5 grid gap-5 rounded-2xl border border-pink-100 bg-pink-50/40 p-5 text-xs text-slate-700 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]',
+    essayPanelTitle:
+      'text-xs font-semibold uppercase tracking-wide text-pink-700',
+    essayPanelBody: 'mt-1 text-[12px] text-slate-700',
+    essayPanelList: 'mt-2 space-y-1.5',
+    essayPanelListItem: 'flex items-start gap-1.5',
+    essayPanelListIcon: 'mt-[2px] h-3 w-3 text-pink-500',
+    essayImageWrapper:
+      'relative h-32 w-full overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-pink-100 sm:h-40',
+    essayImage: 'h-full w-full object-cover',
+
+    // edit: essay fields
+    essayFormGrid: 'mt-5 grid gap-4 md:grid-cols-2',
+    essayTextarea:
+      'min-h-[120px] resize-vertical rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200',
+
+    // edit: essay guidelines summary & note & guidebook CTA
+    essaySummaryWrapper: 'mt-10 space-y-4 text-sm text-slate-700',
+    essaySummaryTitle: 'text-base font-semibold text-slate-900',
+    essaySummaryBody: 'mt-1 text-[13px] text-slate-700',
+    essaySummaryBodySmall: 'mt-1 text-[12px] text-slate-700',
+    essayNoteBanner:
+      'mt-2 flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-[12px] text-amber-800',
+    essayNoteIconCircle:
+      'inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-amber-500 ring-1 ring-amber-200',
+    essayGuidebookCard:
+      'mt-3 relative flex items-center overflow-hidden rounded-2xl border border-pink-100 min-h-[250px]',
+    essayGuidebookInner:
+      'relative z-10 w-full px-6 py-5',
+    essayGuidebookBackgroundImage: 'absolute inset-0 h-full w-full object-cover',
+    essayGuidebookOverlay: 'absolute inset-0 bg-transparent',
+    essayGuidebookGrid:
+      'grid items-center gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.6fr)_minmax(0,1fr)]',
+    essayGuidebookTitle:
+      'text-left text-sm font-bold uppercase tracking-wide text-slate-800',
+    essayGuidebookSubtitle: 'text-[13px] text-slate-700',
+    essayGuidebookButtonRow:
+      'mt-3 mx-auto flex w-full max-w-[220px] flex-col items-stretch gap-2 md:max-w-[260px]',
+    twibbonListText: 'text-[12px] font-normal text-slate-700',
+
+    // edit: twibbon action steps list (misc section)
+    twibbonStepsList: 'mt-3 space-y-2 text-[12px] text-slate-700',
+    twibbonStepItem: 'flex items-start gap-2',
+    twibbonStepBadge:
+      'mt-[2px] inline-flex h-5 w-5 items-center justify-center rounded-full bg-pink-600 text-[11px] font-semibold text-white',
+    twibbonStepText: 'flex-1',
+
+    // edit: main essay question section
+    mainEssaySectionWrapper: 'mt-8 space-y-4 text-sm text-slate-700',
+    mainEssayCounterText: 'mt-1 text-[11px] text-slate-500',
+
+    // edit: keyword multi-select field
+    keywordFieldWrapper:
+      'rounded-xl border border-slate-300 bg-white px-3 py-2 shadow-sm',
+    keywordTriggerButton: 'flex w-full items-center gap-2 text-left',
+    keywordIconCircle:
+      'mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-500',
+    keywordChipsRow: 'flex flex-wrap items-center gap-1',
+    keywordChip:
+      'inline-flex items-center gap-1 rounded-full bg-pink-50 px-2.5 py-1 text-[11px] font-medium text-pink-700 ring-1 ring-pink-200',
+    keywordChipRemove: 'cursor-pointer text-[10px]',
+    keywordChevron: 'ml-2 text-slate-400',
+    keywordDropdownWrapper: 'mt-2 space-y-2',
+    keywordSearchInput:
+      'w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-pink-300',
+    keywordOptionsList:
+      'max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-white text-xs shadow-lg',
+    keywordOptionItem:
+      'flex w-full items-center justify-between px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50',
+    keywordCounterText: 'mt-1 text-[11px] text-slate-500',
+
+    // read-only: entry essay section
+    readEssaySectionWrapper: 'mt-6 space-y-4 text-xs text-slate-700',
+    readEssaySectionTitle:
+      'text-[11px] font-semibold uppercase tracking-wide text-slate-500',
+    readEssayFieldWrapper: 'mt-1.5',
+    readEssayTextarea:
+      'w-full text-xs',
+    readEssayKeywordRow: 'flex flex-wrap gap-1',
+    readEssayKeywordChip:
+      'rounded-full bg-pink-50 px-2.5 py-0.5 text-[11px] font-medium text-pink-700 ring-1 ring-pink-200',
+
     // edit: buttons
     buttonRow: 'flex justify-end gap-3',
     secondaryButton:
       'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50',
     primaryButton:
       'rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+    twibbonValidateButton:
+      'inline-flex h-11 min-w-[150px] items-center justify-center gap-1 rounded-md bg-pink-600 px-5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
     shirtSizeButton:
       'inline-flex items-center justify-center rounded-full bg-pink-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-pink-700 ring-1 ring-pink-200 shadow-sm hover:bg-pink-100 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-offset-2',
 

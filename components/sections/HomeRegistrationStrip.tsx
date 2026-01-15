@@ -1,8 +1,46 @@
 import { MapPin, Calendar, Check, CreditCard } from 'lucide-react';
+import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 
-export default function HomeRegistrationStrip() {
+type InstagramFeedItem = {
+  id: string;
+  permalink: string;
+  imageUrl: string;
+  caption: string;
+};
+
+type RegistrationType = {
+  id: string;
+  name: string;
+  price: string;
+  currency: string;
+  benefits: string[];
+};
+
+type Guideline = {
+  id: string;
+  title: string;
+  type: string;
+  url: string;
+};
+
+type HomeRegistrationStripProps = {
+  igFeed?: InstagramFeedItem[];
+  registrationTypes?: RegistrationType[];
+  guidelines?: Guideline[];
+};
+
+export default function HomeRegistrationStrip({
+  igFeed,
+  registrationTypes,
+  guidelines,
+}: HomeRegistrationStripProps) {
+  const primaryPost = igFeed?.[0];
+  const primaryType = registrationTypes?.[0];
+  const secondaryType = registrationTypes?.[1];
+  const primaryGuide = guidelines?.[0];
+
   return (
     <section className={jysSectionTheme.homeRegistration.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -18,34 +56,62 @@ export default function HomeRegistrationStrip() {
               <div className={jysSectionTheme.homeRegistration.instagramHeader}>
                 Official Instagram Feed
               </div>
-              <div className="relative h-[520px] w-full overflow-hidden">
-                <iframe
-                  src="https://www.instagram.com/p/DSURl6UEm0O/embed"
-                  className="h-[650px] w-full origin-top scale-[0.8]"
-                  loading="lazy"
-                  allow="encrypted-media; picture-in-picture"
-                  scrolling="no"
-                  title="Japan Youth Summit Instagram post"
-                />
+              <div className="relative h-[320px] w-full overflow-hidden rounded-xl bg-slate-100">
+                {primaryPost ? (
+                  <a
+                    href={primaryPost.permalink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group block h-full w-full"
+                  >
+                    <Image
+                      src={primaryPost.imageUrl}
+                      alt={primaryPost.caption || 'Instagram post'}
+                      fill
+                      sizes="(min-width: 1024px) 360px, 100vw"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                  </a>
+                ) : (
+                  <div className="flex h-full items-center justify-center px-6 text-center text-sm text-slate-500">
+                    Instagram feed will appear here once available.
+                  </div>
+                )}
               </div>
               <div className={jysSectionTheme.homeRegistration.instagramFooter}>
-                <span>japanyouthsummit</span>
-                <a
-                  href="https://www.instagram.com/japanyouthsummitofficial/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className={jysSectionTheme.homeRegistration.instagramLink}
-                >
-                  View more on Instagram
-                </a>
+                {primaryPost && (
+                  <div className="flex w-full flex-col items-center text-center">
+                    <p className="mb-1 line-clamp-2 text-xs text-slate-600">
+                      {primaryPost.caption}
+                    </p>
+                    <a
+                      href={primaryPost.permalink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={jysSectionTheme.homeRegistration.instagramLink}
+                    >
+                      View post on Instagram
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <a href="#guidebook-en" className={jysSectionTheme.homeRegistration.guidePrimary}>
+              <a
+                href={primaryGuide?.url ?? '#guidebook-en'}
+                target={primaryGuide ? '_blank' : undefined}
+                rel={primaryGuide ? 'noreferrer' : undefined}
+                className={jysSectionTheme.homeRegistration.guidePrimary}
+              >
                 Read Guidebook (Eng)
               </a>
-              <a href="#guidebook-id" className={jysSectionTheme.homeRegistration.guideSecondary}>
+              <a
+                href={primaryGuide?.url ?? '#guidebook-id'}
+                target={primaryGuide ? '_blank' : undefined}
+                rel={primaryGuide ? 'noreferrer' : undefined}
+                className={jysSectionTheme.homeRegistration.guideSecondary}
+              >
                 Read Guidebook (Ind)
               </a>
             </div>
@@ -55,76 +121,84 @@ export default function HomeRegistrationStrip() {
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Self Funded */}
             <div className={jysSectionTheme.applyRegistrationTypes.card}>
-              <div className="border-b border-slate-200 bg-gradient-to-b from-blue-50/70 to-transparent p-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+              <div className={jysSectionTheme.applyRegistrationTypes.headerWrapper}>
+                <div className={jysSectionTheme.applyRegistrationTypes.headerRow}>
+                  <div className={jysSectionTheme.applyRegistrationTypes.headerTitleRow}>
                     <span className={jysSectionTheme.applyRegistrationTypes.iconCircle}>
                       <CreditCard className="h-5 w-5" />
                     </span>
                     <div>
-                      <h3 className="text-xl font-extrabold text-blue-900">Self Funded</h3>
-                      <p className="text-xs font-medium text-slate-600">Standard Registration</p>
+                      <h3 className={jysSectionTheme.applyRegistrationTypes.headerTitle}>
+                        {primaryType?.name ?? 'Self Funded'}
+                      </h3>
+                      <p className={jysSectionTheme.applyRegistrationTypes.headerSubtitle}>
+                        Standard Registration
+                      </p>
                     </div>
                   </div>
-                  <span className="whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-[11px] font-semibold text-green-700">
-                    Registration Open
+                  <span className={jysSectionTheme.applyRegistrationTypes.statusBadgeOpen}>
+                    Open
                   </span>
                 </div>
-                <div className="mt-3 flex items-baseline gap-2">
-                  <span className={jysSectionTheme.applyRegistrationTypes.priceText}>$15.00</span>
-                  <span className="text-xs font-medium text-slate-500">Registration Fee</span>
+                <div className={jysSectionTheme.applyRegistrationTypes.feeRow}>
+                  <span className={jysSectionTheme.applyRegistrationTypes.priceText}>
+                    {primaryType
+                      ? `${primaryType.currency} ${primaryType.price}`
+                      : '$15.00'}
+                  </span>
+                  <span className={jysSectionTheme.applyRegistrationTypes.feeLabel}>
+                    Registration Fee
+                  </span>
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-xs text-slate-600">
+                <div className={jysSectionTheme.applyRegistrationTypes.periodRow}>
                   <Calendar className={jysSectionTheme.applyRegistrationTypes.calendarIcon} />
-                  <span className="font-semibold text-slate-700">Registration Period:</span>
+                  <span className={jysSectionTheme.applyRegistrationTypes.periodLabel}>
+                    Registration Period:
+                  </span>
                   <span>Sep 01 – Dec 31, 2025</span>
                 </div>
               </div>
-              <div className="flex-1 p-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Requirements
-                </p>
-                <ul className="mt-2 space-y-2 text-sm text-slate-700">
+              <div className={jysSectionTheme.applyRegistrationTypes.bodyWrapper}>
+                <p className={jysSectionTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+                <ul className={jysSectionTheme.applyRegistrationTypes.list}>
                   {[
                     'Complete registration form and documentation',
                     'Submit required documents on time',
                     'Pay fees according to scheduled payment batches',
                   ].map((label, idx) => (
-                    <li key={idx} className="flex items-center gap-3">
+                    <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
-                      <span className="font-medium text-blue-950">{label}</span>
+                      <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>{label}</span>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Benefit
-                </p>
-                <ul className="mt-2 space-y-2 text-sm text-slate-700">
-                  {[
+                <p className={jysSectionTheme.applyRegistrationTypes.bodySectionSpacer}>Benefit</p>
+                <ul className={jysSectionTheme.applyRegistrationTypes.list}>
+                  {(primaryType?.benefits ?? [
                     'Guaranteed program participation',
                     'Faster application processing',
                     'You pay all scheduled fee batches yourself',
-                  ].map((label, idx) => (
-                    <li key={idx} className="flex items-center gap-3">
+                  ]).map((label, idx) => (
+                    <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
-                      <span className="font-medium text-blue-950">{label}</span>
+                      <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>{label}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="p-5 pt-0">
-                <div className="flex justify-center">
+              <div className={jysSectionTheme.applyRegistrationTypes.cardFooter}>
+                <div className={jysSectionTheme.applyRegistrationTypes.ctaWrapper}>
                   <a
                     href="/apply#self-funded"
-                    className={`${jysSectionTheme.applyRegistrationTypes.ctaButton} w-full max-w-xs justify-center py-3 text-sm`}
+                    className={`${jysSectionTheme.applyRegistrationTypes.ctaButton} ${jysSectionTheme.applyRegistrationTypes.ctaButtonWide}`}
                   >
                     Register as Self Funded
                   </a>
@@ -134,73 +208,83 @@ export default function HomeRegistrationStrip() {
 
             {/* Fully Funded */}
             <div className={jysSectionTheme.applyRegistrationTypes.card}>
-              <div className="border-b border-slate-200 bg-gradient-to-b from-blue-50/70 to-transparent p-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
+              <div className={jysSectionTheme.applyRegistrationTypes.headerWrapper}>
+                <div className={jysSectionTheme.applyRegistrationTypes.headerRowTopAligned}>
+                  <div className={jysSectionTheme.applyRegistrationTypes.headerTitleRow}>
                     <span className={jysSectionTheme.applyRegistrationTypes.iconCircle}>
                       <MapPin className="h-5 w-5" />
                     </span>
                     <div>
-                      <h3 className="text-xl font-extrabold text-blue-900">Fully Funded</h3>
-                      <p className="text-xs font-medium text-slate-600">Reimbursement System</p>
+                      <h3 className={jysSectionTheme.applyRegistrationTypes.headerTitle}>
+                        {secondaryType?.name ?? 'Fully Funded'}
+                      </h3>
+                      <p className={jysSectionTheme.applyRegistrationTypes.headerSubtitle}>
+                        Reimbursement System
+                      </p>
                     </div>
                   </div>
-                  <span className="rounded-full bg-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-700">
-                    Not Available
+                  <span className={jysSectionTheme.applyRegistrationTypes.statusBadgeClosed}>
+                    Closed
                   </span>
                 </div>
-                <div className="mt-3 flex items-baseline gap-2">
-                  <span className={jysSectionTheme.applyRegistrationTypes.priceText}>$10.00</span>
-                  <span className="text-xs font-medium text-slate-500">Registration Fee</span>
+                <div className={jysSectionTheme.applyRegistrationTypes.feeRow}>
+                  <span className={jysSectionTheme.applyRegistrationTypes.priceText}>
+                    {secondaryType
+                      ? `${secondaryType.currency} ${secondaryType.price}`
+                      : '$10.00'}
+                  </span>
+                  <span className={jysSectionTheme.applyRegistrationTypes.feeLabel}>
+                    Registration Fee
+                  </span>
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-xs text-slate-600">
+                <div className={jysSectionTheme.applyRegistrationTypes.periodRow}>
                   <Calendar className={jysSectionTheme.applyRegistrationTypes.calendarIcon} />
-                  <span className="font-semibold text-slate-700">Registration Period:</span>
+                  <span className={jysSectionTheme.applyRegistrationTypes.periodLabel}>
+                    Registration Period:
+                  </span>
                   <span>Aug 01 – Sep 30, 2025</span>
                 </div>
               </div>
-              <div className="flex-1 p-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Requirements
-                </p>
-                <ul className="mt-2 space-y-2 text-sm text-slate-700">
+              <div className={jysSectionTheme.applyRegistrationTypes.bodyWrapper}>
+                <p className={jysSectionTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+                <ul className={jysSectionTheme.applyRegistrationTypes.list}>
                   {[
                     'Complete registration form and documentation',
                     'Submit detailed essays and applications',
                     'Participate in interviews and evaluations',
                   ].map((label, idx) => (
-                    <li key={idx} className="flex items-center gap-3">
+                    <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
-                      <span className="font-medium text-blue-950">{label}</span>
+                      <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>{label}</span>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <p className={jysSectionTheme.applyRegistrationTypes.bodySectionSpacer}>
                   Benefit (If Selected)
                 </p>
-                <ul className="mt-2 space-y-2 text-sm text-slate-700">
-                  {[
+                <ul className={jysSectionTheme.applyRegistrationTypes.list}>
+                  {(secondaryType?.benefits ?? [
                     'Full reimbursement of all payments',
                     'Enhanced program recognition',
                     'Access to exclusive fully funded activities',
-                  ].map((label, idx) => (
-                    <li key={idx} className="flex items-center gap-3">
+                  ]).map((label, idx) => (
+                    <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
-                      <span className="font-medium text-blue-950">{label}</span>
+                      <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>{label}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="p-5 pt-0">
-                <div className="flex justify-center">
+              <div className={jysSectionTheme.applyRegistrationTypes.cardFooter}>
+                <div className={jysSectionTheme.applyRegistrationTypes.ctaWrapper}>
                   <button
                     type="button"
                     aria-disabled

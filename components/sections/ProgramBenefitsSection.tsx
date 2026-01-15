@@ -21,7 +21,7 @@ export default function ProgramBenefitsSection() {
       <div className={theme.container}>
         <SectionHeader
           eyebrow="Program Benefits"
-          title="Program Benefits for Students, University Students, and Professional"
+          title="for Students, University Students, and Professional"
           align="center"
         />
 

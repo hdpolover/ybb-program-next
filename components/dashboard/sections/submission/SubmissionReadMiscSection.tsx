@@ -1,8 +1,8 @@
 "use client";
 
-import { Award, BriefcaseBusiness, FileText, Info, MapPin, Users } from "lucide-react";
+import { Info } from "lucide-react";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
-import { DUMMY_PROFESSIONAL_PROFILE } from "../SubmissionEditSection";
+import { DUMMY_ENTRY_INFO } from "../SubmissionEditSection";
 
 const submissionTheme = jysSectionTheme.dashboardSubmission;
 
@@ -28,91 +28,87 @@ function inputBaseClass() {
   return submissionTheme.readInputBase;
 }
 
-export default function SubmissionReadProfessionalProfileSection() {
+export default function SubmissionReadMiscSection() {
   const base = inputBaseClass();
-  const professional = DUMMY_PROFESSIONAL_PROFILE;
+  const entry = DUMMY_ENTRY_INFO;
+
   return (
     <section className={submissionTheme.readSectionWrapper}>
       <div>
         <h2 className={submissionTheme.readSectionHeader}>
           <span className={submissionTheme.readSectionIconCircle}>
-            <BriefcaseBusiness className="h-3.5 w-3.5" />
+            <Info className="h-3.5 w-3.5" />
           </span>
-          <span>Professional Profile</span>
+          <span>Miscellaneous</span>
         </h2>
         <p className={submissionTheme.readSectionSubtitle}>
-          Tell us about your education and experience.
+          Additional information related to your social media and campaign.
         </p>
       </div>
 
       <div className={submissionTheme.readGrid}>
-        <Field label="Education Level">
+        <Field label="Instagram Account">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
             <input
               type="text"
               className={`${base} pl-9`}
-              defaultValue={professional.educationLevel}
+              defaultValue={entry.instagramAccount ?? ""}
               readOnly
             />
           </InputWrapper>
         </Field>
-        <Field label="Institution">
-          <InputWrapper icon={<MapPin className="h-4 w-4" />}>
-            <input
-              type="text"
-              className={`${base} pl-9`}
-              defaultValue={professional.institution}
-              readOnly
-            />
-          </InputWrapper>
-        </Field>
-        <Field label="Major">
+
+        <Field label="Knowledge Source">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
             <input
               type="text"
               className={`${base} pl-9`}
-              defaultValue={professional.major}
+              defaultValue={entry.miscKnowledgeSource ?? ""}
               readOnly
             />
           </InputWrapper>
         </Field>
-        <Field label="Organization">
-          <InputWrapper icon={<Users className="h-4 w-4" />}>
+
+        <Field label="Source Account Name">
+          <InputWrapper icon={<Info className="h-4 w-4" />}>
             <input
               type="text"
               className={`${base} pl-9`}
-              defaultValue={professional.organization}
+              defaultValue={entry.sourceAccountName ?? ""}
               readOnly
             />
           </InputWrapper>
         </Field>
-        <Field label="Experiences">
-          <InputWrapper icon={<BriefcaseBusiness className="h-4 w-4" />}>
-            <textarea
-              rows={3}
-              className={`${base} pl-9`}
-              defaultValue={professional.experiences}
-              readOnly
-            />
-          </InputWrapper>
-        </Field>
-        <Field label="Achievements &amp; Rewards">
-          <InputWrapper icon={<Award className="h-4 w-4" />}>
-            <textarea
-              rows={3}
-              className={`${base} pl-9`}
-              defaultValue={professional.achievements}
-              readOnly
-            />
-          </InputWrapper>
-        </Field>
-        <Field label="Resume (PDF)">
-          <InputWrapper icon={<FileText className="h-4 w-4" />}>
+
+        <Field label="Twibbon Link">
+          <InputWrapper icon={<Info className="h-4 w-4" />}>
             <input
-              type="file"
-              accept="application/pdf"
+              type="url"
               className={`${base} pl-9`}
-              disabled
+              defaultValue={entry.twibbonLink ?? ""}
+              readOnly
+            />
+          </InputWrapper>
+        </Field>
+
+        <Field label="Requirement Link">
+          <InputWrapper icon={<Info className="h-4 w-4" />}>
+            <input
+              type="url"
+              className={`${base} pl-9`}
+              defaultValue={entry.requirementLink ?? ""}
+              readOnly
+            />
+          </InputWrapper>
+        </Field>
+
+        <Field label="Ambassador Referral Code (Optional)">
+          <InputWrapper icon={<Info className="h-4 w-4" />}>
+            <input
+              type="text"
+              className={`${base} pl-9`}
+              defaultValue={entry.ambassadorReferralCode ?? ""}
+              readOnly
             />
           </InputWrapper>
         </Field>

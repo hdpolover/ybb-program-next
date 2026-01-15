@@ -2,6 +2,7 @@
 
 import { Info } from "lucide-react";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { DUMMY_ENTRY_INFO } from "../SubmissionEditSection";
 
 const submissionTheme = jysSectionTheme.dashboardSubmission;
 
@@ -29,6 +30,7 @@ function inputBaseClass() {
 
 export default function SubmissionReadEntryInformationSection() {
   const base = inputBaseClass();
+  const entry = DUMMY_ENTRY_INFO;
   return (
     <section className={submissionTheme.readSectionWrapper}>
       <div>
@@ -46,34 +48,71 @@ export default function SubmissionReadEntryInformationSection() {
       <div className={submissionTheme.readGrid}>
         <Field label="Participation Category">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <input
-              type="text"
-              className={`${base} pl-9`}
-              defaultValue="Social Innovation — Youth Leadership"
-              readOnly
-            />
+            <input type="text" className={`${base} pl-9`} defaultValue={entry.participationCategory} readOnly />
           </InputWrapper>
         </Field>
         <Field label="Program Subtheme">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <input
-              type="text"
-              className={`${base} pl-9`}
-              defaultValue="SDG 3: Good Health and Well-being"
-              readOnly
-            />
+            <input type="text" className={`${base} pl-9`} defaultValue={entry.programSubtheme} readOnly />
           </InputWrapper>
         </Field>
         <Field label="Knowledge Source">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <input
-              type="text"
-              className={`${base} pl-9`}
-              defaultValue="Instagram Ads"
-              readOnly
-            />
+            <input type="text" className={`${base} pl-9`} defaultValue={entry.knowledgeSource} readOnly />
           </InputWrapper>
         </Field>
+      </div>
+
+      {/* Essay information (read-only) */}
+      <div className={submissionTheme.readEssaySectionWrapper}>
+        <div>
+          <h3 className={submissionTheme.readEssaySectionTitle}>
+            Main Essay Question
+          </h3>
+        </div>
+
+        <div className={submissionTheme.readEssayFieldWrapper}>
+          <Field label="Essay Title">
+            <InputWrapper icon={<Info className="h-4 w-4" />}>
+              <input type="text" className={`${base} pl-9`} defaultValue={entry.essayTitle} readOnly />
+            </InputWrapper>
+          </Field>
+        </div>
+
+        <div className={submissionTheme.readEssayFieldWrapper}>
+          <Field label="Essay (Main Answer)">
+            <textarea
+              className={`${submissionTheme.essayTextarea} ${submissionTheme.readEssayTextarea}`}
+              readOnly
+              defaultValue={entry.mainEssay}
+            />
+          </Field>
+        </div>
+
+        <div className={submissionTheme.readEssayFieldWrapper}>
+          <Field label="Keywords">
+            <div className={submissionTheme.readEssayKeywordRow}>
+              {entry.keywords.map(keyword => (
+                <span
+                  key={keyword}
+                  className={submissionTheme.readEssayKeywordChip}
+                >
+                  {keyword}
+                </span>
+              ))}
+            </div>
+          </Field>
+        </div>
+
+        <div className={submissionTheme.readEssayFieldWrapper}>
+          <Field label="Reference">
+            <textarea
+              className={`${submissionTheme.essayTextarea} ${submissionTheme.readEssayTextarea}`}
+              readOnly
+              defaultValue={entry.reference}
+            />
+          </Field>
+        </div>
       </div>
     </section>
   );
