@@ -16,7 +16,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const headersList = headers();
+  const headersList = await headers();
   const host = headersList.get('host') || 'youthacademicforum.com';
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;
