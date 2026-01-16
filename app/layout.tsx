@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   // In a real implementation, you might fetch brand-specific metadata from your API here
   // using the host to lookup the program settings
-  
+
   return {
     metadataBase: new URL(baseUrl),
     title: {
@@ -58,7 +58,6 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>

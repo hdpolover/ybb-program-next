@@ -4,6 +4,16 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 import { Award, Trophy, Medal, Users, Crown, Camera, Star } from 'lucide-react';
 
+type ApiAwardItem = {
+  id: string;
+  name: string;
+  description: string;
+  winner_count: number;
+  tags: string[];
+  color: string;
+  icon_url: string | null;
+};
+
 type AwardItem = {
   title: string;
   icon: JSX.Element;
@@ -17,7 +27,7 @@ type AwardItem = {
 interface RecognitionAwardsProps {
   title?: string;
   subtitle?: string;
-  items?: AwardItem[];
+  apiItems?: ApiAwardItem[];
 }
 
 const DEFAULT_ITEMS: AwardItem[] = [
@@ -76,11 +86,90 @@ const DEFAULT_ITEMS: AwardItem[] = [
   },
 ];
 
+const buildHighlights = (name: string, winnerCount: number): string[] => {
+  if (name.toLowerCase().includes('innovation') && winnerCount === 3) {
+    return ['1st Place', '2nd Place', '3rd Place'];
+  }
+  if (!winnerCount || winnerCount <= 0) return ['Winner'];
+  if (winnerCount === 1) return ['1 Winner'];
+  return [`${winnerCount} Winners`];
+};
+
+const mapApiToAwardItem = (api: ApiAwardItem): AwardItem => {
+  const base: Pick<AwardItem, 'title' | 'desc' | 'highlights' | 'chips'> = {
+    title: api.name,
+    desc: api.description,
+    highlights: buildHighlights(api.name, api.winner_count),
+    chips: api.tags,
+  };
+
+  const name = api.name.toLowerCase();
+  if (name.includes('innovation')) {
+    return {
+      ...base,
+      icon: <Trophy className="h-5 w-5" />,
+      accent: 'bg-accent text-accent-foreground',
+      ring: 'ring-accent/30',
+    };
+  }
+  if (name.includes('presenter')) {
+    return {
+      ...base,
+      icon: <Star className="h-5 w-5" />,
+      accent: 'bg-amber-500 text-white',
+      ring: 'ring-amber-200',
+    };
+  }
+  if (name.includes('participant')) {
+    return {
+      ...base,
+      icon: <Award className="h-5 w-5" />,
+      accent: 'bg-blue-600 text-white',
+      ring: 'ring-blue-200',
+    };
+  }
+  if (name.includes('group')) {
+    return {
+      ...base,
+      icon: <Users className="h-5 w-5" />,
+      accent: 'bg-emerald-600 text-white',
+      ring: 'ring-emerald-200',
+    };
+  }
+  if (name.includes('leader')) {
+    return {
+      ...base,
+      icon: <Crown className="h-5 w-5" />,
+      accent: 'bg-violet-600 text-white',
+      ring: 'ring-violet-200',
+    };
+  }
+  if (name.includes('content')) {
+    return {
+      ...base,
+      icon: <Camera className="h-5 w-5" />,
+      accent: 'bg-rose-600 text-white',
+      ring: 'ring-rose-200',
+    };
+  }
+
+  return {
+    ...base,
+    icon: <Medal className="h-5 w-5" />,
+    accent: 'bg-slate-900 text-white',
+    ring: 'ring-slate-200',
+  };
+};
+
 export default function RecognitionAwards({
   title = 'Awards at Japan Youth Summit',
-  subtitle = 'At JYS, we recognize students who lead, speak up, and make an impact. Your teen could be one of them!',
-  items = DEFAULT_ITEMS,
+  subtitle =
+    'At JYS, we recognize students who lead, speak up, and make an impact. Your teen could be one of them!',
+  apiItems,
 }: RecognitionAwardsProps) {
+  const items: AwardItem[] = apiItems && apiItems.length > 0
+    ? apiItems.map(mapApiToAwardItem)
+    : DEFAULT_ITEMS;
   return (
     <section className={jysSectionTheme.awards.sectionWrapper}>
       <div className={jysSectionTheme.awards.container}>
@@ -134,7 +223,6 @@ export default function RecognitionAwards({
                           ) : null}
                         </div>
                         <div className="flex flex-wrap items-center justify-end gap-2">
-                          <span className={jysSectionTheme.awards.chip}>JYS</span>
                           {it.chips?.map(c => (
                             <span key={c} className={jysSectionTheme.awards.chip}>
                               {c}

@@ -23,6 +23,7 @@ import { jysSectionTheme } from "@/lib/theme/jys-components";
 import SubmissionEditPersonalDetailsSection from "./submission/SubmissionEditPersonalDetailsSection";
 import SubmissionEditProfessionalProfileSection from "./submission/SubmissionEditProfessionalProfileSection";
 import SubmissionEditEntryInformationSection from "./submission/SubmissionEditEntryInformationSection";
+import SubmissionEditMiscSection from "./submission/SubmissionEditMiscSection";
 import SubmissionEditPreviewSection from "./submission/SubmissionEditPreviewSection";
 import SubmissionEditSubmitModalSection from "./submission/SubmissionEditSubmitModalSection";
 
@@ -30,6 +31,7 @@ const steps = [
   "Personal Details",
   "Professional Profile",
   "Entry Information",
+  "Miscellaneous",
   "Preview",
 ] as const;
 
@@ -65,6 +67,66 @@ export type EntryInfo = {
   participationCategory: string;
   programSubtheme: string;
   knowledgeSource: string;
+  essayTitle: string;
+  mainEssay: string;
+  keywords: string[];
+  reference: string;
+  instagramAccount?: string;
+  miscKnowledgeSource?: string;
+  sourceAccountName?: string;
+  twibbonLink?: string;
+  requirementLink?: string;
+  ambassadorReferralCode?: string;
+};
+
+export const DUMMY_PERSONAL_DETAILS: PersonalDetails = {
+  fullName: "Hilmi Farrel Firjatullah",
+  nickName: "Hilmi",
+  gender: "male",
+  birthdate: "1999-08-12",
+  nationality: "Indonesia",
+  originAddress: "Bandung, West Java",
+  currentAddress: "Depok, West Java, 16423",
+  phoneNumber: "0812-3456-7890",
+  emergencyPhoneNumber: "0813-9876-5432",
+  emergencyRelationship: "Father",
+  tshirtSize: "L",
+  diseaseHistory: "No chronic diseases. Mild seasonal allergies only.",
+};
+
+export const DUMMY_PROFESSIONAL_PROFILE: ProfessionalProfile = {
+  educationLevel: "Bachelor's (S1)",
+  institution: "Universitas Indonesia",
+  major: "Informatics Engineering",
+  occupation: "Software Engineer Intern",
+  organization: "BEM UI – Public Relations",
+  experiences: "Software Engineer Intern — Tokopedia (Jun–Aug 2023).",
+  achievements: "1st Place — Jakarta Youth Innovation Hackathon 2024.",
+  resumeName: "",
+};
+
+export const DUMMY_ENTRY_INFO: EntryInfo = {
+  participationCategory: "Social Innovation — Youth Leadership",
+  programSubtheme: "SDG 3: Good Health and Well-being",
+  knowledgeSource: "Instagram Ads",
+  essayTitle: "How youth can drive sustainable change in local communities",
+  mainEssay:
+    "In this essay, I describe how youth-led initiatives can create sustainable impact in local communities through collaboration, innovation, and long-term commitment to social change.",
+  keywords: [
+    "User Experience",
+    "User Interface",
+    "Muslims",
+    "Society",
+    "Sustainability",
+  ],
+  reference:
+    "UN Sustainable Development Goals reports, local government publications, and community-based research related to youth empowerment and social innovation.",
+  instagramAccount: "@hilmi_farrel",
+  miscKnowledgeSource: "Instagram",
+  sourceAccountName: "@youngbrightbanyuwangi",
+  twibbonLink: "https://twb.nz/ybb-essay-campaign",
+  requirementLink: "https://drive.google.com/requirements-folder",
+  ambassadorReferralCode: "YBBJYS-AMB01",
 };
 
 const submissionTheme = jysSectionTheme.dashboardSubmission;
@@ -93,40 +155,17 @@ function InputWrapper({ icon, children }: { icon: React.ReactNode; children: Rea
 
 export default function SubmissionEditSection() {
   const [activeStep, setActiveStep] = useState<StepKey>("Personal Details");
-  const [personal, setPersonal] = useState<PersonalDetails>({
-    fullName: "Hilmi Farrel Firjatullah",
-    nickName: "Hilmi",
-    gender: "male",
-    birthdate: "1999-08-12",
-    nationality: "Indonesia",
-    originAddress: "Bandung, West Java",
-    currentAddress: "Depok, West Java, 16423",
-    phoneNumber: "0812-3456-7890",
-    emergencyPhoneNumber: "0813-9876-5432",
-    emergencyRelationship: "Father",
-    tshirtSize: "L",
-    diseaseHistory: "No chronic diseases. Mild seasonal allergies only.",
-  });
+  const [personal, setPersonal] = useState<PersonalDetails>(DUMMY_PERSONAL_DETAILS);
 
-  const [professional, setProfessional] = useState<ProfessionalProfile>({
-    educationLevel: "Bachelor's (S1)",
-    institution: "Universitas Indonesia",
-    major: "Informatics Engineering",
-    occupation: "Software Engineer Intern",
-    organization: "BEM UI – Public Relations",
-    experiences: "Software Engineer Intern — Tokopedia (Jun–Aug 2023).",
-    achievements: "1st Place — Jakarta Youth Innovation Hackathon 2024.",
-    resumeName: "", // display-only name, upload handling nanti
-  });
+  const [professional, setProfessional] = useState<ProfessionalProfile>(
+    DUMMY_PROFESSIONAL_PROFILE
+  );
 
-  const [entry, setEntry] = useState<EntryInfo>({
-    participationCategory: "Social Innovation — Youth Leadership",
-    programSubtheme: "SDG 3: Good Health and Well-being",
-    knowledgeSource: "Instagram Ads",
-  });
+  const [entry, setEntry] = useState<EntryInfo>(DUMMY_ENTRY_INFO);
   const [personalShowErrors, setPersonalShowErrors] = useState(false);
   const [professionalShowErrors, setProfessionalShowErrors] = useState(false);
   const [entryShowErrors, setEntryShowErrors] = useState(false);
+  const [miscShowErrors, setMiscShowErrors] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const base = inputBaseClass();
 
@@ -145,8 +184,24 @@ export default function SubmissionEditSection() {
   }, [professional]);
 
   const isEntryValid = useMemo(() => {
-    return (Object.keys(entry) as (keyof EntryInfo)[]).every(
-      key => String(entry[key]).trim().length > 0
+    return (
+      entry.participationCategory.trim().length > 0 &&
+      entry.programSubtheme.trim().length > 0 &&
+      entry.knowledgeSource.trim().length > 0 &&
+      entry.essayTitle.trim().length > 0 &&
+      entry.mainEssay.trim().length > 0 &&
+      entry.keywords.length > 0 &&
+      entry.reference.trim().length > 0
+    );
+  }, [entry]);
+
+  const isMiscValid = useMemo(() => {
+    return (
+      (entry.instagramAccount ?? "").trim().length > 0 &&
+      (entry.miscKnowledgeSource ?? "").trim().length > 0 &&
+      (entry.sourceAccountName ?? "").trim().length > 0 &&
+      (entry.twibbonLink ?? "").trim().length > 0 &&
+      (entry.requirementLink ?? "").trim().length > 0
     );
   }, [entry]);
 
@@ -155,8 +210,9 @@ export default function SubmissionEditSection() {
     if (!isPersonalValid) return 0;
     if (!isProfessionalValid) return 1;
     if (!isEntryValid) return 2;
-    return 3;
-  }, [isPersonalValid, isProfessionalValid, isEntryValid]);
+    if (!isMiscValid) return 3;
+    return 4;
+  }, [isPersonalValid, isProfessionalValid, isEntryValid, isMiscValid]);
 
   const goToStep = (target: StepKey) => {
     const targetIndex = steps.indexOf(target);
@@ -176,6 +232,10 @@ export default function SubmissionEditSection() {
     }
     if (activeStep === "Entry Information" && !isEntryValid) {
       setEntryShowErrors(true);
+      return;
+    }
+    if (activeStep === "Miscellaneous" && !isMiscValid) {
+      setMiscShowErrors(true);
       return;
     }
 
@@ -284,6 +344,16 @@ export default function SubmissionEditSection() {
             entry={entry}
             onChangeEntry={setEntry}
             showErrors={entryShowErrors}
+            onBack={goBack}
+            onGoToPreview={goNext}
+          />
+        )}
+
+        {activeStep === "Miscellaneous" && (
+          <SubmissionEditMiscSection
+            entry={entry}
+            onChangeEntry={setEntry}
+            showErrors={miscShowErrors}
             onBack={goBack}
             onGoToPreview={goNext}
           />

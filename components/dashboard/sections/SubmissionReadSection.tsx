@@ -6,10 +6,11 @@ import SubmissionReadProfileHeaderSection from "./submission/SubmissionReadProfi
 import SubmissionReadPersonalDetailsSection from "./submission/SubmissionReadPersonalDetailsSection";
 import SubmissionReadProfessionalProfileSection from "./submission/SubmissionReadProfessionalProfileSection";
 import SubmissionReadEntryInformationSection from "./submission/SubmissionReadEntryInformationSection";
+import SubmissionReadMiscSection from "./submission/SubmissionReadMiscSection";
 
 const submissionTheme = jysSectionTheme.dashboardSubmission;
 
-const tabs = ["Personal Details", "Professional Profile", "Entry Information"] as const;
+const tabs = ["Personal Details", "Professional Profile", "Entry Information", "Miscellaneous"] as const;
 
 type TabKey = (typeof tabs)[number];
 
@@ -42,6 +43,7 @@ export default function SubmissionReadSection() {
       {activeTab === "Personal Details" && <SubmissionReadPersonalDetailsSection />}
       {activeTab === "Professional Profile" && <SubmissionReadProfessionalProfileSection />}
       {activeTab === "Entry Information" && <SubmissionReadEntryInformationSection />}
+      {activeTab === "Miscellaneous" && <SubmissionReadMiscSection />}
     </section>
   );
 }

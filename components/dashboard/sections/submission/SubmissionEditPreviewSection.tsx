@@ -12,7 +12,7 @@ type Props = {
   professional: ProfessionalProfile;
   entry: EntryInfo;
   onBack: () => void;
-  onEditStep: (step: "Personal Details" | "Professional Profile" | "Entry Information") => void;
+  onEditStep: (step: "Personal Details" | "Professional Profile" | "Entry Information" | "Miscellaneous") => void;
   onSubmitClick: () => void;
 };
 
@@ -162,6 +162,77 @@ export default function SubmissionEditPreviewSection({
             <div>
               <dt className={submissionTheme.previewDt}>Knowledge Source</dt>
               <dd className={submissionTheme.previewDd}>{entry.knowledgeSource}</dd>
+            </div>
+            <div>
+              <dt className={submissionTheme.previewDt}>Essay Title</dt>
+              <dd className={submissionTheme.previewDd}>{entry.essayTitle || "-"}</dd>
+            </div>
+            <div className="md:col-span-2">
+              <dt className={submissionTheme.previewDt}>Essay (Main Answer)</dt>
+              <dd className={submissionTheme.previewDdMultiline}>{entry.mainEssay || "-"}</dd>
+            </div>
+            <div className="md:col-span-2">
+              <dt className={submissionTheme.previewDt}>Keywords</dt>
+              <dd className={submissionTheme.previewDdMultiline}>
+                {entry.keywords.length === 0 ? (
+                  "-"
+                ) : (
+                  <div className="flex flex-wrap gap-1">
+                    {entry.keywords.map((kw, idx) => (
+                      <span
+                        key={`${kw}-${idx}`}
+                        className="rounded-full bg-pink-50 px-2.5 py-0.5 text-[11px] font-medium text-pink-700 ring-1 ring-pink-200"
+                      >
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </dd>
+            </div>
+            <div className="md:col-span-2">
+              <dt className={submissionTheme.previewDt}>Reference</dt>
+              <dd className={submissionTheme.previewDdMultiline}>{entry.reference || "-"}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div className={submissionTheme.previewCard}>
+          <div className={submissionTheme.previewCardHeader}>
+            <h3 className={submissionTheme.previewCardTitle}>Miscellaneous</h3>
+            <button
+              type="button"
+              onClick={() => onEditStep("Miscellaneous")}
+              className={submissionTheme.previewEditButton}
+            >
+              <PencilLine className={submissionTheme.previewEditIcon} />
+              <span>Edit</span>
+            </button>
+          </div>
+          <dl className={submissionTheme.previewDefinitionList}>
+            <div>
+              <dt className={submissionTheme.previewDt}>Instagram Account</dt>
+              <dd className={submissionTheme.previewDd}>{entry.instagramAccount || "-"}</dd>
+            </div>
+            <div>
+              <dt className={submissionTheme.previewDt}>Knowledge Source</dt>
+              <dd className={submissionTheme.previewDd}>{entry.miscKnowledgeSource || "-"}</dd>
+            </div>
+            <div>
+              <dt className={submissionTheme.previewDt}>Source Account Name</dt>
+              <dd className={submissionTheme.previewDd}>{entry.sourceAccountName || "-"}</dd>
+            </div>
+            <div>
+              <dt className={submissionTheme.previewDt}>Twibbon Link</dt>
+              <dd className={submissionTheme.previewDd}>{entry.twibbonLink || "-"}</dd>
+            </div>
+            <div>
+              <dt className={submissionTheme.previewDt}>Requirement Link</dt>
+              <dd className={submissionTheme.previewDd}>{entry.requirementLink || "-"}</dd>
+            </div>
+            <div>
+              <dt className={submissionTheme.previewDt}>Ambassador Referral Code</dt>
+              <dd className={submissionTheme.previewDd}>{entry.ambassadorReferralCode || "-"}</dd>
             </div>
           </dl>
         </div>
