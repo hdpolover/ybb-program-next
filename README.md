@@ -80,7 +80,8 @@ npm run build
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3010](http://localhost:3010) in your browser (if using Docker Compose).
+Or [http://localhost:3000](http://localhost:3000) if running directly with `npm run dev`.
 
 ## 📝 Available Scripts
 

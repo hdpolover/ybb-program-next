@@ -9,6 +9,7 @@ import BackToTop from '@/components/ui/BackToTop';
 import DevtoolsGuard from '@/components/layout/DevtoolsGuard';
 import PageTransitionOverlay from '@/components/layout/PageTransitionOverlay';
 import { headers } from 'next/headers';
+import { getHomePageData } from '@/lib/api/home';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -21,47 +22,68 @@ export async function generateMetadata(): Promise<Metadata> {
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;
 
-  // In a real implementation, you might fetch brand-specific metadata from your API here
-  // using the host to lookup the program settings
-
-  return {
-    metadataBase: new URL(baseUrl),
-    title: {
-      default: 'Home | Japan Youth Summit',
-      template: '%s | Japan Youth Summit',
-    },
-    description: 'International website built with Next.js',
-    keywords: ['Next.js', 'React', 'TypeScript', 'International'],
-    authors: [{ name: 'YBB Team' }],
-    creator: 'YBB Team',
-    icons: {
-      icon: '/img/jyslogosolo.png',
-      shortcut: '/img/jyslogosolo.png',
-      apple: '/img/jyslogosolo.png',
-    },
-    openGraph: {
-      type: 'website',
-      locale: 'en_US',
-      url: '/',
-      siteName: 'Home | Japan Youth Summit',
-      title: 'Home | Japan Youth Summit',
-      description: 'International website built with Next.js',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'Home | Japan Youth Summit',
-      description: 'International website built with Next.js',
-    },
-    robots: {
-      index: true,
-      follow: true,
-    },
-  };
+  try {
+    const data = await getHomePageData(host);
+    return {
+      metadataBase: new URL(baseUrl),
+      title: {
+        default: `Home | ${data.title}`,
+        template: `%s | ${data.title}`,
+      },
+      description: `Official website for ${data.title}`,
+      keywords: ['Next.js', 'React', 'TypeScript', 'International'],
+      authors: [{ name: 'YBB Team' }],
+      creator: 'YBB Team',
+      icons: {
+        icon: '/img/jyslogosolo.png', // This might need to be dynamic too
+        shortcut: '/img/jyslogosolo.png',
+        apple: '/img/jyslogosolo.png',
+      },
+      openGraph: {
+        type: 'website',
+        locale: 'en_US',
+        url: '/',
+        siteName: `Home | ${data.title}`,
+        title: `Home | ${data.title}`,
+        description: `Official website for ${data.title}`,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `Home | ${data.title}`,
+        description: `Official website for ${data.title}`,
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+    };
+  } catch (e) {
+    console.error('Failed to fetch metadata', e);
+    // Fallback metadata
+    return {
+      metadataBase: new URL(baseUrl),
+      title: 'Home | Youth Summit',
+    };
+  }
 }
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const headersList = await headers();
+  const host = headersList.get('host') || 'youthacademicforum.com';
+  let programSlug = 'jys'; // Default/fallback
+
+  try {
+    const data = await getHomePageData(host);
+    if (data.slug) {
+      programSlug = data.slug;
+    }
+  } catch (e) {
+    console.error('Failed to fetch program data for layout', e);
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={plusJakarta.className} data-program="jys">
+      <body className={plusJakarta.className} data-program={programSlug}>
         <PromoCTAProvider>
           <DevtoolsGuard />
           <PageTransitionOverlay />

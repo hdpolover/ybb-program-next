@@ -19,6 +19,7 @@ import Testimonials from '@/components/sections/Testimonials';
 import FAQ from '@/components/sections/FAQ';
 import GetInTouchSection from '@/components/sections/GetInTouchSection';
 import { getHomePageData } from '@/lib/api/home';
+import { headers } from 'next/headers';
 import type {
   MainBannerSection,
   RegistrationOverviewSection,
@@ -34,7 +35,10 @@ export const dynamic = 'force-dynamic';
 
 
 export default async function Home() {
-  const homeData = await getHomePageData();
+  const headersList = await headers();
+  const host = headersList.get('host') || 'youthacademicforum.com';
+  const homeData = await getHomePageData(host);
+
   const mainBannerSection = homeData.sections.find(
     (section): section is MainBannerSection => section.type === 'main_banner'
   );

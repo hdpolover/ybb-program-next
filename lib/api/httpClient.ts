@@ -3,7 +3,7 @@ export interface ApiGetOptions {
   headers?: HeadersInit;
 }
 
-const API_BASE_URL = 'https://staging-api.ybbhub.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
 
 export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Promise<T> {
   const url = new URL(path, API_BASE_URL);
