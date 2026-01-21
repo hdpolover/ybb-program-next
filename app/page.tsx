@@ -24,6 +24,8 @@ import type {
   RegistrationOverviewSection,
   ProgramOverviewSection,
   ProgramHighlightsSection,
+  ProgramObjectivesSection,
+  ProgramGallerySection,
   ProgramHighlightVideosSection,
   AlumniStoriesSection as AlumniStoriesApiSection,
   ProgramAwardsSection,
@@ -43,8 +45,13 @@ export default async function Home() {
     (section): section is ProgramOverviewSection => section.type === 'program_overview'
   );
   const programHighlightsSection = homeData.sections.find(
-    (section): section is ProgramHighlightsSection =>
-      section.type === 'program_highlights'
+    (section): section is ProgramHighlightsSection => section.type === 'program_highlights'
+  );
+  const programObjectivesSection = homeData.sections.find(
+    (section): section is ProgramObjectivesSection => section.type === 'program_objectives'
+  );
+  const programGallerySection = homeData.sections.find(
+    (section): section is ProgramGallerySection => section.type === 'program_gallery'
   );
   const programHighlightVideosSection = homeData.sections.find(
     (section): section is ProgramHighlightVideosSection =>
@@ -59,6 +66,40 @@ export default async function Home() {
   const supportedBySection = homeData.sections.find(
     (section): section is SupportedBySection => section.type === 'supported_by'
   );
+
+  const objectivesImageGallery = programObjectivesSection
+    ? programObjectivesSection.content.images.map(img => ({
+        url: img.url,
+        caption: img.caption,
+        type: 'objective',
+      }))
+    : programHighlightsSection?.content.image_gallery;
+
+  const objectivesTitle =
+    programObjectivesSection?.content.title ?? programHighlightsSection?.content.content.title;
+
+  const objectivesItems = programObjectivesSection
+    ? [...programObjectivesSection.content.items]
+        .sort((a, b) => a.order - b.order)
+        .map(item => item.description)
+    : programHighlightsSection?.content.content.items;
+
+  const furtherGuidebooks = registrationOverviewSection?.content.guidelines.map((g, index) => ({
+    href: g.url,
+    label: g.title,
+    // first guideline styled as primary, others as secondary
+    locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
+  }));
+
+  const galleryTitle = programGallerySection?.content.title;
+  const galleryDescription = programGallerySection?.content.description;
+  const galleryImages = programGallerySection?.content.images.map(img => ({
+    id: img.id,
+    src: img.url,
+    caption: img.caption,
+  }));
+  const galleryCtaLabel = programGallerySection?.content.cta.label;
+  const galleryCtaUrl = programGallerySection?.content.cta.url;
 
   return (
     <main>
@@ -80,9 +121,9 @@ export default async function Home() {
         mission={programOverviewSection?.content.vision_mission.mission}
       />
       <ProgramHighlights
-        imageGallery={programHighlightsSection?.content.image_gallery}
-        highlightsTitle={programHighlightsSection?.content.content.title}
-        highlightItems={programHighlightsSection?.content.content.items}
+        imageGallery={objectivesImageGallery}
+        highlightsTitle={objectivesTitle}
+        highlightItems={objectivesItems}
       />
       <SupportedBy items={supportedBySection?.data} />
       <VideoSection
@@ -94,7 +135,7 @@ export default async function Home() {
       <section className="h-20" />
       <GlobalProgramImpact />
       <ParticipantDistribution />
-      <FurtherInformationSection />
+      <FurtherInformationSection guidebooks={furtherGuidebooks} />
       <WhatMakesUsSpecialSection />
       <ProgramBenefitsSection />
       <AlumniStoriesSection
@@ -103,7 +144,14 @@ export default async function Home() {
         items={alumniStoriesSection?.content.items}
       />
       <Testimonials />
-      <PhotoGallery mode="home" />
+      <PhotoGallery
+        mode="home"
+        title={galleryTitle}
+        description={galleryDescription}
+        images={galleryImages}
+        ctaLabel={galleryCtaLabel}
+        ctaUrl={galleryCtaUrl}
+      />
       <RecognitionAwards
         title={programAwardsSection?.content.title}
         subtitle={programAwardsSection?.content.subtitle}

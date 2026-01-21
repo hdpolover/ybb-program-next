@@ -39,7 +39,6 @@ export default function HomeRegistrationStrip({
   const primaryPost = igFeed?.[0];
   const primaryType = registrationTypes?.[0];
   const secondaryType = registrationTypes?.[1];
-  const primaryGuide = guidelines?.[0];
 
   return (
     <section className={jysSectionTheme.homeRegistration.sectionWrapper}>
@@ -98,22 +97,38 @@ export default function HomeRegistrationStrip({
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <a
-                href={primaryGuide?.url ?? '#guidebook-en'}
-                target={primaryGuide ? '_blank' : undefined}
-                rel={primaryGuide ? 'noreferrer' : undefined}
-                className={jysSectionTheme.homeRegistration.guidePrimary}
-              >
-                Read Guidebook (Eng)
-              </a>
-              <a
-                href={primaryGuide?.url ?? '#guidebook-id'}
-                target={primaryGuide ? '_blank' : undefined}
-                rel={primaryGuide ? 'noreferrer' : undefined}
-                className={jysSectionTheme.homeRegistration.guideSecondary}
-              >
-                Read Guidebook (Ind)
-              </a>
+              {guidelines && guidelines.length > 0 ? (
+                guidelines.map((guide, index) => (
+                  <a
+                    key={guide.id}
+                    href={guide.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={
+                      index === 0
+                        ? jysSectionTheme.homeRegistration.guidePrimary
+                        : jysSectionTheme.homeRegistration.guideSecondary
+                    }
+                  >
+                    {guide.title}
+                  </a>
+                ))
+              ) : (
+                <>
+                  <a
+                    href="#guidebook-en"
+                    className={jysSectionTheme.homeRegistration.guidePrimary}
+                  >
+                    Read Guidebook (Eng)
+                  </a>
+                  <a
+                    href="#guidebook-id"
+                    className={jysSectionTheme.homeRegistration.guideSecondary}
+                  >
+                    Read Guidebook (Ind)
+                  </a>
+                </>
+              )}
             </div>
           </div>
 

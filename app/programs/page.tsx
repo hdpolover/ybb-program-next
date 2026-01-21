@@ -12,21 +12,50 @@ import Benefits from '@/components/programs/Benefits';
 import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
+import { getProgramsPageData } from '@/lib/api/programs';
+import { getHomePageData } from '@/lib/api/home';
+import type { RegistrationOverviewSection } from '@/types/home';
 
-export default function ProgramOverviewPage() {
+export default async function ProgramOverviewPage() {
+  const [programsPage, homeData] = await Promise.all([
+    getProgramsPageData(),
+    getHomePageData(),
+  ]);
+
+  const registrationOverviewSection = homeData.sections.find(
+    (section): section is RegistrationOverviewSection => section.type === 'registration_overview',
+  );
+
+  const heroSection = programsPage.sections.find(
+    section => section.type === 'hero',
+  );
+
+  const heroTitle =
+    heroSection?.type === 'hero' ? heroSection.content.title : 'Istanbul Youth Summit Programs';
+  const heroSubtitle =
+    heroSection?.type === 'hero'
+      ? heroSection.content.subtitle
+      : 'Discover our international youth programs and summits.';
+  const heroBgImage =
+    heroSection?.type === 'hero' && heroSection.content.bg_image
+      ? heroSection.content.bg_image
+      : '/img/programsbackground.png';
+
   return (
     <main className="relative">
       <HeroSection
-        title="Japan Youth Summit 2026"
-        subtitle="Explore the full details of our latest program edition – dates, activities, requirements, and everything you need to join Japan Youth Summit 2026."
-        bgImage="/img/programsbackground.png"
+        title={heroTitle}
+        subtitle={heroSubtitle}
+        bgImage={heroBgImage}
         breadcrumb={[
-          { href: '/', label: 'Home' },
-          { href: '/programs', label: 'Japan Youth Summit 2026' },
+          { href: `/${programsPage.slug}`, label: programsPage.slug },
+          { href: `/${programsPage.slug}`, label: programsPage.title },
         ]}
       />
       <CurrentProgram />
-      <RegistrationTypePrograms />
+      <RegistrationTypePrograms
+        registrationTypes={registrationOverviewSection?.content.registration_types}
+      />
       <section className="h-10" />
       <ProgramActivities />
       <ProgramSteps />

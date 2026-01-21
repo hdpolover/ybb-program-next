@@ -66,6 +66,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   } else if (pathname?.startsWith('/dashboard/submission')) {
     pageTitle = 'Submission';
     pageSubtitle = 'Review and manage your application submission details.';
+  } else if (pathname === '/dashboard/progress') {
+    // Detail progress page: tampilkan judul mirip breadcrumb
+    pageTitle = '';
+    pageSubtitle = '';
   } else if (pathname?.startsWith('/dashboard/payments')) {
     pageTitle = 'Payments';
     pageSubtitle = 'Track your payment status and manage your registration payments.';
@@ -84,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Kolom kanan: navbar atas + konten */}
         <div className="flex min-h-screen flex-1 flex-col">
           {/* Navbar dashboard */}
-          <header className="sticky top-0 z-30 flex items-center gap-6 border-b border-slate-100 bg-white px-6 py-4 lg:px-8">
+          <header className="sticky top-0 z-10 flex items-center gap-6 border-b border-slate-100 bg-white px-6 py-4 lg:px-8">
             {/* Spacer kiri (bisa dipakai untuk breadcrumb nanti) */}
             <div className="hidden flex-1 md:block" />
 

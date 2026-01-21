@@ -38,79 +38,6 @@ type ProgramHighlightVideosProps = {
   tabs?: ApiVideoTab[];
 };
 
-const fallbackTabs: NormalizedTab[] = [
-  {
-    year: 2025,
-    programName: 'Japan Youth Summit 2025',
-    videos: [
-      {
-        id: 'jys-2025-1',
-        title:
-          'OFFICIAL AFTER MOVIE OF JAPAN YOUTH SUMMIT 2025 - OSAKA by Youth Break the Boundaries',
-        description: 'JYS 2025 \u2022 Highlight video',
-        thumbnail: 'https://img.youtube.com/vi/4kXjhC9NbaA/maxresdefault.jpg',
-        embedUrl: 'https://www.youtube.com/embed/4kXjhC9NbaA?rel=0',
-      },
-      {
-        id: 'jys-2025-2',
-        title:
-          'OFFICIAL WELCOMING VIDEO OF JAPAN YOUTH SUMMIT 2025 - OSAKA by Youth Break the Boundaries',
-        description: 'JYS 2025 \u2022 Cultural experience',
-        thumbnail: 'https://img.youtube.com/vi/Vc_0-stmHNQ/maxresdefault.jpg',
-        embedUrl: 'https://www.youtube.com/embed/Vc_0-stmHNQ?rel=0',
-      },
-      {
-        id: 'jys-2025-3',
-        title: 'Japan Youth Summit 2025 \u2014 Day 1 & Day 2 Recap | Osaka, Japan',
-        description: 'JYS 2025 \u2022 Collaboration & sessions',
-        thumbnail: 'https://img.youtube.com/vi/lmXJuz26lQI/maxresdefault.jpg',
-        embedUrl: 'https://www.youtube.com/embed/lmXJuz26lQI?rel=0',
-      },
-      {
-        id: 'jys-2025-4',
-        title: 'Welcoming Attendees of 28 Countries for Japan Youth Summit 2025!',
-        description: 'JYS 2025 \u2022 Journey & stories',
-        thumbnail: 'https://img.youtube.com/vi/cjAa7zojwcs/maxresdefault.jpg',
-        embedUrl: 'https://www.youtube.com/embed/cjAa7zojwcs?rel=0',
-      },
-    ],
-  },
-  {
-    year: 2024,
-    programName: 'Japan Youth Summit 2024',
-    videos: [
-      {
-        id: 'jys-2024-1',
-        title: 'Japan Youth Summit 2024 - After Movie',
-        description: 'JYS 2024 \u2022 Highlight video',
-        thumbnail: 'https://img.youtube.com/vi/cXjitjeimBc/maxresdefault.jpg',
-        embedUrl: 'https://www.youtube.com/embed/cXjitjeimBc?rel=0',
-      },
-      {
-        id: 'jys-2024-2',
-        title: 'JAPAN YOUTH SUMMIT 2024 - RECAP VIDEO',
-        description: 'JYS 2024 \u2022 Cultural experience',
-        thumbnail: 'https://img.youtube.com/vi/eYGhT1LGubc/maxresdefault.jpg',
-        embedUrl: 'https://www.youtube.com/embed/eYGhT1LGubc?rel=0',
-      },
-      {
-        id: 'jys-2024-3',
-        title: 'JAPAN YOUTH SUMMIT 2024 - OPENING VIDEO',
-        description: 'JYS 2024 \u2022 Collaboration & sessions',
-        thumbnail: 'https://img.youtube.com/vi/W0rjb6SGL10/maxresdefault.jpg',
-        embedUrl: 'https://www.youtube.com/embed/W0rjb6SGL10?rel=0',
-      },
-      {
-        id: 'jys-2024-4',
-        title: 'JAPAN YOUTH SUMMIT 2024 - DAY 3',
-        description: 'JYS 2024 \u2022 Journey & stories',
-        thumbnail: 'https://img.youtube.com/vi/sl95b7dUQYM/maxresdefault.jpg',
-        embedUrl: 'https://www.youtube.com/embed/sl95b7dUQYM?rel=0',
-      },
-    ],
-  },
-];
-
 const toEmbedUrl = (videoUrl: string): string => {
   if (!videoUrl) return '';
   // very small helper: https://www.youtube.com/watch?v=ID -> https://www.youtube.com/embed/ID?rel=0
@@ -124,7 +51,7 @@ const toEmbedUrl = (videoUrl: string): string => {
 };
 
 const normalizeTabs = (tabs?: ApiVideoTab[]): NormalizedTab[] => {
-  if (!tabs || tabs.length === 0) return fallbackTabs;
+  if (!tabs || tabs.length === 0) return [];
   return tabs
     .map<NormalizedTab>(tab => ({
       year: tab.year,

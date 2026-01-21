@@ -31,7 +31,15 @@ const nextConfig = {
       port: '',
       pathname: '/**',
     },
+    {
+      protocol: 'https',
+      hostname: 'placehold.co',
+      port: '',
+      pathname: '/**',
+    },
   ],
+  // Allow SVG responses from trusted remote hosts like placehold.co
+  dangerouslyAllowSVG: true,
   unoptimized: false,
 },
   // Experimental features for better performance

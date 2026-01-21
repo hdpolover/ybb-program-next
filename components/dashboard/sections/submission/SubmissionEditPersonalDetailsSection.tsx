@@ -273,7 +273,7 @@ export default function SubmissionEditPersonalDetailsSection({
 
         <Field label="T-Shirt Size">
           <InputWrapper icon={<Shirt className="h-4 w-4" />}>
-            <div className="flex items-center gap-3">
+            <div className={submissionTheme.shirtSizeRow}>
               <select
                 className={`${base} pl-9 flex-1 ${
                   showErrors && !personal.tshirtSize.trim() ? submissionTheme.editInputError : ""
@@ -352,7 +352,7 @@ export default function SubmissionEditPersonalDetailsSection({
                 alt="Shirt size guide"
                 width={800}
                 height={600}
-                className="h-auto w-full rounded-lg object-contain"
+                className={submissionTheme.modalImage}
               />
             </div>
 

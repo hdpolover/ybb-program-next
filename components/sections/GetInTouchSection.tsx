@@ -5,6 +5,7 @@ import { PhoneCall, Mail, Instagram, MapPin } from 'lucide-react';
 
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { contactSectionContent } from '@/data/contact';
 
 export type ContactItem = {
   id: string;
@@ -20,12 +21,12 @@ export type GetInTouchProps = {
   items?: ContactItem[];
 };
 
-const DEFAULT_ITEMS: ContactItem[] = [
+const resolveDefaultItems = (): ContactItem[] => [
   {
     id: 'chat',
     title: 'Chat to Customer Support',
-    subtitle: '+6285173386622',
-    href: 'https://wa.me/6285173386622',
+    subtitle: contactSectionContent.primaryCtaLabel ?? '+6285173386622',
+    href: contactSectionContent.secondaryCtaHref ?? 'https://wa.me/6285173386622',
     icon: <PhoneCall className="h-4 w-4" />,
   },
   {
@@ -51,10 +52,11 @@ const DEFAULT_ITEMS: ContactItem[] = [
 ];
 
 export default function GetInTouchSection({
-  title = 'Get in touch with our team!',
-  eyebrow = 'Contact',
-  items = DEFAULT_ITEMS,
+  title = contactSectionContent.subtitle,
+  eyebrow = contactSectionContent.title,
+  items,
 }: GetInTouchProps) {
+  const resolvedItems = items ?? resolveDefaultItems();
   return (
     <section className={jysSectionTheme.getInTouch.sectionWrapper}>
       <div
@@ -74,7 +76,7 @@ export default function GetInTouchSection({
           <div>
             <SectionHeader eyebrow={eyebrow} title={title} align="left" />
             <div className={jysSectionTheme.getInTouch.list}>
-              {items.map(item => {
+              {resolvedItems.map(item => {
                 const Wrapper: React.ElementType = item.href ? 'a' : 'div';
                 return (
                   <Wrapper

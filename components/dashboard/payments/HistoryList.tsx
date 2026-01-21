@@ -1,8 +1,11 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
-import { Clock, XCircle, CheckCircle2 } from 'lucide-react';
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
+import { Clock, XCircle, CheckCircle2 } from "lucide-react";
+import { jysSectionTheme } from "@/lib/theme/jys-components";
+
+const paymentsTheme = jysSectionTheme.dashboardPayments;
 
 export type HistoryItem = {
   id: string;
@@ -41,12 +44,12 @@ export default function HistoryList({
     return items.slice(start, start + pageSize);
   }, [items, page, pageSize]);
 
-  const badgeClass = (tone: 'red' | 'amber' | 'emerald') =>
-    tone === 'red'
-      ? 'bg-red-50 text-red-700 ring-red-200'
-      : tone === 'amber'
-        ? 'bg-amber-50 text-amber-700 ring-amber-200'
-        : 'bg-emerald-50 text-emerald-700 ring-emerald-200';
+  const badgeClass = (tone: "red" | "amber" | "emerald") =>
+    tone === "red"
+      ? "bg-red-50 text-red-700 ring-red-200"
+      : tone === "amber"
+        ? "bg-amber-50 text-amber-700 ring-amber-200"
+        : "bg-emerald-50 text-emerald-700 ring-emerald-200";
 
   const iconTone = (status?: HistoryItem['status']) => {
     switch (status) {
@@ -62,7 +65,7 @@ export default function HistoryList({
   };
 
   return (
-    <div className="p-0">
+    <div className={paymentsTheme.historyListWrapper}>
       {/* state modal sederhana */}
       {active && (
         <Modal onClose={() => setActive(null)}>
@@ -74,17 +77,17 @@ export default function HistoryList({
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Transaction Information
                 </p>
-                <div className="mt-2 space-y-2 text-sm text-slate-700">
+                <div className={paymentsTheme.historyModalSectionBody}>
                   <div>
-                    <span className="font-semibold">Transaction Code:</span>{' '}
+                    <span className="font-semibold">Transaction Code:</span>{" "}
                     {active.details?.code ?? '-'}
                   </div>
                   <div>
-                    <span className="font-semibold">Payment Method:</span>{' '}
+                    <span className="font-semibold">Payment Method:</span>{" "}
                     {active.details?.paymentMethod ?? active.method}
                   </div>
                   <div>
-                    <span className="font-semibold">Date:</span>{' '}
+                    <span className="font-semibold">Date:</span>{" "}
                     {active.details?.dateTime ?? `${active.date} ${active.time}`}
                   </div>
                 </div>
@@ -93,13 +96,13 @@ export default function HistoryList({
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Payment Information
                 </p>
-                <div className="mt-2 space-y-2 text-sm text-slate-700">
+                <div className={paymentsTheme.historyModalSectionBody}>
                   <div>
-                    <span className="font-semibold">Account Name:</span>{' '}
+                    <span className="font-semibold">Account Name:</span>{" "}
                     {active.details?.accountName ?? '-'}
                   </div>
                   <div>
-                    <span className="font-semibold">Amount:</span>{' '}
+                    <span className="font-semibold">Amount:</span>{" "}
                     {active.details?.amountLabel ?? active.amountLabel}
                   </div>
                   <div>
@@ -114,67 +117,67 @@ export default function HistoryList({
                 Payment Proof
               </p>
               {active.details?.proofUrl ? (
-                <div className="mt-2 space-y-2">
-                  <div className="relative max-h-72 w-full overflow-hidden rounded-md ring-1 ring-slate-200">
+                <div className={paymentsTheme.historyProofImageWrapper}>
+                  <div className={paymentsTheme.historyProofImageInner}>
                     <Image
                       src={active.details.proofUrl}
                       alt="Payment proof"
                       width={800}
                       height={600}
-                      className="h-auto w-full object-contain"
+                      className={paymentsTheme.historyProofImage}
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className={paymentsTheme.historyProofActionsRow}>
                     <a
                       href={active.details.proofUrl}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                      className={paymentsTheme.historyProofLinkButton}
                     >
                       View Full Image
                     </a>
                     <a
                       href={active.details.proofUrl}
                       download
-                      className="rounded-md bg-pink-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-pink-700"
+                      className={paymentsTheme.historyProofDownloadButton}
                     >
                       Download
                     </a>
                   </div>
                 </div>
               ) : (
-                <p className="mt-2 text-sm text-slate-600">Belum ada bukti pembayaran.</p>
+                <p className={paymentsTheme.historyEmptyProofText}>Belum ada bukti pembayaran.</p>
               )}
             </div>
           </div>
         </Modal>
       )}
 
-      <ul className="divide-y divide-slate-100">
+      <ul className={paymentsTheme.historyList}>
         {pageItems.map(it => (
-          <li key={it.id} className="p-4">
-            <div className="flex items-start gap-3">
+          <li key={it.id} className={paymentsTheme.historyListItem}>
+            <div className={paymentsTheme.historyListItemHeader}>
               {(() => {
                 const i = iconTone(it.status);
                 const Icon = i.Icon;
                 return (
-                  <span className={`grid h-7 w-7 place-items-center rounded-full ring-1 ${i.cls}`}>
+                  <span className={`${paymentsTheme.historyStatusIconCircle} ${i.cls}`}>
                     <Icon className="h-4 w-4" />
                   </span>
                 );
               })()}
               <div className="flex-1">
-                <p className="text-sm font-semibold text-blue-950">
+                <p className={paymentsTheme.historyTitle}>
                   {it.title}
                   {it.badge ? (
                     <span
-                      className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${badgeClass(it.badge.tone)}`}
+                      className={`ml-2 ${jysSectionTheme.dashboardDocuments.statusBadgeBase} ${badgeClass(it.badge.tone)}`}
                     >
                       {it.badge.label}
                     </span>
                   ) : null}
                 </p>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
+                <div className={paymentsTheme.historyMetaRow}>
                   <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
                     {it.method}
                   </span>
@@ -188,10 +191,10 @@ export default function HistoryList({
                     {it.time}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-slate-700">{it.note}</p>
+                <p className={paymentsTheme.historyNote}>{it.note}</p>
                 <div className="mt-3">
                   <button
-                    className="rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                    className={paymentsTheme.historyViewDetailsButton}
                     onClick={() => setActive(it)}
                   >
                     View Details
@@ -204,24 +207,24 @@ export default function HistoryList({
       </ul>
 
       {/* Paginasi, tanpa scroll konten */}
-      <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2">
-        <p className="text-xs text-slate-600">
-          Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, items.length)} of{' '}
+      <div className={paymentsTheme.historyPaginationRow}>
+        <p className={paymentsTheme.historyPaginationText}>
+          Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, items.length)} of{" "}
           {items.length}
         </p>
         <div className="flex items-center gap-2">
           <button
-            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className={paymentsTheme.historyPaginationButton}
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
           >
             Prev
           </button>
-          <span className="text-xs text-slate-600">
+          <span className={paymentsTheme.historyPaginationPageLabel}>
             Page {page} / {totalPages}
           </span>
           <button
-            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className={paymentsTheme.historyPaginationButton}
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
           >
@@ -239,7 +242,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && handleClose();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && handleClose();
     document.addEventListener('keydown', onKey);
     // next tick biar transition kepicu
     const t = setTimeout(() => setVisible(true), 0);
@@ -256,23 +259,23 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   };
 
   return (
-    <div className="fixed inset-0 z-[100]">
+    <div className={paymentsTheme.historyModalOverlay}>
       <div
-        className={`absolute inset-0 bg-black/30 transition-opacity duration-200 ${
-          visible ? 'opacity-100' : 'opacity-0'
+        className={`${paymentsTheme.historyModalBackdrop} ${
+          visible ? "opacity-100" : "opacity-0"
         }`}
         onClick={handleClose}
       />
       <div
-        className={`absolute inset-x-0 top-10 mx-auto w-[min(680px,92vw)] rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-slate-200 transition-all duration-200 ${
-          visible ? 'translate-y-0 scale-100 opacity-100' : '-translate-y-2 scale-95 opacity-0'
+        className={`${paymentsTheme.historyModalCard} ${
+          visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-2 scale-95 opacity-0"
         }`}
       >
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-semibold text-slate-600">Detail Transactions</span>
+        <div className={paymentsTheme.historyModalHeaderRow}>
+          <span className={paymentsTheme.historyModalHeaderTitle}>Detail Transactions</span>
           <button
             onClick={handleClose}
-            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+            className={paymentsTheme.historyModalHeaderCloseButton}
           >
             Close
           </button>

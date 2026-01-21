@@ -53,7 +53,7 @@ export default function FurtherInformationSection({
             <div className={jysSectionTheme.furtherInfo.buttonsCol}>
               {guidebooks.map(link => (
                 <a
-                  key={link.label}
+                  key={`${link.locale}-${link.href}`}
                   href={link.href}
                   className={`${jysSectionTheme.furtherInfo.guideButtonBase} ${
                     link.locale === 'eng'
