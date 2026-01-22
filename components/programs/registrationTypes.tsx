@@ -7,35 +7,98 @@ import {
   Users,
   ShieldCheck,
   AlertTriangle,
+  ClipboardCheck,
+  BarChart3,
 } from 'lucide-react';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
-
-type RegistrationType = {
-  id: string;
-  name: string;
-  price: string;
-  currency: string;
-  benefits: string[];
-};
+import { PROGRAMS_REGISTRATION_COPY } from '@/data/programsRegistrationInfo';
+import type {
+  RegistrationInfoInstruction,
+  RegistrationInfoPricingTier,
+} from '@/types/programs';
 
 type RegistrationTypeProgramsProps = {
-  registrationTypes?: RegistrationType[];
+  pricingTiers?: RegistrationInfoPricingTier[];
+  instructions?: RegistrationInfoInstruction[];
+  title?: string;
+  description?: string;
+  status?: string;
+  registrationDates?: {
+    open: string | null;
+    close: string | null;
+  } | null;
 };
 
 export default function RegistrationTypePrograms({
-  registrationTypes,
+  pricingTiers,
+  instructions,
+  title,
+  description,
+  status,
+  registrationDates,
 }: RegistrationTypeProgramsProps) {
-  const primaryType = registrationTypes?.[0];
-  const secondaryType = registrationTypes?.[1];
+  const primaryType = pricingTiers?.[0];
+  const secondaryType = pricingTiers?.[1];
+
+  const primaryBenefits = primaryType?.benefits ?? [];
+  const secondaryBenefits = secondaryType?.benefits ?? [];
+
+  const isOpen = (status || '').toLowerCase() === 'open';
+
+  const formatDateRange = (open?: string | null, close?: string | null) => {
+    if (!open && !close) return 'Data not added';
+
+    const safeFormat = (value: string | null | undefined) => {
+      if (!value) return '';
+      try {
+        return new Date(value).toLocaleDateString('en-US', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
+      } catch {
+        return value;
+      }
+    };
+
+    const openLabel = safeFormat(open ?? null);
+    const closeLabel = safeFormat(close ?? null);
+
+    if (openLabel && closeLabel) return `${openLabel} – ${closeLabel}`;
+    return openLabel || closeLabel || 'Data not added';
+  };
+
+  const registrationPeriodLabel = formatDateRange(
+    registrationDates?.open ?? null,
+    registrationDates?.close ?? null,
+  );
+
+  const infoInstructions: RegistrationInfoInstruction[] =
+    instructions && instructions.length > 0 ? instructions : [];
+
+  const renderInstructionIcon = (icon: string) => {
+    switch (icon) {
+      case 'calendar':
+        return <Calendar className="h-4 w-4" />;
+      case 'chart':
+        return <BarChart3 className="h-4 w-4" />;
+      case 'clipboard-check':
+        return <ClipboardCheck className="h-4 w-4" />;
+      case 'shield-check':
+        return <ShieldCheck className="h-4 w-4" />;
+      default:
+        return <AlertTriangle className="h-4 w-4" />;
+    }
+  };
 
   return (
     <section className={jysSectionTheme.homeRegistration.sectionWrapper}>
       <div className={jysSectionTheme.homeRegistration.container}>
-        <SectionHeader eyebrow="Registration" title="Choose Your Registration Type" />
-        <p className={jysSectionTheme.homeRegistration.introText}>
-          Select the registration scheme that best matches your needs, then review the important
-          information about fees, selection, and guarantees.
-        </p>
+        <SectionHeader
+          eyebrow="Registration"
+          title={title || 'Choose Your Registration Type'}
+          subtitle={description}
+        />
 
         <div className={jysSectionTheme.homeRegistration.mainGrid}>
           {/* Kiri: kartu tipe registrasi (replikasi dari Registration Types di homepage) */}
@@ -53,40 +116,44 @@ export default function RegistrationTypePrograms({
                         {primaryType?.name ?? 'Self Funded'}
                       </h3>
                       <p className={jysSectionTheme.applyRegistrationTypes.headerSubtitle}>
-                        Registration
+                        {PROGRAMS_REGISTRATION_COPY.selfFundedSubtitle}
                       </p>
                     </div>
                   </div>
-                  <span className={jysSectionTheme.applyRegistrationTypes.statusBadgeOpen}>
-                    Open
+                  <span
+                    className={
+                      isOpen
+                        ? jysSectionTheme.applyRegistrationTypes.statusBadgeOpen
+                        : jysSectionTheme.applyRegistrationTypes.statusBadgeClosed
+                    }
+                  >
+                    {isOpen ? 'Open' : 'Closed'}
                   </span>
                 </div>
                 <div className={jysSectionTheme.applyRegistrationTypes.feeRow}>
                   <span className={jysSectionTheme.applyRegistrationTypes.priceText}>
                     {primaryType
                       ? `${primaryType.currency} ${primaryType.price}`
-                      : '$15.00'}
+                      : 'Data not added'}
                   </span>
                   <span className={jysSectionTheme.applyRegistrationTypes.feeLabel}>
-                    Registration Fee
+                    {PROGRAMS_REGISTRATION_COPY.feeLabel}
                   </span>
                 </div>
                 <div className={jysSectionTheme.applyRegistrationTypes.periodRow}>
                   <Calendar className={jysSectionTheme.applyRegistrationTypes.calendarIcon} />
                   <span className={jysSectionTheme.applyRegistrationTypes.periodLabel}>
-                    Registration Period:
+                    {PROGRAMS_REGISTRATION_COPY.periodLabel}
                   </span>
-                  <span>Sep 01 – Dec 31, 2025</span>
+                  <span>{registrationPeriodLabel}</span>
                 </div>
               </div>
               <div className={jysSectionTheme.applyRegistrationTypes.bodyWrapper}>
-                <p className={jysSectionTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+                <p className={jysSectionTheme.applyRegistrationTypes.sectionLabel}>
+                  {PROGRAMS_REGISTRATION_COPY.requirementsTitle}
+                </p>
                 <ul className={jysSectionTheme.applyRegistrationTypes.list}>
-                  {[
-                    'Complete registration form and documentation',
-                    'Submit required documents on time',
-                    'Pay fees according to scheduled payment batches',
-                  ].map((label, idx) => (
+                  {PROGRAMS_REGISTRATION_COPY.selfFundedRequirements.map((label, idx) => (
                     <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
@@ -99,24 +166,35 @@ export default function RegistrationTypePrograms({
                     </li>
                   ))}
                 </ul>
-                <p className={jysSectionTheme.applyRegistrationTypes.bodySectionSpacer}>Benefit</p>
+                <p className={jysSectionTheme.applyRegistrationTypes.bodySectionSpacer}>
+                  {PROGRAMS_REGISTRATION_COPY.selfFundedBenefitTitle}
+                </p>
                 <ul className={jysSectionTheme.applyRegistrationTypes.list}>
-                  {(primaryType?.benefits ?? [
-                    'Guaranteed program participation',
-                    'Faster application processing',
-                    'You pay all scheduled fee batches yourself',
-                  ]).map((label, idx) => (
-                    <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+                  {primaryBenefits.length > 0 ? (
+                    primaryBenefits.map((label, idx) => (
+                      <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+                        <span
+                          className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                        >
+                          <Check className="h-3 w-3" />
+                        </span>
+                        <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
+                          {label}
+                        </span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
                       <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
-                        {label}
+                        Data not added
                       </span>
                     </li>
-                  ))}
+                  )}
                 </ul>
               </div>
               <div className={jysSectionTheme.applyRegistrationTypes.cardFooter}>
@@ -127,7 +205,7 @@ export default function RegistrationTypePrograms({
                       jysSectionTheme.applyRegistrationTypes.ctaButton
                     } ${jysSectionTheme.applyRegistrationTypes.ctaButtonWide}`}
                   >
-                    See Details
+                    {PROGRAMS_REGISTRATION_COPY.selfFundedCtaLabel}
                   </a>
                 </div>
               </div>
@@ -146,7 +224,7 @@ export default function RegistrationTypePrograms({
                         {secondaryType?.name ?? 'Fully Funded'}
                       </h3>
                       <p className={jysSectionTheme.applyRegistrationTypes.headerSubtitle}>
-                        Reimbursement System
+                        {PROGRAMS_REGISTRATION_COPY.fullyFundedSubtitle}
                       </p>
                     </div>
                   </div>
@@ -158,7 +236,7 @@ export default function RegistrationTypePrograms({
                   <span className={jysSectionTheme.applyRegistrationTypes.priceText}>
                     {secondaryType
                       ? `${secondaryType.currency} ${secondaryType.price}`
-                      : '$10.00'}
+                      : 'Data not added'}
                   </span>
                   <span className={jysSectionTheme.applyRegistrationTypes.feeLabel}>
                     Registration Fee
@@ -175,11 +253,7 @@ export default function RegistrationTypePrograms({
               <div className={jysSectionTheme.applyRegistrationTypes.bodyWrapper}>
                 <p className={jysSectionTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
                 <ul className={jysSectionTheme.applyRegistrationTypes.list}>
-                  {[
-                    'Complete registration form and documentation',
-                    'Submit detailed essays and applications',
-                    'Participate in interviews and evaluations',
-                  ].map((label, idx) => (
+                  {PROGRAMS_REGISTRATION_COPY.fullyFundedRequirements.map((label, idx) => (
                     <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
@@ -193,25 +267,34 @@ export default function RegistrationTypePrograms({
                   ))}
                 </ul>
                 <p className={jysSectionTheme.applyRegistrationTypes.bodySectionSpacer}>
-                  Benefit (If Selected)
+                  {PROGRAMS_REGISTRATION_COPY.fullyFundedBenefitTitle}
                 </p>
                 <ul className={jysSectionTheme.applyRegistrationTypes.list}>
-                  {(secondaryType?.benefits ?? [
-                    'Full reimbursement of all payments',
-                    'Enhanced program recognition',
-                    'Access to exclusive fully funded activities',
-                  ]).map((label, idx) => (
-                    <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+                  {secondaryBenefits.length > 0 ? (
+                    secondaryBenefits.map((label, idx) => (
+                      <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+                        <span
+                          className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                        >
+                          <Check className="h-3 w-3" />
+                        </span>
+                        <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
+                          {label}
+                        </span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
                       <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
-                        {label}
+                        Data not added
                       </span>
                     </li>
-                  ))}
+                  )}
                 </ul>
               </div>
               <div className={jysSectionTheme.applyRegistrationTypes.cardFooter}>
@@ -221,7 +304,7 @@ export default function RegistrationTypePrograms({
                     aria-disabled
                     className={jysSectionTheme.applyRegistrationTypes.ctaButtonDisabled}
                   >
-                    See Details
+                    {PROGRAMS_REGISTRATION_COPY.fullyFundedCtaLabel}
                   </button>
                 </div>
               </div>
@@ -233,101 +316,42 @@ export default function RegistrationTypePrograms({
             <div className={jysSectionTheme.homeImportantPayment.infoSideCard}>
               <div>
                 <h3 className={jysSectionTheme.homeImportantPayment.infoTitle}>
-                  Registration Information
+                  {PROGRAMS_REGISTRATION_COPY.infoSide.title}
                 </h3>
                 <p className={jysSectionTheme.homeImportantPayment.infoIntro}>
-                  Make sure you understand the key details about payments, selection, guarantees,
-                  and important deadlines before choosing your registration type. This overview is
-                  designed to help you make a well-informed decision.
+                  {PROGRAMS_REGISTRATION_COPY.infoSide.intro}
                 </p>
 
                 <div className={jysSectionTheme.homeImportantPayment.infoPointsWrapper}>
-                  <div className={jysSectionTheme.homeImportantPayment.infoPointRow}>
-                    <span className={jysSectionTheme.homeImportantPayment.infoPointIcon}>
-                      <Calendar className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointTitle}>
-                        Payment Schedule
-                      </p>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
-                        Fees are divided into several batches across the program timeline. Please
-                        follow the dates stated in the official guidebook and payment instructions
-                        so that every installment is completed on time.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={jysSectionTheme.homeImportantPayment.infoPointRow}>
-                    <span className={jysSectionTheme.homeImportantPayment.infoPointIcon}>
-                      <Users className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointTitle}>
-                        Selection Quota
-                      </p>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
-                        Seats are limited for each registration type and will be allocated based on
-                        the selection process. Successful applicants will be contacted via email in
-                        line with the announced selection timeline.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={jysSectionTheme.homeImportantPayment.infoPointRow}>
-                    <span className={jysSectionTheme.homeImportantPayment.infoPointIcon}>
-                      <ShieldCheck className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointTitle}>
-                        Self Funded Guarantee
-                      </p>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
-                        Self funded participants who complete all payments on time are guaranteed
-                        participation in the program, as long as they follow the stated terms and
-                        conditions communicated by the organizing committee.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={jysSectionTheme.homeImportantPayment.infoPointRow}>
-                    <span className={jysSectionTheme.homeImportantPayment.infoPointIcon}>
-                      <MapPin className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointTitle}>
-                        Fully Funded Process
-                      </p>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
-                        Fully funded slots, if available, use a reimbursement mechanism. Detailed
-                        instructions about the process, timelines, and documentation will be shared
-                        only with selected participants.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={jysSectionTheme.homeImportantPayment.infoPointRow}>
-                    <span className={jysSectionTheme.homeImportantPayment.infoPointIcon}>
-                      <AlertTriangle className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointTitle}>
-                        Important Info
-                      </p>
-                      <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
-                        Please always refer to the latest guidebook and official announcements from
-                        the organizing committee for any updates related to the program, including
-                        changes to fees, schedules, or selection policies.
-                      </p>
-                    </div>
-                  </div>
+                  {infoInstructions.length > 0 ? (
+                    infoInstructions.map(item => (
+                      <div
+                        key={item.title}
+                        className={jysSectionTheme.homeImportantPayment.infoPointRow}
+                      >
+                        <span className={jysSectionTheme.homeImportantPayment.infoPointIcon}>
+                          {renderInstructionIcon(item.icon)}
+                        </span>
+                        <div>
+                          <p className={jysSectionTheme.homeImportantPayment.infoPointTitle}>
+                            {item.title}
+                          </p>
+                          <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
+                            {item.text}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
+                      Data not added
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className={jysSectionTheme.homeImportantPayment.infoFooter}>
-                For complete terms and conditions, please read the official guidebook and FAQ on the
-                Japan Youth Summit website and check regularly for the most recent updates from the
-                organizing committee.
+                {PROGRAMS_REGISTRATION_COPY.infoSide.footer}
               </div>
             </div>
           </div>

@@ -13,21 +13,29 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
 import { getProgramsPageData } from '@/lib/api/programs';
-import { getHomePageData } from '@/lib/api/home';
-import type { RegistrationOverviewSection } from '@/types/home';
+import type {
+  ProgramActivitiesSection,
+  ProgramOverviewSection,
+  RegistrationInfoSection,
+} from '@/types/programs';
 
 export default async function ProgramOverviewPage() {
-  const [programsPage, homeData] = await Promise.all([
-    getProgramsPageData(),
-    getHomePageData(),
-  ]);
-
-  const registrationOverviewSection = homeData.sections.find(
-    (section): section is RegistrationOverviewSection => section.type === 'registration_overview',
-  );
+  const programsPage = await getProgramsPageData();
 
   const heroSection = programsPage.sections.find(
     section => section.type === 'hero',
+  );
+
+  const programOverviewSection = programsPage.sections.find(
+    (section): section is ProgramOverviewSection => section.type === 'program_overview',
+  );
+
+  const registrationInfoSection = programsPage.sections.find(
+    (section): section is RegistrationInfoSection => section.type === 'registration_info',
+  );
+
+  const programActivitiesSection = programsPage.sections.find(
+    (section): section is ProgramActivitiesSection => section.type === 'program_activities',
   );
 
   const heroTitle =
@@ -52,12 +60,17 @@ export default async function ProgramOverviewPage() {
           { href: `/${programsPage.slug}`, label: programsPage.title },
         ]}
       />
-      <CurrentProgram />
+      <CurrentProgram overview={programOverviewSection?.content} />
       <RegistrationTypePrograms
-        registrationTypes={registrationOverviewSection?.content.registration_types}
+        pricingTiers={registrationInfoSection?.content.pricing_tiers}
+        instructions={registrationInfoSection?.content.instructions}
+        title={registrationInfoSection?.content.title}
+        description={registrationInfoSection?.content.description}
+        status={registrationInfoSection?.content.status}
+        registrationDates={registrationInfoSection?.content.registration_dates}
       />
       <section className="h-10" />
-      <ProgramActivities />
+      <ProgramActivities activities={programActivitiesSection?.content} />
       <ProgramSteps />
       <ProgramSchedules />
       <PreviousProgramsGrid />

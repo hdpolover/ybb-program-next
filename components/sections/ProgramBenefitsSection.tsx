@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -59,9 +60,9 @@ export default function ProgramBenefitsSection() {
               </li>
             </ul>
             <div className={theme.actionsRow}>
-              <button type="button" className={theme.readMoreButton}>
+              <Link href="/programs/benefits-highschool" className={theme.readMoreButton}>
                 Read More
-              </button>
+              </Link>
             </div>
           </article>
 
@@ -97,9 +98,12 @@ export default function ProgramBenefitsSection() {
               </li>
             </ul>
             <div className={theme.actionsRow}>
-              <button type="button" className={theme.readMoreButton}>
+              <Link
+                href="/programs/benefits-university-professional"
+                className={theme.readMoreButton}
+              >
                 Read More
-              </button>
+              </Link>
             </div>
           </article>
         </div>

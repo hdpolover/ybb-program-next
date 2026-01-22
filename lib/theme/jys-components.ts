@@ -101,6 +101,34 @@ export const jysSectionTheme = {
     readMoreButton:
       'inline-flex min-w-[180px] items-center justify-center rounded-md bg-pink-600 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
   },
+  programsBenefitsDetail: {
+    sectionWrapper: 'bg-slate-50 py-12 sm:py-16',
+    container: 'mx-auto max-w-6xl px-6 lg:px-8',
+    grid: 'grid gap-10 lg:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)]',
+    leftColumn: 'space-y-8 text-sm leading-7 text-slate-800',
+    itemRow: 'flex gap-4',
+    numberCircle:
+      'mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-pink-600 text-xs font-bold text-white',
+    itemTitle: 'text-base font-extrabold text-slate-900',
+    itemSubtitle: 'block text-[0.8rem] font-semibold text-pink-700',
+    paragraphStrong: 'mt-2 font-semibold',
+    paragraphNormal: 'mt-2',
+    bulletList: 'mt-1 list-disc space-y-1 pl-5',
+    asideCard:
+      'self-start overflow-hidden rounded-2xl bg-white shadow-[0_18px_45px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80',
+    asideImageWrapper: 'relative h-40 w-full',
+    asideImage: 'object-cover',
+    asideInner: 'p-6',
+    asideEyebrow:
+      'text-xs font-extrabold uppercase tracking-[0.16em] text-pink-600',
+    asideTitle: 'mt-2 text-base font-bold text-slate-900',
+    asideList: 'mt-4 space-y-2 text-sm text-slate-700',
+    asideListItem: 'flex items-start gap-2',
+    asideCheckIcon: 'mt-[2px] h-4 w-4 flex-shrink-0 text-pink-600',
+    asideButtonWrapper: 'mt-6',
+    asideButton:
+      'inline-flex w-full items-center justify-center rounded-md bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2 focus:ring-offset-pink-100',
+  },
   testimonialsHome: {
     sectionWrapper: 'relative w-full overflow-x-hidden bg-pink-50 py-16 sm:py-20',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
