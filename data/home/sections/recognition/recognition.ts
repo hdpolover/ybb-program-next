@@ -94,7 +94,7 @@ export const recognitionContent: RecognitionContent = {
     brand: 'JAPAN YOUTH SUMMIT',
     regNo: 'IDM001273026',
     status: '(TM) Registered',
-    classText: '41 - Education, seminars, conferences, cultural events, etc.',
+    classText: '41 -A look back at past Japan Youth Summit editions Education, seminars, conferences, cultural events, etc.',
     owner: 'MUHAMMAD ALDI SUBAKTI (ID)',
   },
 };

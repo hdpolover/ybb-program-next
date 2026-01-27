@@ -261,22 +261,23 @@ export const jysSectionTheme = {
     // Slightly larger, more prominent field labels
     label: 'text-xs font-semibold uppercase tracking-wide text-slate-700 sm:text-[13px]',
     iconFieldWrapper:
-      'mt-1 relative flex items-center overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-0 focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-200',
+      'mt-1 relative flex items-center overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-0 focus-within:border-[var(--brand-accent)] focus-within:ring-2 focus-within:ring-[var(--brand-accent-soft)]',
     iconFieldWrapperTextarea:
-      'mt-1 relative flex items-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-0 focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-200',
+      'mt-1 relative flex items-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ring-0 focus-within:border-[var(--brand-accent)] focus-within:ring-2 focus-within:ring-[var(--brand-accent-soft)]',
     // Plain icon without background bubble
-    icon: 'pointer-events-none ml-3 flex h-9 w-9 items-center justify-center text-pink-600',
+    icon:
+      'pointer-events-none ml-3 flex h-9 w-9 items-center justify-center text-[var(--brand-accent)]',
     inputWithIcon:
       'h-11 w-full border-0 bg-transparent px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-0',
     textareaWithIcon:
       'w-full min-h-[132px] border-0 bg-transparent px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-0 resize-none',
     input:
-      'mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-0 transition focus:border-pink-400 focus:ring-2 focus:ring-pink-200',
+      'mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-0 transition focus:border-[var(--brand-accent)] focus:ring-2 focus:ring-[var(--brand-accent-soft)]',
     textarea:
-      'mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-0 transition focus:border-pink-400 focus:ring-2 focus:ring-pink-200 resize-none',
+      'mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-0 transition focus:border-[var(--brand-accent)] focus:ring-2 focus:ring-[var(--brand-accent-soft)] resize-none',
     actionsRow: 'sm:col-span-2 mt-4 flex justify-end',
     submitButton:
-      'inline-flex items-center justify-center rounded-full bg-pink-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full bg-[var(--brand-accent)] px-6 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2',
   },
   alumniStories: {
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
@@ -285,7 +286,8 @@ export const jysSectionTheme = {
     mainVideoWrapper:
       'relative aspect-video w-full max-w-4xl overflow-hidden rounded-2xl bg-slate-900/5 ring-1 ring-slate-200 mx-auto',
     mainIframe: 'absolute inset-0 h-full w-full border-0 rounded-2xl',
-    reelsTitle: 'text-sm font-semibold uppercase tracking-wide text-pink-600',
+    reelsTitle:
+      'text-sm font-semibold uppercase tracking-wide text-[var(--brand-accent)]',
     reelsGrid: 'mt-4 grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4',
     reelItem:
       'relative aspect-[9/16] w-full max-w-[250px] sm:max-w-[270px] mx-auto overflow-hidden rounded-xl',
@@ -297,8 +299,9 @@ export const jysSectionTheme = {
     statsGrid: 'mx-auto mt-2 grid max-w-4xl grid-cols-1 gap-3 text-center sm:grid-cols-3',
     card: 'flex flex-col items-center gap-1 px-2 py-1',
     iconCircle:
-      'grid h-10 w-10 place-items-center rounded-full bg-pink-50 text-pink-600 ring-1 ring-pink-200',
-    value: 'text-3xl font-extrabold tracking-tight text-pink-600 sm:text-4xl',
+      'grid h-10 w-10 place-items-center rounded-full bg-[var(--brand-accent-soft)] text-[var(--brand-accent)] ring-1 ring-[var(--brand-border)]',
+    value:
+      'text-3xl font-extrabold tracking-tight text-[var(--brand-accent)] sm:text-4xl',
     label: 'text-xs font-medium uppercase tracking-wide text-slate-500',
   },
   participantDistribution: {
@@ -316,6 +319,41 @@ export const jysSectionTheme = {
     legendDotLow: 'bg-emerald-400',
     legendDotNone: 'bg-slate-300',
     mapBackdrop: '',
+    // Warna buat map fill
+    mapColors: {
+      high: '#ef4444', // merah (high participation)
+      medium: '#facc15', // kuning (medium participation)
+      low: '#22c55e', // hijau (low participation)
+      none: '#e5e7eb', // abu-abu kalau belum ada peserta
+    },
+    mapStroke: '#ffffff',
+  },
+  topParticipantCountries: {
+    card:
+      'mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(15,23,42,0.12)] ring-1 ring-slate-200',
+    table: 'min-w-full divide-y divide-slate-200 text-sm',
+    headRow: 'bg-slate-50',
+    headCell:
+      'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500',
+    headCellRight:
+      'px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500',
+    bodyRow: 'divide-y divide-slate-100 bg-white',
+    indexCell: 'px-4 py-3 text-xs font-semibold text-slate-500',
+    countryCell: 'px-4 py-3 text-sm font-semibold text-slate-900',
+    countCell: 'px-4 py-3 text-right text-sm font-medium text-slate-900',
+    percentageCell: 'px-4 py-3',
+    percentageMeta: 'w-14 text-right text-xs font-medium text-slate-700',
+    progressTrack: 'relative h-2 flex-1 overflow-hidden rounded-full bg-slate-100',
+    progressBar: 'h-full rounded-full bg-[var(--brand-accent)]',
+  },
+  footer: {
+    sectionWrapper:
+      'relative w-full bg-[var(--brand-accent)] py-12 text-white sm:py-16',
+    navLink: 'transition hover:opacity-80',
+    contactLink: 'transition hover:opacity-80',
+    socialLink: 'transition hover:opacity-80',
+    newsletterButton:
+      'bg-[var(--brand-accent)] px-4 text-sm font-semibold text-white transition hover:opacity-90',
   },
   recognition: {
     sectionWrapper: 'relative w-full bg-slate-50 py-16 sm:py-20',
@@ -331,8 +369,9 @@ export const jysSectionTheme = {
     proofTitle: 'text-[14px] font-extrabold text-blue-900',
     proofSubtitle: 'mt-0.5 text-[11px] leading-5 text-slate-700',
     bulletChip:
-      'rounded-full bg-pink-600/10 px-2 py-0.5 text-[10px] font-semibold text-pink-700 ring-1 ring-pink-200',
-    hakiIconCircle: 'inline-grid h-10 w-10 place-items-center rounded-full bg-pink-600 text-white',
+      'rounded-full bg-[var(--brand-accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--brand-accent)] ring-1 ring-[var(--brand-border)]',
+    hakiIconCircle:
+      'inline-grid h-10 w-10 place-items-center rounded-full bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)]',
     hakiCol: 'col-span-12 flex items-center justify-center lg:col-span-5',
     hakiCard:
       'w-full max-w-md rounded-2xl bg-white p-5 shadow-[0_12px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
@@ -344,18 +383,19 @@ export const jysSectionTheme = {
     hakiMetaLabel: 'text-slate-500',
     hakiMetaValue: 'font-semibold text-blue-950',
     hakiButton:
-      'inline-flex items-center gap-2 rounded-md bg-pink-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-pink-700',
+      'inline-flex items-center gap-2 rounded-md bg-[var(--brand-accent)] px-4 py-2 text-xs font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90',
     hakiChip:
-      'rounded-full bg-pink-600/10 px-2 py-1 text-[10px] font-semibold text-pink-700 ring-1 ring-pink-200',
+      'rounded-full bg-[var(--brand-accent-soft)] px-2 py-1 text-[10px] font-semibold text-[var(--brand-accent)] ring-1 ring-[var(--brand-border)]',
   },
   aboutProgram: {
-    checklistIcon: 'grid h-7 w-7 place-items-center rounded-full bg-pink-600 text-white',
+    checklistIcon:
+      'grid h-7 w-7 place-items-center rounded-full bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)]',
     ctaButton:
-      'inline-flex items-center justify-center rounded-md bg-pink-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-md bg-[var(--brand-accent)] px-5 py-3 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2',
     sectionWrapper:
       "relative min-h-[520px] w-full bg-[url('/img/bgourprogram.png')] bg-cover bg-center bg-no-repeat py-20 sm:py-20",
     blurTop:
-      'pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-pink-400/20 blur-2xl',
+      'pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-[var(--brand-accent-soft)]/60 blur-2xl',
     blurBottom:
       'pointer-events-none absolute -bottom-12 right-6 h-48 w-48 rounded-full bg-white/40 blur-2xl',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
@@ -364,7 +404,8 @@ export const jysSectionTheme = {
     tabContainer:
       'mt-4 inline-flex rounded-full bg-white/70 p-1 text-xs shadow-sm ring-1 ring-slate-200',
     tabButtonBase: 'rounded-full px-4 py-2 text-xs font-semibold transition',
-    tabButtonActive: 'bg-pink-600 text-white shadow-sm',
+    tabButtonActive:
+      'bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-sm',
     tabButtonInactive: 'text-slate-600 hover:text-slate-900',
     contentWrapper:
       'mt-5 min-h-[220px] space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base',
@@ -426,7 +467,8 @@ export const jysSectionTheme = {
   photoGallery: {
     sectionWrapper: 'relative w-full py-12 sm:py-16 lg:py-20',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
-    subtitle: '-mt-6 mb-8 text-center text-sm text-pink-600',
+    subtitle:
+      '-mt-6 mb-8 text-center text-sm text-[var(--brand-accent)]',
     grid: 'grid grid-cols-2 gap-3 sm:gap-5 md:gap-6 lg:grid-cols-4',
     itemWrapper: 'group overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200',
     itemButton: 'block aspect-[16/10] w-full cursor-zoom-in overflow-hidden',
@@ -441,9 +483,9 @@ export const jysSectionTheme = {
     modalImage: 'max-h-[80vh] w-full rounded-xl object-contain',
     modalCaption: 'mt-3 text-center text-sm font-medium text-white/90',
     homeCtaButton:
-      'inline-flex items-center justify-center rounded-md bg-pink-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-md bg-[var(--brand-accent)] px-5 py-3 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2',
     loadMoreButton:
-      'inline-flex items-center justify-center rounded-md bg-pink-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-md bg-[var(--brand-accent)] px-5 py-3 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2',
   },
   promoCta: {
     sectionWrapper:
@@ -481,7 +523,7 @@ export const jysSectionTheme = {
     list: 'mt-6 space-y-3',
     item: 'flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm text-blue-950 shadow-[0_10px_30px_rgba(15,23,42,0.18)]',
     itemIconCircle:
-      'grid h-9 w-9 place-items-center rounded-full bg-pink-600 text-white shadow-[0_6px_20px_rgba(236,72,153,0.55)]',
+      'grid h-9 w-9 place-items-center rounded-full bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-[0_6px_20px_rgba(236,72,153,0.55)]',
     itemTitle: 'text-sm font-semibold',
     itemSubtitle: 'text-xs text-slate-600',
   },
@@ -539,9 +581,9 @@ export const jysSectionTheme = {
       'rounded-2xl bg-white px-4 py-3 text-sm font-medium text-blue-950 shadow-[0_10px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80',
     rightCol: 'mx-auto w-fit',
     rightCard:
-      'rounded-3xl bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80 sm:p-5',
-    coverWrapper: 'relative overflow-hidden rounded-2xl bg-slate-100',
-    coverImage: 'h-auto w-auto object-contain',
+      'w-[340px] sm:w-[380px] rounded-3xl bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80 sm:p-5',
+    coverWrapper: 'relative w-full rounded-2xl bg-slate-100',
+    coverImage: 'object-contain',
     infoList: 'mt-4 space-y-3 text-sm text-slate-700',
     infoRow: 'flex items-start gap-2',
     infoIcon: 'mt-0.5 h-4 w-4 text-pink-600',
@@ -749,6 +791,14 @@ export const jysSectionTheme = {
     dividerRow:
       'flex items-center justify-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400',
     dividerLine: 'h-px w-8 bg-slate-200',
+    socialSection: 'space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 shadow-sm',
+    socialGrid: 'grid grid-cols-1 gap-3 sm:grid-cols-2',
+    googleButton:
+      'inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
+    googleButtonIcon: 'h-5 w-5',
+    facebookButton:
+      'inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
+    facebookButtonIcon: 'h-5 w-5',
     secondaryButton:
       'inline-flex w-full items-center justify-center rounded-xl border border-pink-500/70 bg-white px-5 py-3 text-sm font-semibold text-pink-600 shadow-sm transition hover:bg-pink-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
     termsLabel: 'mt-1 inline-flex items-center gap-2 text-xs text-slate-600',
@@ -1358,6 +1408,16 @@ export const jysSectionTheme = {
     pillSelect:
       'h-8 rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium tracking-normal text-slate-800 shadow-sm sm:min-w-[320px]',
     selectionSummaryRow: 'mt-1 flex items-center gap-2 text-xs font-medium text-slate-700',
+    bankMethodGrid:
+      'mt-1 grid grid-cols-2 gap-2 text-[11px] font-normal text-slate-600 sm:grid-cols-3',
+    bankMethodCard:
+      'flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-700 shadow-sm transition hover:border-pink-300 hover:shadow-md focus:outline-none',
+    bankMethodCardSelected:
+      'border-pink-500 ring-2 ring-pink-200',
+    bankMethodLogoWrapper:
+      'flex h-10 w-full items-center justify-center',
+    bankMethodLogoImage:
+      'max-h-8 w-auto',
     stepWrapper: 'space-y-3 text-sm text-slate-700',
     stepRow: 'flex gap-3',
     stepNumberCircle:
@@ -1799,7 +1859,7 @@ export const jysSectionTheme = {
     readInputWrapper:
       'relative',
     readInputIcon:
-      'pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400',
+      'pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center text-slate-400',
 
     // edit: stepper
     editSectionWrapper: 'space-y-6 text-sm',
@@ -1844,7 +1904,7 @@ export const jysSectionTheme = {
       'block text-[11px] font-semibold uppercase tracking-wide text-slate-500',
     editInputWrapper: 'relative',
     editInputIcon:
-      'pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400',
+      'pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center text-slate-400',
     editInputBase:
       'w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200',
     editInputError:

@@ -4,6 +4,7 @@ import React from "react";
 import { Award, BriefcaseBusiness, Info, MapPin, Upload, Users } from "lucide-react";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 import type { ProfessionalProfile } from "../SubmissionEditSection";
+import StyledSelect from "@/components/ui/StyledSelect";
 
 const submissionTheme = jysSectionTheme.dashboardSubmission;
 
@@ -45,6 +46,18 @@ export default function SubmissionEditProfessionalProfileSection({
   onSaveAndContinue,
 }: Props) {
   const base = inputBaseClass();
+  const educationLevelOptions = React.useMemo(
+    () => [
+      { value: "SD", label: "SD (Primary School)" },
+      { value: "SMP", label: "SMP (Junior High School)" },
+      { value: "SMA/SMK", label: "SMA / SMK" },
+      { value: "Diploma", label: "Diploma (D1–D3)" },
+      { value: "Bachelor's (S1)", label: "Bachelor's (S1)" },
+      { value: "Master's (S2)", label: "Master's (S2)" },
+      { value: "Doctoral (S3)", label: "Doctoral (S3)" },
+    ],
+    [],
+  );
 
   return (
     <div className={submissionTheme.formSectionWrapper}>
@@ -58,29 +71,22 @@ export default function SubmissionEditProfessionalProfileSection({
       <div className={submissionTheme.formGrid}>
         <Field label="Education Level">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <select
+            <StyledSelect
+              value={professional.educationLevel}
+              onChange={value =>
+                onChangeProfessional({
+                  ...professional,
+                  educationLevel: value,
+                })
+              }
+              options={educationLevelOptions}
+              placeholder="Select education level"
               className={`${base} pl-9 ${
                 showErrors && !professional.educationLevel.trim()
                   ? submissionTheme.editInputError
                   : ""
               }`}
-              value={professional.educationLevel}
-              onChange={e =>
-                onChangeProfessional({
-                  ...professional,
-                  educationLevel: e.target.value,
-                })
-              }
-            >
-              <option value="">Select education level</option>
-              <option value="SD">SD (Primary School)</option>
-              <option value="SMP">SMP (Junior High School)</option>
-              <option value="SMA/SMK">SMA / SMK</option>
-              <option value="Diploma">Diploma (D1–D3)</option>
-              <option value="Bachelor's (S1)">Bachelor's (S1)</option>
-              <option value="Master's (S2)">Master's (S2)</option>
-              <option value="Doctoral (S3)">Doctoral (S3)</option>
-            </select>
+            />
           </InputWrapper>
           {showErrors && !professional.educationLevel.trim() && (
             <p className={submissionTheme.errorText}>You must select your education level.</p>

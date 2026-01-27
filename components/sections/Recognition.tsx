@@ -18,7 +18,7 @@ import {
 import {
   recognitionContent,
   type RecognitionProofItem,
-} from '@/data/recognition';
+} from '@/data/home/sections/recognition/recognition';
 
 const resolveProofIcon = (key: RecognitionProofItem['iconKey']): JSX.Element => {
   switch (key) {

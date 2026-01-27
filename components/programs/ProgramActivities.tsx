@@ -1,7 +1,7 @@
 import { Calendar, Clock3, Hourglass, Check } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { PROGRAMS_ACTIVITIES_COPY } from '@/data/programsActivitiesInfo';
+import { PROGRAMS_ACTIVITIES_COPY } from '@/data/programs/sections/activities-info/programsActivitiesInfo';
 import type { ProgramActivitiesSection } from '@/types/programs';
 
 type ProgramActivitiesProps = {
@@ -23,25 +23,32 @@ function formatDate(date: string | null | undefined): string {
 }
 
 export default function ProgramActivities({ activities }: ProgramActivitiesProps) {
-  const title = activities?.title || 'Japan Youth Summit 2026 Activity';
-  const subtitle = activities?.subtitle || 'Data not added';
+  const title = activities?.title || PROGRAMS_ACTIVITIES_COPY.headerTitle;
+  const subtitle = activities?.subtitle || PROGRAMS_ACTIVITIES_COPY.headerSubtitleFallback;
   const items = activities?.items ?? [];
 
   return (
     <section className={jysSectionTheme.programsActivities.sectionWrapper}>
       <div className={jysSectionTheme.programsActivities.overlay} />
       <div className={jysSectionTheme.programsActivities.container}>
-        <SectionHeader eyebrow="Program Rundown" title={title} subtitle={subtitle} align="center" />
+        <SectionHeader
+          eyebrow={PROGRAMS_ACTIVITIES_COPY.headerEyebrow}
+          title={title}
+          subtitle={subtitle}
+          align="center"
+        />
 
         <div className={jysSectionTheme.programsActivities.cardsGrid}>
           {items.length > 0 ? (
             items.map(item => {
               const dateLabel = formatDate(item.date);
-              const timeLabel = item.time_range || 'Data not added';
-              const durationLabel = item.duration ? `Duration: ${item.duration}` : 'Data not added';
+              const timeLabel = item.time_range || PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
+              const durationLabel = item.duration
+                ? `Duration: ${item.duration}`
+                : PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
               const rawDay = item.day || '';
 
-              let displayTitle = item.title || 'Data not added';
+              let displayTitle = item.title || PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
               if (rawDay) {
                 const lowerDay = rawDay.toLowerCase();
                 const lowerTitle = displayTitle.toLowerCase();
@@ -56,7 +63,7 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
                   key={`${item.day}-${item.title}`}
                   className={jysSectionTheme.programsActivities.card}
                 >
-                  {/* Top meta row */}
+                  {/* baris meta bagian atas */}
                   <div className={jysSectionTheme.programsActivities.metaRow}>
                     <div className={jysSectionTheme.programsActivities.metaItem}>
                       <Calendar className={jysSectionTheme.programsActivities.metaIcon} />
@@ -72,7 +79,7 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
                     </div>
                   </div>
 
-                  {/* Title + bullets */}
+                  {/* Judul + bullet checklist */}
                   <div className={jysSectionTheme.programsActivities.titleWrapper}>
                     <h3 className={jysSectionTheme.programsActivities.title}>
                       <span className={jysSectionTheme.programsActivities.dayLabel}>
@@ -92,14 +99,16 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
                       ))}
                     </div>
                     <p className={jysSectionTheme.programsActivities.description}>
-                      {item.description || 'Data not added'}
+                      {item.description || PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
                     </p>
                   </div>
                 </article>
               );
             })
           ) : (
-            <p className={jysSectionTheme.programsActivities.description}>Data not added</p>
+            <p className={jysSectionTheme.programsActivities.description}>
+              {PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
+            </p>
           )}
         </div>
 

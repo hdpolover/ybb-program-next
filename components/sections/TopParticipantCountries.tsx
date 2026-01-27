@@ -2,10 +2,10 @@
 
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { countryParticipants } from './ParticipantDistribution';
+import { IMPACT_DISTRIBUTION_COPY } from '@/data/home/sections/impact/impactDistribution';
 
 export default function TopParticipantCountries() {
-  const all = Object.entries(countryParticipants).map(([name, count]) => ({
+  const all = Object.entries(IMPACT_DISTRIBUTION_COPY.countryParticipants).map(([name, count]) => ({
     name,
     count: Number(count),
   }));
@@ -29,41 +29,41 @@ export default function TopParticipantCountries() {
           align="center"
         />
 
-        <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(15,23,42,0.12)] ring-1 ring-slate-200">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50">
+        <div className={jysSectionTheme.topParticipantCountries.card}>
+          <table className={jysSectionTheme.topParticipantCountries.table}>
+            <thead className={jysSectionTheme.topParticipantCountries.headRow}>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <th className={jysSectionTheme.topParticipantCountries.headCell}>
                   #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <th className={jysSectionTheme.topParticipantCountries.headCell}>
                   Country
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <th className={jysSectionTheme.topParticipantCountries.headCellRight}>
                   Participants
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <th className={jysSectionTheme.topParticipantCountries.headCell}>
                   Percentage
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
+            <tbody className={jysSectionTheme.topParticipantCountries.bodyRow}>
               {entries.map((row, idx) => (
                 <tr key={row.name}>
-                  <td className="px-4 py-3 text-xs font-semibold text-slate-500">{idx + 1}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-900">{row.name}</td>
-                  <td className="px-4 py-3 text-right text-sm font-medium text-slate-900">
+                  <td className={jysSectionTheme.topParticipantCountries.indexCell}>{idx + 1}</td>
+                  <td className={jysSectionTheme.topParticipantCountries.countryCell}>{row.name}</td>
+                  <td className={jysSectionTheme.topParticipantCountries.countCell}>
                     {row.count.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className={jysSectionTheme.topParticipantCountries.percentageCell}>
                     <div className="flex items-center gap-3">
-                      <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                      <div className={jysSectionTheme.topParticipantCountries.progressTrack}>
                         <div
-                          className="h-full rounded-full bg-pink-500"
+                          className={jysSectionTheme.topParticipantCountries.progressBar}
                           style={{ width: `${row.percentage.toFixed(1)}%` }}
                         />
                       </div>
-                      <span className="w-14 text-right text-xs font-medium text-slate-700">
+                      <span className={jysSectionTheme.topParticipantCountries.percentageMeta}>
                         {row.percentage.toFixed(1)}%
                       </span>
                     </div>

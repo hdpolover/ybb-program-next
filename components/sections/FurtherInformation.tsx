@@ -51,9 +51,9 @@ export default function FurtherInformationSection({
             <p className={jysSectionTheme.furtherInfo.description}>{subtitle}</p>
 
             <div className={jysSectionTheme.furtherInfo.buttonsCol}>
-              {guidebooks.map(link => (
+              {guidebooks.map((link, index) => (
                 <a
-                  key={`${link.locale}-${link.href}`}
+                  key={`${link.locale}-${link.href}-${index}`}
                   href={link.href}
                   className={`${jysSectionTheme.furtherInfo.guideButtonBase} ${
                     link.locale === 'eng'

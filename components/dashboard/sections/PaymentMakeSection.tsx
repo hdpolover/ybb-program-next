@@ -45,6 +45,18 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const currencyIdr = (v: number) =>
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(v);
 
+  const bankMethods: {
+    id: "bca" | "bni" | "bri" | "mandiri" | "paypal";
+    label: string;
+    logoSrc: string;
+  }[] = [
+    { id: "bca", label: "BCA Bank Transfer", logoSrc: "/img/bca-logo.png" },
+    { id: "bni", label: "BNI Bank Transfer", logoSrc: "/img/bni-logo.png" },
+    { id: "bri", label: "BRI Bank Transfer", logoSrc: "/img/bri-logo.png" },
+    { id: "mandiri", label: "Mandiri Bank Transfer", logoSrc: "/img/mandiri-logo.png" },
+    { id: "paypal", label: "PayPal", logoSrc: "/img/paypal-logo.png" },
+  ];
+
   const isGatewayComplete = paymentType === "gateway" && agreeFunding && agreeReady;
   const isManualComplete =
     paymentType === "manual" &&
@@ -114,10 +126,12 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
             </div>
 
             <div className={paymentsTheme.pillSelectWrapper}>
-              <label htmlFor="payment-type-select">Select Payment Type</label>
+              <label htmlFor="payment-type-select" className="block">
+                Select Payment Type
+              </label>
               <select
                 id="payment-type-select"
-                className={paymentsTheme.pillSelect}
+                className={`${paymentsTheme.pillSelect} w-full sm:max-w-xs`}
                 value={paymentType}
                 onChange={(e) => setPaymentType(e.target.value as "gateway" | "manual")}
               >
@@ -250,23 +264,38 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                   </p>
 
                   <div className={paymentsTheme.pillSelectWrapper}>
-                    <label htmlFor="manual-method-select">Select Bank / Method</label>
-                    <select
-                      id="manual-method-select"
-                      className={paymentsTheme.pillSelect}
-                      value={manualMethod}
-                      onChange={(e) =>
-                        setManualMethod(
-                          e.target.value as "bca" | "bni" | "bri" | "mandiri" | "paypal",
-                        )
-                      }
-                    >
-                      <option value="bca">BCA Bank Transfer</option>
-                      <option value="bni">BNI Bank Transfer</option>
-                      <option value="bri">BRI Bank Transfer</option>
-                      <option value="mandiri">Mandiri Bank Transfer</option>
-                      <option value="paypal">PayPal</option>
-                    </select>
+                    <label htmlFor="manual-method-select" className="block">
+                      Select Bank / Method
+                    </label>
+
+                    <div className={paymentsTheme.bankMethodGrid} id="manual-method-select">
+                      {bankMethods.map((method) => {
+                        const isSelected = manualMethod === method.id;
+                        return (
+                          <button
+                            key={method.id}
+                            type="button"
+                            onClick={() =>
+                              setManualMethod(
+                                method.id as "bca" | "bni" | "bri" | "mandiri" | "paypal",
+                              )
+                            }
+                            className={`${paymentsTheme.bankMethodCard} ${
+                              isSelected ? paymentsTheme.bankMethodCardSelected : ""
+                            }`}
+                          >
+                            <span className={paymentsTheme.bankMethodLogoWrapper}>
+                              <img
+                                src={method.logoSrc}
+                                alt={method.label}
+                                className={paymentsTheme.bankMethodLogoImage}
+                              />
+                            </span>
+                            <span className="text-center leading-snug">{method.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
 
                     <div className={paymentsTheme.selectionSummaryRow}>
                       {manualMethod === "paypal" ? (

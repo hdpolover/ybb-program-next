@@ -5,7 +5,11 @@ export type ProgramsSectionType =
   | 'program_list'
   | 'program_overview'
   | 'registration_info'
-  | 'program_activities';
+  | 'program_activities'
+  | 'program_journey'
+  | 'program_important_dates'
+  | 'previous_programs'
+  | 'program_faqs';
 
 export type ProgramsHeroSection = {
   type: 'hero';
@@ -92,6 +96,70 @@ export type ProgramActivitiesSection = {
   };
 };
 
+export type ProgramJourneyItem = {
+  step_number: string;
+  title: string;
+  description: string;
+  date_display: string;
+};
+
+export type ProgramJourneySection = {
+  type: 'program_journey';
+  content: {
+    title: string;
+    subtitle: string;
+    items: ProgramJourneyItem[];
+  };
+};
+
+export type ProgramImportantDatesItem = {
+  date_display: string;
+  status: string;
+  name: string;
+  description: string;
+  is_active: boolean;
+};
+
+export type ProgramImportantDatesSection = {
+  type: 'program_important_dates';
+  content: {
+    title: string;
+    subtitle: string;
+    items: ProgramImportantDatesItem[];
+  };
+};
+
+export type PreviousProgramItem = {
+  id: string;
+  name: string;
+  slug: string;
+  thumbnail: string | null;
+  year: number | null;
+  location: string | null;
+};
+
+export type PreviousProgramsSection = {
+  type: 'previous_programs';
+  content: {
+    title: string;
+    items: PreviousProgramItem[];
+  };
+};
+
+export type ProgramFaqItem = {
+  question: string;
+  answer: string;
+  category: string;
+};
+
+export type ProgramFaqsSection = {
+  type: 'program_faqs';
+  content: {
+    title: string;
+    items: ProgramFaqItem[];
+  };
+};
+
 export type ProgramsListItem = {
   id: string;
   name: string;
@@ -113,7 +181,11 @@ export type ProgramsSection =
   | ProgramsListSection
   | ProgramOverviewSection
   | RegistrationInfoSection
-  | ProgramActivitiesSection;
+  | ProgramActivitiesSection
+  | ProgramJourneySection
+  | ProgramImportantDatesSection
+  | PreviousProgramsSection
+  | ProgramFaqsSection;
 
 export type ProgramsPageData = {
   slug: string;

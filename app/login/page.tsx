@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { getSettings } from '@/lib/api/settings';
+import type { SettingsData, SettingsFooterNavSection } from '@/types/settings';
 
 const LOGIN_IMAGES = [
   '/img/galeri2.png',
@@ -18,6 +20,7 @@ export default function LoginPage() {
   const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [agree, setAgree] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
+  const [settings, setSettings] = useState<SettingsData | null>(null);
   const [loginForm, setLoginForm] = useState({
     email: '',
     password: '',
@@ -27,7 +30,6 @@ export default function LoginPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    referral: '',
   });
 
   const onChangeLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,6 +51,25 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const data = await getSettings();
+        if (!cancelled) {
+          setSettings(data);
+        }
+      } catch {
+        // kalau API-nya error, link legal bakal fallback ke '#'
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (LOGIN_IMAGES.length <= 1) return;
     const id = setInterval(() => {
       setImageIndex(prev => (prev + 1) % LOGIN_IMAGES.length);
@@ -57,6 +78,22 @@ export default function LoginPage() {
   }, []);
 
   const loginImageSrc = LOGIN_IMAGES[imageIndex] ?? LOGIN_IMAGES[0];
+
+  const footerNav: SettingsFooterNavSection[] | null = settings?.footer_navigation ?? null;
+  const legalSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'legal');
+  const legalLinks: { label: string; href: string }[] = (legalSection?.links ?? []).map(link => ({
+    label: link.label,
+    href: link.url,
+  }));
+
+  const findLegalHref = (kind: 'terms' | 'privacy'): string => {
+    const needle = kind === 'terms' ? 'terms' : 'privacy';
+    const found = legalLinks.find(l => l.label.toLowerCase().includes(needle));
+    return found?.href || '#';
+  };
+
+  const termsHref = findLegalHref('terms');
+  const privacyHref = findLegalHref('privacy');
 
   return (
     <section className={`min-h-screen w-full ${jysSectionTheme.login.pageBackground}`}>
@@ -201,6 +238,45 @@ export default function LoginPage() {
                       </button>
                     </div>
                   </div>
+
+                  <div className={jysSectionTheme.login.socialSection}>
+                    <div className={jysSectionTheme.login.socialGrid}>
+                      <button
+                        type="button"
+                        className={jysSectionTheme.login.googleButton}
+                        onClick={() => {
+                          console.log('Google login');
+                        }}
+                      >
+                        <Image
+                          src="/img/signwithgoogle.png"
+                          alt="Sign in with Google"
+                          width={20}
+                          height={20}
+                          className={jysSectionTheme.login.googleButtonIcon}
+                        />
+                        Login with Google
+                      </button>
+
+                      <button
+                        type="button"
+                        className={jysSectionTheme.login.facebookButton}
+                        onClick={() => {
+                          console.log('Facebook login');
+                        }}
+                      >
+                        <Image
+                          src="/img/signwithfacebook.png"
+                          alt="Continue with Facebook"
+                          width={20}
+                          height={20}
+                          className={jysSectionTheme.login.facebookButtonIcon}
+                        />
+                        Login with Facebook
+                      </button>
+                    </div>
+                  </div>
+
                   <p className={jysSectionTheme.login.helperText}>
                     Part of our program ambassadors?{' '}
                     <button
@@ -273,19 +349,6 @@ export default function LoginPage() {
                         />
                       </div>
                     </div>
-                    <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>
-                        Referral Code (Optional)
-                      </label>
-                      <input
-                        name="referral"
-                        value={signupForm.referral}
-                        onChange={onChangeSignup}
-                        type="text"
-                        className={jysSectionTheme.login.input}
-                        placeholder="ABC-123"
-                      />
-                    </div>
                     <label className={jysSectionTheme.login.termsLabel}>
                       <input
                         type="checkbox"
@@ -295,11 +358,11 @@ export default function LoginPage() {
                         required
                       />
                       I agree to the{' '}
-                      <a href="#" className={jysSectionTheme.login.termsLink}>
+                      <a href={termsHref} className={jysSectionTheme.login.termsLink}>
                         Terms of Service
                       </a>
                       and{' '}
-                      <a href="#" className={jysSectionTheme.login.termsLink}>
+                      <a href={privacyHref} className={jysSectionTheme.login.termsLink}>
                         Privacy Policy
                       </a>
                     </label>
@@ -319,10 +382,49 @@ export default function LoginPage() {
                         onClick={() => setMode('login')}
                         className={jysSectionTheme.login.secondaryButton}
                       >
-                        Log in
+                        Back to Login
                       </button>
                     </div>
                   </div>
+
+                  <div className={jysSectionTheme.login.socialSection}>
+                    <div className={jysSectionTheme.login.socialGrid}>
+                      <button
+                        type="button"
+                        className={jysSectionTheme.login.googleButton}
+                        onClick={() => {
+                          console.log('Google signup');
+                        }}
+                      >
+                        <Image
+                          src="/img/signwithgoogle.png"
+                          alt="Sign in with Google"
+                          width={20}
+                          height={20}
+                          className={jysSectionTheme.login.googleButtonIcon}
+                        />
+                        Sign up with Google
+                      </button>
+
+                      <button
+                        type="button"
+                        className={jysSectionTheme.login.facebookButton}
+                        onClick={() => {
+                          console.log('Facebook signup');
+                        }}
+                      >
+                        <Image
+                          src="/img/signwithfacebook.png"
+                          alt="Continue with Facebook"
+                          width={20}
+                          height={20}
+                          className={jysSectionTheme.login.facebookButtonIcon}
+                        />
+                        Sign up with Facebook
+                      </button>
+                    </div>
+                  </div>
+
                   <p className={jysSectionTheme.login.helperText}>
                     Already have an account?{' '}
                     <button

@@ -84,12 +84,14 @@ export default async function Home() {
         .map(item => item.description)
     : programHighlightsSection?.content.content.items;
 
-  const furtherGuidebooks = registrationOverviewSection?.content.guidelines.map((g, index) => ({
-    href: g.url,
-    label: g.title,
-    // first guideline styled as primary, others as secondary
-    locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
-  }));
+  const furtherGuidebooks = registrationOverviewSection?.content.guidelines
+    .slice(0, 2)
+    .map((g, index) => ({
+      href: g.url,
+      label: g.title,
+      // guideline pertama dibikin gaya primary, sisanya tampil sebagai secondary
+      locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
+    }));
 
   const galleryTitle = programGallerySection?.content.title;
   const galleryDescription = programGallerySection?.content.description;

@@ -38,25 +38,23 @@ export default function SupportedBy({ items }: SupportedByProps) {
 
         <div className="mt-6 overflow-hidden">
           <div className="logo-marquee flex items-center gap-10">
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(dupIndex =>
-              sponsors.map((sponsor, index) => (
-                <a
-                  key={`${sponsor.id}-${dupIndex}-${index}`}
-                  href={sponsor.websiteUrl || '#'}
-                  target={sponsor.websiteUrl ? '_blank' : undefined}
-                  rel={sponsor.websiteUrl ? 'noreferrer' : undefined}
-                  className={jysSectionTheme.supportedBy.logoWrapper}
-                >
-                  <Image
-                    src={sponsor.logoUrl}
-                    alt={sponsor.name || 'Supporting organization logo'}
-                    fill
-                    sizes="(min-width:1024px) 160px, 33vw"
-                    className={jysSectionTheme.supportedBy.logoImg}
-                  />
-                </a>
-              ))
-            )}
+            {sponsors.map(sponsor => (
+              <a
+                key={sponsor.id}
+                href={sponsor.websiteUrl || '#'}
+                target={sponsor.websiteUrl ? '_blank' : undefined}
+                rel={sponsor.websiteUrl ? 'noreferrer' : undefined}
+                className={jysSectionTheme.supportedBy.logoWrapper}
+              >
+                <Image
+                  src={sponsor.logoUrl}
+                  alt={sponsor.name || 'Supporting organization logo'}
+                  fill
+                  sizes="(min-width:1024px) 160px, 33vw"
+                  className={jysSectionTheme.supportedBy.logoImg}
+                />
+              </a>
+            ))}
           </div>
         </div>
       </div>

@@ -40,7 +40,7 @@ type ProgramHighlightVideosProps = {
 
 const toEmbedUrl = (videoUrl: string): string => {
   if (!videoUrl) return '';
-  // very small helper: https://www.youtube.com/watch?v=ID -> https://www.youtube.com/embed/ID?rel=0
+  // helper kecil aja: ubah URL https://www.youtube.com/watch?v=ID jadi https://www.youtube.com/embed/ID?rel=0
   const watchParam = 'watch?v=';
   const idx = videoUrl.indexOf(watchParam);
   if (idx !== -1) {
@@ -96,7 +96,7 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
         </p>
 
         <div className={jysSectionTheme.videoSection.inner}>
-          {/* Left: main video */}
+          {/* Kiri: video utama */}
           <div className="space-y-3">
             <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-900/10">
               {currentVideo ? (
@@ -126,7 +126,7 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
             </div>
           </div>
 
-          {/* Right: playlist list */}
+          {/* Kanan: daftar playlist */}
           <div>
             <div className={jysSectionTheme.videoSection.yearTabsWrapper}>
               {normalizedTabs.map(tab => (
@@ -175,7 +175,7 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                   </button>
                 );
               })}
-              {/* Coming soon placeholders if less than 4 videos */}
+              {/* Placeholder "coming soon" kalau videonya masih kurang dari 4 item */}
               {Array.from({ length: Math.max(0, 4 - currentVideos.length) }).map((_, idx) => (
                 <div
                   key={`placeholder-${idx}`}

@@ -1,12 +1,13 @@
 import HeroSection from '@/components/ui/HeroSection';
 import BenefitsUniversityProfessionalDetail from '@/components/programs/BenefitsUniversityProfessionalDetail';
+import { PROGRAMS_HERO_BENEFITS_UNIPRO } from '@/data/programs/sections/subpages-hero/programsSubpagesHero';
 
 export default function UniversityProfessionalBenefitsPage() {
   return (
     <main className="relative">
       <HeroSection
-        title="Benefits for University Students & Professionals"
-        subtitle="Discover how the Japan Youth Summit supports your academic, professional, and leadership journey on a global scale."
+        title={PROGRAMS_HERO_BENEFITS_UNIPRO.title}
+        subtitle={PROGRAMS_HERO_BENEFITS_UNIPRO.subtitle}
         bgImage="/img/programsbackground.png"
         breadcrumb={[
           { href: '/', label: 'Home' },

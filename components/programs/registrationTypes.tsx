@@ -11,7 +11,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { PROGRAMS_REGISTRATION_COPY } from '@/data/programsRegistrationInfo';
+import { PROGRAMS_REGISTRATION_COPY } from '@/data/programs/sections/registration-info/programsRegistrationInfo';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,

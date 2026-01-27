@@ -1,3 +1,5 @@
+import { PROGRAMS_CTA_COPY } from '@/data/programs/sections/cta/programsCTA';
+
 export default function ProgramCTA() {
   return (
     <section className="relative w-full overflow-hidden bg-[url('/img/programregist.png')] bg-cover bg-center bg-no-repeat py-12 text-[#172554] sm:py-16 lg:py-20">
@@ -10,18 +12,17 @@ export default function ProgramCTA() {
         {/* Isi konten sectionnya */}
         <div className="relative z-10">
           <h2 className="text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
-            Raise Your Hand, Be the Future Leaders
+            {PROGRAMS_CTA_COPY.title}
           </h2>
           <p className="text-white-200 mt-4 max-w-xl">
-            Be part of the Japan Youth Summit and co-create impactful solutions for a sustainable
-            future—together with global young leaders.
+            {PROGRAMS_CTA_COPY.body}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <a
-              href="#apply"
+              href={PROGRAMS_CTA_COPY.primaryCta.href}
               className="hover:bg-accent/90 inline-flex items-center justify-center rounded-md bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
             >
-              Apply Now
+              {PROGRAMS_CTA_COPY.primaryCta.label}
             </a>
           </div>
         </div>
@@ -31,8 +32,8 @@ export default function ProgramCTA() {
           <div className="rounded-2xl bg-white/95 p-3 shadow-[0_18px_50px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/70">
             <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black/5">
               <iframe
-                src="https://www.youtube.com/embed/tUR55Fi53rM?si=NEHbcyoMTTsFEVV4"
-                title="Japan Youth Summit 2025 Registration Guideline"
+                src={PROGRAMS_CTA_COPY.video.src}
+                title={PROGRAMS_CTA_COPY.video.title}
                 className="absolute inset-0 h-full w-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
@@ -40,11 +41,10 @@ export default function ProgramCTA() {
             </div>
             <div className="mt-3">
               <h3 className="text-base font-semibold text-blue-950">
-                Japan Youth Summit 2025 Registration Guideline
+                {PROGRAMS_CTA_COPY.video.heading}
               </h3>
               <p className="mt-1 text-xs text-slate-600 sm:text-sm">
-                Watch this short walkthrough to understand the step-by-step registration flow,
-                required documents, and key deadlines before you submit your application.
+                {PROGRAMS_CTA_COPY.video.description}
               </p>
             </div>
           </div>

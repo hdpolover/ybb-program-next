@@ -13,10 +13,15 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
 import { getProgramsPageData } from '@/lib/api/programs';
+import { PROGRAMS_FALLBACK_HERO } from '@/data/programs/sections/overview/programsOverview';
 import type {
   ProgramActivitiesSection,
+  ProgramJourneySection,
   ProgramOverviewSection,
   RegistrationInfoSection,
+  ProgramImportantDatesSection,
+  PreviousProgramsSection,
+  ProgramFaqsSection,
 } from '@/types/programs';
 
 export default async function ProgramOverviewPage() {
@@ -38,12 +43,29 @@ export default async function ProgramOverviewPage() {
     (section): section is ProgramActivitiesSection => section.type === 'program_activities',
   );
 
+  const programJourneySection = programsPage.sections.find(
+    (section): section is ProgramJourneySection => section.type === 'program_journey',
+  );
+
+  const programImportantDatesSection = programsPage.sections.find(
+    (section): section is ProgramImportantDatesSection =>
+      section.type === 'program_important_dates',
+  );
+
+  const previousProgramsSection = programsPage.sections.find(
+    (section): section is PreviousProgramsSection => section.type === 'previous_programs',
+  );
+
+  const programFaqsSection = programsPage.sections.find(
+    (section): section is ProgramFaqsSection => section.type === 'program_faqs',
+  );
+
   const heroTitle =
-    heroSection?.type === 'hero' ? heroSection.content.title : 'Istanbul Youth Summit Programs';
+    heroSection?.type === 'hero' ? heroSection.content.title : PROGRAMS_FALLBACK_HERO.title;
   const heroSubtitle =
     heroSection?.type === 'hero'
       ? heroSection.content.subtitle
-      : 'Discover our international youth programs and summits.';
+      : PROGRAMS_FALLBACK_HERO.subtitle;
   const heroBgImage =
     heroSection?.type === 'hero' && heroSection.content.bg_image
       ? heroSection.content.bg_image
@@ -71,14 +93,14 @@ export default async function ProgramOverviewPage() {
       />
       <section className="h-10" />
       <ProgramActivities activities={programActivitiesSection?.content} />
-      <ProgramSteps />
-      <ProgramSchedules />
-      <PreviousProgramsGrid />
+      <ProgramSteps journey={programJourneySection?.content} />
+      <ProgramSchedules dates={programImportantDatesSection?.content} />
+      <PreviousProgramsGrid previous={previousProgramsSection?.content} />
       {/* <MissionVision />
       <Objectives />
       <Benefits /> */}
       <AdditionalPrograms />
-      <FAQ />
+      <ProgramFAQ fqs={programFaqsSection?.content} />
       <ProgramsFurtherInformationSection />
     </main>
   );

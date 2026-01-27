@@ -2,47 +2,15 @@ import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { PROGRAMS_ADDITIONAL_COPY } from '@/data/programs/sections/additional-programs/programsAdditional';
 
 export default function AdditionalPrograms() {
-  const items: { title: string; dates: string; cover: string; logo: string; href?: string }[] = [
-    {
-      title: 'World Youth Fest 2025',
-      dates: 'October 06 – October 09, 2025',
-      cover: '/img/WYScover.png',
-      logo: '/img/WYSlogo.png',
-    },
-    {
-      title: 'Middle East Youth Summit 2025',
-      dates: 'December 01 – December 04, 2025',
-      cover: '/img/MEYScover.png',
-      logo: '/img/MEYSlogo.png',
-    },
-    {
-      title: 'Youth Academic Forum 2025',
-      dates: 'December 08 – December 11, 2025',
-      cover: '/img/YAFcover.png',
-      logo: '/img/YAFlogo.png',
-    },
-    {
-      title: 'Korea Youth Summit 2026',
-      dates: 'February 02 – February 05, 2026',
-      cover: '/img/KYScover.png',
-      logo: '/img/KYSlogo.png',
-    },
-    {
-      title: 'Istanbul Youth Summit 2026',
-      dates: 'February 09 – February 12, 2026',
-      cover: '/img/IYScover.jpg',
-      logo: '/img/IYSlogo.png',
-    },
-  ];
+  const { headerTitle, subtitle, items } = PROGRAMS_ADDITIONAL_COPY;
   return (
     <section className={jysSectionTheme.programsAdditional.sectionWrapper}>
       <div className={jysSectionTheme.programsAdditional.container}>
-        <SectionHeader title="Our Additional Programs" />
-        <p className={jysSectionTheme.programsAdditional.subtitle}>
-          Explore more programs you can join soon
-        </p>
+        <SectionHeader title={headerTitle} />
+        <p className={jysSectionTheme.programsAdditional.subtitle}>{subtitle}</p>
         <div className={jysSectionTheme.programsAdditional.cardsWrapper}>
           {items.map(it => (
             <a

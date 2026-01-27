@@ -1,8 +1,12 @@
 "use client";
 
+import React from "react";
 import { Flag, Info, MapPin, Phone, Shirt, User, User2, UserRound } from "lucide-react";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 import { DUMMY_PERSONAL_DETAILS } from "../SubmissionEditSection";
+import { getCountries, getShirtSizes, getStates } from "@/lib/api/metadata";
+import type { CountryMetadata, ShirtSizeMetadata, StateMetadata } from "@/types/metadata";
+import StyledSelect from "@/components/ui/StyledSelect";
 
 const submissionTheme = jysSectionTheme.dashboardSubmission;
 
@@ -31,6 +35,98 @@ function inputBaseClass() {
 export default function SubmissionReadPersonalDetailsSection() {
   const base = inputBaseClass();
   const personal = DUMMY_PERSONAL_DETAILS;
+  const [countries, setCountries] = React.useState<CountryMetadata[] | null>(null);
+  const [states, setStates] = React.useState<StateMetadata[] | null>(null);
+  const [shirtSizes, setShirtSizes] = React.useState<ShirtSizeMetadata[] | null>(null);
+
+  const selectedCountry = React.useMemo(() => {
+    if (!countries || !personal.nationality) return null;
+    return (
+      countries.find(country => country.name === personal.nationality) ??
+      countries.find(country => country.isoCode === personal.nationality) ??
+      null
+    );
+  }, [countries, personal.nationality]);
+
+  const stateLabelByCode = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of states ?? []) map.set(s.isoCode, s.name);
+    return map;
+  }, [states]);
+
+  const originStateLabel = stateLabelByCode.get(personal.originState) ?? personal.originState;
+  const currentStateLabel = stateLabelByCode.get(personal.currentState) ?? personal.currentState;
+  const genderOptions = [
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+    { value: "other", label: "Other" },
+  ];
+
+  const tshirtOptions = React.useMemo(() => {
+    if (shirtSizes && shirtSizes.length > 0) {
+      return shirtSizes.map(size => ({
+        value: size.code,
+        label: `${size.code} — ${size.name}`,
+      }));
+    }
+    return [
+      { value: "S", label: "S" },
+      { value: "M", label: "M" },
+      { value: "L", label: "L" },
+      { value: "XL", label: "XL" },
+      { value: "XXL", label: "XXL" },
+    ];
+  }, [shirtSizes]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await getCountries();
+        if (!cancelled) setCountries(res);
+      } catch {
+        // ignore
+      }
+    })();
+
+    (async () => {
+      try {
+        const res = await getShirtSizes();
+        if (!cancelled) setShirtSizes(res);
+      } catch {
+        // ignore
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        if (!selectedCountry?.isoCode) {
+          setStates(null);
+          return;
+        }
+
+        const res = await getStates(selectedCountry.isoCode);
+        if (!cancelled) setStates(res);
+      } catch {
+        if (!cancelled) setStates(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCountry?.isoCode]);
+
   return (
     <section className={submissionTheme.readSectionWrapper}>
       <div>
@@ -58,11 +154,14 @@ export default function SubmissionReadPersonalDetailsSection() {
         </Field>
         <Field label="Gender">
           <InputWrapper icon={<UserRound className="h-4 w-4" />}>
-            <select className={`${base} pl-9`} defaultValue={personal.gender} disabled>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Prefer not to say</option>
-            </select>
+            <StyledSelect
+              value={personal.gender}
+              onChange={() => {}}
+              options={genderOptions}
+              placeholder="Select gender"
+              className={`${base} pl-9`}
+              disabled
+            />
           </InputWrapper>
         </Field>
         <Field label="Birthdate">
@@ -76,14 +175,24 @@ export default function SubmissionReadPersonalDetailsSection() {
           </InputWrapper>
         </Field>
         <Field label="Origin Address">
-          <InputWrapper icon={<MapPin className="h-4 w-4" />}>
-            <input type="text" className={`${base} pl-9`} defaultValue={personal.originAddress} readOnly />
-          </InputWrapper>
+          <div className="grid gap-3 md:grid-cols-2">
+            <InputWrapper icon={<MapPin className="h-4 w-4" />}>
+              <input type="text" className={`${base} pl-9`} defaultValue={originStateLabel} readOnly />
+            </InputWrapper>
+            <InputWrapper icon={<MapPin className="h-4 w-4" />}>
+              <input type="text" className={`${base} pl-9`} defaultValue={personal.originCity} readOnly />
+            </InputWrapper>
+          </div>
         </Field>
         <Field label="Current Address">
-          <InputWrapper icon={<MapPin className="h-4 w-4" />}>
-            <input type="text" className={`${base} pl-9`} defaultValue={personal.currentAddress} readOnly />
-          </InputWrapper>
+          <div className="grid gap-3 md:grid-cols-2">
+            <InputWrapper icon={<MapPin className="h-4 w-4" />}>
+              <input type="text" className={`${base} pl-9`} defaultValue={currentStateLabel} readOnly />
+            </InputWrapper>
+            <InputWrapper icon={<MapPin className="h-4 w-4" />}>
+              <input type="text" className={`${base} pl-9`} defaultValue={personal.currentCity} readOnly />
+            </InputWrapper>
+          </div>
         </Field>
         <Field label="Phone Number">
           <InputWrapper icon={<Phone className="h-4 w-4" />}>
@@ -112,13 +221,14 @@ export default function SubmissionReadPersonalDetailsSection() {
         </Field>
         <Field label="T-Shirt Size">
           <InputWrapper icon={<Shirt className="h-4 w-4" />}>
-            <select className={`${base} pl-9`} defaultValue={personal.tshirtSize} disabled>
-              <option value="S">S</option>
-              <option value="M">M</option>
-              <option value="L">L</option>
-              <option value="XL">XL</option>
-              <option value="XXL">XXL</option>
-            </select>
+            <StyledSelect
+              value={personal.tshirtSize}
+              onChange={() => {}}
+              options={tshirtOptions}
+              placeholder="Select size"
+              className={`${base} pl-9`}
+              disabled
+            />
           </InputWrapper>
         </Field>
         <Field label="Disease History">

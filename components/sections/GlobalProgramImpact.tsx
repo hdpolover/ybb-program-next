@@ -3,37 +3,20 @@
 import { Users, Globe2, GraduationCap } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
-
-const stats = [
-  {
-    id: 'participants',
-    label: 'Total Participants',
-    value: '10,019',
-    icon: Users,
-  },
-  {
-    id: 'countries',
-    label: 'Total Countries',
-    value: '115',
-    icon: Globe2,
-  },
-  {
-    id: 'alumni',
-    label: 'Alumni',
-    value: '9,281',
-    icon: GraduationCap,
-  },
-];
+import { IMPACT_DISTRIBUTION_COPY } from '@/data/home/sections/impact/impactDistribution';
 
 export default function GlobalProgramImpact() {
   return (
     <section className={jysSectionTheme.globalImpact.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader eyebrow="Global Reach" title="Global Program Impact" />
+        <SectionHeader
+          eyebrow={IMPACT_DISTRIBUTION_COPY.globalImpactEyebrow}
+          title={IMPACT_DISTRIBUTION_COPY.globalImpactTitle}
+        />
 
         <div className={jysSectionTheme.globalImpact.statsGrid}>
-          {stats.map(stat => {
-            const Icon = stat.icon;
+          {IMPACT_DISTRIBUTION_COPY.stats.map(stat => {
+            const Icon = stat.icon === 'participants' ? Users : stat.icon === 'countries' ? Globe2 : GraduationCap;
             return (
               <div key={stat.id} className={jysSectionTheme.globalImpact.card}>
                 <span className={jysSectionTheme.globalImpact.iconCircle}>

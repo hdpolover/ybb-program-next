@@ -30,16 +30,16 @@ export const PROGRESS_STEPS: ProgressStep[] = [
     description:
       "Your application has passed the registration review stage. The Letter of Acceptance (LoA) is currently being prepared by the YBB team.",
     status: "done",
-    processingPeriod: "223 January 2026",
+    processingPeriod: "22 January - 23 January 2026",
     estimatedRelease: "24 January 2026",
   },
   {
     id: 3,
-    title: "Onboarding Session",
-    description: "The date of the onboarding session will be confirmed via email.",
+    title: "Participant Registration Fully Funded",
+    description:
+      "Your registration is complete. Don't forget to complete your payment as scheduled to officially join the program.",
     status: "waiting",
-    processingPeriod: "To be announced",
-    estimatedRelease: "See official email",
+    processingPeriod: "01 August - 30 September 2025",
   },
   {
     id: 4,

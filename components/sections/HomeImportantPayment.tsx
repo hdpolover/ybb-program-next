@@ -1,7 +1,7 @@
 import { AlertTriangle, CalendarCheck, Users2, BadgeCheck, RefreshCw } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { HOME_IMPORTANT_PAYMENT_CONTENT } from '@/data/homeImportantPayment';
+import { HOME_IMPORTANT_PAYMENT_CONTENT } from '@/data/home/sections/important-payment/homeImportantPayment';
 
 function renderIcon(iconKey: string) {
   switch (iconKey) {

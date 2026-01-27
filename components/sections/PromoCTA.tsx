@@ -1,11 +1,11 @@
-import { promoCtaContent } from '@/data/promoCta';
+import { promoCtaContent } from '@/data/home/sections/promo-cta/promoCta';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 
 export default function PromoCTA() {
   const { eyebrow, title, subtitle, primaryCtaHref, primaryCtaLabel } = promoCtaContent;
   return (
     <section className={jysSectionTheme.promoCta.sectionWrapper}>
-      {/* Shape buat background */}
+      {/* Bentuk buat background */}
       <div className={jysSectionTheme.promoCta.glowLeft} />
       <div className={jysSectionTheme.promoCta.glowRight} />
       <div className={jysSectionTheme.promoCta.glowBottom} />
@@ -34,7 +34,7 @@ export default function PromoCTA() {
           </div>
         </div>
 
-        {/* Right side: video guideline */}
+        {/* Kanan: video panduan */}
         <div className={jysSectionTheme.promoCta.rightCol}>
           <div className={jysSectionTheme.promoCta.videoCard}>
             <div className={jysSectionTheme.promoCta.videoFrameWrapper}>
@@ -47,10 +47,10 @@ export default function PromoCTA() {
               />
             </div>
             <div className="mt-3">
-              <h3 className="text-base font-semibold text-blue-950">
+              <h3 className={jysSectionTheme.promoCta.videoTitle}>
                 Japan Youth Summit 2025 Registration Guideline
               </h3>
-              <p className="mt-1 text-xs text-slate-600 sm:text-sm">
+              <p className={jysSectionTheme.promoCta.videoDescription}>
                 Watch this short walkthrough to understand the step-by-step registration flow,
                 required documents, and key deadlines before you submit your application.
               </p>

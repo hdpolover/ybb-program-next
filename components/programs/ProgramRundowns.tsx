@@ -4,6 +4,7 @@ import { useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { CalendarDays, Clock, Info } from 'lucide-react';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { PROGRAMS_RUNDOWNS_COPY } from '@/data/programs/sections/rundowns/programsRundowns';
 
 export type RundownItem = {
   dateLabel: string; // e.g. Oct 12, 2025
@@ -15,10 +16,10 @@ export type RundownItem = {
 };
 
 export default function ProgramRundowns({
-  title = 'Program Rundowns',
-  subtitle = 'Detailed schedule of activities for this program',
+  title = PROGRAMS_RUNDOWNS_COPY.title,
+  subtitle = PROGRAMS_RUNDOWNS_COPY.subtitle,
   days,
-  note = 'Note: This rundown is an estimation only. The final schedule will be updated closer to the program date. Please check back regularly for the most accurate information.',
+  note = PROGRAMS_RUNDOWNS_COPY.note,
 }: {
   title?: string;
   subtitle?: string;

@@ -2,7 +2,7 @@
 
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { WHAT_MAKES_US_SPECIAL_CONTENT, resolveSpecialIcon } from "@/data/whatMakesUsSpecial";
+import { WHAT_MAKES_US_SPECIAL_CONTENT, resolveSpecialIcon } from "@/data/home/sections/what-makes-us-special/whatMakesUsSpecial";
 
 const specialTheme = jysSectionTheme.homeWhatMakesSpecial;
 

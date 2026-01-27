@@ -2,6 +2,7 @@ import { MapPin, Calendar, Check, CreditCard } from 'lucide-react';
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { HOME_REGISTRATION_COPY } from '@/data/home/sections/registration/homeRegistration';
 
 type InstagramFeedItem = {
   id: string;
@@ -43,13 +44,16 @@ export default function HomeRegistrationStrip({
   return (
     <section className={jysSectionTheme.homeRegistration.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader eyebrow="Registration Types" title="Choose how you want to join" />
+        <SectionHeader
+          eyebrow={HOME_REGISTRATION_COPY.eyebrow}
+          title={HOME_REGISTRATION_COPY.title}
+        />
         <p className={jysSectionTheme.homeRegistration.introText}>
-          Explore the available registration options and read the guidebook before you apply.
+          {HOME_REGISTRATION_COPY.introText}
         </p>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.6fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.7fr)]">
-          {/* Kiri: Instagram feed + guidebook buttons */}
+          {/* Kiri: Instagram feed + tombol guidebook */}
           <div className="flex flex-col gap-4">
             <div className={jysSectionTheme.homeRegistration.instagramCard}>
               <div className={jysSectionTheme.homeRegistration.instagramHeader}>
@@ -73,7 +77,7 @@ export default function HomeRegistrationStrip({
                   </a>
                 ) : (
                   <div className="flex h-full items-center justify-center px-6 text-center text-sm text-slate-500">
-                    Instagram feed will appear here once available.
+                    {HOME_REGISTRATION_COPY.instagramFallback}
                   </div>
                 )}
               </div>
@@ -89,7 +93,7 @@ export default function HomeRegistrationStrip({
                       rel="noreferrer"
                       className={jysSectionTheme.homeRegistration.instagramLink}
                     >
-                      View post on Instagram
+                      {HOME_REGISTRATION_COPY.instagramCtaLabel}
                     </a>
                   </div>
                 )}
@@ -98,7 +102,7 @@ export default function HomeRegistrationStrip({
 
             <div className="grid gap-3 sm:grid-cols-2">
               {guidelines && guidelines.length > 0 ? (
-                guidelines.map((guide, index) => (
+                guidelines.slice(0, 2).map((guide, index) => (
                   <a
                     key={guide.id}
                     href={guide.url}
@@ -116,16 +120,16 @@ export default function HomeRegistrationStrip({
               ) : (
                 <>
                   <a
-                    href="#guidebook-en"
+                    href={HOME_REGISTRATION_COPY.guidebookFallbackPrimaryHref}
                     className={jysSectionTheme.homeRegistration.guidePrimary}
                   >
-                    Read Guidebook (Eng)
+                    {HOME_REGISTRATION_COPY.guidebookFallbackPrimaryLabel}
                   </a>
                   <a
-                    href="#guidebook-id"
+                    href={HOME_REGISTRATION_COPY.guidebookFallbackSecondaryHref}
                     className={jysSectionTheme.homeRegistration.guideSecondary}
                   >
-                    Read Guidebook (Ind)
+                    {HOME_REGISTRATION_COPY.guidebookFallbackSecondaryLabel}
                   </a>
                 </>
               )}

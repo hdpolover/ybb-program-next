@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AlertTriangle, Award, BookOpen, Info, Lock, Users } from "lucide-react";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 import type { EntryInfo } from "../SubmissionEditSection";
+import StyledSelect from "@/components/ui/StyledSelect";
 
 const submissionTheme = jysSectionTheme.dashboardSubmission;
 
@@ -48,6 +49,40 @@ export default function SubmissionEditEntryInformationSection({
   const base = inputBaseClass();
   const [keywordInput, setKeywordInput] = React.useState("");
   const [keywordDropdownOpen, setKeywordDropdownOpen] = React.useState(false);
+  const participationCategoryOptions = React.useMemo(
+    () => [
+      { value: "Future Innovators", label: "Future Innovators" },
+      { value: "High School Innovators", label: "High School Innovators" },
+    ],
+    [],
+  );
+
+  const programSubthemeOptions = React.useMemo(
+    () => [
+      { value: "SDG 4 (Quality Education)", label: "SDG 4 (Quality Education)" },
+      { value: "SDG 5 (Gender Equality)", label: "SDG 5 (Gender Equality)" },
+      { value: "SDG 10 (Reduced Inequalities)", label: "SDG 10 (Reduced Inequalities)" },
+      {
+        value: "SDG 16 (Peace, Justice, and Strong Institutions)",
+        label: "SDG 16 (Peace, Justice, and Strong Institutions)",
+      },
+      {
+        value: "SDG 17 (Partnership for the Goals)",
+        label: "SDG 17 (Partnership for the Goals)",
+      },
+    ],
+    [],
+  );
+
+  const knowledgeSourceOptions = React.useMemo(
+    () => [
+      { value: "Friends Recommendation", label: "Friends Recommendation" },
+      { value: "Instagram", label: "Instagram" },
+      { value: "LinkedIn", label: "LinkedIn" },
+      { value: "Website", label: "Website" },
+    ],
+    [],
+  );
   const countWords = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return 0;
@@ -116,24 +151,22 @@ export default function SubmissionEditEntryInformationSection({
       <div className={submissionTheme.formGrid}>
         <Field label="Participation Category">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <select
+            <StyledSelect
+              value={entry.participationCategory}
+              onChange={value =>
+                onChangeEntry({
+                  ...entry,
+                  participationCategory: value,
+                })
+              }
+              options={participationCategoryOptions}
+              placeholder="Select category"
               className={`${base} pl-9 ${
                 showErrors && !entry.participationCategory.trim()
                   ? submissionTheme.editInputError
                   : ""
               }`}
-              value={entry.participationCategory}
-              onChange={e =>
-                onChangeEntry({
-                  ...entry,
-                  participationCategory: e.target.value,
-                })
-              }
-            >
-              <option value="">Select category</option>
-              <option value="Future Innovators">Future Innovators</option>
-              <option value="High School Innovators">High School Innovators</option>
-            </select>
+            />
           </InputWrapper>
           {showErrors && !entry.participationCategory.trim() && (
             <p className={submissionTheme.errorText}>You must select a participation category.</p>
@@ -142,31 +175,23 @@ export default function SubmissionEditEntryInformationSection({
 
         <Field label="Program Subtheme">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <select
+            <StyledSelect
+              value={entry.programSubtheme}
+              onChange={value =>
+                onChangeEntry({
+                  ...entry,
+                  programSubtheme: value,
+                })
+              }
+              options={programSubthemeOptions}
+              placeholder="Select subtheme"
               className={`${base} pl-9 ${
                 showErrors && !entry.programSubtheme.trim()
                   ? submissionTheme.editInputError
                   : ""
               }`}
-              value={entry.programSubtheme}
-              onChange={e =>
-                onChangeEntry({
-                  ...entry,
-                  programSubtheme: e.target.value,
-                })
-              }
-            >
-              <option value="">Select subtheme</option>
-              <option value="SDG 4 (Quality Education)">SDG 4 (Quality Education)</option>
-              <option value="SDG 5 (Gender Equality)">SDG 5 (Gender Equality)</option>
-              <option value="SDG 10 (Reduced Inequalities)">SDG 10 (Reduced Inequalities)</option>
-              <option value="SDG 16 (Peace, Justice, and Strong Institutions)">
-                SDG 16 (Peace, Justice, and Strong Institutions)
-              </option>
-              <option value="SDG 17 (Partnership for the Goals)">
-                SDG 17 (Partnership for the Goals)
-              </option>
-            </select>
+              searchable
+            />
           </InputWrapper>
           {showErrors && !entry.programSubtheme.trim() && (
             <p className={submissionTheme.errorText}>You must select a program subtheme.</p>
@@ -175,26 +200,22 @@ export default function SubmissionEditEntryInformationSection({
 
         <Field label="Knowledge Source">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <select
+            <StyledSelect
+              value={entry.knowledgeSource}
+              onChange={value =>
+                onChangeEntry({
+                  ...entry,
+                  knowledgeSource: value,
+                })
+              }
+              options={knowledgeSourceOptions}
+              placeholder="Select source"
               className={`${base} pl-9 ${
                 showErrors && !entry.knowledgeSource.trim()
                   ? submissionTheme.editInputError
                   : ""
               }`}
-              value={entry.knowledgeSource}
-              onChange={e =>
-                onChangeEntry({
-                  ...entry,
-                  knowledgeSource: e.target.value,
-                })
-              }
-            >
-              <option value="">Select source</option>
-              <option value="Friends Recommendation">Friends Recommendation</option>
-              <option value="Instagram">Instagram</option>
-              <option value="LinkedIn">LinkedIn</option>
-              <option value="Website">Website</option>
-            </select>
+            />
           </InputWrapper>
           {showErrors && !entry.knowledgeSource.trim() && (
             <p className={submissionTheme.errorText}>

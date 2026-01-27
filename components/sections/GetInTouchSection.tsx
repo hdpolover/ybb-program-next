@@ -5,10 +5,10 @@ import { PhoneCall, Mail, Instagram, MapPin } from 'lucide-react';
 
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { contactSectionContent } from '@/data/contact';
+import { contactItems, contactSectionContent } from '@/data/contact';
 
 export type ContactItem = {
-  id: string;
+  id: 'chat' | 'email' | 'instagram' | 'address';
   title: string;
   subtitle: string;
   href?: string;
@@ -21,35 +21,26 @@ export type GetInTouchProps = {
   items?: ContactItem[];
 };
 
-const resolveDefaultItems = (): ContactItem[] => [
-  {
-    id: 'chat',
-    title: 'Chat to Customer Support',
-    subtitle: contactSectionContent.primaryCtaLabel ?? '+6285173386622',
-    href: contactSectionContent.secondaryCtaHref ?? 'https://wa.me/6285173386622',
-    icon: <PhoneCall className="h-4 w-4" />,
-  },
-  {
-    id: 'email',
-    title: 'Email to Customer Support',
-    subtitle: 'japanyouthsummit@gmail.com',
-    href: 'mailto:japanyouthsummit@gmail.com',
-    icon: <Mail className="h-4 w-4" />,
-  },
-  {
-    id: 'instagram',
-    title: 'Visit Us',
-    subtitle: 'japanyouthsummit',
-    href: 'https://instagram.com/japanyouthsummit',
-    icon: <Instagram className="h-4 w-4" />,
-  },
-  {
-    id: 'address',
-    title: 'Address',
-    subtitle: 'Ngaglik, Sleman, Yogyakarta, Indonesia',
-    icon: <MapPin className="h-4 w-4" />,
-  },
-];
+const resolveDefaultItems = (): ContactItem[] =>
+  contactItems.map(item => {
+    const base = {
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle,
+      href: item.href,
+    } as const;
+
+    if (item.id === 'chat') {
+      return { ...base, icon: <PhoneCall className="h-4 w-4" /> };
+    }
+    if (item.id === 'email') {
+      return { ...base, icon: <Mail className="h-4 w-4" /> };
+    }
+    if (item.id === 'instagram') {
+      return { ...base, icon: <Instagram className="h-4 w-4" /> };
+    }
+    return { ...base, icon: <MapPin className="h-4 w-4" /> };
+  });
 
 export default function GetInTouchSection({
   title = contactSectionContent.subtitle,
