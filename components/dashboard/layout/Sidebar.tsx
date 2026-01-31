@@ -11,18 +11,24 @@ import {
   UserCircle2,
 } from 'lucide-react';
 import { dashboardNav } from '@/lib/dashboard/nav';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 
 const layoutTheme = jysSectionTheme.dashboardLayout;
 
 // Sidebar kiri buat navigasi dashboard — simple dan konsisten sama tema
-export default function Sidebar() {
+export default function Sidebar({
+  profileEmail,
+}: {
+  profileEmail?: string;
+}) {
   const pathname = usePathname();
+  const router = useRouter();
   // Pas SSR dibuat ketutup dulu biar ga bentrok hidrasi, ntar dibuka pas komponen udah kepasang
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [mounted, setMounted] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
   useEffect(() => {
     // Ambil state yang kependem di localStorage, abis itu auto-buka sesuai path yang lagi aktif
@@ -52,6 +58,23 @@ export default function Sidebar() {
     if (href.startsWith("/dashboard/payments")) return <CreditCard className="h-4 w-4" />;
     return <FileText className="h-4 w-4" />;
   };
+
+  const onLogout = async () => {
+    if (logoutLoading) return;
+    setLogoutLoading(true);
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } finally {
+      router.push('/login');
+      setLogoutLoading(false);
+    }
+  };
+
   return (
     <aside className={layoutTheme.sidebarWrapper}>
       {/* Logo header */}
@@ -160,10 +183,7 @@ export default function Sidebar() {
               />
             </div>
             <div>
-              <div className={layoutTheme.profileName}>Hilmi Farrel F.</div>
-              <div className={layoutTheme.profileBadge}>
-                JYS Participant
-              </div>
+              <div className={layoutTheme.profileName}>{profileEmail || 'Participant'}</div>
             </div>
           </div>
           <button
@@ -179,10 +199,12 @@ export default function Sidebar() {
           <button
             type="button"
             className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-white/90 transition hover:bg-white/10"
+            onClick={onLogout}
+            disabled={logoutLoading}
           >
             <span className="flex items-center gap-2">
               <LogOut className="h-4 w-4" />
-              <span>Log out</span>
+              <span>{logoutLoading ? 'Logging out...' : 'Log out'}</span>
             </span>
           </button>
         </div>

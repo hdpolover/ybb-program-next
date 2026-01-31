@@ -66,11 +66,11 @@ export function Navbar() {
             {/* Logo */}
             <div className="flex items-center">
               <Image
-                src="/img/jys.png"
+                src="/img/jysfix.png"
                 alt="Logo"
                 width={420}
                 height={420}
-                className="h-10 w-auto sm:h-16 md:h-24 lg:h-36"
+                className="h-9 w-auto sm:h-11 md:h-12 lg:h-14"
                 priority
               />
             </div>

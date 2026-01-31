@@ -5,6 +5,12 @@ import { Navbar } from './navbar';
 
 export default function ClientNavbarGate() {
   const pathname = usePathname();
-  if (pathname?.startsWith('/login') || pathname?.startsWith('/dashboard')) return null;
+  if (
+    pathname?.startsWith('/login') ||
+    pathname?.startsWith('/onboarding') ||
+    pathname?.startsWith('/dashboard')
+  ) {
+    return null;
+  }
   return <Navbar />;
 }

@@ -14,7 +14,7 @@ type SupportedByItem = {
 };
 
 const fallbackSupportedLogos: SupportedByItem[] = [
-  { id: 'local-jys', name: 'JYS', logoUrl: '/img/jys.png', websiteUrl: '#', type: 'local', tier: 'primary' },
+  { id: 'local-jys', name: 'JYS', logoUrl: '/img/jysfix.png', websiteUrl: '#', type: 'local', tier: 'primary' },
   { id: 'local-iys', name: 'IYS', logoUrl: '/img/IYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
   { id: 'local-yaf', name: 'YAF', logoUrl: '/img/YAFlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
   { id: 'local-kys', name: 'KYS', logoUrl: '/img/KYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },

@@ -1,7 +1,7 @@
 import type { SettingsData } from '@/types/settings';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 
-const BRAND_URL = 'https://istanbulyouthsummit.com';
+const DEFAULT_BRAND_URL = process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
 
 export async function getSettings(): Promise<SettingsData> {
   if (typeof window !== 'undefined') {
@@ -26,7 +26,7 @@ export async function getSettings(): Promise<SettingsData> {
 
   return apiGetWithEnvelope<SettingsData>('/v1/landing/settings', {
     headers: {
-      'x-brand-domain': BRAND_URL,
+      'x-brand-domain': DEFAULT_BRAND_URL,
     },
   });
 }

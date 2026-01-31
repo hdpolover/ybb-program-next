@@ -140,3 +140,27 @@ export async function getShirtSizes(): Promise<ShirtSizeMetadata[]> {
 
   return apiGetWithEnvelope<ShirtSizeMetadata[]>('/v1/metadata/shirt-sizes');
 }
+
+export async function getKnowledgeSources(): Promise<string[]> {
+  if (typeof window !== 'undefined') {
+    const res = await fetch('/api/metadata/knowledge-sources', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`API request failed: ${res.status} ${res.statusText}`);
+    }
+
+    const json = (await res.json()) as { statusCode: number; message: string; data: string[] };
+    if (json.statusCode !== 200 || !json.data) {
+      throw new Error(json.message || 'Unexpected API response');
+    }
+
+    return json.data;
+  }
+
+  return apiGetWithEnvelope<string[]>('/v1/metadata/knowledge-sources');
+}

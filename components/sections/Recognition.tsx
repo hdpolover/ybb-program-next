@@ -68,11 +68,11 @@ export default function Recognition() {
               </div>
               <div className="flex items-center gap-3">
                 <Image
-                  src="/img/jys.png"
+                  src="/img/jysfix.png"
                   alt="JYS"
                   width={80}
                   height={80}
-                  className="h-20 w-auto"
+                  className="h-12 w-auto"
                 />
                 <div>
                   <p className={jysSectionTheme.recognition.hakiBrand}>{haki.brand}</p>

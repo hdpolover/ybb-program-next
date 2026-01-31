@@ -30,7 +30,7 @@ export default function Testimonials() {
           flag: '🇯🇵',
           country: 'Japan',
           year: 2024,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Rafi Pratama',
@@ -39,7 +39,7 @@ export default function Testimonials() {
           flag: '🇮🇩',
           country: 'Indonesia',
           year: 2023,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Mina Park',
@@ -49,7 +49,7 @@ export default function Testimonials() {
           flag: '🇰🇷',
           country: 'South Korea',
           year: 2022,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Samuel Lee',
@@ -58,7 +58,7 @@ export default function Testimonials() {
           flag: '🇺🇸',
           country: 'United States',
           year: 2025,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Nadia Putri',
@@ -67,7 +67,7 @@ export default function Testimonials() {
           flag: '🇮🇩',
           country: 'Indonesia',
           year: 2021,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
       ],
     },
@@ -81,7 +81,7 @@ export default function Testimonials() {
           flag: '🇯🇵',
           country: 'Japan',
           year: 2024,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Dewi Lestari',
@@ -90,7 +90,7 @@ export default function Testimonials() {
           flag: '🇮🇩',
           country: 'Indonesia',
           year: 2024,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Carlos Diaz',
@@ -99,7 +99,7 @@ export default function Testimonials() {
           flag: '🇪🇸',
           country: 'Spain',
           year: 2023,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Hana Kim',
@@ -108,7 +108,7 @@ export default function Testimonials() {
           flag: '🇰🇷',
           country: 'South Korea',
           year: 2023,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Arif Rahman',
@@ -117,7 +117,7 @@ export default function Testimonials() {
           flag: '🇮🇩',
           country: 'Indonesia',
           year: 2020,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
       ],
     },
@@ -131,7 +131,7 @@ export default function Testimonials() {
           flag: '🇯🇵',
           country: 'Japan',
           year: 2022,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Nurul Azizah',
@@ -140,7 +140,7 @@ export default function Testimonials() {
           flag: '🇮🇩',
           country: 'Indonesia',
           year: 2025,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Kenji Sato',
@@ -149,7 +149,7 @@ export default function Testimonials() {
           flag: '🇯🇵',
           country: 'Japan',
           year: 2024,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'Siti Aisyah',
@@ -158,7 +158,7 @@ export default function Testimonials() {
           flag: '🇮🇩',
           country: 'Indonesia',
           year: 2023,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
         {
           name: 'William Chen',
@@ -167,7 +167,7 @@ export default function Testimonials() {
           flag: '🇸🇬',
           country: 'Singapore',
           year: 2021,
-          photo: '/img/jys.png',
+          photo: '/img/jysfix.png',
         },
       ],
     },
@@ -254,7 +254,7 @@ export default function Testimonials() {
               <div className={jysSectionTheme.testimonialsHome.modalAvatarWrapper}>
                 <div className={jysSectionTheme.testimonialsHome.modalAvatarInner}>
                   <Image
-                    src={active.photo || '/img/jys.png'}
+                    src={active.photo || '/img/jysfix.png'}
                     alt={active.name}
                     fill
                     sizes="96px"

@@ -7,6 +7,7 @@ export default function ClientCTAGate() {
   const pathname = usePathname();
   if (
     pathname?.startsWith('/login') ||
+    pathname?.startsWith('/onboarding') ||
     pathname?.startsWith('/dashboard') ||
     pathname?.startsWith('/programs') ||
     // Hide CTA on partners detail slug pages, but keep it on main /partners

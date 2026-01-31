@@ -36,6 +36,9 @@ export default function Footer() {
   const programsSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'programs');
   const legalSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'legal');
 
+  const brandName = brand?.name?.trim() ? brand.name.trim() : 'Japan Youth Summit';
+  const copyrightText = `Copyright © ${new Date().getFullYear()} ${brandName}`;
+
   // Menu is partially dynamic: show only Programs links from API.
   // If API missing or empty, fallback to FOOTER_COPY.nav.
   const apiMenuLinks: { label: string; href: string }[] = (programsSection?.links ?? []).map(link => ({
@@ -247,7 +250,7 @@ export default function Footer() {
         <div className="mx-auto mt-10 max-w-7xl px-6 lg:px-8">
           <div className="h-px w-full bg-white/20" />
           <div className="mt-5 flex flex-col items-center justify-between gap-2 sm:flex-row">
-            <p className="text-center text-xs text-white/80 sm:text-left">{FOOTER_COPY.copyright}</p>
+            <p className="text-center text-xs text-white/80 sm:text-left">{copyrightText}</p>
             {legalLinks.length > 0 ? (
               <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/80 sm:justify-end">
                 {legalLinks.map(link => (
