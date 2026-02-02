@@ -805,8 +805,9 @@ export const jysSectionTheme = {
     termsLink: 'underline',
   },
   onboarding: {
-    layoutGrid: 'grid min-h-screen grid-cols-1 lg:grid-cols-2',
-    leftCol: 'relative bg-white',
+    layoutGrid:
+      'grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto]',
+    leftCol: 'relative bg-white lg:overflow-hidden lg:rounded-r-3xl',
     leftCenter:
       'flex min-h-screen items-center justify-center px-6 py-10 lg:px-20 lg:py-0',
     logoWrapper: 'mb-8',
@@ -842,7 +843,7 @@ export const jysSectionTheme = {
     copyrightText: 'absolute bottom-6 left-6 text-xs text-slate-400',
     buttonGroup: 'pt-2 space-y-3',
     imagePanel:
-      'relative hidden min-h-screen w-full bg-slate-50 lg:block',
+      'relative hidden h-screen overflow-hidden bg-slate-50 lg:block lg:rounded-l-3xl',
     image: 'object-cover',
   },
   applyImportant: {
