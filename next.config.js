@@ -9,7 +9,7 @@ const nextConfig = {
   remotePatterns: [
     {
       protocol: 'https',
-      hostname: 's3.ybbhub.com',
+      hostname: process.env.NEXT_PUBLIC_S3_URL ? new URL(process.env.NEXT_PUBLIC_S3_URL).hostname : 's3.ybbhub.com',
       port: '',
       pathname: '/**',
     },
