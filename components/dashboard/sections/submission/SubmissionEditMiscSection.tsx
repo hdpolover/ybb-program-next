@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 import type { EntryInfo } from "../SubmissionEditSection";
+import StyledSelect from "@/components/ui/StyledSelect";
 
 const submissionTheme = jysSectionTheme.dashboardSubmission;
 
@@ -59,6 +60,15 @@ export default function SubmissionEditMiscSection({
   onGoToPreview,
 }: Props) {
   const base = inputBaseClass();
+  const knowledgeSourceOptions = React.useMemo(
+    () => [
+      { value: "Instagram", label: "Instagram" },
+      { value: "LinkedIn", label: "LinkedIn" },
+      { value: "Website", label: "Website" },
+      { value: "Friend Recommendation", label: "Friend Recommendation" },
+    ],
+    [],
+  );
 
   return (
     <div className={submissionTheme.formSectionWrapper}>
@@ -96,26 +106,22 @@ export default function SubmissionEditMiscSection({
 
         <Field label="Knowledge Source">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <select
+            <StyledSelect
+              value={entry.miscKnowledgeSource ?? ""}
+              onChange={value =>
+                onChangeEntry({
+                  ...entry,
+                  miscKnowledgeSource: value,
+                })
+              }
+              options={knowledgeSourceOptions}
+              placeholder="Select source"
               className={`${base} pl-9 ${
                 showErrors && !entry.miscKnowledgeSource?.trim()
                   ? submissionTheme.editInputError
                   : ""
               }`}
-              value={entry.miscKnowledgeSource ?? ""}
-              onChange={e =>
-                onChangeEntry({
-                  ...entry,
-                  miscKnowledgeSource: e.target.value,
-                })
-              }
-            >
-              <option value="">Select source</option>
-              <option value="Instagram">Instagram</option>
-              <option value="LinkedIn">LinkedIn</option>
-              <option value="Website">Website</option>
-              <option value="Friend Recommendation">Friend Recommendation</option>
-            </select>
+            />
           </InputWrapper>
           {showErrors && !entry.miscKnowledgeSource?.trim() && (
             <p className={submissionTheme.errorText}>Please select a knowledge source.</p>

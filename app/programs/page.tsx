@@ -12,31 +12,95 @@ import Benefits from '@/components/programs/Benefits';
 import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
+import { getProgramsPageData } from '@/lib/api/programs';
+import { PROGRAMS_FALLBACK_HERO } from '@/data/programs/sections/overview/programsOverview';
+import type {
+  ProgramActivitiesSection,
+  ProgramJourneySection,
+  ProgramOverviewSection,
+  RegistrationInfoSection,
+  ProgramImportantDatesSection,
+  PreviousProgramsSection,
+  ProgramFaqsSection,
+} from '@/types/programs';
 
-export default function ProgramOverviewPage() {
+export default async function ProgramOverviewPage() {
+  const programsPage = await getProgramsPageData();
+
+  const heroSection = programsPage.sections.find(
+    section => section.type === 'hero',
+  );
+
+  const programOverviewSection = programsPage.sections.find(
+    (section): section is ProgramOverviewSection => section.type === 'program_overview',
+  );
+
+  const registrationInfoSection = programsPage.sections.find(
+    (section): section is RegistrationInfoSection => section.type === 'registration_info',
+  );
+
+  const programActivitiesSection = programsPage.sections.find(
+    (section): section is ProgramActivitiesSection => section.type === 'program_activities',
+  );
+
+  const programJourneySection = programsPage.sections.find(
+    (section): section is ProgramJourneySection => section.type === 'program_journey',
+  );
+
+  const programImportantDatesSection = programsPage.sections.find(
+    (section): section is ProgramImportantDatesSection =>
+      section.type === 'program_important_dates',
+  );
+
+  const previousProgramsSection = programsPage.sections.find(
+    (section): section is PreviousProgramsSection => section.type === 'previous_programs',
+  );
+
+  const programFaqsSection = programsPage.sections.find(
+    (section): section is ProgramFaqsSection => section.type === 'program_faqs',
+  );
+
+  const heroTitle =
+    heroSection?.type === 'hero' ? heroSection.content.title : PROGRAMS_FALLBACK_HERO.title;
+  const heroSubtitle =
+    heroSection?.type === 'hero'
+      ? heroSection.content.subtitle
+      : PROGRAMS_FALLBACK_HERO.subtitle;
+  const heroBgImage =
+    heroSection?.type === 'hero' && heroSection.content.bg_image
+      ? heroSection.content.bg_image
+      : '/img/programsbackground.png';
+
   return (
     <main className="relative">
       <HeroSection
-        title="Japan Youth Summit 2026"
-        subtitle="Explore the full details of our latest program edition – dates, activities, requirements, and everything you need to join Japan Youth Summit 2026."
-        bgImage="/img/programsbackground.png"
+        title={heroTitle}
+        subtitle={heroSubtitle}
+        bgImage={heroBgImage}
         breadcrumb={[
-          { href: '/', label: 'Home' },
-          { href: '/programs', label: 'Japan Youth Summit 2026' },
+          { href: `/${programsPage.slug}`, label: programsPage.slug },
+          { href: `/${programsPage.slug}`, label: programsPage.title },
         ]}
       />
-      <CurrentProgram />
-      <RegistrationTypePrograms />
+      <CurrentProgram overview={programOverviewSection?.content} />
+      <RegistrationTypePrograms
+        pricingTiers={registrationInfoSection?.content.pricing_tiers}
+        instructions={registrationInfoSection?.content.instructions}
+        title={registrationInfoSection?.content.title}
+        description={registrationInfoSection?.content.description}
+        status={registrationInfoSection?.content.status}
+        registrationDates={registrationInfoSection?.content.registration_dates}
+      />
       <section className="h-10" />
-      <ProgramActivities />
-      <ProgramSteps />
-      <ProgramSchedules />
-      <PreviousProgramsGrid />
+      <ProgramActivities activities={programActivitiesSection?.content} />
+      <ProgramSteps journey={programJourneySection?.content} />
+      <ProgramSchedules dates={programImportantDatesSection?.content} />
+      <PreviousProgramsGrid previous={previousProgramsSection?.content} />
       {/* <MissionVision />
       <Objectives />
       <Benefits /> */}
       <AdditionalPrograms />
-      <FAQ />
+      <ProgramFAQ fqs={programFaqsSection?.content} />
       <ProgramsFurtherInformationSection />
     </main>
   );

@@ -14,23 +14,48 @@
   font-display: swap;
 }
 
-/* Theme tokens (JYS default). Other programs can override via [data-program="..."] on body */
+/* Theme tokens (JYS default). Other programs override via [data-program="..."] on body */
 :root {
+  /* Base surface & text */
   --color-background: #ffffff;
   --color-foreground: #020617;
-  --color-primary: #1c57b3;
-  --color-primary-foreground: #ffffff;
-  --color-accent: #db2777;
-  --color-accent-foreground: #ffffff;
+
+  /* Brand-scoped tokens (default JYS, sinkron dengan BRAND_THEMES.jys) */
+  --brand-accent: #ec4899;
+  --brand-accent-soft: #fce7f3;
+  --brand-accent-foreground: #ffffff;
+  --brand-primary: #020617;
+  --brand-primary-foreground: #ffffff;
+  --brand-text: #0f172a;
+  --brand-border: #fb7185;
+
+  /* Shorthand tokens yang dipakai utilitas Tailwind berbasis CSS vars */
+  --color-primary: var(--brand-primary);
+  --color-primary-foreground: var(--brand-primary-foreground);
+  --color-accent: var(--brand-accent);
+  --color-accent-foreground: var(--brand-accent-foreground);
 }
 
 body[data-program='jys'] {
-  --color-background: #ffffff;
-  --color-foreground: #020617;
-  --color-primary: #1c57b3;
-  --color-primary-foreground: #ffffff;
-  --color-accent: #db2777;
-  --color-accent-foreground: #ffffff;
+  /* Explicit supaya gampang dibaca & di-sync sama BRAND_THEMES.jys */
+  --brand-accent: #ec4899;
+  --brand-accent-soft: #fce7f3;
+  --brand-accent-foreground: #ffffff;
+  --brand-primary: #020617;
+  --brand-primary-foreground: #ffffff;
+  --brand-text: #0f172a;
+  --brand-border: #fb7185;
+}
+
+body[data-program='iys'] {
+  /* Contoh theme IYS, disesuaikan dari BRAND_THEMES.iys */
+  --brand-accent: #38bdf8;
+  --brand-accent-soft: #e0f2fe;
+  --brand-accent-foreground: #020617;
+  --brand-primary: #0f172a;
+  --brand-primary-foreground: #f9fafb;
+  --brand-text: #020617;
+  --brand-border: #0ea5e9;
 }
 
 body {

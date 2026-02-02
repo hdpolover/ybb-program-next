@@ -1,13 +1,14 @@
 import HeroSection from '@/components/ui/HeroSection';
 import PhotoGallery from '@/components/sections/PhotoGallery';
 import OtherProgramsGallery from '@/components/programs/OtherProgramsGallery';
+import { PROGRAMS_HERO_GALLERY } from '@/data/programs/sections/subpages-hero/programsSubpagesHero';
 
 export default function ProgramsPhotoGalleryPage() {
   return (
     <main className="relative">
       <HeroSection
-        title="Photo Gallery"
-        subtitle="Moments and highlights captured from our programs and community."
+        title={PROGRAMS_HERO_GALLERY.title}
+        subtitle={PROGRAMS_HERO_GALLERY.subtitle}
         bgImage="/img/bgprogramoverview.png"
         breadcrumb={[
           { href: '/', label: 'Home' },
@@ -16,10 +17,10 @@ export default function ProgramsPhotoGalleryPage() {
         ]}
       />
 
-      {/* Gallery */}
+      {/* gallery utama */}
       <PhotoGallery />
 
-      {/* Other Programs */}
+      {/* daftar program lain */}
       <OtherProgramsGallery />
     </main>
   );

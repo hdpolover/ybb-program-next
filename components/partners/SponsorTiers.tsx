@@ -2,187 +2,144 @@ import Image from 'next/image';
 import { Gem, Trophy, Medal } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import type { SponsorItem } from '@/types/partners';
+
+type SponsorTiersSectionProps = {
+  sponsors?: SponsorItem[];
+};
 
 // Section: Sponsor Tiers — kartu detail
-export default function SponsorTiersSection() {
+export default function SponsorTiersSection({ sponsors }: SponsorTiersSectionProps) {
+  const diamondSponsor = sponsors?.find(s => s.tier === 'diamond');
+  const goldSponsors = sponsors?.filter(s => s.tier === 'gold');
+  const platinumSponsors = sponsors?.filter(s => s.tier === 'platinum');
+  const totalDynamicSponsors = (goldSponsors?.length ?? 0) + (platinumSponsors?.length ?? 0);
+  const hasFewSponsors = totalDynamicSponsors > 0 && totalDynamicSponsors <= 2;
+
   return (
     <section className={jysSectionTheme.partnersSponsorTiers.sectionWrapper}>
       <div className={jysSectionTheme.partnersSponsorTiers.container}>
         <SectionHeader eyebrow="Our Sponsors" title="Sponsor Tiers" />
         <div className={jysSectionTheme.partnersSponsorTiers.tiersGrid}>
           {/* Detail Diamond */}
-          <a
-            href="/partners/global-innovation-foundation"
-            className={jysSectionTheme.partnersSponsorTiers.diamondCard}
-          >
+          <div className={jysSectionTheme.partnersSponsorTiers.diamondCard}>
             <div className="mb-3 flex items-center gap-2">
               <span className={jysSectionTheme.partnersSponsorTiers.diamondIconCircle}>
                 <Gem className="h-5 w-5" />
               </span>
-              <span className={jysSectionTheme.partnersSponsorTiers.diamondLabel}>
-                Diamond Sponsor
-              </span>
+              <span className={jysSectionTheme.partnersSponsorTiers.diamondLabel}>Diamond Sponsor</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Image
-                src="/img/IYSlogo.png"
-                alt="Global Innovation Foundation logo"
-                width={36}
-                height={36}
-                sizes="36px"
-                className={jysSectionTheme.partnersSponsorTiers.diamondLogoImg}
-              />
-              <h3 className={jysSectionTheme.partnersSponsorTiers.diamondTitle}>
-                Global Innovation Foundation
-              </h3>
-            </div>
-            <p className={jysSectionTheme.partnersSponsorTiers.mutedMeta}>Partner since 2020</p>
-            <p className={jysSectionTheme.partnersSponsorTiers.bodyText}>
-              Contribution: Primary Program Funding & Strategic Partnership
-            </p>
-            <p className={jysSectionTheme.partnersSponsorTiers.bodyText}>
-              Leading global foundation supporting youth innovation and entrepreneurship worldwide
-              through comprehensive funding and mentorship programs.
-            </p>
-          </a>
+            {diamondSponsor ? (
+              <a
+                href={diamondSponsor.website}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3"
+              >
+                <Image
+                  src={diamondSponsor.logo}
+                  alt={diamondSponsor.name}
+                  width={36}
+                  height={36}
+                  sizes="36px"
+                  className={jysSectionTheme.partnersSponsorTiers.diamondLogoImg}
+                />
+                <h3 className={jysSectionTheme.partnersSponsorTiers.diamondTitle}>{diamondSponsor.name}</h3>
+              </a>
+            ) : (
+              <p className="text-sm text-slate-500">No diamond sponsor yet. Coming soon.</p>
+            )}
+          </div>
 
           {/* Detail Gold */}
-          <div className={jysSectionTheme.partnersSponsorTiers.goldCard}>
+          <div
+            className={`${jysSectionTheme.partnersSponsorTiers.goldCard} ${
+              hasFewSponsors ? 'py-5 sm:py-6' : ''
+            }`}
+          >
             <div className="mb-3 flex items-center gap-2">
               <span className={jysSectionTheme.partnersSponsorTiers.goldIconCircle}>
                 <Trophy className="h-5 w-5" />
               </span>
-              <span className={jysSectionTheme.partnersSponsorTiers.goldLabel}>Gold Sponsor</span>
+              <span className={jysSectionTheme.partnersSponsorTiers.goldLabel}>Gold Sponsors</span>
             </div>
             <div className={jysSectionTheme.partnersSponsorTiers.goldOrgWrapper}>
-              <a
-                href="/partners/future-leaders-institute"
-                className={jysSectionTheme.partnersSponsorTiers.goldOrgCard}
-              >
-                <div className="flex items-center gap-3">
-                  <Image
-                    src="/img/KYSlogo.png"
-                    alt="Future Leaders Institute logo"
-                    width={32}
-                    height={32}
-                    sizes="32px"
-                    className={jysSectionTheme.partnersSponsorTiers.goldLogoImg}
-                  />
-                  <h3 className={jysSectionTheme.partnersSponsorTiers.goldOrgTitle}>
-                    Future Leaders Institute
-                  </h3>
-                </div>
-                <p className={jysSectionTheme.partnersSponsorTiers.goldOrgMeta}>
-                  Partner since 2021
-                </p>
-                <p className={jysSectionTheme.partnersSponsorTiers.goldOrgBody}>
-                  Scholarship Fund & Training Programs
-                </p>
-              </a>
-              <a
-                href="/partners/international-development-bank"
-                className={jysSectionTheme.partnersSponsorTiers.goldOrgCard}
-              >
-                <div className="flex items-center gap-3">
-                  <Image
-                    src="/img/MEYSlogo.png"
-                    alt="International Development Bank logo"
-                    width={32}
-                    height={32}
-                    sizes="32px"
-                    className={jysSectionTheme.partnersSponsorTiers.goldLogoImg}
-                  />
-                  <h3 className={jysSectionTheme.partnersSponsorTiers.goldOrgTitle}>
-                    International Development Bank
-                  </h3>
-                </div>
-                <p className={jysSectionTheme.partnersSponsorTiers.goldOrgMeta}>
-                  Partner since 2021
-                </p>
-                <p className={jysSectionTheme.partnersSponsorTiers.goldOrgBody}>
-                  Workshop Facilities & Technology Infrastructure
-                </p>
-              </a>
+              {goldSponsors && goldSponsors.length > 0 ? (
+                goldSponsors.map(sponsor => (
+                  <a
+                    key={sponsor.id}
+                    href={sponsor.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={jysSectionTheme.partnersSponsorTiers.goldOrgCard}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={sponsor.logo}
+                        alt={sponsor.name}
+                        width={32}
+                        height={32}
+                        sizes="32px"
+                        className={jysSectionTheme.partnersSponsorTiers.goldLogoImg}
+                      />
+                      <h3 className={jysSectionTheme.partnersSponsorTiers.goldOrgTitle}>
+                        {sponsor.name}
+                      </h3>
+                    </div>
+                  </a>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">No gold sponsors yet. Coming soon.</p>
+              )}
             </div>
           </div>
 
           {/* Detail Silver */}
-          <div className={jysSectionTheme.partnersSponsorTiers.silverCard}>
+          <div
+            className={`${jysSectionTheme.partnersSponsorTiers.silverCard} ${
+              hasFewSponsors ? 'py-5 sm:py-6' : ''
+            }`}
+          >
             <div className="mb-3 flex items-center gap-2">
               <span className={jysSectionTheme.partnersSponsorTiers.silverIconCircle}>
                 <Medal className="h-5 w-5" />
               </span>
-              <span className={jysSectionTheme.partnersSponsorTiers.silverLabel}>
-                Silver Sponsors
-              </span>
+              <span className={jysSectionTheme.partnersSponsorTiers.silverLabel}>Platinum Sponsors</span>
             </div>
             <div className={jysSectionTheme.partnersSponsorTiers.silverGrid}>
-              <a
-                href="/partners/techcorp-solutions"
-                className={jysSectionTheme.partnersSponsorTiers.silverOrgCard}
-              >
-                <div className="flex items-center gap-3">
-                  <Image
-                    src="/img/WYSlogo.png"
-                    alt="TechCorp Solutions logo"
-                    width={28}
-                    height={28}
-                    sizes="28px"
-                    className={jysSectionTheme.partnersSponsorTiers.silverLogoImg}
-                  />
-                  <p className={jysSectionTheme.partnersSponsorTiers.silverOrgName}>
-                    TechCorp Solutions
-                  </p>
-                </div>
-                <p className={jysSectionTheme.partnersSponsorTiers.silverOrgDesc}>
-                  Technology Support
-                </p>
-              </a>
-              <a
-                href="/partners/education-partners-ltd"
-                className={jysSectionTheme.partnersSponsorTiers.silverOrgCard}
-              >
-                <div className="flex items-center gap-3">
-                  <Image
-                    src="/img/YAFlogo.png"
-                    alt="Education Partners Ltd logo"
-                    width={28}
-                    height={28}
-                    sizes="28px"
-                    className={jysSectionTheme.partnersSponsorTiers.silverLogoImg}
-                  />
-                  <p className={jysSectionTheme.partnersSponsorTiers.silverOrgName}>
-                    Education Partners Ltd
-                  </p>
-                </div>
-                <p className={jysSectionTheme.partnersSponsorTiers.silverOrgDesc}>
-                  Educational Resources
-                </p>
-              </a>
-              <a
-                href="/partners/youth-development-network"
-                className={jysSectionTheme.partnersSponsorTiers.silverOrgCardWide}
-              >
-                <div className="flex items-center gap-3">
-                  <Image
-                    src="/img/jyslogosolo.png"
-                    alt="Youth Development Network logo"
-                    width={28}
-                    height={28}
-                    sizes="28px"
-                    className={jysSectionTheme.partnersSponsorTiers.silverLogoImg}
-                  />
-                  <p className={jysSectionTheme.partnersSponsorTiers.silverOrgName}>
-                    Youth Development Network
-                  </p>
-                </div>
-                <p className={jysSectionTheme.partnersSponsorTiers.silverOrgDesc}>
-                  Networking & Mentorship
-                </p>
-              </a>
+              {platinumSponsors && platinumSponsors.length > 0 ? (
+                platinumSponsors.map(sponsor => (
+                  <a
+                    key={sponsor.id}
+                    href={sponsor.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={jysSectionTheme.partnersSponsorTiers.silverOrgCard}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={sponsor.logo}
+                        alt={sponsor.name}
+                        width={28}
+                        height={28}
+                        sizes="28px"
+                        className={jysSectionTheme.partnersSponsorTiers.silverLogoImg}
+                      />
+                      <p className={jysSectionTheme.partnersSponsorTiers.silverOrgName}>{sponsor.name}</p>
+                    </div>
+                  </a>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">No platinum sponsors yet. Coming soon.</p>
+              )}
             </div>
           </div>
         </div>
+        {hasFewSponsors && (
+          <p className="mt-4 text-center text-xs text-slate-500 sm:text-sm">
+            More sponsors will be announced soon.
+          </p>
+        )}
       </div>
     </section>
   );

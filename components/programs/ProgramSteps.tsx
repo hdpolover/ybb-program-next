@@ -1,103 +1,23 @@
 import { CheckCircle2, CreditCard, Mail, Users, CalendarDays, Flag, Star } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import type { ProgramJourneySection } from '@/types/programs';
+import { PROGRAMS_STEPS_COPY } from '@/data/programs/sections/steps/programsSteps';
 
-interface Step {
-  id: number;
-  title: string;
-  icon:
-    | 'registration'
-    | 'announcement'
-    | 'onboarding'
-    | 'payment'
-    | 'mentoring'
-    | 'funded'
-    | 'program';
-  lines: string[];
-}
+type ProgramStepsProps = {
+  journey?: ProgramJourneySection['content'];
+};
 
-const STEPS: Step[] = [
-  {
-    id: 1,
-    title: 'Participant Registration',
-    icon: 'registration',
-    lines: [
-      'Register an account and complete the registration form including payment.',
-      'Registration Fee:',
-      'Initial Stage: 10 USD / Rp167,500',
-      'Final Stage: 15 USD / Rp247,500',
-      'Program Fee: 660 USD / Rp11,500,000',
-      'First Installment: 330 USD / Rp5,000,000',
-      'Second Installment: 400 USD / Rp6,500,000',
-    ],
-  },
-  {
-    id: 2,
-    title: 'LoA Announcement',
-    icon: 'announcement',
-    lines: ['Check your email and Instagram for more information.'],
-  },
-  {
-    id: 3,
-    title: 'Onboarding Session',
-    icon: 'onboarding',
-    lines: ['The date of the onboarding session will be confirmed via email.'],
-  },
-  {
-    id: 4,
-    title: 'First Payment',
-    icon: 'payment',
-    lines: [
-      'Program fees are available when the payment period begins and after you complete the registration fee.',
-      'Program Fee: 660 USD / Rp11,500,000',
-      'First Installment: 330 USD / Rp5,000,000',
-    ],
-  },
-  {
-    id: 5,
-    title: 'Mentoring',
-    icon: 'mentoring',
-    lines: ['Participants will receive mentoring after the first stage of payment.'],
-  },
-  {
-    id: 6,
-    title: 'Second Payment',
-    icon: 'payment',
-    lines: [
-      'Participants must complete the second installment after the mentoring session to proceed.',
-      'Program Fee: 660 USD / Rp11,500,000',
-      'Second Installment: 400 USD / Rp6,500,000',
-    ],
-  },
-  {
-    id: 7,
-    title: 'Fully Funded Candidate Interview Announcement',
-    icon: 'funded',
-    lines: ['Selected fully funded candidates are invited to attend the interview stage.'],
-  },
-  {
-    id: 8,
-    title: 'Interview Fully Funded Candidates',
-    icon: 'funded',
-    lines: ['Interview session for shortlisted fully funded candidates.'],
-  },
-  {
-    id: 9,
-    title: 'Final Announcement of Fully Funded Candidates',
-    icon: 'funded',
-    lines: ['Final results for fully funded candidates who have been selected.'],
-  },
-  {
-    id: 10,
-    title: 'Japan Youth Summit Program',
-    icon: 'program',
-    lines: [
-      'The Japan Youth Summit program will take place on February 2 - 5, 2026, in Osaka & Kyoto, Japan.',
-    ],
-  },
-];
+type StepIconType =
+  | 'registration'
+  | 'announcement'
+  | 'onboarding'
+  | 'payment'
+  | 'mentoring'
+  | 'funded'
+  | 'program';
 
-function StepIcon({ type }: { type: Step['icon'] }) {
+function StepIcon({ type }: { type: StepIconType }) {
   switch (type) {
     case 'registration':
       return <CreditCard className={jysSectionTheme.programsSteps.stepIcon} />;
@@ -118,52 +38,88 @@ function StepIcon({ type }: { type: Step['icon'] }) {
   }
 }
 
-export default function ProgramSteps() {
+function inferStepIcon(title: string): StepIconType {
+  const lower = title.toLowerCase();
+  if (lower.includes('registration')) return 'registration';
+  if (lower.includes('loa')) return 'announcement';
+  if (lower.includes('on boarding') || lower.includes('onboarding')) return 'onboarding';
+  if (lower.includes('payment')) return 'payment';
+  if (lower.includes('mentoring')) return 'mentoring';
+  if (lower.includes('funded')) return 'funded';
+  if (lower.includes('summit') || lower.includes('program')) return 'program';
+  return 'program';
+}
+
+export default function ProgramSteps({ journey }: ProgramStepsProps) {
+  const title = journey?.title || PROGRAMS_STEPS_COPY.title;
+  const subtitle = journey?.subtitle || PROGRAMS_STEPS_COPY.subtitleFallback;
+  const items = journey?.items ?? [];
+
   return (
     <section className={jysSectionTheme.programsSteps.sectionWrapper}>
       <div className={jysSectionTheme.programsSteps.container}>
         <SectionHeader
-          eyebrow="Program Journey"
-          title="What steps will you go through in this program?"
+          eyebrow={PROGRAMS_STEPS_COPY.eyebrow}
+          title={title}
+          subtitle={subtitle}
           align="center"
         />
 
-        {/* Timeline wrapper */}
+        {/* wrapper timeline perjalanan program */}
         <div className={jysSectionTheme.programsSteps.timelineGrid}>
-          {/* Vertical line */}
+          {/* Garis vertikal di samping step */}
           <div className={jysSectionTheme.programsSteps.lineCol}>
             <div className={jysSectionTheme.programsSteps.line} />
           </div>
 
           <div className={jysSectionTheme.programsSteps.stepsCol}>
-            {STEPS.map(step => (
-              <div key={step.id} className={jysSectionTheme.programsSteps.stepRow}>
-                {/* Dot + icon */}
-                <div className={jysSectionTheme.programsSteps.stepIconCol}>
-                  <div className={jysSectionTheme.programsSteps.stepIconCircle}>
-                    <StepIcon type={step.icon} />
-                  </div>
-                  <span className={jysSectionTheme.programsSteps.stepLabel}>Step {step.id}</span>
-                </div>
+            {items.length > 0 ? (
+              items.map((item, index) => {
+                const iconType = inferStepIcon(item.title || '');
+                const stepNumber = item.step_number || '';
+                const descriptionLines = (item.description || 'Data not added').split(/\n+/);
+                const dateDisplay = item.date_display || 'Data not added';
 
-                {/* Content */}
-                <div className={jysSectionTheme.programsSteps.stepCard}>
-                  <h3 className={jysSectionTheme.programsSteps.stepTitle}>{step.title}</h3>
-                  <ul className={jysSectionTheme.programsSteps.stepList}>
-                    {step.lines.map(line => (
-                      <li key={line} className={jysSectionTheme.programsSteps.stepListItem}>
-                        <span className={jysSectionTheme.programsSteps.stepListBulletIcon}>
-                          <CheckCircle2
-                            className={jysSectionTheme.programsSteps.stepListBulletIconInner}
-                          />
-                        </span>
-                        <span>{line}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
+                return (
+                  <div
+                    key={`${item.step_number}-${item.title}`}
+                    className={jysSectionTheme.programsSteps.stepRow}
+                  >
+                    {/* titik + icon di sisi kiri */}
+                    <div className={jysSectionTheme.programsSteps.stepIconCol}>
+                      <div className={jysSectionTheme.programsSteps.stepIconCircle}>
+                        <StepIcon type={iconType} />
+                      </div>
+                      <span className={jysSectionTheme.programsSteps.stepLabel}>
+                        Step {stepNumber || index + 1}
+                      </span>
+                    </div>
+
+                    {/* konten kartu step */}
+                    <div className={jysSectionTheme.programsSteps.stepCard}>
+                      <h3 className={jysSectionTheme.programsSteps.stepTitle}>{item.title}</h3>
+                      <p className={jysSectionTheme.programsSteps.stepLabel}>{dateDisplay}</p>
+                      <ul className={jysSectionTheme.programsSteps.stepList}>
+                        {descriptionLines.map(line => (
+                          <li key={line} className={jysSectionTheme.programsSteps.stepListItem}>
+                            <span className={jysSectionTheme.programsSteps.stepListBulletIcon}>
+                              <CheckCircle2
+                                className={jysSectionTheme.programsSteps.stepListBulletIconInner}
+                              />
+                            </span>
+                            <span>{line}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className={jysSectionTheme.programsSteps.stepTitle}>
+                {PROGRAMS_STEPS_COPY.dataNotAdded}
+              </p>
+            )}
           </div>
         </div>
       </div>

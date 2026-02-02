@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { PROGRAMS_FURTHER_INFO_DEFAULT } from '@/data/programs/sections/further-info/programsFurtherInfo';
 
 interface GuidebookLink {
   href: string;
@@ -15,23 +16,10 @@ interface ProgramsFurtherInformationProps {
   guidebooks?: GuidebookLink[];
 }
 
-const DEFAULT_GUIDEBOOKS: GuidebookLink[] = [
-  {
-    href: '#',
-    label: 'Read Guidebook (Eng)',
-    locale: 'eng',
-  },
-  {
-    href: '#',
-    label: 'Read Guidebook (Ind)',
-    locale: 'ind',
-  },
-];
-
 export default function ProgramsFurtherInformationSection({
-  title = 'Further Information',
-  subtitle = 'The complete information regarding this program can be seen in the guidebook below.',
-  guidebooks = DEFAULT_GUIDEBOOKS,
+  title = PROGRAMS_FURTHER_INFO_DEFAULT.title,
+  subtitle = PROGRAMS_FURTHER_INFO_DEFAULT.subtitle,
+  guidebooks = PROGRAMS_FURTHER_INFO_DEFAULT.guidebooks,
 }: ProgramsFurtherInformationProps) {
   return (
     <section
@@ -46,7 +34,7 @@ export default function ProgramsFurtherInformationSection({
       <div className={jysSectionTheme.furtherInfoPrograms.card}>
         <div className={jysSectionTheme.furtherInfoPrograms.innerGrid}>
           <div className={jysSectionTheme.furtherInfoPrograms.leftCol}>
-            <div style={{ marginTop: '100px' }}>
+            <div>
               <SectionHeader eyebrow="Guidebook" title={title} align="left" />
               <p className={jysSectionTheme.furtherInfoPrograms.description}>{subtitle}</p>
 

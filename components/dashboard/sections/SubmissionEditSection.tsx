@@ -43,8 +43,10 @@ export type PersonalDetails = {
   gender: string;
   birthdate: string;
   nationality: string;
-  originAddress: string;
-  currentAddress: string;
+  originState: string;
+  originCity: string;
+  currentState: string;
+  currentCity: string;
   phoneNumber: string;
   emergencyPhoneNumber: string;
   emergencyRelationship: string;
@@ -85,8 +87,10 @@ export const DUMMY_PERSONAL_DETAILS: PersonalDetails = {
   gender: "male",
   birthdate: "1999-08-12",
   nationality: "Indonesia",
-  originAddress: "Bandung, West Java",
-  currentAddress: "Depok, West Java, 16423",
+  originState: "JB",
+  originCity: "Bandung",
+  currentState: "JB",
+  currentCity: "Depok",
   phoneNumber: "0812-3456-7890",
   emergencyPhoneNumber: "0813-9876-5432",
   emergencyRelationship: "Father",

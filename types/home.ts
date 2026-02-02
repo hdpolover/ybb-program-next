@@ -5,6 +5,8 @@ export type HomeSectionType =
   | 'registration_overview'
   | 'program_overview'
   | 'program_highlights'
+  | 'program_objectives'
+  | 'program_gallery'
   | 'program_highlight_videos'
   | 'alumni_stories'
   | 'program_awards'
@@ -75,6 +77,23 @@ export type AlumniStoriesSection = {
 	};
 };
 
+export type ProgramGallerySection = {
+	type: 'program_gallery';
+	content: {
+		title: string;
+		description: string;
+		images: {
+			id: string;
+			url: string;
+			caption: string;
+		}[];
+		cta: {
+			label: string;
+			url: string;
+		};
+	};
+};
+
 export type SupportedBySection = {
 	type: 'supported_by';
 	data: {
@@ -104,6 +123,22 @@ export type ProgramAwardsSection = {
 	};
 };
 
+export type ProgramObjectivesSection = {
+	type: 'program_objectives';
+	content: {
+		title: string;
+		items: {
+			id: string;
+			description: string;
+			order: number;
+		}[];
+		images: {
+			url: string;
+			caption: string;
+		}[];
+	};
+};
+
 export type ProgramHighlightVideosSection = {
 	type: 'program_highlight_videos';
 	content: {
@@ -124,14 +159,16 @@ export type ProgramHighlightVideosSection = {
 };
 
 export type HomeSection =
-  | MainBannerSection
-  | RegistrationOverviewSection
-  | ProgramOverviewSection
-  | ProgramHighlightsSection
-  | ProgramHighlightVideosSection
-  | AlumniStoriesSection
-  | ProgramAwardsSection
-  | SupportedBySection;
+	| MainBannerSection
+	| RegistrationOverviewSection
+	| ProgramOverviewSection
+	| ProgramHighlightsSection
+	| ProgramObjectivesSection
+	| ProgramGallerySection
+	| ProgramHighlightVideosSection
+	| AlumniStoriesSection
+	| ProgramAwardsSection
+	| SupportedBySection;
 
 export type ProgramHighlightsSection = {
   type: 'program_highlights';

@@ -7,9 +7,6 @@ import { PromoCTAProvider } from '@/components/sections/PromoCTAContext';
 import ClientCTAGate from '@/components/layout/ClientCTAGate';
 import BackToTop from '@/components/ui/BackToTop';
 import DevtoolsGuard from '@/components/layout/DevtoolsGuard';
-import PageTransitionOverlay from '@/components/layout/PageTransitionOverlay';
-import { headers } from 'next/headers';
-import { getHomePageData } from '@/lib/api/home';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -86,7 +83,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={plusJakarta.className} data-program={programSlug}>
         <PromoCTAProvider>
           <DevtoolsGuard />
-          <PageTransitionOverlay />
           <ClientNavbarGate />
           {children}
           <ClientCTAGate />

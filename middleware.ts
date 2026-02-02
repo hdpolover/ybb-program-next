@@ -1,7 +1,40 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+const API_BASE_URL = 'https://staging-api.ybbhub.com';
+const BRAND_URL = process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+
+async function isMaintenanceModeEnabled(): Promise<boolean> {
+  try {
+    const url = new URL('/v1/landing/settings', API_BASE_URL);
+
+    const res = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-brand-domain': BRAND_URL,
+      },
+    });
+
+    if (!res.ok) return false;
+
+    const json = (await res.json()) as {
+      statusCode: number;
+      message: string;
+      data?: {
+        maintenance?: {
+          is_maintenance_mode?: boolean;
+        };
+      } | null;
+    };
+
+    return Boolean(json?.data?.maintenance?.is_maintenance_mode);
+  } catch {
+    return false;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   // Get the hostname from the request headers
   const hostname = request.headers.get('host') || '';
   
@@ -13,6 +46,23 @@ export function middleware(request: NextRequest) {
   
   // You can also add logic here to rewrite paths based on hostname if needed
   // For example, if you wanted to map domains to specific paths internally
+
+  const { pathname } = request.nextUrl;
+
+  const isExemptRoute =
+    pathname === '/maintenance' ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname === '/favicon.ico';
+
+  if (!isExemptRoute) {
+    const maintenanceEnabled = await isMaintenanceModeEnabled();
+    if (maintenanceEnabled) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/maintenance';
+      return NextResponse.redirect(url);
+    }
+  }
   
   return NextResponse.next({
     request: {

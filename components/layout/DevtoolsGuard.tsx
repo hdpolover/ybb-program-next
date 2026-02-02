@@ -10,7 +10,7 @@ export default function DevtoolsGuard() {
 
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
+      const key = typeof e.key === 'string' ? e.key.toLowerCase() : '';
       const isDevtoolsShortcut =
         key === 'f12' ||
         (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(key)) ||

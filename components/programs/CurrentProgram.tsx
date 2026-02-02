@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { CalendarDays, Calendar, MapPin, Square } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { PROGRAMS_CURRENT_COPY } from '@/data/programs/sections/current/programsCurrent';
+import type { ProgramOverviewSection } from '@/types/programs';
 
 function useCountdown(target: Date) {
   const targetMs = useMemo(() => target.getTime(), [target]);
@@ -21,57 +23,90 @@ function useCountdown(target: Date) {
   return { days, hours, minutes, seconds };
 }
 
-export default function CurrentProgram() {
+type CurrentProgramProps = {
+  overview?: ProgramOverviewSection['content'];
+};
+
+function formatDateRange(start?: string | null, end?: string | null): string {
+  if (!start && !end) return 'Data not added';
+
+  try {
+    const startDate = start ? new Date(start) : null;
+    const endDate = end ? new Date(end) : null;
+
+    const format = (d: Date | null) =>
+      d?.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }) ?? '';
+
+    if (startDate && endDate) {
+      return `${format(startDate)} – ${format(endDate)}`;
+    }
+
+    if (startDate) return format(startDate);
+    if (endDate) return format(endDate);
+  } catch {
+    // kalau format tanggal tidak valid, fallback ke text mentah
+    if (start && end) return `${start} – ${end}`;
+    if (start) return start;
+    if (end) return end;
+  }
+
+  return 'Data not added';
+}
+
+export default function CurrentProgram({ overview }: CurrentProgramProps) {
+  const description = overview?.description || PROGRAMS_CURRENT_COPY.dataNotAdded;
+  const theme = overview?.theme || PROGRAMS_CURRENT_COPY.dataNotAdded;
+  const subthemes = overview?.subthemes && overview.subthemes.length > 0 ? overview.subthemes : null;
+  const location = overview?.location || PROGRAMS_CURRENT_COPY.dataNotAdded;
+  const duration = overview?.duration || PROGRAMS_CURRENT_COPY.dataNotAdded;
+  const eventDates = formatDateRange(overview?.start_date ?? null, overview?.end_date ?? null);
+  const guidebooksRaw = overview?.guidebooks && overview.guidebooks.length > 0 ? overview.guidebooks : null;
+  const guidebooks = guidebooksRaw ? guidebooksRaw.slice(-2) : null;
+
   return (
     <section className={jysSectionTheme.programsCurrent.sectionWrapper}>
       <div className={jysSectionTheme.programsCurrent.container}>
         <div className={jysSectionTheme.programsCurrent.layoutGrid}>
           {/* Kiri: deskripsi panjang + theme */}
           <div className={jysSectionTheme.programsCurrent.leftCol}>
-            <SectionHeader eyebrow="Active Program" title="Japan Youth Summit 2026" align="left" />
-            <p className={jysSectionTheme.programsCurrent.bodyParagraph}>
-              Japan Youth Summit (JYS) 2026 is an international youth forum that brings together
-              passionate young leaders to discuss, design, and drive collaborative solutions for a
-              more sustainable and inclusive future in Asia and beyond. Throughout the program,
-              participants will engage in panel discussions, cultural exchanges, and hands-on
-              workshops guided by experienced mentors and practitioners.
-            </p>
-            <p className={jysSectionTheme.programsCurrent.bodyParagraph}>
-              Beyond the formal sessions, JYS 2026 is also a space to build long-term friendships
-              and cross-border collaborations. Delegates will have the opportunity to present their
-              ideas, receive constructive feedback, and turn their initiatives into real impact in
-              their respective communities after the summit.
-            </p>
-            <p className={jysSectionTheme.programsCurrent.bodyParagraph}>
-              The program also includes field visits, cultural immersion activities, and
-              collaborative project sessions that allow participants to directly experience local
-              contexts while sharpening their leadership, communication, and problem-solving skills.
-              By the end of the summit, every delegate is expected to return home with a clearer
-              action plan and a stronger international network to support their initiatives.
-            </p>
+            <SectionHeader
+              eyebrow={PROGRAMS_CURRENT_COPY.eyebrow}
+              title={PROGRAMS_CURRENT_COPY.title}
+              align="left"
+            />
+            <p className={jysSectionTheme.programsCurrent.bodyParagraph}>{description}</p>
 
             <div className={jysSectionTheme.programsCurrent.themeBlock}>
               <div>
                 <h3 className={jysSectionTheme.programsCurrent.themeHeading}>Program Theme</h3>
-                <p className={jysSectionTheme.programsCurrent.themeTitle}>
-                  Collaboration in Diversity: Young Leaders Shaping a Sustainable Future
-                </p>
+                <p className={jysSectionTheme.programsCurrent.themeTitle}>{theme}</p>
               </div>
               <div>
                 <h3 className={jysSectionTheme.programsCurrent.themeHeading}>Subthemes</h3>
                 <div className={jysSectionTheme.programsCurrent.subthemesGrid}>
-                  <div className={jysSectionTheme.programsCurrent.subthemeCard}>
-                    Youth Leadership and Community Development
-                  </div>
-                  <div className={jysSectionTheme.programsCurrent.subthemeCard}>
-                    Sustainable Tourism and Cultural Preservation
-                  </div>
-                  <div className={jysSectionTheme.programsCurrent.subthemeCard}>
-                    Innovation, Digital Economy, and Social Entrepreneurship
-                  </div>
-                  <div className={jysSectionTheme.programsCurrent.subthemeCard}>
-                    Global Networking and Cross-Cultural Collaboration
-                  </div>
+                  {subthemes ? (
+                    subthemes.map(subtheme => (
+                      <div
+                        key={subtheme.id}
+                        className={jysSectionTheme.programsCurrent.subthemeCard}
+                      >
+                        <p className="text-sm font-semibold text-slate-900">
+                          {subtheme.title}
+                        </p>
+                        {subtheme.description && (
+                          <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                            {subtheme.description}
+                          </p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className={jysSectionTheme.programsCurrent.subthemeCard}>Data not added</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -82,14 +117,16 @@ export default function CurrentProgram() {
             <div className={jysSectionTheme.programsCurrent.rightCard}>
               {/* Gambar cover */}
               <div className={jysSectionTheme.programsCurrent.coverWrapper}>
-                <Image
-                  src="/img/jys26posters.png"
-                  alt="Japan Youth Summit 2026 cover"
-                  width={260}
-                  height={360}
-                  className={jysSectionTheme.programsCurrent.coverImage}
-                  priority
-                />
+                <div className="relative w-full aspect-square overflow-hidden rounded-2xl">
+                  <Image
+                    src="/img/jys26posters.png"
+                    alt="Japan Youth Summit 2026 cover"
+                    fill
+                    sizes="(min-width:1024px) 260px, (min-width:640px) 50vw, 100vw"
+                    className={`${jysSectionTheme.programsCurrent.coverImage} object-cover`}
+                    priority
+                  />
+                </div>
               </div>
 
               {/* Info program */}
@@ -97,10 +134,10 @@ export default function CurrentProgram() {
                 <div className={jysSectionTheme.programsCurrent.infoRow}>
                   <MapPin className={jysSectionTheme.programsCurrent.infoIcon} />
                   <div>
-                    <p className={jysSectionTheme.programsCurrent.infoLabel}>Location</p>
-                    <p className={jysSectionTheme.programsCurrent.infoValue}>
-                      Osaka &amp; Kyoto, Japan
+                    <p className={jysSectionTheme.programsCurrent.infoLabel}>
+                      {PROGRAMS_CURRENT_COPY.labels.location}
                     </p>
+                    <p className={jysSectionTheme.programsCurrent.infoValue}>{location}</p>
                   </div>
                 </div>
 
@@ -108,15 +145,21 @@ export default function CurrentProgram() {
                   <div className={jysSectionTheme.programsCurrent.infoRow}>
                     <CalendarDays className={jysSectionTheme.programsCurrent.infoIcon} />
                     <div>
-                      <p className={jysSectionTheme.programsCurrent.infoLabel}>Duration</p>
-                      <p className={jysSectionTheme.programsCurrent.infoValue}>5 Days</p>
+                      <p className={jysSectionTheme.programsCurrent.infoLabel}>
+                        {PROGRAMS_CURRENT_COPY.labels.duration}
+                      </p>
+                      <p className={jysSectionTheme.programsCurrent.infoValue}>{duration}</p>
                     </div>
                   </div>
                   <div className={jysSectionTheme.programsCurrent.infoRow}>
                     <Square className={jysSectionTheme.programsCurrent.infoIcon} />
                     <div>
-                      <p className={jysSectionTheme.programsCurrent.infoLabel}>Program Format</p>
-                      <p className={jysSectionTheme.programsCurrent.infoValue}>On-site in Japan</p>
+                      <p className={jysSectionTheme.programsCurrent.infoLabel}>
+                        {PROGRAMS_CURRENT_COPY.labels.format}
+                      </p>
+                      <p className={jysSectionTheme.programsCurrent.infoValue}>
+                        {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -124,30 +167,42 @@ export default function CurrentProgram() {
                 <div className={jysSectionTheme.programsCurrent.infoRow}>
                   <Calendar className={jysSectionTheme.programsCurrent.infoIcon} />
                   <div>
-                    <p className={jysSectionTheme.programsCurrent.infoLabel}>Event Dates</p>
-                    <p className={jysSectionTheme.programsCurrent.infoValue}>
-                      02 – 06 February 2026
+                    <p className={jysSectionTheme.programsCurrent.infoLabel}>
+                      {PROGRAMS_CURRENT_COPY.labels.dates}
                     </p>
+                    <p className={jysSectionTheme.programsCurrent.infoValue}>{eventDates}</p>
                   </div>
                 </div>
               </div>
 
               {/* Tombol guidebook */}
               <div className={jysSectionTheme.programsCurrent.guideButtonsWrapper}>
-                <a
-                  href="#guidebook-en"
-                  className={`${jysSectionTheme.homeRegistration.guideSecondary} flex w-full items-center justify-center gap-2 text-sm`}
-                >
-                  <span className="text-lg">🇬🇧</span>
-                  <span>Read Guidebook (Eng)</span>
-                </a>
-                <a
-                  href="#guidebook-id"
-                  className={`${jysSectionTheme.homeRegistration.guidePrimary} flex w-full items-center justify-center gap-2 text-sm`}
-                >
-                  <span className="text-lg">🇮🇩</span>
-                  <span>Read Guidebook (Ind)</span>
-                </a>
+                {guidebooks ? (
+                  guidebooks.map((guide, index) => (
+                    <a
+                      key={`${guide.url}-${index}`}
+                      href={guide.url}
+                      className={`${jysSectionTheme.homeRegistration.guideSecondary} flex w-full items-center justify-center gap-2 text-sm`}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={guide.label}
+                    >
+                      <span>
+                        {(() => {
+                          if (!guide.label) return PROGRAMS_CURRENT_COPY.guidebookFallbackLabel;
+                          const base = guide.label.split('(')[0].trim();
+                          return (
+                            base || guide.label || PROGRAMS_CURRENT_COPY.guidebookFallbackLabel
+                          );
+                        })()}
+                      </span>
+                    </a>
+                  ))
+                ) : (
+                  <p className={jysSectionTheme.programsCurrent.bodyParagraph}>
+                    {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                  </p>
+                )}
               </div>
             </div>
           </div>

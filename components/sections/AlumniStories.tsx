@@ -230,7 +230,7 @@ export default function AlumniStoriesSection({
 									Video coming soon
 								</div>
 							)}
-							{/* placeholder cards to keep grid filled up to REELS_PAGE_SIZE */}
+							{/* kartu placeholder biar grid-nya tetap penuh sampai batas REELS_PAGE_SIZE */}
 							{Array.from({ length: Math.max(0, REELS_PAGE_SIZE - visibleReels.length) }).map(
 								(_, idx) => (
 									<div

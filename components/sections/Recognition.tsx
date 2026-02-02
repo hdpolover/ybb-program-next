@@ -15,101 +15,38 @@ import {
   ArrowRight,
   Users,
 } from 'lucide-react';
+import {
+  recognitionContent,
+  type RecognitionProofItem,
+} from '@/data/home/sections/recognition/recognition';
 
-type ProofItem = {
-  icon: JSX.Element;
-  title: string;
-  subtitle: string;
-  bullets?: string[];
+const resolveProofIcon = (key: RecognitionProofItem['iconKey']): JSX.Element => {
+  switch (key) {
+    case 'ministry':
+      return <Building2 className="h-5 w-5" />;
+    case 'university':
+      return <University className="h-5 w-5" />;
+    case 'official_partners':
+      return <BadgeCheck className="h-5 w-5" />;
+    case 'legal_recognition':
+      return <ShieldCheck className="h-5 w-5" />;
+    case 'registered_entity':
+      return <FileText className="h-5 w-5" />;
+    case 'ip_protection':
+      return <Scale className="h-5 w-5" />;
+    case 'media_coverage':
+      return <Newspaper className="h-5 w-5" />;
+    case 'award_winning':
+      return <Trophy className="h-5 w-5" />;
+    case 'global_alumni':
+      return <Users className="h-5 w-5" />;
+    default:
+      return <BadgeCheck className="h-5 w-5" />;
+  }
 };
 
-type HakiInfo = {
-  href: string;
-  brand: string;
-  regNo: string;
-  status: string;
-  classText: string;
-  owner: string;
-};
-
-interface RecognitionProps {
-  title?: string;
-  subtitle?: string;
-  proofs?: ProofItem[];
-  haki?: HakiInfo;
-}
-
-const DEFAULT_PROOFS: ProofItem[] = [
-  {
-    icon: <Building2 className="h-5 w-5" />,
-    title: 'Recognized by Ministry',
-    subtitle: 'Endorsements or acknowledgements from relevant government bodies',
-    bullets: ['Compliance-ready', 'Letters/acknowledgements'],
-  },
-  {
-    icon: <University className="h-5 w-5" />,
-    title: 'Supported by Universities',
-    subtitle: 'Backed by reputable higher education institutions',
-    bullets: ['Academic support', 'Guest lecturers'],
-  },
-  {
-    icon: <BadgeCheck className="h-5 w-5" />,
-    title: 'Official Partners',
-    subtitle: 'Formal collaborations with trusted organizations',
-    bullets: ['MoU/LoI', 'Program collaboration'],
-  },
-  {
-    icon: <ShieldCheck className="h-5 w-5" />,
-    title: 'Legal Recognition',
-    subtitle: 'Meets formal compliance and regulatory standards',
-    bullets: ['Policies & SOP', 'Auditable process'],
-  },
-  {
-    icon: <FileText className="h-5 w-5" />,
-    title: 'Registered Entity',
-    subtitle: 'Tax ID, foundation or other legal registration',
-    bullets: ['NPWP / Yayasan', 'Valid documents'],
-  },
-  {
-    icon: <Scale className="h-5 w-5" />,
-    title: 'IP & Legal Protection',
-    subtitle: 'Trademark registered at DJKI (Indonesia)',
-  },
-  {
-    icon: <Newspaper className="h-5 w-5" />,
-    title: 'Media Coverage',
-    subtitle: 'Featured by national and international outlets',
-    bullets: ['Online features', 'TV/Press'],
-  },
-  {
-    icon: <Trophy className="h-5 w-5" />,
-    title: 'Award-Winning',
-    subtitle: 'Winners of international recognitions & awards',
-    bullets: ['International awards', 'Jury selection'],
-  },
-  {
-    icon: <Users className="h-5 w-5" />,
-    title: 'Global Alumni Network',
-    subtitle: 'Active community of alumni collaborating across countries',
-    bullets: ['Ongoing initiatives', 'Cross-border projects'],
-  },
-];
-
-const DEFAULT_HAKI: HakiInfo = {
-  href: 'https://pdki-indonesia.dgip.go.id/detail/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-  brand: 'JAPAN YOUTH SUMMIT',
-  regNo: 'IDM001273026',
-  status: '(TM) Registered',
-  classText: '41 — Education, seminars, conferences, cultural events, etc.',
-  owner: 'MUHAMMAD ALDI SUBAKTI (ID)',
-};
-
-export default function Recognition({
-  title = 'Recognition',
-  subtitle = 'Proof that our program and organization are legitimate and credible.',
-  proofs = DEFAULT_PROOFS,
-  haki = DEFAULT_HAKI,
-}: RecognitionProps) {
+export default function Recognition() {
+  const { title, subtitle, proofs, haki } = recognitionContent;
   return (
     <section className={jysSectionTheme.recognition.sectionWrapper}>
       <div className={jysSectionTheme.recognition.container}>
@@ -131,11 +68,11 @@ export default function Recognition({
               </div>
               <div className="flex items-center gap-3">
                 <Image
-                  src="/img/jys.png"
+                  src="/img/jysfix.png"
                   alt="JYS"
                   width={80}
                   height={80}
-                  className="h-20 w-auto"
+                  className="h-12 w-auto"
                 />
                 <div>
                   <p className={jysSectionTheme.recognition.hakiBrand}>{haki.brand}</p>
@@ -175,7 +112,9 @@ export default function Recognition({
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {proofs.map((p, i) => (
                 <div key={i} className={jysSectionTheme.recognition.proofCard}>
-                  <div className={jysSectionTheme.recognition.proofIconCircle}>{p.icon}</div>
+                  <div className={jysSectionTheme.recognition.proofIconCircle}>
+                    {resolveProofIcon(p.iconKey)}
+                  </div>
                   <h3 className={jysSectionTheme.recognition.proofTitle}>{p.title}</h3>
                   <p className={jysSectionTheme.recognition.proofSubtitle}>{p.subtitle}</p>
                   {p.bullets?.length ? (

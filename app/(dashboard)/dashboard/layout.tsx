@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import { FileText, Search, SearchX } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '@/components/dashboard/layout/Sidebar';
 import ProgramSelector from '@/components/dashboard/layout/ProgramSelector';
 import GreetingWithClock from '@/components/dashboard/GreetingWithClock';
@@ -38,10 +38,35 @@ const DASHBOARD_SEARCH_ITEMS: DashboardSearchItem[] = [
   },
 ];
 
+type AuthMeData = {
+  userId: string;
+  email: string;
+  programCategoryId: string;
+  participantId?: string;
+  registeredPrograms?: Array<{
+    programId: string;
+    programName: string;
+    programSlug: string;
+    year?: number;
+    applicationId?: string;
+    applicationStatus?: string;
+  }>;
+  isProfileCompleted?: boolean;
+};
+
+type ParticipantOnboardingData = {
+  profileCompletionPercentage?: number;
+  displayName?: string;
+  fullName?: string;
+};
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const searchTheme = jysSectionTheme.dashboardSearch;
+  const [me, setMe] = useState<AuthMeData | null>(null);
+  const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
 
   let sectionLabel: string | null = null;
   let subLabel: string | null = null;
@@ -66,6 +91,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   } else if (pathname?.startsWith('/dashboard/submission')) {
     pageTitle = 'Submission';
     pageSubtitle = 'Review and manage your application submission details.';
+  } else if (pathname === '/dashboard/progress') {
+    // Detail progress page: tampilkan judul mirip breadcrumb
+    pageTitle = '';
+    pageSubtitle = '';
   } else if (pathname?.startsWith('/dashboard/payments')) {
     pageTitle = 'Payments';
     pageSubtitle = 'Track your payment status and manage your registration payments.';
@@ -74,17 +103,100 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     pageSubtitle = 'Access and download important program materials. These documents contain essential information to ensure your successful program completion.';
   }
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/me', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (cancelled) return;
+
+        if (res.status === 401) {
+          router.push('/login');
+          return;
+        }
+
+        const json = (await res.json()) as {
+          statusCode?: number;
+          message?: string;
+          data?: AuthMeData | null;
+        };
+
+        const data = json?.data ?? null;
+        setMe(data);
+
+        try {
+          const onboardRes = await fetch('/api/participants/onboarding', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            cache: 'no-store',
+          });
+
+          if (!cancelled && onboardRes.ok) {
+            const onboardJson = (await onboardRes.json().catch(() => ({}))) as any;
+            const onboardData = (onboardJson?.data ?? onboardJson ?? null) as ParticipantOnboardingData | null;
+            setOnboarding(onboardData);
+          }
+        } catch {
+          // ignore
+        }
+
+        if (data && data.isProfileCompleted === false) {
+          try {
+            const onboardRes = await fetch('/api/participants/onboarding', {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              cache: 'no-store',
+            });
+
+            if (cancelled) return;
+
+            if (onboardRes.ok) {
+              const onboardJson = (await onboardRes.json().catch(() => ({}))) as any;
+              const onboardData = (onboardJson?.data ?? onboardJson ?? null) as ParticipantOnboardingData | null;
+              const pct = onboardData?.profileCompletionPercentage ?? 0;
+              if (pct < 100) {
+                router.push('/onboarding');
+              }
+            } else {
+              router.push('/onboarding');
+            }
+          } catch {
+            router.push('/onboarding');
+          }
+        }
+      } catch {
+        // ignore
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  const greetingName = onboarding?.displayName?.trim() || onboarding?.fullName?.trim() || 'Participant';
+
   // shell grid: sidebar kiri + konten kanan
   return (
     <main className="relative min-h-screen bg-white">
       <div className="flex min-h-screen">
         {/* Sidebar nempel di kiri */}
-        <Sidebar />
+        <Sidebar profileEmail={me?.email ?? ''} />
 
         {/* Kolom kanan: navbar atas + konten */}
         <div className="flex min-h-screen flex-1 flex-col">
           {/* Navbar dashboard */}
-          <header className="sticky top-0 z-30 flex items-center gap-6 border-b border-slate-100 bg-white px-6 py-4 lg:px-8">
+          <header className="sticky top-0 z-10 flex items-center gap-6 border-b border-slate-100 bg-white px-6 py-4 lg:px-8">
             {/* Spacer kiri (bisa dipakai untuk breadcrumb nanti) */}
             <div className="hidden flex-1 md:block" />
 
@@ -106,7 +218,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Program selector di kanan */}
             <div className="flex flex-1 justify-end">
-              <ProgramSelector />
+              <ProgramSelector programs={me?.registeredPrograms ?? []} />
             </div>
           </header>
 
@@ -125,7 +237,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Greeting cuma nongol di halaman utama dashboard overview, dan disembunyikan saat sedang mencari */}
               {pathname === '/dashboard' && searchQuery.trim().length < 2 && (
-                <GreetingWithClock name="HILMI FARREL FIRJATULLAH" />
+                <GreetingWithClock name={greetingName} />
               )}
 
               {/* Hasil smart search dashboard */}

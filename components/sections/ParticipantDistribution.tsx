@@ -4,55 +4,26 @@ import { useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { IMPACT_DISTRIBUTION_COPY, CountryLevel } from '@/data/home/sections/impact/impactDistribution';
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
-export type Level = 'high' | 'medium' | 'low' | 'none';
-
-// Kategori dummy dulu; nanti tinggal diganti/extend sama data beneran.
-// Key di sini harus PERSIS nama negara dari geo.properties.NAME (bukan kode ISO).
-export const countryLevels: Record<string, Level> = {
-  // Contoh negara dengan partisipasi tinggi
-  Indonesia: 'high',
-  Japan: 'high',
-  Pakistan: 'high',
-  // Contoh negara dengan partisipasi sedang
-  India: 'medium',
-  Malaysia: 'medium',
-  Singapore: 'medium',
-  // Contoh negara dengan partisipasi rendah
-  'United States of America': 'low',
-  Canada: 'low',
-  Australia: 'low',
-  Brazil: 'low',
-  Germany: 'low',
-  France: 'low',
-  // Contoh eksplisit negara yang belum ada peserta
-  Kazakhstan: 'none',
+type WorldGeo = {
+  rsmKey: string;
+  properties: {
+    name?: string;
+  };
 };
 
-// Jumlah peserta per negara masih dummy (nanti tinggal diganti ke data asli)
-export const countryParticipants: Record<string, number> = {
-  Indonesia: 320,
-  Japan: 260,
-  Pakistan: 190,
-  India: 140,
-  Malaysia: 120,
-  Singapore: 60,
-  'United States of America': 90,
-  Canada: 45,
-  Australia: 70,
-  Brazil: 55,
-  Germany: 80,
-  France: 75,
-};
+export type Level = CountryLevel;
 
 function getFillForCountry(nameKey: string): string {
-  const level = (countryLevels[nameKey] ?? 'none') as Level;
-  if (level === 'high') return '#ef4444'; // merah (high participation)
-  if (level === 'medium') return '#facc15'; // kuning (medium participation)
-  if (level === 'low') return '#22c55e'; // hijau (low participation)
-  return '#e5e7eb'; // abu-abu kalau belum ada peserta
+  const level = (IMPACT_DISTRIBUTION_COPY.countryLevels[nameKey] ?? 'none') as Level;
+  const colors = jysSectionTheme.participantDistribution.mapColors;
+  if (level === 'high') return colors.high;
+  if (level === 'medium') return colors.medium;
+  if (level === 'low') return colors.low;
+  return colors.none;
 }
 
 export default function ParticipantDistribution() {
@@ -70,8 +41,8 @@ export default function ParticipantDistribution() {
     ? `${selectedCountry.participants.toLocaleString()} participants`
     : '';
 
-  // Ngitung Top 10 negara berdasarkan jumlah peserta (masih mock), buat ditampilin di bawah map
-  const all = Object.entries(countryParticipants).map(([name, count]) => ({
+  // Hitung Top 10 negara berdasarkan jumlah peserta (masih mock), buat ditampilin di bawah map
+  const all = Object.entries(IMPACT_DISTRIBUTION_COPY.countryParticipants).map(([name, count]) => ({
     name,
     count: Number(count),
   }));
@@ -90,8 +61,8 @@ export default function ParticipantDistribution() {
     <section className={jysSectionTheme.participantDistribution.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader
-          eyebrow="Participant Geography"
-          title="Participant Distribution by Country"
+          eyebrow={IMPACT_DISTRIBUTION_COPY.participantHeader.eyebrow}
+          title={IMPACT_DISTRIBUTION_COPY.participantHeader.title}
           align="center"
         />
 
@@ -107,22 +78,24 @@ export default function ParticipantDistribution() {
                 style={{ width: '100%', height: '100%' }}
               >
                 <Geographies geography={GEO_URL}>
-                  {({ geographies }: { geographies: any[] }) =>
-                    geographies.map((geo: any) => {
-                      const props = geo.properties as any;
-                      const rawName = (props.NAME || props.name) as string | undefined;
-                      const name = rawName && rawName !== '-99' ? rawName : 'Unknown region';
+                  {({ geographies }: { geographies: WorldGeo[] }) =>
+                    geographies.map((geo: WorldGeo) => {
+                      const name = geo.properties.name ?? 'Unknown';
                       return (
                         <Geography
                           key={geo.rsmKey}
                           geography={geo}
                           fill={getFillForCountry(name)}
-                          stroke="#ffffff"
+                          stroke={jysSectionTheme.participantDistribution.mapStroke}
                           strokeWidth={0.4}
                           onClick={() => {
-                            const level = (countryLevels[name] ?? 'none') as Level;
-                            const participants = countryParticipants[name] ?? 0;
-                            setSelectedCountry({ name, level, participants });
+                            const level = (IMPACT_DISTRIBUTION_COPY.countryLevels[name] ?? 'none') as Level;
+                            const participants = IMPACT_DISTRIBUTION_COPY.countryParticipants[name] ?? 0;
+                            setSelectedCountry({
+                              name,
+                              level,
+                              participants,
+                            });
                           }}
                           style={{
                             default: { outline: 'none' },
@@ -152,25 +125,25 @@ export default function ParticipantDistribution() {
               <span
                 className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotHigh}`}
               />
-              <span>High participation</span>
+              <span>{IMPACT_DISTRIBUTION_COPY.legend.high}</span>
             </div>
             <div className={jysSectionTheme.participantDistribution.legendItem}>
               <span
                 className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotMedium}`}
               />
-              <span>Medium participation</span>
+              <span>{IMPACT_DISTRIBUTION_COPY.legend.medium}</span>
             </div>
             <div className={jysSectionTheme.participantDistribution.legendItem}>
               <span
                 className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotLow}`}
               />
-              <span>Low participation</span>
+              <span>{IMPACT_DISTRIBUTION_COPY.legend.low}</span>
             </div>
             <div className={jysSectionTheme.participantDistribution.legendItem}>
               <span
                 className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotNone}`}
               />
-              <span>No participants</span>
+              <span>{IMPACT_DISTRIBUTION_COPY.legend.none}</span>
             </div>
           </div>
         </div>

@@ -68,8 +68,16 @@ export default function SubmissionEditPreviewSection({
               <dd className={submissionTheme.previewDd}>{personal.nationality}</dd>
             </div>
             <div>
+              <dt className={submissionTheme.previewDt}>Origin Address</dt>
+              <dd className={submissionTheme.previewDd}>
+                {personal.originCity}, {personal.originState}
+              </dd>
+            </div>
+            <div>
               <dt className={submissionTheme.previewDt}>Current Address</dt>
-              <dd className={submissionTheme.previewDd}>{personal.currentAddress}</dd>
+              <dd className={submissionTheme.previewDd}>
+                {personal.currentCity}, {personal.currentState}
+              </dd>
             </div>
             <div>
               <dt className={submissionTheme.previewDt}>Phone Number</dt>

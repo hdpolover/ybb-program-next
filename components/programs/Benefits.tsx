@@ -1,51 +1,10 @@
 import { Globe2, Lightbulb, Handshake, Users, GraduationCap, Landmark } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { PROGRAMS_BENEFITS_COPY } from '@/data/programs/sections/benefits/programsBenefits';
 
 export default function Benefits() {
-  const items: {
-    key: string;
-    title: string;
-    desc: string;
-    icon: 'globe' | 'leader' | 'handshake' | 'network' | 'academic' | 'culture';
-  }[] = [
-    {
-      key: 'insights',
-      title: 'Global Insights',
-      desc: "Attend impactful sessions led by global leaders, professionals, and innovators addressing today's most pressing challenges from diverse perspectives.",
-      icon: 'globe',
-    },
-    {
-      key: 'leadership',
-      title: 'Leadership & Vision',
-      desc: 'Join leadership forums and strategic discussions designed to sharpen your critical thinking and equip you to become an effective changemaker.',
-      icon: 'leader',
-    },
-    {
-      key: 'collab',
-      title: 'Cross-Cultural Collaboration',
-      desc: 'Work alongside youth from various countries to co-create innovative ideas and solutions that empower local and global communities.',
-      icon: 'handshake',
-    },
-    {
-      key: 'network',
-      title: 'Global Network',
-      desc: 'Connect with influential individuals, youth leaders, and professionals, building lasting relationships through shared goals and mutual collaboration.',
-      icon: 'network',
-    },
-    {
-      key: 'academic',
-      title: 'Academic Pathways',
-      desc: 'Discover opportunities for higher education and international scholarships, including information sessions on leading universities and global programs.',
-      icon: 'academic',
-    },
-    {
-      key: 'culture',
-      title: 'Cultural Experience',
-      desc: 'Experience the cultural richness of Istanbul through guided visits to its iconic sites, offering insights into its historical significance and global legacy.',
-      icon: 'culture',
-    },
-  ];
+  const { eyebrow, title, items } = PROGRAMS_BENEFITS_COPY;
 
   const iconEls: Record<(typeof items)[number]['icon'], JSX.Element> = {
     globe: <Globe2 className="h-5 w-5" />,
@@ -59,7 +18,7 @@ export default function Benefits() {
   return (
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeader eyebrow="Why join us" title="Delegate Benefits" />
+        <SectionHeader eyebrow={eyebrow} title={title} />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {items.map(it => (
             <div

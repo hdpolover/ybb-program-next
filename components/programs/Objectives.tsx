@@ -1,37 +1,13 @@
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { PROGRAMS_OBJECTIVES_COPY } from '@/data/programs/sections/objectives/programsObjectives';
+
 export default function Objectives() {
-  const items: { n: string; title: string; desc: string }[] = [
-    {
-      n: '1',
-      title: 'Cultivate Youth Leadership',
-      desc: 'Cultivate a spirit of youth leadership and collaboration on a global scale.',
-    },
-    {
-      n: '2',
-      title: 'Encourage Innovation',
-      desc: 'Encourage innovative thinking and initiative-based learning among young participants.',
-    },
-    {
-      n: '3',
-      title: 'Provide Inclusive Platform',
-      desc: 'Provide an inclusive platform for youth to present real-world solutions and engage in meaningful dialogue.',
-    },
-    {
-      n: '4',
-      title: 'Establish Global Network',
-      desc: 'Establish a vibrant international network that supports ongoing youth empowerment.',
-    },
-    {
-      n: '5',
-      title: 'Shape Sustainable Future',
-      desc: 'Highlight the role of youth in shaping a more sustainable, inclusive, and equitable future.',
-    },
-  ];
+  const { eyebrow, title, items } = PROGRAMS_OBJECTIVES_COPY;
   return (
     <section className="bg-[#eef5ff] px-6 py-12 sm:py-14 md:py-16 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeader eyebrow="What we strive for" title="Program Objectives" />
+        <SectionHeader eyebrow={eyebrow} title={title} />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
           {items.map((obj, i) => (
             <div
