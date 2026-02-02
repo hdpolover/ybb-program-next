@@ -12,7 +12,6 @@ export async function getHomePageData(host: string): Promise<HomePageData> {
   const brandUrl = hostname && hostname !== 'localhost' && hostname !== '127.0.0.1'
     ? `https://${hostname}`
     : DEFAULT_BRAND_URL;
-
   return apiGetWithEnvelope<HomePageData>('/v1/landing/home', {
     headers: {
       'x-brand-domain': brandUrl,
