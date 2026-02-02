@@ -1,5 +1,6 @@
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import './globals.css';
 import ClientNavbarGate from '@/components/layout/ClientNavbarGate';
 import ClientFooterGate from '@/components/layout/ClientFooterGate';
@@ -7,6 +8,7 @@ import { PromoCTAProvider } from '@/components/sections/PromoCTAContext';
 import ClientCTAGate from '@/components/layout/ClientCTAGate';
 import BackToTop from '@/components/ui/BackToTop';
 import DevtoolsGuard from '@/components/layout/DevtoolsGuard';
+import { getHomePageData } from '@/lib/api/home';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
