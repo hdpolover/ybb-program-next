@@ -21,28 +21,14 @@ type OnboardingForm = {
   referralCode: string;
 };
 
-const LOGIN_IMAGES = [
-  '/img/galeri2.png',
-  '/img/programhighlight1.jpg',
-  '/img/programoverview.png',
-  '/img/jysprogram1.jpg',
-  '/img/galeri3.png',
-  '/img/benefits.png',
-];
+const LOGIN_IMAGES = ['/img/OnboardingJYS.png'];
 
 const steps = ['Basic Info', 'Location', 'Age', 'Program Info'] as const;
 
 type StepKey = (typeof steps)[number];
 
 const PROGRAM_SOURCES = [
-  'Instagram',
-  'TikTok',
-  'YouTube',
-  'Friend/Alumni',
-  'School/University',
-  'Community',
-  'Website',
-  'Other',
+  'Program Source not Added',
 ];
 
 export default function OnboardingPage() {
@@ -811,18 +797,18 @@ export default function OnboardingPage() {
           </div>
         ) : null}
 
-        <div
-          className={`relative hidden min-h-screen w-full ${jysSectionTheme.login.imagePanelBackground} lg:block`}
-        >
-          <Image
-            src={loginImageSrc}
-            alt="Japan Youth Summit"
-            fill
-            priority
-            className="object-cover"
-            sizes="(min-width: 1024px) 50vw, 0px"
-          />
-          <div className={jysSectionTheme.login.heroOverlay} />
+        <div className={`${onboardingTheme.imagePanel} ${jysSectionTheme.login.imagePanelBackground}`}>
+          <div className="relative h-full">
+            <Image
+              src={loginImageSrc}
+              alt="Japan Youth Summit"
+              width={3024}
+              height={1828}
+              priority
+              className="h-full w-auto object-contain"
+            />
+            <div className={jysSectionTheme.login.heroOverlay} />
+          </div>
         </div>
       </div>
     </section>
