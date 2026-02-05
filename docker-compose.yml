@@ -20,4 +20,4 @@ services:
 networks:
   ybb-network:
     external: true
-    name: ybb-platform_ybb-network
+    name: api_default
