@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '@/components/dashboard/layout/Sidebar';
 import ProgramSelector from '@/components/dashboard/layout/ProgramSelector';
 import GreetingWithClock from '@/components/dashboard/GreetingWithClock';
+import { DashboardDataProvider, type PortalDashboardSummary } from '@/components/dashboard/DashboardDataContext';
+import NotificationsPopover from '@/components/dashboard/layout/NotificationsPopover';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 
 type DashboardSearchItem = {
@@ -41,7 +43,8 @@ const DASHBOARD_SEARCH_ITEMS: DashboardSearchItem[] = [
 type AuthMeData = {
   userId: string;
   email: string;
-  programCategoryId: string;
+  brandId?: string;
+  programCategoryId?: string;
   participantId?: string;
   registeredPrograms?: Array<{
     programId: string;
@@ -67,6 +70,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const searchTheme = jysSectionTheme.dashboardSearch;
   const [me, setMe] = useState<AuthMeData | null>(null);
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
+  const [dashboardSummary, setDashboardSummary] = useState<PortalDashboardSummary | null>(null);
 
   let sectionLabel: string | null = null;
   let subLabel: string | null = null;
@@ -131,6 +135,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setMe(data);
 
         try {
+          const dashRes = await fetch('/api/portal/dashboard', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            cache: 'no-store',
+          });
+
+          if (!cancelled && dashRes.ok) {
+            const dashJson = (await dashRes.json().catch(() => ({}))) as any;
+            const dashData = (dashJson?.data ?? dashJson ?? null) as PortalDashboardSummary | null;
+            setDashboardSummary(dashData);
+          }
+        } catch {
+          // ignore
+        }
+
+        try {
           const onboardRes = await fetch('/api/participants/onboarding', {
             method: 'GET',
             headers: {
@@ -185,6 +207,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router]);
 
   const greetingName = onboarding?.displayName?.trim() || onboarding?.fullName?.trim() || 'Participant';
+  const greetingText = dashboardSummary?.greeting?.trim() || null;
 
   // shell grid: sidebar kiri + konten kanan
   return (
@@ -194,7 +217,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Sidebar profileEmail={me?.email ?? ''} />
 
         {/* Kolom kanan: navbar atas + konten */}
-        <div className="flex min-h-screen flex-1 flex-col">
+        <DashboardDataProvider dashboardSummary={dashboardSummary}>
+          <div className="flex min-h-screen flex-1 flex-col">
           {/* Navbar dashboard */}
           <header className="sticky top-0 z-10 flex items-center gap-6 border-b border-slate-100 bg-white px-6 py-4 lg:px-8">
             {/* Spacer kiri (bisa dipakai untuk breadcrumb nanti) */}
@@ -218,7 +242,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Program selector di kanan */}
             <div className="flex flex-1 justify-end">
-              <ProgramSelector programs={me?.registeredPrograms ?? []} />
+              <div className="flex items-center gap-3">
+                <NotificationsPopover />
+                <ProgramSelector programs={me?.registeredPrograms ?? []} />
+              </div>
             </div>
           </header>
 
@@ -237,7 +264,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Greeting cuma nongol di halaman utama dashboard overview, dan disembunyikan saat sedang mencari */}
               {pathname === '/dashboard' && searchQuery.trim().length < 2 && (
-                <GreetingWithClock name={greetingName} />
+                <GreetingWithClock name={greetingText || greetingName} />
               )}
 
               {/* Hasil smart search dashboard */}
@@ -251,7 +278,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {searchQuery.trim().length < 2 && children}
             </div>
           </section>
-        </div>
+          </div>
+        </DashboardDataProvider>
       </div>
     </main>
   );

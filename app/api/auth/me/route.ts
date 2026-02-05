@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const BRAND_DOMAIN = process.env.YBB_BRAND_DOMAIN || 'https://istanyouthsummit.com';
+const DEFAULT_BRAND_URL =
+  process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+
+function resolveBrandDomainFromRequest(request: Request): string {
+  const hostname = request.headers.get('x-hostname') || request.headers.get('host') || '';
+  if (!hostname) return DEFAULT_BRAND_URL;
+  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_URL;
+  return `https://${hostname}`;
+}
 
 type AuthMeResponse = {
   statusCode?: number;
@@ -9,7 +17,8 @@ type AuthMeResponse = {
   data?: {
     userId: string;
     email: string;
-    programCategoryId: string;
+    brandId?: string;
+    programCategoryId?: string;
     identities?: Array<{ provider: string; lastUsedAt?: string }>;
     participantId?: string;
     registeredPrograms?: Array<{
@@ -24,11 +33,13 @@ type AuthMeResponse = {
   };
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
     const cookieNames = cookieStore.getAll().map(c => c.name);
     const accessToken = cookieStore.get('accessToken')?.value;
+
+    const brandDomain = resolveBrandDomainFromRequest(request);
 
     if (!accessToken) {
       return NextResponse.json(
@@ -38,7 +49,7 @@ export async function GET() {
           data: null,
           debug: {
             hasAccessTokenCookie: false,
-            brandDomain: BRAND_DOMAIN,
+            brandDomain,
             cookieNames,
           },
         },
@@ -52,7 +63,7 @@ export async function GET() {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${accessToken}`,
-        'x-brand-domain': BRAND_DOMAIN,
+        'x-brand-domain': brandDomain,
       },
       cache: 'no-store',
     });
@@ -66,7 +77,7 @@ export async function GET() {
           data: null,
           debug: {
             hasAccessTokenCookie: true,
-            brandDomain: BRAND_DOMAIN,
+            brandDomain,
             backendStatus: res.status,
             cookieNames,
           },

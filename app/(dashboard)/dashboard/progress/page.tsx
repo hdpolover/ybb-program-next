@@ -1,6 +1,7 @@
 "use client";
 
 import { PROGRESS_STEPS, type ProgressStep } from "@/components/dashboard/sections/dashboardOverview/OverviewProgramDetailsSection";
+import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 
 const overviewTheme = jysSectionTheme.dashboardOverview;
@@ -16,11 +17,21 @@ function getCurrentStep(steps: ProgressStep[]) {
 }
 
 export default function DashboardProgressPage() {
+  const { dashboardSummary } = useDashboardData();
+  const activeApplication = dashboardSummary?.activeApplication ?? null;
+
   const { step: currentStep, index: currentIndex } = getCurrentStep(PROGRESS_STEPS);
   const totalSteps = PROGRESS_STEPS.length;
   const completedCount = PROGRESS_STEPS.filter(step => step.status === "done").length;
   const progressRatio = totalSteps > 0 ? (completedCount + 1) / totalSteps : 0;
-  const progressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
+  const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
+
+  const progressPercentage =
+    typeof activeApplication?.progress === "number" && !Number.isNaN(activeApplication.progress)
+      ? Math.min(100, Math.max(0, Math.round(activeApplication.progress)))
+      : fallbackProgressPercentage;
+
+  const currentStepTitle = activeApplication?.currentStep?.trim() || currentStep.title;
 
   return (
     <section className={overviewTheme.sectionWrapper}>
@@ -34,7 +45,7 @@ export default function DashboardProgressPage() {
         <div className={overviewTheme.progressDetailCurrentChip}>
           <span className={overviewTheme.progressDetailCurrentLabel}>Current step</span>
           <span className={overviewTheme.progressDetailCurrentValue}>
-            Step {currentIndex + 1} of {totalSteps}: {currentStep.title}
+            Step {currentIndex + 1} of {totalSteps}: {currentStepTitle}
           </span>
         </div>
       </div>

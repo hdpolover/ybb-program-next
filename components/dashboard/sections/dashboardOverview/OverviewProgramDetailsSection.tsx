@@ -2,6 +2,8 @@
 
 import { CalendarDays, Clock3 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
+import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 
 const overviewTheme = jysSectionTheme.dashboardOverview;
@@ -96,6 +98,8 @@ export default function OverviewProgramDetailsSection({
   showSeeDetailsButton = true,
 }: OverviewProgramDetailsSectionProps) {
   const router = useRouter();
+  const { dashboardSummary } = useDashboardData();
+  const activeApplication = dashboardSummary?.activeApplication ?? null;
 
   const totalSteps = PROGRESS_STEPS.length;
   const currentIndex = Math.max(
@@ -114,7 +118,30 @@ export default function OverviewProgramDetailsSection({
       ? "In Progress"
       : "Upcoming";
 
-  const progressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
+  const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
+
+  const progressPercentage = useMemo(() => {
+    const pct = activeApplication?.progress;
+    if (typeof pct !== "number" || Number.isNaN(pct)) return fallbackProgressPercentage;
+    return Math.min(100, Math.max(0, Math.round(pct)));
+  }, [activeApplication?.progress, fallbackProgressPercentage]);
+
+  const currentTitle = activeApplication?.currentStep?.trim() || currentStep.title;
+
+  const currentBody = useMemo(() => {
+    if (activeApplication?.currentStep?.trim()) {
+      return "Continue your application to complete the next requirements.";
+    }
+    return currentStep.description;
+  }, [activeApplication?.currentStep, currentStep.description]);
+
+  const metaProcessingText = useMemo(() => {
+    const days = activeApplication?.daysUntilDeadline;
+    if (typeof days === "number" && !Number.isNaN(days)) {
+      return `${days} days until deadline`;
+    }
+    return currentStep.processingPeriod || null;
+  }, [activeApplication?.daysUntilDeadline, currentStep.processingPeriod]);
 
   return (
     <div className={overviewTheme.programCard}>
@@ -151,7 +178,7 @@ export default function OverviewProgramDetailsSection({
                 style={{ left: `${progressPercentage}%` }}
               >
                 <span className={overviewTheme.progressStepChip}>
-                  Step {currentIndex + 1}/{totalSteps}
+                  {progressPercentage}%
                 </span>
               </div>
             </div>
@@ -159,16 +186,16 @@ export default function OverviewProgramDetailsSection({
 
           <div className={overviewTheme.progressCurrentDetailWrapper}>
             <span className={overviewTheme.progressStatusPill}>{statusLabel}</span>
-            <h3 className={overviewTheme.progressCurrentTitle}>{currentStep.title}</h3>
-            <p className={overviewTheme.progressCurrentBody}>{currentStep.description}</p>
-            {(currentStep.processingPeriod || currentStep.estimatedRelease) && (
+            <h3 className={overviewTheme.progressCurrentTitle}>{currentTitle}</h3>
+            <p className={overviewTheme.progressCurrentBody}>{currentBody}</p>
+            {(metaProcessingText || currentStep.estimatedRelease) && (
               <ul className={overviewTheme.progressMetaList}>
-                {currentStep.processingPeriod && (
+                {metaProcessingText && (
                   <li className={overviewTheme.progressMetaItem}>
                     <CalendarDays className={overviewTheme.progressMetaIcon} />
                     <span>
                       <span className={overviewTheme.progressMetaLabel}>Processing period:</span>{" "}
-                      {currentStep.processingPeriod}
+                      {metaProcessingText}
                     </span>
                   </li>
                 )}

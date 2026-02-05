@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
 
 const DEFAULT_PROVIDER_ID = '8b4646ec-1e17-4815-bcca-703418b9db9f';
-const DEFAULT_BRAND_DOMAIN = 'https://istanyouthsummit.com';
+const DEFAULT_BRAND_DOMAIN =
+  process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+
+function resolveBrandDomainFromRequest(request: Request): string {
+  const hostname = request.headers.get('x-hostname') || request.headers.get('host') || '';
+  if (!hostname) return DEFAULT_BRAND_DOMAIN;
+  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_DOMAIN;
+  return `https://${hostname}`;
+}
 
 type FirebaseLoginBody = {
   idToken: string;
@@ -23,7 +31,7 @@ type FirebaseLoginResponse = {
 export async function POST(request: Request) {
   try {
     const fallbackProviderId = process.env.YBB_FIREBASE_GOOGLE_PROVIDER_ID || DEFAULT_PROVIDER_ID;
-    const brandDomain = process.env.YBB_BRAND_DOMAIN || DEFAULT_BRAND_DOMAIN;
+    const brandDomain = resolveBrandDomainFromRequest(request);
 
     const body = (await request.json()) as FirebaseLoginBody;
 
