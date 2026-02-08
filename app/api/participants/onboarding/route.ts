@@ -1,9 +1,17 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const BRAND_DOMAIN = process.env.YBB_BRAND_DOMAIN || 'https://istanyouthsummit.com';
+const DEFAULT_BRAND_URL =
+  process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
 
-export async function GET() {
+function resolveBrandDomainFromRequest(request: Request): string {
+  const hostname = request.headers.get('x-hostname') || request.headers.get('host') || '';
+  if (!hostname) return DEFAULT_BRAND_URL;
+  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_URL;
+  return `https://${hostname}`;
+}
+
+export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
@@ -15,13 +23,15 @@ export async function GET() {
       );
     }
 
+    const brandDomain = resolveBrandDomainFromRequest(request);
+
     const apiUrl = new URL('/v1/participants/me', 'https://staging-api.ybbhub.com');
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${accessToken}`,
-        'x-brand-domain': BRAND_DOMAIN,
+        'x-brand-domain': brandDomain,
       },
       cache: 'no-store',
     });
@@ -64,6 +74,8 @@ export async function POST(request: Request) {
       );
     }
 
+    const brandDomain = resolveBrandDomainFromRequest(request);
+
     const body = await request.json().catch(() => ({}));
 
     const apiUrl = new URL('/v1/participants/onboarding', 'https://staging-api.ybbhub.com');
@@ -73,7 +85,7 @@ export async function POST(request: Request) {
         Accept: 'application/json',
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
-        'x-brand-domain': BRAND_DOMAIN,
+        'x-brand-domain': brandDomain,
       },
       body: JSON.stringify(body),
     });

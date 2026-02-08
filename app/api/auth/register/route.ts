@@ -1,12 +1,23 @@
 import { NextResponse } from 'next/server';
 
-const BRAND_DOMAIN = process.env.YBB_BRAND_DOMAIN || 'https://istanyouthsummit.com';
-const FALLBACK_PROGRAM_CATEGORY_ID = 'e694b5d1-f0fe-4c26-80ff-9d0bed4793a4';
+const DEFAULT_BRAND_URL =
+  process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+const FALLBACK_BRAND_ID = 'e694b5d1-f0fe-4c26-80ff-9d0bed4793a4';
 const FALLBACK_PROGRAM_ID = '65fe1804-7c99-4566-8880-48b65c5116bb';
+
+function resolveBrandDomainFromRequest(request: Request): string {
+  const hostname = request.headers.get('x-hostname') || request.headers.get('host') || '';
+
+  if (!hostname) return DEFAULT_BRAND_URL;
+  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_URL;
+  return `https://${hostname}`;
+}
 
 type RegisterBody = {
   email: string;
   password: string;
+  referralCode?: string;
+  applicationCategory?: string;
 };
 
 type RegisterResponse = {
@@ -23,11 +34,16 @@ type RegisterResponse = {
 };
 
 export async function POST(request: Request) {
+  let step: string = 'init';
   try {
-    const envProgramCategoryId = process.env.YBB_PROGRAM_CATEGORY_ID || '';
+    step = 'read_env';
+    const envBrandId = process.env.YBB_BRAND_ID || '';
     const envProgramId = process.env.YBB_PROGRAM_ID || '';
     const envLocalProviderId = process.env.YBB_LOCAL_PROVIDER_ID || '';
 
+    const brandDomain = resolveBrandDomainFromRequest(request);
+
+    step = 'parse_body';
     const body = (await request.json()) as RegisterBody;
     if (!body?.email || !body?.password) {
       return NextResponse.json(
@@ -36,11 +52,13 @@ export async function POST(request: Request) {
       );
     }
 
-    let ctxProgramCategoryId = '';
+    let ctxBrandId = '';
     let ctxProgramId = '';
     let ctxProviderId = '';
+    let ctxProgramSlug: string | null = null;
 
     try {
+      step = 'fetch_auth_context';
       const ctxRes = await fetch(new URL('/api/auth/context', request.url).toString(), {
         method: 'GET',
         headers: {
@@ -48,56 +66,84 @@ export async function POST(request: Request) {
         },
       });
 
+      step = 'parse_auth_context';
       const ctxJson = (await ctxRes.json()) as {
         statusCode: number;
         message: string;
-        data: { programCategoryId: string; programId: string; localProviderId: string } | null;
+        data:
+          | {
+              brandId: string;
+              programId: string;
+              programSlug?: string | null;
+              localProviderId: string;
+            }
+          | null;
       };
 
       if (ctxRes.ok && ctxJson?.statusCode === 200 && ctxJson?.data) {
-        ctxProgramCategoryId = ctxJson.data.programCategoryId || '';
+        ctxBrandId = ctxJson.data.brandId || '';
         ctxProgramId = ctxJson.data.programId || '';
+        ctxProgramSlug = ctxJson.data.programSlug ?? null;
         ctxProviderId = ctxJson.data.localProviderId || '';
       }
     } catch {
       // ignore
     }
 
-    const programCategoryId = envProgramCategoryId || ctxProgramCategoryId || FALLBACK_PROGRAM_CATEGORY_ID;
+    const brandId = envBrandId || ctxBrandId || FALLBACK_BRAND_ID;
     const programId = envProgramId || ctxProgramId || FALLBACK_PROGRAM_ID;
     const providerId = envLocalProviderId || ctxProviderId || '';
+    const programSlug = ctxProgramSlug;
 
-    if (!programCategoryId || !programId || !providerId) {
+    if (!brandId || !programId || !providerId) {
       return NextResponse.json(
-        { statusCode: 500, message: 'Missing auth context (programCategoryId/programId/providerId)', data: null },
+        { statusCode: 500, message: 'Missing auth context (brandId/programId/providerId)', data: null },
         { status: 500 },
       );
     }
 
+    if (!programSlug) {
+      return NextResponse.json(
+        { statusCode: 500, message: 'Missing auth context (programSlug)', data: null },
+        { status: 500 },
+      );
+    }
+
+    step = 'fetch_backend_register';
     const apiUrl = new URL('/v1/auth/register', 'https://staging-api.ybbhub.com');
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-brand-domain': BRAND_DOMAIN,
+        'x-brand-domain': brandDomain,
       },
       body: JSON.stringify({
         email: body.email,
         password: body.password,
-        programCategoryId,
+        brandId,
         providerId,
+        providerUserId: body.email,
         programId,
+        programSlug,
+        ...(body.referralCode ? { referralCode: body.referralCode } : {}),
+        ...(body.applicationCategory ? { applicationCategory: body.applicationCategory } : {}),
       }),
     });
 
-    const json = (await res.json()) as RegisterResponse;
+    step = 'parse_backend_register_response';
+    const json = (await res.json().catch(() => ({}))) as RegisterResponse;
     if (!res.ok) {
       return NextResponse.json(
-        { statusCode: json.statusCode ?? res.status, message: json.message ?? 'Register failed', data: null },
+        {
+          statusCode: json.statusCode ?? res.status,
+          message: json.message ?? `Register failed: ${res.status} ${res.statusText}`,
+          data: null,
+        },
         { status: res.status },
       );
     }
 
+    step = 'extract_tokens';
     const accessToken = json.data?.accessToken ?? json.accessToken;
     const refreshToken = json.data?.refreshToken ?? json.refreshToken;
 
@@ -108,6 +154,7 @@ export async function POST(request: Request) {
       );
     }
 
+    step = 'set_cookies_and_return';
     const response = NextResponse.json({
       statusCode: 201,
       message: 'Success',
@@ -133,11 +180,21 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.error('[api/auth/register] error', { step, message, stack });
     return NextResponse.json(
       {
         statusCode: 500,
         message,
         data: null,
+        ...(process.env.NODE_ENV !== 'production'
+          ? {
+              debug: {
+                step,
+                stack,
+              },
+            }
+          : {}),
       },
       { status: 500 },
     );

@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
 
-const BRAND_DOMAIN = process.env.YBB_BRAND_DOMAIN || 'https://istanyouthsummit.com';
+const DEFAULT_BRAND_URL =
+  process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+const FALLBACK_BRAND_ID = 'e694b5d1-f0fe-4c26-80ff-9d0bed4793a4';
+
+function resolveBrandDomainFromRequest(request: Request): string {
+  const hostname = request.headers.get('x-hostname') || request.headers.get('host') || '';
+
+  if (!hostname) return DEFAULT_BRAND_URL;
+  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_URL;
+  return `https://${hostname}`;
+}
 
 type LocalLoginBody = {
   email: string;
@@ -22,6 +32,9 @@ type LocalLoginResponse = {
 
 export async function POST(request: Request) {
   try {
+    const envBrandId = process.env.YBB_BRAND_ID || '';
+    const brandDomain = resolveBrandDomainFromRequest(request);
+
     const body = (await request.json()) as LocalLoginBody;
     if (!body?.email || !body?.password) {
       return NextResponse.json(
@@ -40,13 +53,13 @@ export async function POST(request: Request) {
     const ctxJson = (await ctxRes.json()) as {
       statusCode: number;
       message: string;
-      data: { programCategoryId: string } | null;
+      data: { brandId: string } | null;
     };
 
-    const programCategoryId = ctxJson?.data?.programCategoryId;
-    if (!programCategoryId) {
+    const brandId = envBrandId || ctxJson?.data?.brandId || FALLBACK_BRAND_ID;
+    if (!brandId) {
       return NextResponse.json(
-        { statusCode: 500, message: 'Missing programCategoryId', data: null },
+        { statusCode: 500, message: 'Missing brandId', data: null },
         { status: 500 },
       );
     }
@@ -56,19 +69,23 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-brand-domain': BRAND_DOMAIN,
+        'x-brand-domain': brandDomain,
       },
       body: JSON.stringify({
         email: body.email,
         password: body.password,
-        programCategoryId,
+        brandId,
       }),
     });
 
-    const json = (await res.json()) as LocalLoginResponse;
+    const json = (await res.json().catch(() => ({}))) as LocalLoginResponse;
     if (!res.ok) {
       return NextResponse.json(
-        { statusCode: json.statusCode ?? res.status, message: json.message ?? 'Login failed', data: null },
+        {
+          statusCode: json.statusCode ?? res.status,
+          message: json.message ?? `Login failed: ${res.status} ${res.statusText}`,
+          data: null,
+        },
         { status: res.status },
       );
     }
@@ -86,7 +103,11 @@ export async function POST(request: Request) {
 
     const redirectTo = user?.isOnboardingCompleted ? '/dashboard' : '/onboarding';
 
-    const response = NextResponse.json({ statusCode: 200, message: 'Success', data: { redirectTo } });
+    const response = NextResponse.json({
+      statusCode: res.status === 201 ? 201 : 200,
+      message: 'Success',
+      data: { redirectTo },
+    });
 
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,
