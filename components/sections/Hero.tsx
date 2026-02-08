@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { HeroImage } from '@/components/common/OptimizedImage';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 
 type HeroProps = {
@@ -16,13 +16,11 @@ export default function Hero({ imageUrl, title, subtitle }: HeroProps) {
   return (
     <section className={jysSectionTheme.heroHome.sectionWrapper}>
       <div className={jysSectionTheme.heroHome.mobileWrapper}>
-        <Image
+        <HeroImage
           src={src}
           alt={alt}
           width={1920}
           height={600}
-          priority
-          sizes="100vw"
           className={jysSectionTheme.heroHome.mobileImage}
         />
       </div>
