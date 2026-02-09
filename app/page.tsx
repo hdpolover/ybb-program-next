@@ -39,7 +39,17 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   const headersList = await headers();
   const host = headersList.get('host') || 'youthacademicforum.com';
-  const homeData = await getHomePageData(host);
+  let homeData: Awaited<ReturnType<typeof getHomePageData>>;
+  try {
+    homeData = await getHomePageData(host);
+  } catch (e) {
+    console.error('Failed to fetch home page data', e);
+    homeData = {
+      title: 'Youth Summit',
+      slug: null,
+      sections: [],
+    } as unknown as Awaited<ReturnType<typeof getHomePageData>>;
+  }
 
   const mainBannerSection = homeData.sections.find(
     (section): section is MainBannerSection => section.type === 'main_banner'

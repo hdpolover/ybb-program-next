@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Award,
   BriefcaseBusiness,
@@ -36,6 +36,22 @@ const steps = [
 ] as const;
 
 type StepKey = (typeof steps)[number];
+
+type SubmissionProgressSection = {
+  id: string;
+  title: string;
+  description?: string;
+  status: "completed" | "pending" | string;
+  isRequired?: boolean;
+};
+
+type SubmissionProgressData = {
+  applicationId?: string;
+  programName?: string;
+  status?: string;
+  overallProgress?: number;
+  sections?: SubmissionProgressSection[];
+};
 
 export type PersonalDetails = {
   fullName: string;
@@ -171,9 +187,68 @@ export default function SubmissionEditSection() {
   const [entryShowErrors, setEntryShowErrors] = useState(false);
   const [miscShowErrors, setMiscShowErrors] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submissionProgress, setSubmissionProgress] = useState<SubmissionProgressData | null>(null);
+  const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const base = inputBaseClass();
 
   const currentIndex = steps.indexOf(activeStep);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSubmissionLoading(true);
+    setSubmissionError(null);
+
+    (async () => {
+      try {
+        const res = await fetch("/api/portal/submissions", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+        });
+
+        const json = (await res.json().catch(() => ({}))) as any;
+        if (!res.ok) throw new Error(json?.message || "Failed to fetch submissions");
+
+        if (!cancelled) setSubmissionProgress((json?.data ?? null) as SubmissionProgressData | null);
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Failed to fetch submissions";
+        if (!cancelled) setSubmissionError(msg);
+      } finally {
+        if (!cancelled) setSubmissionLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sectionStatusById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of submissionProgress?.sections ?? []) {
+      if (s?.id) map.set(s.id, String(s.status || ""));
+    }
+    return map;
+  }, [submissionProgress?.sections]);
+
+  const hasEssaysSection = useMemo(() => {
+    return (submissionProgress?.sections ?? []).some(s => String(s?.id).toLowerCase() === "essays");
+  }, [submissionProgress?.sections]);
+
+  const backendSectionForStep = useMemo(() => {
+    // Backend currently returns: personal_info, essays, documents
+    // UI steps are more granular, so we map them as best-effort.
+    return {
+      "Personal Details": "personal_info",
+      "Professional Profile": "personal_info",
+      "Entry Information": "essays",
+      "Miscellaneous": "documents",
+      Preview: null,
+    } as const;
+  }, []);
 
   const isPersonalValid = useMemo(() => {
     return (Object.keys(personal) as (keyof PersonalDetails)[]).every(
@@ -188,16 +263,21 @@ export default function SubmissionEditSection() {
   }, [professional]);
 
   const isEntryValid = useMemo(() => {
-    return (
+    const baseOk =
       entry.participationCategory.trim().length > 0 &&
       entry.programSubtheme.trim().length > 0 &&
-      entry.knowledgeSource.trim().length > 0 &&
+      entry.knowledgeSource.trim().length > 0;
+
+    if (!hasEssaysSection) return baseOk;
+
+    return (
+      baseOk &&
       entry.essayTitle.trim().length > 0 &&
       entry.mainEssay.trim().length > 0 &&
       entry.keywords.length > 0 &&
       entry.reference.trim().length > 0
     );
-  }, [entry]);
+  }, [entry, hasEssaysSection]);
 
   const isMiscValid = useMemo(() => {
     return (
@@ -256,12 +336,21 @@ export default function SubmissionEditSection() {
 
   return (
     <section className={submissionTheme.editSectionWrapper}>
+      {submissionError ? (
+        <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700">
+          {submissionError}
+        </div>
+      ) : null}
+
       {/* Stepper */}
       <div className={submissionTheme.stepperCard}>
         <div className={submissionTheme.stepperRow}>
           {steps.map((step, index) => {
             const isActive = index === currentIndex;
-            const isDone = index < currentIndex && index <= maxReachableIndex;
+            const backendSectionId = backendSectionForStep[step];
+            const backendStatus = backendSectionId ? sectionStatusById.get(backendSectionId) : undefined;
+            const backendIsDone = String(backendStatus || "").toLowerCase() === "completed";
+            const isDone = backendIsDone || (index < currentIndex && index <= maxReachableIndex);
             const isLocked = index > maxReachableIndex;
 
             return (
@@ -313,7 +402,7 @@ export default function SubmissionEditSection() {
                         : submissionTheme.stepperStatusIdle
                     }`}
                   >
-                    {isDone ? "Done" : isActive ? "Process" : "Not yet"}
+                    {isDone ? "Done" : isActive ? "Process" : submissionLoading ? "Loading" : "Not yet"}
                   </span>
                 </div>
               </button>
@@ -350,6 +439,7 @@ export default function SubmissionEditSection() {
             showErrors={entryShowErrors}
             onBack={goBack}
             onGoToPreview={goNext}
+            showEssayFields={hasEssaysSection}
           />
         )}
 

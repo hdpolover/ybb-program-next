@@ -9,6 +9,33 @@ export const jysSectionTheme = {
     icon: 'h-5 w-5 text-white',
     subtitle: 'text-sm font-semibold uppercase tracking-wider text-pink-400',
   },
+  chatWidget: {
+    wrapper: 'fixed bottom-6 right-6 z-50',
+    panel:
+      'absolute bottom-[4.25rem] right-0 w-[min(360px,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.25)]',
+    panelHeader: 'flex items-start justify-between gap-3 border-b border-slate-100 bg-white px-4 py-3',
+    panelTitle: 'text-sm font-extrabold uppercase tracking-wide text-slate-900',
+    panelSubtitle: 'mt-0.5 text-[11px] text-slate-500',
+    closeButton:
+      'inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-pink-400',
+
+    messages: 'max-h-[340px] overflow-y-auto px-4 py-3',
+    messageRow: 'flex py-1',
+    messageBubbleBase: 'max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed',
+    messageBubbleAssistant: 'bg-slate-100 text-slate-800',
+    messageBubbleUser: 'bg-pink-600 text-white',
+
+    inputRow: 'flex items-center gap-2 border-t border-slate-100 bg-white px-3 py-3',
+    input:
+      'h-10 flex-1 rounded-full border border-slate-200 bg-white px-4 text-xs text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200',
+    sendButton:
+      'inline-flex h-10 w-10 items-center justify-center rounded-full bg-pink-600 text-white shadow-sm ring-1 ring-pink-300 transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400',
+
+    fab:
+      'relative inline-flex h-12 w-12 items-center justify-center rounded-full bg-pink-600 text-white shadow-lg ring-1 ring-pink-300 transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400',
+    fabIcon: 'h-5 w-5',
+    fabBadge: 'absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-white ring-2 ring-pink-600',
+  },
   heroHome: {
     sectionWrapper: 'relative w-full',
     mobileWrapper: 'block sm:hidden',
@@ -409,9 +436,11 @@ export const jysSectionTheme = {
     tabButtonInactive: 'text-slate-600 hover:text-slate-900',
     contentWrapper:
       'mt-5 min-h-[220px] space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base',
+    richText:
+      '[&_p]:text-slate-600 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4',
     visionLabel: 'font-semibold text-blue-950',
     ctaWrapper: 'mt-6',
-    rightCol: 'order-1 lg:order-2',
+    rightCol: 'order-1 flex items-center justify-center lg:order-2',
     collageWrapper: 'relative h-full w-full',
     collageGrid: 'grid h-full gap-4 sm:grid-cols-2',
     collageLargeCard:
@@ -573,6 +602,8 @@ export const jysSectionTheme = {
     layoutGrid: 'grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]',
     leftCol: 'space-y-5 text-blue-950',
     bodyParagraph: 'text-sm leading-7 text-slate-700 sm:text-base',
+    richText:
+      '[&_p]:text-slate-700 [&_p]:leading-7 [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4',
     themeBlock: 'mt-4 space-y-3',
     themeHeading: 'text-sm font-semibold uppercase tracking-wide text-pink-600',
     themeTitle: 'mt-1 text-sm font-semibold text-blue-950 sm:text-base',

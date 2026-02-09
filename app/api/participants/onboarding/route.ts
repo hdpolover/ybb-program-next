@@ -1,14 +1,29 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
+function normalizeBrandUrl(input: string): string {
+  const trimmed = (input || '').trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  return trimmed.replace(/^https?:\/\//, '');
+}
+
 const DEFAULT_BRAND_URL =
-  process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
+  'istanbulyouthsummit.com';
 
 function resolveBrandDomainFromRequest(request: Request): string {
-  const hostname = request.headers.get('x-hostname') || request.headers.get('host') || '';
+  const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
+  const hostname = hostnameRaw.split(':')[0];
   if (!hostname) return DEFAULT_BRAND_URL;
   if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_URL;
-  return `https://${hostname}`;
+  return normalizeBrandUrl(hostname);
+}
+
+function isEmptyData(value: unknown): boolean {
+  if (value == null) return true;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.keys(value as Record<string, unknown>).length === 0;
+  return false;
 }
 
 export async function GET(request: Request) {
@@ -48,7 +63,12 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json ?? null });
+    const data = (json as any)?.data ?? json ?? null;
+    return NextResponse.json({
+      statusCode: 200,
+      message: isEmptyData(data) ? 'Data not Added' : 'Success',
+      data: isEmptyData(data) ? null : data,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
@@ -102,7 +122,12 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json ?? null });
+    const data = (json as any)?.data ?? json ?? null;
+    return NextResponse.json({
+      statusCode: 200,
+      message: isEmptyData(data) ? 'Data not Added' : 'Success',
+      data: isEmptyData(data) ? null : data,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(

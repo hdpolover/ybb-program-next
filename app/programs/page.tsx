@@ -22,6 +22,7 @@ import type {
   ProgramImportantDatesSection,
   PreviousProgramsSection,
   ProgramFaqsSection,
+  OtherProgramsSection,
 } from '@/types/programs';
 
 export default async function ProgramOverviewPage() {
@@ -58,6 +59,10 @@ export default async function ProgramOverviewPage() {
 
   const programFaqsSection = programsPage.sections.find(
     (section): section is ProgramFaqsSection => section.type === 'program_faqs',
+  );
+
+  const otherProgramsSection = programsPage.sections.find(
+    (section): section is OtherProgramsSection => section.type === 'other_programs',
   );
 
   const heroTitle =
@@ -99,7 +104,7 @@ export default async function ProgramOverviewPage() {
       {/* <MissionVision />
       <Objectives />
       <Benefits /> */}
-      <AdditionalPrograms />
+      <AdditionalPrograms otherPrograms={otherProgramsSection?.content} />
       <ProgramFAQ fqs={programFaqsSection?.content} />
       <ProgramsFurtherInformationSection />
     </main>

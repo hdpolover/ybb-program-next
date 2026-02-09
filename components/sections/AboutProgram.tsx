@@ -18,6 +18,12 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
   const imageSecondary = '/img/jysprogram1.jpg';
   const imageThird = '/img/programoverview.png';
 
+  const isHtmlContent = (value?: string) => {
+    if (!value) return false;
+    const trimmed = value.trim();
+    return trimmed.startsWith('<') && trimmed.includes('</');
+  };
+
   return (
     <section className={jysSectionTheme.aboutProgram.sectionWrapper}>
       <div className={jysSectionTheme.aboutProgram.blurTop} />
@@ -57,18 +63,39 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
             <div className={jysSectionTheme.aboutProgram.contentWrapper}>
               {activeTab === 'about' ? (
                 <>
-                  <p>{about}</p>
+                  {isHtmlContent(about) ? (
+                    <div
+                      className={jysSectionTheme.aboutProgram.richText}
+                      dangerouslySetInnerHTML={{ __html: about ?? '' }}
+                    />
+                  ) : (
+                    <p>{about}</p>
+                  )}
                 </>
               ) : (
                 <>
-                  <p>
-                    <span className={jysSectionTheme.aboutProgram.visionLabel}>Vision.</span>{' '}
-                    {vision}
-                  </p>
-                  <p>
-                    <span className={jysSectionTheme.aboutProgram.visionLabel}>Mission.</span>{' '}
-                    {mission}
-                  </p>
+                  {isHtmlContent(vision) ? (
+                    <div
+                      className={jysSectionTheme.aboutProgram.richText}
+                      dangerouslySetInnerHTML={{ __html: vision ?? '' }}
+                    />
+                  ) : (
+                    <p>
+                      <span className={jysSectionTheme.aboutProgram.visionLabel}>Vision.</span>{' '}
+                      {vision}
+                    </p>
+                  )}
+                  {isHtmlContent(mission) ? (
+                    <div
+                      className={jysSectionTheme.aboutProgram.richText}
+                      dangerouslySetInnerHTML={{ __html: mission ?? '' }}
+                    />
+                  ) : (
+                    <p>
+                      <span className={jysSectionTheme.aboutProgram.visionLabel}>Mission.</span>{' '}
+                      {mission}
+                    </p>
+                  )}
                 </>
               )}
             </div>

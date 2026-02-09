@@ -10,7 +10,7 @@ type AlumniStoryItem = {
 	name: string;
 	role: string;
 	testimonial: string;
-	type: 'video' | 'quote';
+	type: 'video' | 'quote' | 'text';
 	video_url: string | null;
 	thumbnail_url: string | null;
 	avatar_url: string | null;

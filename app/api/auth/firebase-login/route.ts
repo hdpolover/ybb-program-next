@@ -1,14 +1,22 @@
 import { NextResponse } from 'next/server';
 
 const DEFAULT_PROVIDER_ID = '8b4646ec-1e17-4815-bcca-703418b9db9f';
+function normalizeBrandUrl(input: string): string {
+  const trimmed = (input || '').trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  return trimmed.replace(/^https?:\/\//, '');
+}
+
 const DEFAULT_BRAND_DOMAIN =
-  process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
+  'istanbulyouthsummit.com';
 
 function resolveBrandDomainFromRequest(request: Request): string {
-  const hostname = request.headers.get('x-hostname') || request.headers.get('host') || '';
+  const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
+  const hostname = hostnameRaw.split(':')[0];
   if (!hostname) return DEFAULT_BRAND_DOMAIN;
   if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_DOMAIN;
-  return `https://${hostname}`;
+  return normalizeBrandUrl(hostname);
 }
 
 type FirebaseLoginBody = {

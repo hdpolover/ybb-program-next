@@ -2,15 +2,23 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { apiGet } from '@/lib/api/httpClient';
 
+function normalizeBrandUrl(input: string): string {
+  const trimmed = (input || '').trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  return trimmed.replace(/^https?:\/\//, '');
+}
+
 const DEFAULT_BRAND_URL =
-  process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
+  'istanbulyouthsummit.com';
 const FALLBACK_BRAND_DOMAIN = 'https://istanbulyouthsummit.com';
 const FALLBACK_BRAND_ID = 'e694b5d1-f0fe-4c26-80ff-9d0bed4793a4';
 const FALLBACK_PROGRAM_ID = '65fe1804-7c99-4566-8880-48b65c5116bb';
 
 async function resolveBrandDomain(): Promise<string> {
   const h = await headers();
-  const hostname = h.get('x-hostname') || h.get('host') || '';
+  const hostnameRaw = h.get('x-hostname') || h.get('host') || '';
+  const hostname = hostnameRaw.split(':')[0];
 
   if (!hostname) return DEFAULT_BRAND_URL;
 
@@ -18,7 +26,7 @@ async function resolveBrandDomain(): Promise<string> {
     return DEFAULT_BRAND_URL;
   }
 
-  return `https://${hostname}`;
+  return normalizeBrandUrl(hostname);
 }
 
 type ProvidersResponse = {

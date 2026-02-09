@@ -1,6 +1,22 @@
 import { NextResponse } from 'next/server';
 
-const BRAND_DOMAIN = 'https://istanbulyouthsummit.com';
+function normalizeBrandUrl(input: string): string {
+  const trimmed = (input || '').trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  return trimmed.replace(/^https?:\/\//, '');
+}
+
+const DEFAULT_BRAND_URL =
+  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
+  'istanbulyouthsummit.com';
+
+function resolveBrandDomainFromRequest(request: Request): string {
+  const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
+  const hostname = hostnameRaw.split(':')[0];
+  if (!hostname) return DEFAULT_BRAND_URL;
+  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_URL;
+  return normalizeBrandUrl(hostname);
+}
 
 type VerifyEmailBody = {
   token: string;
@@ -22,12 +38,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const brandDomain = resolveBrandDomainFromRequest(request);
+
     const apiUrl = new URL('/v1/auth/verify-email', 'https://staging-api.ybbhub.com');
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-brand-domain': BRAND_DOMAIN,
+        'x-brand-domain': brandDomain,
       },
       body: JSON.stringify({
         token: body.token,

@@ -16,6 +16,7 @@ import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
 } from '@/types/programs';
+import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
 
 type RegistrationTypeProgramsProps = {
   pricingTiers?: RegistrationInfoPricingTier[];
@@ -46,7 +47,7 @@ export default function RegistrationTypePrograms({
   const isOpen = (status || '').toLowerCase() === 'open';
 
   const formatDateRange = (open?: string | null, close?: string | null) => {
-    if (!open && !close) return 'Data not added';
+    if (!open && !close) return DATA_NOT_ADDED;
 
     const safeFormat = (value: string | null | undefined) => {
       if (!value) return '';
@@ -65,7 +66,7 @@ export default function RegistrationTypePrograms({
     const closeLabel = safeFormat(close ?? null);
 
     if (openLabel && closeLabel) return `${openLabel} – ${closeLabel}`;
-    return openLabel || closeLabel || 'Data not added';
+    return openLabel || closeLabel || DATA_NOT_ADDED;
   };
 
   const registrationPeriodLabel = formatDateRange(
@@ -134,7 +135,7 @@ export default function RegistrationTypePrograms({
                   <span className={jysSectionTheme.applyRegistrationTypes.priceText}>
                     {primaryType
                       ? `${primaryType.currency} ${primaryType.price}`
-                      : 'Data not added'}
+                      : DATA_NOT_ADDED}
                   </span>
                   <span className={jysSectionTheme.applyRegistrationTypes.feeLabel}>
                     {PROGRAMS_REGISTRATION_COPY.feeLabel}
@@ -191,7 +192,7 @@ export default function RegistrationTypePrograms({
                         <Check className="h-3 w-3" />
                       </span>
                       <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
-                        Data not added
+                        {DATA_NOT_ADDED}
                       </span>
                     </li>
                   )}
@@ -236,7 +237,7 @@ export default function RegistrationTypePrograms({
                   <span className={jysSectionTheme.applyRegistrationTypes.priceText}>
                     {secondaryType
                       ? `${secondaryType.currency} ${secondaryType.price}`
-                      : 'Data not added'}
+                      : DATA_NOT_ADDED}
                   </span>
                   <span className={jysSectionTheme.applyRegistrationTypes.feeLabel}>
                     Registration Fee
@@ -291,7 +292,7 @@ export default function RegistrationTypePrograms({
                         <Check className="h-3 w-3" />
                       </span>
                       <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
-                        Data not added
+                        {DATA_NOT_ADDED}
                       </span>
                     </li>
                   )}
@@ -344,7 +345,7 @@ export default function RegistrationTypePrograms({
                     ))
                   ) : (
                     <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
-                      Data not added
+                      {DATA_NOT_ADDED}
                     </p>
                   )}
                 </div>

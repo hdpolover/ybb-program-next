@@ -9,6 +9,20 @@ export interface ApiPostOptions {
   body?: unknown;
 }
 
+export class ApiRequestError extends Error {
+  status: number;
+  statusText: string;
+  url: string;
+
+  constructor(params: { status: number; statusText: string; url: string }) {
+    super(`API request failed: ${params.status} ${params.statusText} (${params.url})`);
+    this.name = 'ApiRequestError';
+    this.status = params.status;
+    this.statusText = params.statusText;
+    this.url = params.url;
+  }
+}
+
 const API_BASE_URL = 'https://staging-api.ybbhub.com';
 
 export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Promise<T> {
@@ -31,7 +45,7 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
   });
 
   if (!res.ok) {
-    throw new Error(`API request failed: ${res.status} ${res.statusText}`);
+    throw new ApiRequestError({ status: res.status, statusText: res.statusText, url: url.toString() });
   }
 
   return (await res.json()) as T;
@@ -58,7 +72,7 @@ export async function apiPost<T>(path: string, options: ApiPostOptions = {}): Pr
   });
 
   if (!res.ok) {
-    throw new Error(`API request failed: ${res.status} ${res.statusText}`);
+    throw new ApiRequestError({ status: res.status, statusText: res.statusText, url: url.toString() });
   }
 
   return (await res.json()) as T;

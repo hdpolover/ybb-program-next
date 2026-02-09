@@ -9,6 +9,7 @@ import { PromoCTAProvider } from '@/components/sections/PromoCTAContext';
 import ClientCTAGate from '@/components/layout/ClientCTAGate';
 import BackToTop from '@/components/ui/BackToTop';
 import DevtoolsGuard from '@/components/layout/DevtoolsGuard';
+import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -89,6 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {children}
           <ClientCTAGate />
           <BackToTop />
+          <ClientChatWidgetGate />
           <ClientFooterGate />
         </PromoCTAProvider>
       </body>

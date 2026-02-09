@@ -9,14 +9,18 @@ export type ProgramsSectionType =
   | 'program_journey'
   | 'program_important_dates'
   | 'previous_programs'
-  | 'program_faqs';
+  | 'program_faqs'
+  | 'other_programs';
 
 export type ProgramsHeroSection = {
   type: 'hero';
   content: {
+    id?: string;
     title: string;
     subtitle: string;
     bg_image: string | null;
+    thumbnail?: string | null;
+    status?: string;
   };
 };
 
@@ -53,7 +57,8 @@ export type RegistrationInfoPricingTier = {
   currency: string;
   benefits: string[];
   fee_type: 'full_fee' | 'registration_fee' | string;
-  target: 'self_funded' | 'fully_funded' | string;
+  target?: 'self_funded' | 'fully_funded' | string;
+  allowed_categories?: Array<'self_funded' | 'fully_funded' | string>;
 };
 
 export type RegistrationInfoInstruction = {
@@ -160,6 +165,25 @@ export type ProgramFaqsSection = {
   };
 };
 
+export type OtherProgramsItem = {
+  id: string;
+  name: string;
+  slug: string;
+  thumbnail: string | null;
+  brand_name: string | null;
+  brand_logo: string | null;
+  start_date: string | null;
+  location: string | null;
+};
+
+export type OtherProgramsSection = {
+  type: 'other_programs';
+  content: {
+    title: string;
+    items: OtherProgramsItem[];
+  };
+};
+
 export type ProgramsListItem = {
   id: string;
   name: string;
@@ -185,7 +209,8 @@ export type ProgramsSection =
   | ProgramJourneySection
   | ProgramImportantDatesSection
   | PreviousProgramsSection
-  | ProgramFaqsSection;
+  | ProgramFaqsSection
+  | OtherProgramsSection;
 
 export type ProgramsPageData = {
   slug: string;

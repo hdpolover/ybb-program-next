@@ -9,7 +9,7 @@ type ProgramActivitiesProps = {
 };
 
 function formatDate(date: string | null | undefined): string {
-  if (!date) return 'Data not added';
+  if (!date) return PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
 
   try {
     return new Date(date).toLocaleDateString('en-US', {
@@ -106,9 +106,30 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
               );
             })
           ) : (
-            <p className={jysSectionTheme.programsActivities.description}>
-              {PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
-            </p>
+            <article className={jysSectionTheme.programsActivities.card}>
+              <div className={jysSectionTheme.programsActivities.metaRow}>
+                <div className={jysSectionTheme.programsActivities.metaItem}>
+                  <Calendar className={jysSectionTheme.programsActivities.metaIcon} />
+                  <span>{PROGRAMS_ACTIVITIES_COPY.dataNotAdded}</span>
+                </div>
+                <div className={jysSectionTheme.programsActivities.metaItem}>
+                  <Clock3 className={jysSectionTheme.programsActivities.metaIcon} />
+                  <span>{PROGRAMS_ACTIVITIES_COPY.dataNotAdded}</span>
+                </div>
+                <div className={jysSectionTheme.programsActivities.metaItem}>
+                  <Hourglass className={jysSectionTheme.programsActivities.metaIcon} />
+                  <span>{PROGRAMS_ACTIVITIES_COPY.dataNotAdded}</span>
+                </div>
+              </div>
+              <div className={jysSectionTheme.programsActivities.titleWrapper}>
+                <h3 className={jysSectionTheme.programsActivities.title}>
+                  {PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
+                </h3>
+                <p className={jysSectionTheme.programsActivities.description}>
+                  {PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
+                </p>
+              </div>
+            </article>
           )}
         </div>
 

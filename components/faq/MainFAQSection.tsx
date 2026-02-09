@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
 
 type FAQItem = { q: string; a: string };
 
@@ -90,14 +91,42 @@ const MAIN_FAQ_GROUPS: FAQGroup[] = [
   },
 ];
 
-export default function MainFAQSection() {
+type MainFAQSectionProps = {
+  title?: string;
+  subtitle?: string;
+  items?: Array<{
+    id: string;
+    question: string;
+    answer: string;
+    category: string | null;
+  }>;
+};
+
+export default function MainFAQSection({ title, subtitle, items }: MainFAQSectionProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   const [query, setQuery] = useState('');
 
-  const activeGroup = MAIN_FAQ_GROUPS[activeTab];
+  const apiGroups = useMemo((): FAQGroup[] => {
+    if (!items) return [];
+    if (items.length === 0) return [];
+
+    const byCategory = new Map<string, FAQItem[]>();
+    for (const it of items) {
+      const category = (it.category || 'general').trim() || 'general';
+      const bucket = byCategory.get(category) ?? [];
+      bucket.push({ q: it.question, a: it.answer });
+      byCategory.set(category, bucket);
+    }
+
+    return Array.from(byCategory.entries()).map(([label, faqs]) => ({ label, faqs }));
+  }, [items]);
+
+  const groups = apiGroups.length > 0 ? apiGroups : MAIN_FAQ_GROUPS;
+  const activeGroup = groups[activeTab] ?? groups[0];
 
   const filteredFaqs = useMemo(() => {
+    if (!activeGroup) return [];
     if (!query.trim()) return activeGroup.faqs;
     const qLower = query.toLowerCase();
     return activeGroup.faqs.filter(
@@ -108,10 +137,10 @@ export default function MainFAQSection() {
   return (
     <section className={jysSectionTheme.faq.sectionWrapper}>
       <div className={jysSectionTheme.faq.container}>
-        <SectionHeader eyebrow="FAQ" title="Frequently Asked Questions" />
+        <SectionHeader eyebrow="FAQ" title={title ?? 'Frequently Asked Questions'} />
         <p className={jysSectionTheme.faq.subtitle}>
-          Browse common questions about the Japan Youth Summit (JYS) program, registration process,
-          and payment information.
+          {subtitle ??
+            'Browse common questions about the Japan Youth Summit (JYS) program, registration process, and payment information.'}
         </p>
 
         {/* Search bar */}
@@ -135,7 +164,7 @@ export default function MainFAQSection() {
           {/* Left: Tabs */}
           <div className={jysSectionTheme.faq.tabsCard}>
             <nav className={jysSectionTheme.faq.tabsNav}>
-              {MAIN_FAQ_GROUPS.map((group, index) => {
+              {groups.map((group, index) => {
                 const isActive = index === activeTab;
                 return (
                   <button
@@ -172,6 +201,10 @@ export default function MainFAQSection() {
 
           {/* Right: FAQ list */}
           <div className={jysSectionTheme.faq.faqListWrapper}>
+            {items && items.length === 0 ? (
+              <div className={jysSectionTheme.faq.emptyCard}>{DATA_NOT_ADDED}</div>
+            ) : null}
+
             {filteredFaqs.length === 0 ? (
               <div className={jysSectionTheme.faq.emptyCard}>
                 No questions match your search. Try a different keyword or category.
