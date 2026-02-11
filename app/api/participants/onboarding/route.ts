@@ -40,7 +40,7 @@ export async function GET(request: Request) {
 
     const brandDomain = resolveBrandDomainFromRequest(request);
 
-    const apiUrl = new URL('/v1/participants/me', 'https://staging-api.ybbhub.com');
+    const apiUrl = new URL('/v1/participants/onboarding', 'https://staging-api.ybbhub.com');
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
@@ -53,6 +53,12 @@ export async function GET(request: Request) {
 
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
+      if (res.status === 404) {
+        return NextResponse.json(
+          { statusCode: 200, message: 'Data not Added', data: null },
+          { status: 200 },
+        );
+      }
       return NextResponse.json(
         {
           statusCode: (json as any)?.statusCode ?? res.status,

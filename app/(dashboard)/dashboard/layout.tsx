@@ -63,6 +63,13 @@ type ParticipantOnboardingData = {
   fullName?: string;
 };
 
+type ParticipantMeData = {
+  id?: string;
+  profileCompletionPercentage?: number;
+  displayName?: string;
+  fullName?: string;
+};
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -70,6 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const searchTheme = jysSectionTheme.dashboardSearch;
   const [me, setMe] = useState<AuthMeData | null>(null);
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
+  const [participantProfile, setParticipantProfile] = useState<ParticipantMeData | null>(null);
   const [dashboardSummary, setDashboardSummary] = useState<PortalDashboardSummary | null>(null);
 
   let sectionLabel: string | null = null;
@@ -153,7 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         try {
-          const onboardRes = await fetch('/api/participants/onboarding', {
+          const profileRes = await fetch('/api/participants/me', {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -161,40 +169,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             cache: 'no-store',
           });
 
-          if (!cancelled && onboardRes.ok) {
-            const onboardJson = (await onboardRes.json().catch(() => ({}))) as any;
-            const onboardData = (onboardJson?.data ?? onboardJson ?? null) as ParticipantOnboardingData | null;
-            setOnboarding(onboardData);
+          if (!cancelled && profileRes.ok) {
+            const profileJson = (await profileRes.json().catch(() => ({}))) as any;
+            const profileData = (profileJson?.data ?? profileJson ?? null) as ParticipantMeData | null;
+            setParticipantProfile(profileData);
+
+            if (data && !profileData?.id) {
+              router.push('/onboarding');
+            }
           }
         } catch {
           // ignore
-        }
-
-        if (data && data.isProfileCompleted === false) {
-          try {
-            const onboardRes = await fetch('/api/participants/onboarding', {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              cache: 'no-store',
-            });
-
-            if (cancelled) return;
-
-            if (onboardRes.ok) {
-              const onboardJson = (await onboardRes.json().catch(() => ({}))) as any;
-              const onboardData = (onboardJson?.data ?? onboardJson ?? null) as ParticipantOnboardingData | null;
-              const pct = onboardData?.profileCompletionPercentage ?? 0;
-              if (pct < 100) {
-                router.push('/onboarding');
-              }
-            } else {
-              router.push('/onboarding');
-            }
-          } catch {
-            router.push('/onboarding');
-          }
         }
       } catch {
         // ignore
@@ -206,7 +191,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, [router]);
 
-  const greetingName = onboarding?.displayName?.trim() || onboarding?.fullName?.trim() || 'Participant';
+  const greetingName =
+    participantProfile?.displayName?.trim() ||
+    participantProfile?.fullName?.trim() ||
+    onboarding?.displayName?.trim() ||
+    onboarding?.fullName?.trim() ||
+    'Participant';
   const greetingText = dashboardSummary?.greeting?.trim() || null;
 
   // shell grid: sidebar kiri + konten kanan
