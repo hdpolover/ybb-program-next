@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { DATA_NOT_ADDED } from '@/data/home/shared/constants';
 
 interface GuidebookLink {
   href: string;
@@ -52,19 +53,33 @@ export default function FurtherInformationSection({
 
             <div className={jysSectionTheme.furtherInfo.buttonsCol}>
               {guidebooks.map((link, index) => (
-                <a
-                  key={`${link.locale}-${link.href}-${index}`}
-                  href={link.href}
-                  className={`${jysSectionTheme.furtherInfo.guideButtonBase} ${
-                    link.locale === 'eng'
-                      ? jysSectionTheme.homeRegistration.guidePrimary
-                      : jysSectionTheme.homeRegistration.guideSecondary
-                  }`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {link.label}
-                </a>
+                link.href && link.href !== '#' ? (
+                  <a
+                    key={`${link.locale}-${link.href}-${index}`}
+                    href={link.href}
+                    className={`${jysSectionTheme.furtherInfo.guideButtonBase} ${
+                      link.locale === 'eng'
+                        ? jysSectionTheme.homeRegistration.guidePrimary
+                        : jysSectionTheme.homeRegistration.guideSecondary
+                    }`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <span
+                    key={`${link.locale}-disabled-${index}`}
+                    aria-disabled="true"
+                    className={`${jysSectionTheme.furtherInfo.guideButtonBase} ${
+                      link.locale === 'eng'
+                        ? jysSectionTheme.homeRegistration.guidePrimary
+                        : jysSectionTheme.homeRegistration.guideSecondary
+                    } pointer-events-none flex cursor-not-allowed items-center justify-center opacity-60`}
+                  >
+                    {DATA_NOT_ADDED}
+                  </span>
+                )
               ))}
             </div>
           </div>

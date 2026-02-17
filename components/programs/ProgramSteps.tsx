@@ -77,8 +77,10 @@ export default function ProgramSteps({ journey }: ProgramStepsProps) {
               items.map((item, index) => {
                 const iconType = inferStepIcon(item.title || '');
                 const stepNumber = item.step_number || '';
-                const descriptionLines = (item.description || 'Data not added').split(/\n+/);
-                const dateDisplay = item.date_display || 'Data not added';
+                const descriptionLines = (item.description || PROGRAMS_STEPS_COPY.dataNotAdded).split(
+                  /\n+/,
+                );
+                const dateDisplay = item.date_display || PROGRAMS_STEPS_COPY.dataNotAdded;
 
                 return (
                   <div
@@ -116,9 +118,18 @@ export default function ProgramSteps({ journey }: ProgramStepsProps) {
                 );
               })
             ) : (
-              <p className={jysSectionTheme.programsSteps.stepTitle}>
-                {PROGRAMS_STEPS_COPY.dataNotAdded}
-              </p>
+              <div className={jysSectionTheme.programsSteps.stepRow}>
+                <div className={jysSectionTheme.programsSteps.stepIconCol}>
+                  <div className={jysSectionTheme.programsSteps.stepIconCircle}>
+                    <CheckCircle2 className={jysSectionTheme.programsSteps.stepIcon} />
+                  </div>
+                </div>
+                <div className={jysSectionTheme.programsSteps.stepCard}>
+                  <h3 className={jysSectionTheme.programsSteps.stepTitle}>
+                    {PROGRAMS_STEPS_COPY.dataNotAdded}
+                  </h3>
+                </div>
+              </div>
             )}
           </div>
         </div>

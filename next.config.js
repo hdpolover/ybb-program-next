@@ -18,6 +18,12 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'storage.ybbfoundation.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'images.unsplash.com',
         port: '',
         pathname: '/**',

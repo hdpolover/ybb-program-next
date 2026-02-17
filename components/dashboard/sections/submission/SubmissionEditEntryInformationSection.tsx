@@ -37,6 +37,7 @@ type Props = {
   showErrors: boolean;
   onBack: () => void;
   onGoToPreview: () => void;
+  showEssayFields?: boolean;
 };
 
 export default function SubmissionEditEntryInformationSection({
@@ -45,6 +46,7 @@ export default function SubmissionEditEntryInformationSection({
   showErrors,
   onBack,
   onGoToPreview,
+  showEssayFields = true,
 }: Props) {
   const base = inputBaseClass();
   const [keywordInput, setKeywordInput] = React.useState("");
@@ -225,265 +227,269 @@ export default function SubmissionEditEntryInformationSection({
         </Field>
       </div>
 
-      {/* Essay Guidelines summary + note + guidebook CTA (below all form fields) */}
-      <div className={submissionTheme.essaySummaryWrapper}>
-        {/* Title + description */}
-        <div>
-          <h3 className={submissionTheme.essaySummaryTitle}>Essay Guidelines</h3>
-          <p className={submissionTheme.essaySummaryBody}>
-            Please carefully review the essay guidelines before preparing your submission. The guidelines
-            contain important information about formatting requirements, word limits, evaluation criteria,
-            and other essential details.
-          </p>
-        </div>
+      {showEssayFields ? (
+        <>
+          {/* Essay Guidelines summary + note + guidebook CTA (below all form fields) */}
+          <div className={submissionTheme.essaySummaryWrapper}>
+            {/* Title + description */}
+            <div>
+              <h3 className={submissionTheme.essaySummaryTitle}>Essay Guidelines</h3>
+              <p className={submissionTheme.essaySummaryBody}>
+                Please carefully review the essay guidelines before preparing your submission. The guidelines
+                contain important information about formatting requirements, word limits, evaluation criteria,
+                and other essential details.
+              </p>
+            </div>
 
-        {/* Info note */}
-        <div className={submissionTheme.essayNoteBanner}>
-          <span className={submissionTheme.essayNoteIconCircle}>
-            <AlertTriangle className="h-4 w-4" />
-          </span>
-          <p>
-            <span className="font-semibold">Note:</span> Submissions that do not follow the guidelines may
-            receive lower credit scores which can lower the possibility to be selected as a fully funded
-            participant.
-          </p>
-        </div>
+            {/* Info note */}
+            <div className={submissionTheme.essayNoteBanner}>
+              <span className={submissionTheme.essayNoteIconCircle}>
+                <AlertTriangle className="h-4 w-4" />
+              </span>
+              <p>
+                <span className="font-semibold">Note:</span> Submissions that do not follow the guidelines may
+                receive lower credit scores which can lower the possibility to be selected as a fully funded
+                participant.
+              </p>
+            </div>
 
-        {/* More Information + guidebook CTA with background image card */}
-        <div className={submissionTheme.essayGuidebookCard}>
-          <Image
-            src="/img/essayguidliness.webp"
-            alt="Essay guidelines illustration"
-            fill={false}
-            width={1200}
-            height={1200}
-            className={submissionTheme.essayGuidebookBackgroundImage}
-            priority
-          />
-          <div className={submissionTheme.essayGuidebookOverlay} />
-          <div className={submissionTheme.essayGuidebookInner}>
-            <div className={submissionTheme.essayGuidebookGrid}>
-              {/* Left: title */}
-              <div className={submissionTheme.essayGuidebookTitle}>
-                <p>More Information?</p>
-                <p className="text-pink-600">Check this Guidebook!</p>
+            {/* More Information + guidebook CTA with background image card */}
+            <div className={submissionTheme.essayGuidebookCard}>
+              <Image
+                src="/img/essayguidliness.webp"
+                alt="Essay guidelines illustration"
+                fill={false}
+                width={1200}
+                height={1200}
+                className={submissionTheme.essayGuidebookBackgroundImage}
+                priority
+              />
+              <div className={submissionTheme.essayGuidebookOverlay} />
+              <div className={submissionTheme.essayGuidebookInner}>
+                <div className={submissionTheme.essayGuidebookGrid}>
+                  {/* Left: title */}
+                  <div className={submissionTheme.essayGuidebookTitle}>
+                    <p>More Information?</p>
+                    <p className="text-pink-600">Check this Guidebook!</p>
+                  </div>
+
+                  {/* Center: description + button */}
+                  <div className="text-center md:text-left">
+                    <p className={submissionTheme.essayGuidebookSubtitle}>
+                      The complete information regarding this program can be seen <br/>in the guidebook below.
+                    </p>
+                    <button
+                      type="button"
+                      className={`${submissionTheme.primaryButton} mt-3 inline-flex items-center gap-2 px-6 py-2 text-xs`}
+                    >
+                      <BookOpen className="h-4 w-4" />
+                      <span>View Essay Guidebook</span>
+                    </button>
+                  </div>
+
+                  {/* Right: reserved (empty) */}
+                  <div className="hidden md:block" />
+                </div>
               </div>
-
-              {/* Center: description + button */}
-              <div className="text-center md:text-left">
-                <p className={submissionTheme.essayGuidebookSubtitle}>
-                  The complete information regarding this program can be seen <br/>in the guidebook below.
-                </p>
-                <button
-                  type="button"
-                  className={`${submissionTheme.primaryButton} mt-3 inline-flex items-center gap-2 px-6 py-2 text-xs`}
-                >
-                  <BookOpen className="h-4 w-4" />
-                  <span>View Essay Guidebook</span>
-                </button>
-              </div>
-
-              {/* Right: reserved (empty) */}
-              <div className="hidden md:block" />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Main Essay Question section */}
-      <div className={submissionTheme.mainEssaySectionWrapper}>
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">Main Essay Question</h3>
-          <p className="mt-1 text-[13px] text-slate-700">
-            Please answer the following questions carefully. Your responses will be evaluated based on
-            clarity, depth of insight, and relevance to your selected program subtheme.
-          </p>
-        </div>
+          {/* Main Essay Question section */}
+          <div className={submissionTheme.mainEssaySectionWrapper}>
+            <div>
+              <h3 className="text-base font-semibold text-slate-900">Main Essay Question</h3>
+              <p className="mt-1 text-[13px] text-slate-700">
+                Please answer the following questions carefully. Your responses will be evaluated based on
+                clarity, depth of insight, and relevance to your selected program subtheme.
+              </p>
+            </div>
 
-        {/* Essay Title (max 15 words) */}
-        <div>
-          <Field label="Essay Title (Max 15 Words)">
-            <InputWrapper icon={<Info className="h-4 w-4" />}>
-              <input
-                type="text"
-                className={`${base} pl-9 ${
-                  showErrors && !entry.essayTitle.trim() ? submissionTheme.editInputError : ""
-                }`}
-                value={entry.essayTitle}
-                onChange={e =>
-                  onChangeEntry({
-                    ...entry,
-                    essayTitle: e.target.value,
-                  })
-                }
-                placeholder="Write a strong, concise essay title"
-              />
-            </InputWrapper>
-            <p className={submissionTheme.mainEssayCounterText}>
-              {countWords(entry.essayTitle)} / 15 words
-            </p>
-            {showErrors && !entry.essayTitle.trim() && (
-              <p className={submissionTheme.errorText}>You must provide an essay title.</p>
-            )}
-          </Field>
-        </div>
-
-        {/* Essay (max 800 words) */}
-        <div>
-          <Field label="Essay (Max 800 Words)">
-            <textarea
-              className={`${submissionTheme.essayTextarea} w-full`}
-              value={entry.mainEssay}
-              onChange={e =>
-                onChangeEntry({
-                  ...entry,
-                  mainEssay: e.target.value,
-                })
-              }
-              placeholder="Explain your ideas, experiences, and impact related to your chosen subtheme."
-            />
-            <p className={submissionTheme.mainEssayCounterText}>
-              {countWords(entry.mainEssay)} / 800 words
-            </p>
-          </Field>
-        </div>
-
-        {/* Keyword (max 8 words) */}
-        <div>
-          <Field label="Keyword (Max 8 Words)">
-            <div className={submissionTheme.keywordFieldWrapper}>
-              <button
-                type="button"
-                className={submissionTheme.keywordTriggerButton}
-                onClick={() => setKeywordDropdownOpen(prev => !prev)}
-              >
-                <span className={submissionTheme.keywordIconCircle}>
-                  <Info className="h-3 w-3" />
-                </span>
-                <div className="flex-1">
-                  <div className={submissionTheme.keywordChipsRow}>
-                    {entry.keywords.map((kw, idx) => (
-                      <span
-                        key={`${kw}-${idx}`}
-                        className={submissionTheme.keywordChip}
-                      >
-                        <span>{kw}</span>
-                        <span
-                          className={submissionTheme.keywordChipRemove}
-                          onClick={e => {
-                            e.stopPropagation();
-                            onChangeEntry({
-                              ...entry,
-                              keywords: entry.keywords.filter((_, i) => i !== idx),
-                            });
-                          }}
-                        >
-                          ×
-                        </span>
-                      </span>
-                    ))}
-                    {entry.keywords.length === 0 && (
-                      <span className="text-[11px] text-slate-400">
-                        Write or select main keywords that represent your essay
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <span className={submissionTheme.keywordChevron}>
-                  {keywordDropdownOpen ? "▴" : "▾"}
-                </span>
-              </button>
-
-              {keywordDropdownOpen && (
-                <div className={submissionTheme.keywordDropdownWrapper}>
+            {/* Essay Title (max 15 words) */}
+            <div>
+              <Field label="Essay Title (Max 15 Words)">
+                <InputWrapper icon={<Info className="h-4 w-4" />}>
                   <input
                     type="text"
-                    className={submissionTheme.keywordSearchInput}
-                    placeholder="Type to search or add keyword, then press Enter"
-                    value={keywordInput}
-                    onChange={e => setKeywordInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === "Enter" || e.key === ",") {
-                        e.preventDefault();
-                        const value = keywordInput.trim();
-                        if (!value) return;
-                        if (entry.keywords.length >= 8) return;
-                        if (entry.keywords.includes(value)) {
-                          setKeywordInput("");
-                          return;
-                        }
-                        onChangeEntry({
-                          ...entry,
-                          keywords: [...entry.keywords, value],
-                        });
-                        setKeywordInput("");
-                      }
-                    }}
+                    className={`${base} pl-9 ${
+                      showErrors && !entry.essayTitle.trim() ? submissionTheme.editInputError : ""
+                    }`}
+                    value={entry.essayTitle}
+                    onChange={e =>
+                      onChangeEntry({
+                        ...entry,
+                        essayTitle: e.target.value,
+                      })
+                    }
+                    placeholder="Write a strong, concise essay title"
                   />
+                </InputWrapper>
+                <p className={submissionTheme.mainEssayCounterText}>
+                  {countWords(entry.essayTitle)} / 15 words
+                </p>
+                {showErrors && !entry.essayTitle.trim() && (
+                  <p className={submissionTheme.errorText}>You must provide an essay title.</p>
+                )}
+              </Field>
+            </div>
 
-                  <div className={submissionTheme.keywordOptionsList}>
-                    {[
-                      "User Experience",
-                      "User Interface",
-                      "Muslims",
-                      "Society",
-                      "Sustainability",
-                      "Leadership",
-                      "Community Development",
-                      "Education",
-                    ]
-                      .filter(option =>
-                        keywordInput.trim().length === 0
-                          ? !entry.keywords.includes(option)
-                          : option.toLowerCase().includes(keywordInput.toLowerCase()) &&
-                            !entry.keywords.includes(option)
-                      )
-                      .map(option => (
-                        <button
-                          key={option}
-                          type="button"
-                          className={submissionTheme.keywordOptionItem}
-                          onClick={() => {
+            {/* Essay (max 800 words) */}
+            <div>
+              <Field label="Essay (Max 800 Words)">
+                <textarea
+                  className={`${submissionTheme.essayTextarea} w-full`}
+                  value={entry.mainEssay}
+                  onChange={e =>
+                    onChangeEntry({
+                      ...entry,
+                      mainEssay: e.target.value,
+                    })
+                  }
+                  placeholder="Explain your ideas, experiences, and impact related to your chosen subtheme."
+                />
+                <p className={submissionTheme.mainEssayCounterText}>
+                  {countWords(entry.mainEssay)} / 800 words
+                </p>
+              </Field>
+            </div>
+
+            {/* Keyword (max 8 words) */}
+            <div>
+              <Field label="Keyword (Max 8 Words)">
+                <div className={submissionTheme.keywordFieldWrapper}>
+                  <button
+                    type="button"
+                    className={submissionTheme.keywordTriggerButton}
+                    onClick={() => setKeywordDropdownOpen(prev => !prev)}
+                  >
+                    <span className={submissionTheme.keywordIconCircle}>
+                      <Info className="h-3 w-3" />
+                    </span>
+                    <div className="flex-1">
+                      <div className={submissionTheme.keywordChipsRow}>
+                        {entry.keywords.map((kw, idx) => (
+                          <span
+                            key={`${kw}-${idx}`}
+                            className={submissionTheme.keywordChip}
+                          >
+                            <span>{kw}</span>
+                            <span
+                              className={submissionTheme.keywordChipRemove}
+                              onClick={e => {
+                                e.stopPropagation();
+                                onChangeEntry({
+                                  ...entry,
+                                  keywords: entry.keywords.filter((_, i) => i !== idx),
+                                });
+                              }}
+                            >
+                              ×
+                            </span>
+                          </span>
+                        ))}
+                        {entry.keywords.length === 0 && (
+                          <span className="text-[11px] text-slate-400">
+                            Write or select main keywords that represent your essay
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className={submissionTheme.keywordChevron}>
+                      {keywordDropdownOpen ? "▴" : "▾"}
+                    </span>
+                  </button>
+
+                  {keywordDropdownOpen && (
+                    <div className={submissionTheme.keywordDropdownWrapper}>
+                      <input
+                        type="text"
+                        className={submissionTheme.keywordSearchInput}
+                        placeholder="Type to search or add keyword, then press Enter"
+                        value={keywordInput}
+                        onChange={e => setKeywordInput(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === "Enter" || e.key === ",") {
+                            e.preventDefault();
+                            const value = keywordInput.trim();
+                            if (!value) return;
                             if (entry.keywords.length >= 8) return;
+                            if (entry.keywords.includes(value)) {
+                              setKeywordInput("");
+                              return;
+                            }
                             onChangeEntry({
                               ...entry,
-                              keywords: [...entry.keywords, option],
+                              keywords: [...entry.keywords, value],
                             });
-                          }}
-                        >
-                          <span>{option}</span>
-                        </button>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </Field>
-          <p className={submissionTheme.keywordCounterText}>
-            {entry.keywords.length} / 8 keywords
-          </p>
-        </div>
+                            setKeywordInput("");
+                          }
+                        }}
+                      />
 
-        {/* Reference (max 100 words) */}
-        <div>
-          <Field label="Reference (Max 100 Words)">
-            <textarea
-              className={`${submissionTheme.essayTextarea} w-full`}
-              value={entry.reference}
-              onChange={e =>
-                onChangeEntry({
-                  ...entry,
-                  reference: e.target.value,
-                })
-              }
-              placeholder="Mention any reference or source that supports your essay (optional)."
-            />
-            <p className={submissionTheme.mainEssayCounterText}>
-              {countWords(entry.reference)} / 100 words
-            </p>
-          </Field>
-        </div>
-      </div>
+                      <div className={submissionTheme.keywordOptionsList}>
+                        {[
+                          "User Experience",
+                          "User Interface",
+                          "Muslims",
+                          "Society",
+                          "Sustainability",
+                          "Leadership",
+                          "Community Development",
+                          "Education",
+                        ]
+                          .filter(option =>
+                            keywordInput.trim().length === 0
+                              ? !entry.keywords.includes(option)
+                              : option.toLowerCase().includes(keywordInput.toLowerCase()) &&
+                                !entry.keywords.includes(option)
+                          )
+                          .map(option => (
+                            <button
+                              key={option}
+                              type="button"
+                              className={submissionTheme.keywordOptionItem}
+                              onClick={() => {
+                                if (entry.keywords.length >= 8) return;
+                                onChangeEntry({
+                                  ...entry,
+                                  keywords: [...entry.keywords, option],
+                                });
+                              }}
+                            >
+                              <span>{option}</span>
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Field>
+              <p className={submissionTheme.keywordCounterText}>
+                {entry.keywords.length} / 8 keywords
+              </p>
+            </div>
+
+            {/* Reference (max 100 words) */}
+            <div>
+              <Field label="Reference (Max 100 Words)">
+                <textarea
+                  className={`${submissionTheme.essayTextarea} w-full`}
+                  value={entry.reference}
+                  onChange={e =>
+                    onChangeEntry({
+                      ...entry,
+                      reference: e.target.value,
+                    })
+                  }
+                  placeholder="Mention any reference or source that supports your essay (optional)."
+                />
+                <p className={submissionTheme.mainEssayCounterText}>
+                  {countWords(entry.reference)} / 100 words
+                </p>
+              </Field>
+            </div>
+          </div>
+        </>
+      ) : null}
 
       <div className={submissionTheme.buttonRow}>
         <button

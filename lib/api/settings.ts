@@ -1,7 +1,14 @@
 import type { SettingsData } from '@/types/settings';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 
-const DEFAULT_BRAND_URL = process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+function normalizeBrandUrl(input: string): string {
+  const trimmed = (input || '').trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  return trimmed.replace(/^https?:\/\//, '');
+}
+
+const DEFAULT_BRAND_URL =
+  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
 
 export async function getSettings(): Promise<SettingsData> {
   if (typeof window !== 'undefined') {

@@ -3,6 +3,7 @@ import { Gem, Trophy, Medal } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 import type { SponsorItem } from '@/types/partners';
+import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
 
 type SponsorTiersSectionProps = {
   sponsors?: SponsorItem[];
@@ -47,7 +48,9 @@ export default function SponsorTiersSection({ sponsors }: SponsorTiersSectionPro
                 <h3 className={jysSectionTheme.partnersSponsorTiers.diamondTitle}>{diamondSponsor.name}</h3>
               </a>
             ) : (
-              <p className="text-sm text-slate-500">No diamond sponsor yet. Coming soon.</p>
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-3 text-sm font-medium text-slate-600">
+                {DATA_NOT_ADDED}
+              </div>
             )}
           </div>
 
@@ -89,7 +92,9 @@ export default function SponsorTiersSection({ sponsors }: SponsorTiersSectionPro
                   </a>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">No gold sponsors yet. Coming soon.</p>
+                <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/30 px-4 py-3 text-sm font-medium text-slate-600">
+                  {DATA_NOT_ADDED}
+                </div>
               )}
             </div>
           </div>
@@ -130,7 +135,9 @@ export default function SponsorTiersSection({ sponsors }: SponsorTiersSectionPro
                   </a>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">No platinum sponsors yet. Coming soon.</p>
+                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-3 text-sm font-medium text-slate-600 sm:col-span-2">
+                  {DATA_NOT_ADDED}
+                </div>
               )}
             </div>
           </div>

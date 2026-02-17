@@ -3,6 +3,7 @@
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 import { PROGRAMS_FURTHER_INFO_DEFAULT } from '@/data/programs/sections/further-info/programsFurtherInfo';
+import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
 
 interface GuidebookLink {
   href: string;
@@ -39,21 +40,35 @@ export default function ProgramsFurtherInformationSection({
               <p className={jysSectionTheme.furtherInfoPrograms.description}>{subtitle}</p>
 
               <div className={jysSectionTheme.furtherInfoPrograms.buttonsCol}>
-                {guidebooks.map(link => (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    className={`${jysSectionTheme.furtherInfoPrograms.guideButtonBase} ${
-                      link.locale === 'eng'
-                        ? jysSectionTheme.homeRegistration.guidePrimary
-                        : jysSectionTheme.homeRegistration.guideSecondary
-                    }`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {guidebooks.map(link =>
+                  link.href && link.href !== '#' ? (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      className={`${jysSectionTheme.furtherInfoPrograms.guideButtonBase} ${
+                        link.locale === 'eng'
+                          ? jysSectionTheme.homeRegistration.guidePrimary
+                          : jysSectionTheme.homeRegistration.guideSecondary
+                      }`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <span
+                      key={`${link.label}-disabled`}
+                      aria-disabled="true"
+                      className={`${jysSectionTheme.furtherInfoPrograms.guideButtonBase} ${
+                        link.locale === 'eng'
+                          ? jysSectionTheme.homeRegistration.guidePrimary
+                          : jysSectionTheme.homeRegistration.guideSecondary
+                      } pointer-events-none flex cursor-not-allowed items-center justify-center opacity-60`}
+                    >
+                      {DATA_NOT_ADDED}
+                    </span>
+                  ),
+                )}
               </div>
             </div>
           </div>

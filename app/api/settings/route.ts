@@ -3,11 +3,19 @@ import { NextResponse } from 'next/server';
 import type { SettingsData } from '@/types/settings';
 import { apiGet } from '@/lib/api/httpClient';
 
-const DEFAULT_BRAND_URL = process.env.NEXT_PUBLIC_BRAND_DOMAIN || 'https://istanbulyouthsummit.com';
+function normalizeBrandUrl(input: string): string {
+  const trimmed = (input || '').trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  return trimmed.replace(/^https?:\/\//, '');
+}
+
+const DEFAULT_BRAND_URL =
+  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
 
 async function resolveBrandDomain(): Promise<string> {
   const h = await headers();
-  const hostname = h.get('x-hostname') || h.get('host') || '';
+  const hostnameRaw = h.get('x-hostname') || h.get('host') || '';
+  const hostname = hostnameRaw.split(':')[0];
 
   if (!hostname) return DEFAULT_BRAND_URL;
 
@@ -15,7 +23,7 @@ async function resolveBrandDomain(): Promise<string> {
     return DEFAULT_BRAND_URL;
   }
 
-  return `https://${hostname}`;
+  return normalizeBrandUrl(hostname);
 }
 
 export async function GET() {
@@ -33,13 +41,28 @@ export async function GET() {
     return NextResponse.json(json);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      {
-        statusCode: 500,
-        message,
-        data: null,
+
+    const fallback: SettingsData = {
+      maintenance: {
+        is_maintenance_mode: false,
       },
-      { status: 500 },
-    );
+      brand: {
+        name: 'Youth Summit',
+        logo_url: null,
+        primary_color: null,
+        support_email: null,
+        contact_phone: null,
+        contact_whatsapp: null,
+        address: null,
+        social_media: {},
+      },
+      footer_navigation: [],
+      currency: {
+        code: 'IDR',
+        rate_to_idr: 1,
+      },
+    };
+
+    return NextResponse.json({ statusCode: 200, message, data: fallback });
   }
 }

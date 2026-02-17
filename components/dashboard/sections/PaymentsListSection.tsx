@@ -168,8 +168,8 @@ export default function PaymentsListSection() {
                 <p className={paymentsTheme.categoryStatusText}>Fully Funded</p>
               </div>
               <p className={paymentsTheme.categoryDescription}>
-                You&apos;re eligible to switch from Fully Funded to Self Funded. By switching to self-funded
-                status, you&apos;ll be able to:
+                You're eligible to switch from Fully Funded to Self Funded. By switching to self-funded
+                status, you'll be able to:
               </p>
             </div>
 

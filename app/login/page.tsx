@@ -175,52 +175,27 @@ export default function LoginPage() {
       }
 
       try {
-        const meRes = await fetch('/api/auth/me', {
+        const profileRes = await fetch('/api/participants/me', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
+          cache: 'no-store',
         });
 
-        if (meRes.ok) {
-          const meJson = (await meRes.json()) as {
+        if (profileRes.ok) {
+          const profileJson = (await profileRes.json().catch(() => ({}))) as {
             statusCode?: number;
             message?: string;
-            data?: { isProfileCompleted?: boolean } | null;
+            data?: { id?: string } | null;
           };
-          const isCompleted = meJson?.data?.isProfileCompleted;
-          if (isCompleted === false) {
-            try {
-              const onboardRes = await fetch('/api/participants/onboarding', {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                cache: 'no-store',
-              });
-
-              if (onboardRes.ok) {
-                const onboardJson = (await onboardRes.json().catch(() => ({}))) as {
-                  statusCode?: number;
-                  message?: string;
-                  data?: { profileCompletionPercentage?: number } | null;
-                };
-                const pct = onboardJson?.data?.profileCompletionPercentage ?? 0;
-                router.push(pct >= 100 ? '/dashboard' : '/onboarding');
-              } else {
-                router.push('/onboarding');
-              }
-            } catch {
-              router.push('/onboarding');
-            }
-          } else {
-            router.push('/dashboard');
-          }
+          router.push(profileJson?.data?.id ? '/dashboard' : '/onboarding');
         } else {
-          router.push('/onboarding');
+          // Avoid looping users back to onboarding if profile endpoint is temporarily failing.
+          router.push('/dashboard');
         }
       } catch {
-        router.push('/onboarding');
+        router.push('/dashboard');
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';

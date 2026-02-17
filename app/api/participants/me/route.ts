@@ -19,35 +19,11 @@ function resolveBrandDomainFromRequest(request: Request): string {
   return normalizeBrandUrl(hostname);
 }
 
-type AuthMeResponse = {
-  statusCode?: number;
-  message?: string;
-  data?: {
-    userId: string;
-    email: string;
-    brandId?: string;
-    programCategoryId?: string;
-    identities?: Array<{ provider: string; lastUsedAt?: string }>;
-    participantId?: string;
-    registeredPrograms?: Array<{
-      programId: string;
-      programName: string;
-      programSlug: string;
-      year?: number;
-      applicationId?: string;
-      applicationStatus?: string;
-    }>;
-    isProfileCompleted?: boolean;
-  };
-};
-
 export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
     const cookieNames = cookieStore.getAll().map(c => c.name);
     const accessToken = cookieStore.get('accessToken')?.value;
-
-    const brandDomain = resolveBrandDomainFromRequest(request);
 
     if (!accessToken) {
       return NextResponse.json(
@@ -57,7 +33,6 @@ export async function GET(request: Request) {
           data: null,
           debug: {
             hasAccessTokenCookie: false,
-            brandDomain,
             cookieNames,
           },
         },
@@ -65,7 +40,9 @@ export async function GET(request: Request) {
       );
     }
 
-    const apiUrl = new URL('/v1/auth/me', 'https://staging-api.ybbhub.com');
+    const brandDomain = resolveBrandDomainFromRequest(request);
+
+    const apiUrl = new URL('/v1/participants/me', 'https://staging-api.ybbhub.com');
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
@@ -76,12 +53,12 @@ export async function GET(request: Request) {
       cache: 'no-store',
     });
 
-    const json = (await res.json().catch(() => ({}))) as AuthMeResponse;
+    const json = await res.json().catch(() => ({}));
     if (!res.ok) {
       return NextResponse.json(
         {
-          statusCode: json.statusCode ?? res.status,
-          message: json.message ?? 'Failed to fetch profile',
+          statusCode: (json as any)?.statusCode ?? res.status,
+          message: (json as any)?.message ?? 'Failed to fetch participant profile',
           data: null,
           debug: {
             hasAccessTokenCookie: true,
@@ -94,7 +71,20 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: json.data ?? null });
+    return NextResponse.json({
+      statusCode: 200,
+      message: 'Success',
+      data: (json as any)?.data ?? json ?? null,
+      ...(process.env.NODE_ENV !== 'production'
+        ? {
+            debug: {
+              hasAccessTokenCookie: true,
+              brandDomain,
+              cookieNames,
+            },
+          }
+        : {}),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(

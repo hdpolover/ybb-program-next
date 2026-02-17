@@ -28,7 +28,7 @@ type CurrentProgramProps = {
 };
 
 function formatDateRange(start?: string | null, end?: string | null): string {
-  if (!start && !end) return 'Data not added';
+  if (!start && !end) return PROGRAMS_CURRENT_COPY.dataNotAdded;
 
   try {
     const startDate = start ? new Date(start) : null;
@@ -54,7 +54,7 @@ function formatDateRange(start?: string | null, end?: string | null): string {
     if (end) return end;
   }
 
-  return 'Data not added';
+  return PROGRAMS_CURRENT_COPY.dataNotAdded;
 }
 
 export default function CurrentProgram({ overview }: CurrentProgramProps) {
@@ -67,6 +67,12 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
   const guidebooksRaw = overview?.guidebooks && overview.guidebooks.length > 0 ? overview.guidebooks : null;
   const guidebooks = guidebooksRaw ? guidebooksRaw.slice(-2) : null;
 
+  const isHtmlContent = (value?: string | null) => {
+    if (!value) return false;
+    const trimmed = value.trim();
+    return trimmed.startsWith('<') && trimmed.includes('</');
+  };
+
   return (
     <section className={jysSectionTheme.programsCurrent.sectionWrapper}>
       <div className={jysSectionTheme.programsCurrent.container}>
@@ -78,7 +84,14 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
               title={PROGRAMS_CURRENT_COPY.title}
               align="left"
             />
-            <p className={jysSectionTheme.programsCurrent.bodyParagraph}>{description}</p>
+            {isHtmlContent(description) ? (
+              <div
+                className={jysSectionTheme.programsCurrent.richText}
+                dangerouslySetInnerHTML={{ __html: description ?? '' }}
+              />
+            ) : (
+              <p className={jysSectionTheme.programsCurrent.bodyParagraph}>{description}</p>
+            )}
 
             <div className={jysSectionTheme.programsCurrent.themeBlock}>
               <div>
@@ -105,7 +118,9 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                       </div>
                     ))
                   ) : (
-                    <div className={jysSectionTheme.programsCurrent.subthemeCard}>Data not added</div>
+                    <div className={jysSectionTheme.programsCurrent.subthemeCard}>
+                      {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                    </div>
                   )}
                 </div>
               </div>
@@ -199,9 +214,20 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                     </a>
                   ))
                 ) : (
-                  <p className={jysSectionTheme.programsCurrent.bodyParagraph}>
-                    {PROGRAMS_CURRENT_COPY.dataNotAdded}
-                  </p>
+                  <>
+                    <span
+                      aria-disabled="true"
+                      className={`${jysSectionTheme.homeRegistration.guidePrimary} pointer-events-none flex w-full cursor-not-allowed items-center justify-center gap-2 text-sm opacity-60`}
+                    >
+                      {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                    </span>
+                    <span
+                      aria-disabled="true"
+                      className={`${jysSectionTheme.homeRegistration.guideSecondary} pointer-events-none flex w-full cursor-not-allowed items-center justify-center gap-2 text-sm opacity-60`}
+                    >
+                      {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                    </span>
+                  </>
                 )}
               </div>
             </div>

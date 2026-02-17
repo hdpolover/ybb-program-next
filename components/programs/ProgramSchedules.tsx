@@ -18,7 +18,7 @@ function mapStatus(status?: string, isActive?: boolean): VisualStatus {
 }
 
 function StatusBadge({ visualStatus, label }: { visualStatus: VisualStatus; label?: string }) {
-  const text = label || 'Data not added';
+  const text = label || PROGRAMS_SCHEDULES_COPY.dataNotAdded;
   if (visualStatus === 'active') {
     return (
       <span className={jysSectionTheme.programsSchedules.statusActive}>
@@ -106,7 +106,7 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
                       className={jysSectionTheme.programsSchedules.cellDesc}
                       colSpan={4}
                     >
-                      Data not added
+                      {PROGRAMS_SCHEDULES_COPY.dataNotAdded}
                     </td>
                   </tr>
                 )}

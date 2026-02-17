@@ -1,4 +1,4 @@
-import type { ProgramsPageData } from '@/types/programs';
+import type { FaqsPageData } from '@/types/faqs';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 
 function normalizeBrandUrl(input: string): string {
@@ -10,8 +10,8 @@ function normalizeBrandUrl(input: string): string {
 const BRAND_URL =
   normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
 
-export async function getProgramsPageData(): Promise<ProgramsPageData> {
-  return apiGetWithEnvelope<ProgramsPageData>('/v1/landing/programs', {
+export async function getFaqsPageData(): Promise<FaqsPageData> {
+  return apiGetWithEnvelope<FaqsPageData>('/v1/landing/faqs', {
     query: { url: BRAND_URL },
     headers: {
       'x-brand-domain': BRAND_URL,
