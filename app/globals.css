@@ -36,6 +36,11 @@
   --color-accent-foreground: var(--brand-accent-foreground);
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 body[data-program='jys'] {
   /* Explicit supaya gampang dibaca & di-sync sama BRAND_THEMES.jys */
   --brand-accent: #ec4899;

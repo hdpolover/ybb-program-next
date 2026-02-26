@@ -10,9 +10,9 @@ export const jysSectionTheme = {
     subtitle: 'text-sm font-semibold uppercase tracking-wider text-pink-400',
   },
   chatWidget: {
-    wrapper: 'fixed bottom-6 right-6 z-50',
+    wrapper: 'fixed bottom-4 right-3 z-50 sm:bottom-6 sm:right-6',
     panel:
-      'absolute bottom-[4.25rem] right-0 w-[min(360px,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.25)]',
+      'absolute bottom-[4.25rem] right-0 w-[min(360px,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.25)] sm:bottom-[4.25rem]',
     panelHeader: 'flex items-start justify-between gap-3 border-b border-slate-100 bg-white px-4 py-3',
     panelTitle: 'text-sm font-extrabold uppercase tracking-wide text-slate-900',
     panelSubtitle: 'mt-0.5 text-[11px] text-slate-500',
@@ -49,14 +49,14 @@ export const jysSectionTheme = {
     badge:
       'inline-flex items-center rounded-full bg-pink-600 px-3 py-1 text-xs font-semibold text-white shadow whitespace-nowrap',
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
-    card: 'mx-auto max-w-7xl px-0 py-12 sm:px-6 lg:px-8',
+    card: 'mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8',
     subtitle: 'mx-auto -mt-6 mb-8 max-w-2xl text-center text-sm text-slate-600 sm:text-base',
     // Disederhanakan: hilangkan card pembungkus luar, biarkan konten grid biasa
     inner: 'grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-8',
     mainVideoWrapper: 'relative overflow-hidden rounded-xl bg-slate-900/5',
     mainIframe: 'absolute inset-0 h-full w-full rounded-xl border-0',
     listWrapper: 'flex flex-col gap-3',
-    yearTabsWrapper: 'mb-3 inline-flex rounded-full bg-slate-100 p-1 text-xs',
+    yearTabsWrapper: 'mb-3 inline-flex max-w-full overflow-x-auto rounded-full bg-slate-100 p-1 text-xs',
     yearTab:
       'inline-flex min-w-[64px] items-center justify-center rounded-full px-3 py-1 text-[11px] font-semibold text-slate-600 transition hover:text-slate-900',
     yearTabActive: 'bg-pink-600 text-white shadow-sm',
@@ -74,25 +74,26 @@ export const jysSectionTheme = {
     cardBackground: '/img/bgshorts60.jpg',
     title: 'text-2xl font-extrabold leading-tight text-blue-950 sm:text-3xl lg:text-4xl',
     description: 'mt-3 max-w-md text-sm leading-relaxed text-blue-950/90 sm:text-base lg:text-lg',
-    shortsRow: 'grid grid-cols-3 gap-5',
-    shortWrapper: 'relative h-80 w-full overflow-hidden bg-black/15',
+    shortsRow: 'flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible sm:pb-0',
+    shortWrapper:
+      'relative h-80 w-56 flex-shrink-0 snap-start overflow-hidden rounded-xl bg-black/15 sm:w-full',
     shortIframe: 'absolute inset-0 h-full w-full border-0',
   },
   furtherInfo: {
     sectionWrapper: 'relative w-full py-20 sm:py-28',
-    card: 'mx-auto flex max-w-7xl items-center px-6 sm:px-10 lg:px-16',
+    card: 'mx-auto flex max-w-7xl items-start px-6 pt-6 sm:items-center sm:px-10 sm:pt-0 lg:px-16',
     innerGrid:
       'grid w-full items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)] lg:gap-12',
     leftCol:
-      'order-2 flex w-full max-w-xl flex-col justify-center space-y-4 text-blue-950 lg:order-1 lg:pr-6',
+      'order-2 flex w-full max-w-xl flex-col items-center justify-center space-y-4 text-center text-blue-950 sm:items-start sm:text-left lg:order-1 lg:pr-6',
     description: 'mt-3 max-w-md text-sm leading-relaxed text-blue-950/90 sm:text-base lg:text-lg',
-    buttonsCol: 'mt-4 flex flex-col items-start gap-3',
+    buttonsCol: 'mt-4 flex flex-col items-center gap-3 sm:items-start',
     guideButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold shadow-sm transition',
     guideButtonPrimary: 'border-pink-500/80 bg-white/95 text-pink-700 hover:bg-white',
     guideButtonSecondary: 'border-blue-500/70 bg-blue-50/90 text-blue-800 hover:bg-blue-100',
     flagCircle: 'inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full',
-    rightCol: 'order-1 relative flex w-full justify-center lg:order-2',
+    rightCol: 'hidden order-1 w-full justify-center lg:relative lg:flex lg:order-2',
     mockupWrapper:
       'relative h-80 w-full max-w-xs -mt-6 sm:h-96 sm:max-w-sm lg:h-[420px] lg:max-w-md lg:-mt-10 drop-shadow-[0_26px_70px_rgba(15,23,42,0.65)]',
   },
@@ -113,7 +114,7 @@ export const jysSectionTheme = {
     sectionWrapper: 'w-full bg-[#ffffff72] py-16 sm:py-20',
     container: 'mx-auto max-w-6xl px-6 lg:px-8',
     backgroundImage: "/img/bgshorts60.jpg",
-    grid: 'mt-10 grid gap-1 md:grid-cols-2',
+    grid: 'mt-10 grid gap-6 md:grid-cols-2 md:gap-1',
     card:
       'flex h-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white/95 text-sm text-slate-800 shadow-[0_10px_35px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/80 mx-auto',
     imageWrapper:
@@ -315,16 +316,18 @@ export const jysSectionTheme = {
     mainIframe: 'absolute inset-0 h-full w-full border-0 rounded-2xl',
     reelsTitle:
       'text-sm font-semibold uppercase tracking-wide text-[var(--brand-accent)]',
-    reelsGrid: 'mt-4 grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4',
+    reelsGrid:
+      'mt-4 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:pb-0 md:grid-cols-4',
     reelItem:
-      'relative aspect-[9/16] w-full max-w-[250px] sm:max-w-[270px] mx-auto overflow-hidden rounded-xl',
+      'relative aspect-[9/16] w-56 flex-shrink-0 snap-start overflow-hidden rounded-xl sm:w-full sm:max-w-[270px] sm:mx-auto',
     reelVideo: 'h-full w-full object-cover',
     reelSkeleton: 'absolute inset-0 animate-pulse bg-slate-200',
   },
   globalImpact: {
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
     statsGrid: 'mx-auto mt-2 grid max-w-4xl grid-cols-1 gap-3 text-center sm:grid-cols-3',
-    card: 'flex flex-col items-center gap-1 px-2 py-1',
+    card:
+      'flex flex-col items-center gap-1 bg-transparent px-2 py-1 shadow-none ring-0 sm:rounded-2xl sm:bg-white sm:px-4 sm:py-4 sm:shadow-[0_12px_40px_rgba(15,23,42,0.08)] sm:ring-1 sm:ring-slate-200',
     iconCircle:
       'grid h-10 w-10 place-items-center rounded-full bg-[var(--brand-accent-soft)] text-[var(--brand-accent)] ring-1 ring-[var(--brand-border)]',
     value:
@@ -426,8 +429,9 @@ export const jysSectionTheme = {
     blurBottom:
       'pointer-events-none absolute -bottom-12 right-6 h-48 w-48 rounded-full bg-white/40 blur-2xl',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
-    layoutGrid: 'grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)] lg:gap-14',
-    leftCol: 'order-2 lg:order-1 lg:pr-4',
+    layoutGrid:
+      'grid items-center gap-10 sm:grid-cols-2 sm:gap-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)]',
+    leftCol: 'sm:pr-4',
     tabContainer:
       'mt-4 inline-flex rounded-full bg-white/70 p-1 text-xs shadow-sm ring-1 ring-slate-200',
     tabButtonBase: 'rounded-full px-4 py-2 text-xs font-semibold transition',
@@ -440,9 +444,9 @@ export const jysSectionTheme = {
       '[&_p]:text-slate-600 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4',
     visionLabel: 'font-semibold text-blue-950',
     ctaWrapper: 'mt-6',
-    rightCol: 'order-1 flex items-center justify-center lg:order-2',
+    rightCol: 'flex items-center justify-center',
     collageWrapper: 'relative h-full w-full',
-    collageGrid: 'grid h-full gap-4 sm:grid-cols-2',
+    collageGrid: 'grid h-full grid-cols-2 gap-4',
     collageLargeCard:
       'relative col-span-1 row-span-2 overflow-hidden rounded-2xl bg-blue-900/5 shadow-[0_8px_30px_rgba(31,41,55,0.12)] ring-1 ring-blue-900/10',
     collageSmallCard:
@@ -552,9 +556,9 @@ export const jysSectionTheme = {
     list: 'mt-6 space-y-3',
     item: 'flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm text-blue-950 shadow-[0_10px_30px_rgba(15,23,42,0.18)]',
     itemIconCircle:
-      'grid h-9 w-9 place-items-center rounded-full bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-[0_6px_20px_rgba(236,72,153,0.55)]',
+      'grid aspect-square h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-[0_6px_20px_rgba(236,72,153,0.55)]',
     itemTitle: 'text-sm font-semibold',
-    itemSubtitle: 'text-xs text-slate-600',
+    itemSubtitle: 'text-xs text-slate-600 break-words',
   },
   supportedBy: {
     sectionWrapper: 'relative w-full bg-white py-12 sm:py-16',

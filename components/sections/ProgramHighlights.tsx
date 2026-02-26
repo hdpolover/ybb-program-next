@@ -45,9 +45,11 @@ export default function ProgramHighlights({
           {/* Left: Kolase 3 gambar */}
           <div className="order-1 lg:order-1">
             <div className="relative h-full w-full">
-              <div className="grid h-full gap-4 sm:grid-cols-2">
+              <div className="grid h-full grid-cols-2 gap-4">
                 {/* Gambar besar kiri */}
-                <div className={jysSectionTheme.programHighlights.collageLargeCard}>
+                <div
+                  className={`${jysSectionTheme.programHighlights.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                >
                   {largeImage ? (
                     <Image
                       src={largeImage.url}
@@ -68,7 +70,9 @@ export default function ProgramHighlights({
                 </div>
 
                 {/* Dua gambar kecil kanan */}
-                <div className={jysSectionTheme.programHighlights.collageSmallCard}>
+                <div
+                  className={`${jysSectionTheme.programHighlights.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                >
                   {smallImage1 ? (
                     <Image
                       src={smallImage1.url}
@@ -87,7 +91,9 @@ export default function ProgramHighlights({
                     />
                   )}
                 </div>
-                <div className={jysSectionTheme.programHighlights.collageSmallCard}>
+                <div
+                  className={`${jysSectionTheme.programHighlights.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
+                >
                   {smallImage2 ? (
                     <Image
                       src={smallImage2.url}

@@ -2,11 +2,26 @@
 
 import Image from "next/image";
 import { PencilLine } from "lucide-react";
+import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { jysSectionTheme } from "@/lib/theme/jys-components";
 
 const submissionTheme = jysSectionTheme.dashboardSubmission;
 
 export default function SubmissionReadProfileHeaderSection() {
+  const { me, onboarding, participantProfile } = useDashboardData();
+
+  const displayName =
+    participantProfile?.displayName?.trim() ||
+    participantProfile?.fullName?.trim() ||
+    onboarding?.displayName?.trim() ||
+    onboarding?.fullName?.trim() ||
+    "Participant";
+  const accountId = me?.userId || "-";
+
+  const originParts = [onboarding?.originCity, onboarding?.originState].filter(Boolean).join(", ");
+  const origin = [originParts, onboarding?.originCountry].filter(Boolean).join("\n");
+  const hasOrigin = Boolean(origin.trim());
+
   return (
     <div className={submissionTheme.profileCard}>
       <div className={submissionTheme.profileRow}>
@@ -30,22 +45,29 @@ export default function SubmissionReadProfileHeaderSection() {
             </button>
           </div>
           <div className="space-y-1.5">
-            <p className={submissionTheme.profileName}>HILMI FARREL FIRJATULLAH</p>
+            <p className={submissionTheme.profileName}>{displayName}</p>
             <p className={submissionTheme.profileRole}>Participant Account</p>
             <p className={submissionTheme.profileMeta}>
               <span className={submissionTheme.profileMetaLabel}>Account ID:</span>{" "}
-              991868DDE4976465C
+              {accountId}
             </p>
           </div>
         </div>
 
         <div className={submissionTheme.profileRightWrapper}>
           <p className={submissionTheme.profileRightLabel}>Primary Address</p>
-          <p className={submissionTheme.profileRightText}>
-            Depok, West Java, 16423
-            <br />
-            Indonesia
-          </p>
+          {hasOrigin ? (
+            <p className={submissionTheme.profileRightText}>
+              {origin.split("\n").map((line, idx) => (
+                <span key={idx}>
+                  {line}
+                  <br />
+                </span>
+              ))}
+            </p>
+          ) : (
+            <p className={submissionTheme.profileRightText}>-</p>
+          )}
         </div>
       </div>
     </div>

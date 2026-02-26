@@ -7,7 +7,13 @@ import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '@/components/dashboard/layout/Sidebar';
 import ProgramSelector from '@/components/dashboard/layout/ProgramSelector';
 import GreetingWithClock from '@/components/dashboard/GreetingWithClock';
-import { DashboardDataProvider, type PortalDashboardSummary } from '@/components/dashboard/DashboardDataContext';
+import {
+  DashboardDataProvider,
+  type AuthMeData,
+  type ParticipantMeData,
+  type ParticipantOnboardingData,
+  type PortalDashboardSummary,
+} from '@/components/dashboard/DashboardDataContext';
 import NotificationsPopover from '@/components/dashboard/layout/NotificationsPopover';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 
@@ -39,36 +45,6 @@ const DASHBOARD_SEARCH_ITEMS: DashboardSearchItem[] = [
     breadcrumb: 'Dashboard Overview',
   },
 ];
-
-type AuthMeData = {
-  userId: string;
-  email: string;
-  brandId?: string;
-  programCategoryId?: string;
-  participantId?: string;
-  registeredPrograms?: Array<{
-    programId: string;
-    programName: string;
-    programSlug: string;
-    year?: number;
-    applicationId?: string;
-    applicationStatus?: string;
-  }>;
-  isProfileCompleted?: boolean;
-};
-
-type ParticipantOnboardingData = {
-  profileCompletionPercentage?: number;
-  displayName?: string;
-  fullName?: string;
-};
-
-type ParticipantMeData = {
-  id?: string;
-  profileCompletionPercentage?: number;
-  displayName?: string;
-  fullName?: string;
-};
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -201,14 +177,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // shell grid: sidebar kiri + konten kanan
   return (
-    <main className="relative min-h-screen bg-white">
-      <div className="flex min-h-screen">
+    <main className="relative h-screen overflow-hidden bg-white">
+      <div className="flex h-screen">
         {/* Sidebar nempel di kiri */}
         <Sidebar profileEmail={me?.email ?? ''} />
 
         {/* Kolom kanan: navbar atas + konten */}
-        <DashboardDataProvider dashboardSummary={dashboardSummary}>
-          <div className="flex min-h-screen flex-1 flex-col">
+        <DashboardDataProvider
+          dashboardSummary={dashboardSummary}
+          me={me}
+          onboarding={onboarding}
+          participantProfile={participantProfile}
+        >
+          <div className="flex h-screen flex-1 flex-col overflow-y-auto">
           {/* Navbar dashboard */}
           <header className="sticky top-0 z-10 flex items-center gap-6 border-b border-slate-100 bg-white px-6 py-4 lg:px-8">
             {/* Spacer kiri (bisa dipakai untuk breadcrumb nanti) */}

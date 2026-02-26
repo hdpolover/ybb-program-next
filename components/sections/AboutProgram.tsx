@@ -60,7 +60,48 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
               </button>
             </div>
 
-            <div className={jysSectionTheme.aboutProgram.contentWrapper}>
+            <div className="mt-6 sm:hidden">
+              <div className={jysSectionTheme.aboutProgram.collageWrapper}>
+                <div className={jysSectionTheme.aboutProgram.collageGrid}>
+                  <div
+                    className={`${jysSectionTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                  >
+                    <Image
+                      src={imageMain}
+                      alt="Japan Youth Summit main program"
+                      fill
+                      sizes="100vw"
+                      className={jysSectionTheme.aboutProgram.collageImage}
+                    />
+                  </div>
+
+                  <div
+                    className={`${jysSectionTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                  >
+                    <Image
+                      src={imageSecondary}
+                      alt="Japan Youth Summit activity"
+                      fill
+                      sizes="50vw"
+                      className={jysSectionTheme.aboutProgram.collageImage}
+                    />
+                  </div>
+                  <div
+                    className={`${jysSectionTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
+                  >
+                    <Image
+                      src={imageThird}
+                      alt="Japan Youth Summit highlight"
+                      fill
+                      sizes="50vw"
+                      className={jysSectionTheme.aboutProgram.collageImage}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={`hidden sm:block ${jysSectionTheme.aboutProgram.contentWrapper}`}>
               {activeTab === 'about' ? (
                 <>
                   {isHtmlContent(about) ? (
@@ -100,7 +141,7 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
               )}
             </div>
 
-            <div className={jysSectionTheme.aboutProgram.ctaWrapper}>
+            <div className={`hidden sm:block ${jysSectionTheme.aboutProgram.ctaWrapper}`}>
               <a
                 href="/apply"
                 className={`${jysSectionTheme.aboutProgram.ctaButton} w-full justify-center`}
@@ -111,11 +152,13 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
           </div>
 
           {/* Right: Kolase Gambar */}
-          <div className={jysSectionTheme.aboutProgram.rightCol}>
+          <div className={`hidden sm:flex ${jysSectionTheme.aboutProgram.rightCol}`}>
             <div className={jysSectionTheme.aboutProgram.collageWrapper}>
               <div className={jysSectionTheme.aboutProgram.collageGrid}>
                 {/* Gambar besar kiri */}
-                <div className={jysSectionTheme.aboutProgram.collageLargeCard}>
+                <div
+                  className={`${jysSectionTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                >
                   <Image
                     src={imageMain}
                     alt="Japan Youth Summit main program"
@@ -126,7 +169,9 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
                 </div>
 
                 {/* Dua gambar kecil kanan */}
-                <div className={jysSectionTheme.aboutProgram.collageSmallCard}>
+                <div
+                  className={`${jysSectionTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                >
                   <Image
                     src={imageSecondary}
                     alt="Japan Youth Summit activity"
@@ -135,7 +180,9 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
                     className={jysSectionTheme.aboutProgram.collageImage}
                   />
                 </div>
-                <div className={jysSectionTheme.aboutProgram.collageSmallCard}>
+                <div
+                  className={`${jysSectionTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
+                >
                   <Image
                     src={imageThird}
                     alt="Japan Youth Summit highlight"
@@ -145,6 +192,55 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
                   />
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className={`sm:hidden ${jysSectionTheme.aboutProgram.contentWrapper}`}>
+            {activeTab === 'about' ? (
+              <>
+                {isHtmlContent(about) ? (
+                  <div
+                    className={jysSectionTheme.aboutProgram.richText}
+                    dangerouslySetInnerHTML={{ __html: about ?? '' }}
+                  />
+                ) : (
+                  <p>{about}</p>
+                )}
+              </>
+            ) : (
+              <>
+                {isHtmlContent(vision) ? (
+                  <div
+                    className={jysSectionTheme.aboutProgram.richText}
+                    dangerouslySetInnerHTML={{ __html: vision ?? '' }}
+                  />
+                ) : (
+                  <p>
+                    <span className={jysSectionTheme.aboutProgram.visionLabel}>Vision.</span>{' '}
+                    {vision}
+                  </p>
+                )}
+                {isHtmlContent(mission) ? (
+                  <div
+                    className={jysSectionTheme.aboutProgram.richText}
+                    dangerouslySetInnerHTML={{ __html: mission ?? '' }}
+                  />
+                ) : (
+                  <p>
+                    <span className={jysSectionTheme.aboutProgram.visionLabel}>Mission.</span>{' '}
+                    {mission}
+                  </p>
+                )}
+              </>
+            )}
+
+            <div className={jysSectionTheme.aboutProgram.ctaWrapper}>
+              <a
+                href="/apply"
+                className={`${jysSectionTheme.aboutProgram.ctaButton} w-full justify-center`}
+              >
+                I Want To Join
+              </a>
             </div>
           </div>
         </div>

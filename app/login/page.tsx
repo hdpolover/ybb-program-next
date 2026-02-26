@@ -145,9 +145,24 @@ export default function LoginPage() {
         throw new Error('Only Google login is available right now.');
       }
 
-      const providerId = oauthProviderIds[providerName] || '';
+      let providerId = oauthProviderIds[providerName] || '';
       if (!providerId) {
-        throw new Error(`${providerName} provider is not available right now. Please try again later.`);
+        try {
+          const ctxRes = await fetch('/api/auth/context', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          const ctxJson = (await ctxRes.json().catch(() => ({}))) as any;
+          const providers = ctxJson?.data?.providers;
+          if (Array.isArray(providers)) {
+            const google = providers.find((p: any) => p?.isOAuth && p?.name === 'google');
+            if (google?.id) providerId = String(google.id);
+          }
+        } catch {
+          // ignore
+        }
       }
 
       const firebaseProvider = googleProvider;
@@ -164,14 +179,28 @@ export default function LoginPage() {
         },
         body: JSON.stringify({
           idToken,
-          providerId,
+          ...(providerId ? { providerId } : {}),
           ...(referralCode ? { referralCode } : {}),
         }),
       });
 
-      const json = (await res.json()) as { statusCode?: number; message?: string };
+      const json = (await res.json()) as {
+        statusCode?: number;
+        message?: string;
+        data?: { isNewUser?: boolean; isOnboardingCompleted?: boolean } | null;
+      };
       if (!res.ok) {
         throw new Error(json?.message || `Login failed: ${res.status} ${res.statusText}`);
+      }
+
+      if (typeof json?.data?.isOnboardingCompleted === 'boolean') {
+        router.push(json.data.isOnboardingCompleted ? '/dashboard' : '/onboarding');
+        return;
+      }
+
+      if (json?.data?.isNewUser) {
+        router.push('/onboarding');
+        return;
       }
 
       try {
