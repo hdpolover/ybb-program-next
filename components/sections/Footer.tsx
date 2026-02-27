@@ -39,6 +39,8 @@ export default function Footer() {
   const brandName = brand?.name?.trim() ? brand.name.trim() : 'Japan Youth Summit';
   const copyrightText = `Copyright © ${new Date().getFullYear()} ${brandName}`;
 
+  const brandLogo = brand?.logo_url?.trim() ? brand.logo_url.trim() : '/img/jysfooters.png';
+
   // Menu is partially dynamic: show only Programs links from API.
   // If API missing or empty, fallback to FOOTER_COPY.nav.
   const apiMenuLinks: { label: string; href: string }[] = (programsSection?.links ?? []).map(link => ({
@@ -87,8 +89,8 @@ export default function Footer() {
           <div>
             <div className="flex items-center">
               <Image
-                src="/img/jysfooters.png"
-                alt="Japan Youth Summit"
+                src={brandLogo}
+                alt={brandName}
                 width={700}
                 height={700}
                 className="h-12 w-auto sm:h-16 md:h-20"
