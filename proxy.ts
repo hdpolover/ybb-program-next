@@ -41,7 +41,7 @@ async function isMaintenanceModeEnabled(): Promise<boolean> {
   }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Get the hostname from the request headers
   const hostname = request.headers.get('host') || '';
   
