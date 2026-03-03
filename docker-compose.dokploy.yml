@@ -17,14 +17,7 @@ services:
       - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
     networks:
       - dokploy-network
-    labels:
-      - "traefik.enable=true"
-      # Add all your domains here using the OR logic (||)
-      - "traefik.http.routers.ybb-program-next-${APP_ENV:-prod}.rule=${APP_DOMAINS_RULE}"
-      - "traefik.http.routers.ybb-program-next-${APP_ENV:-prod}.entrypoints=websecure"
-      - "traefik.http.routers.ybb-program-next-${APP_ENV:-prod}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.ybb-program-next-${APP_ENV:-prod}.loadbalancer.server.port=3000"
-      - "traefik.docker.network=dokploy-network"
+    # Dokploy handles Traefik labels and SSL termination automatically via the UI
 
 networks:
   dokploy-network:
