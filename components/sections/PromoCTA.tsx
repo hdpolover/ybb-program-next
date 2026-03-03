@@ -1,10 +1,21 @@
 import { promoCtaContent } from '@/data/home/sections/promo-cta/promoCta';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import Image from 'next/image';
 
 export default function PromoCTA() {
   const { eyebrow, title, subtitle, primaryCtaHref, primaryCtaLabel } = promoCtaContent;
   return (
     <section className={jysSectionTheme.promoCta.sectionWrapper}>
+      <div className="absolute inset-0 sm:hidden">
+        <Image
+          src="/img/ctabackgroundformobile.png"
+          alt=""
+          fill
+          priority
+          className="object-cover object-center"
+        />
+      </div>
+
       {/* Bentuk buat background */}
       <div className={jysSectionTheme.promoCta.glowLeft} />
       <div className={jysSectionTheme.promoCta.glowRight} />

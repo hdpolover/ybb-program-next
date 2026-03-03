@@ -45,6 +45,21 @@ export const jysSectionTheme = {
     desktopOverlay: 'absolute inset-0 bg-black/0',
     desktopInner: 'relative mx-auto flex h-full max-w-7xl items-center px-6 py-24 lg:px-8',
   },
+  heroSection: {
+    breadcrumbWrapper:
+      'pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 sm:bottom-4 md:bottom-5',
+    breadcrumbMobileOuter: 'pointer-events-auto sm:hidden',
+    breadcrumbMobilePill:
+      'max-w-[calc(100vw-3rem)] rounded-full border border-white/20 bg-black/20 px-3 py-1.5 shadow-sm shadow-black/10 backdrop-blur',
+    breadcrumbMobileRow: 'flex items-center justify-center gap-1.5',
+    breadcrumbMobileLink:
+      'max-w-[12rem] truncate rounded-full px-2 py-0.5 text-[11px] font-semibold text-white/95 hover:bg-white/10',
+    breadcrumbMobileSep: 'text-[11px] font-semibold text-white/60',
+    breadcrumbDesktopOuter:
+      'pointer-events-auto hidden items-stretch overflow-hidden rounded-md border border-white/30 bg-white/15 shadow-sm shadow-black/10 sm:inline-flex',
+    breadcrumbDesktopLink: 'px-5 py-2 text-xs font-semibold text-white hover:bg-white/10',
+    breadcrumbDesktopSep: 'w-px bg-white/30',
+  },
   videoSection: {
     badge:
       'inline-flex items-center rounded-full bg-pink-600 px-3 py-1 text-xs font-semibold text-white shadow whitespace-nowrap',

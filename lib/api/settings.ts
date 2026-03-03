@@ -4,14 +4,20 @@ import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 function normalizeBrandUrl(input: string): string {
   const trimmed = (input || '').trim().replace(/\/+$/, '');
   if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
+  const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
+  // Strip port if present (e.g. localhost:3000)
+  return withoutProtocol.split(':')[0];
 }
 
 const DEFAULT_BRAND_URL =
   normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
 
 export async function getSettingsForBrandDomain(brandDomain: string): Promise<SettingsData> {
-  const normalized = normalizeBrandUrl(brandDomain) || DEFAULT_BRAND_URL;
+  const normalizedHost = normalizeBrandUrl(brandDomain);
+  const normalized =
+    !normalizedHost || normalizedHost === 'localhost' || normalizedHost === '127.0.0.1'
+      ? DEFAULT_BRAND_URL
+      : normalizedHost;
   return apiGetWithEnvelope<SettingsData>('/v1/landing/settings', {
     headers: {
       'x-brand-domain': normalized,
