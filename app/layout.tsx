@@ -1,6 +1,7 @@
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
+import Script from 'next/script';
 import { getHomePageData } from '@/lib/api/home';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import './globals.css';
@@ -157,6 +158,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ClientChatWidgetGate />
           <ClientFooterGate />
         </PromoCTAProvider>
+
+        <Script
+          src="https://aksamu.com/chat-widget.js"
+          data-bot-id="4a9ea369-4638-413f-92d4-9c4600f7c6be"
+          data-primary-color="#16a34a"
+          defer
+        />
       </body>
     </html>
   );

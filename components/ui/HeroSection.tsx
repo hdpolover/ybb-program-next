@@ -1,4 +1,5 @@
 import React from 'react';
+import { jysSectionTheme } from '@/lib/theme/jys-components';
 
 // Komponen Hero reusable biar semua halaman konsisten gaya-nya
 // Pakai ini di tiap page: title, subtitle, dan background bisa diatur
@@ -25,6 +26,7 @@ export default function HeroSection({
   ctaHref?: string;
   textSize?: 'default' | 'sm';
 }) {
+  const heroTheme = jysSectionTheme.heroSection;
   const containerHeight = heightClass ?? 'min-h-[360px] md:min-h-[420px]';
   const decorTopRight = decorVariant === 'compact' ? 'h-[24rem] w-[24rem]' : 'h-[28rem] w-[28rem]';
   const decorMidRight = decorVariant === 'compact' ? 'h-[16rem] w-[16rem]' : 'h-[18rem] w-[18rem]';
@@ -50,6 +52,45 @@ export default function HeroSection({
         <div className={contentWidth}>
           <h1 className={titleSizeCls}>{title}</h1>
           {subtitle ? <p className={`mt-4 ${subtitleSizeCls}`}>{subtitle}</p> : null}
+          {breadcrumb && breadcrumb.length > 0 ? (
+            <div className={heroTheme.breadcrumbWrapper}>
+              <div className={heroTheme.breadcrumbMobileOuter}>
+                <div className={heroTheme.breadcrumbMobilePill}>
+                  <div className={heroTheme.breadcrumbMobileRow}>
+                    {breadcrumb.slice(-2).map((b, i, arr) => (
+                      <React.Fragment key={`${b.label}_${i}`}>
+                        <a
+                          href={b.href ?? '#'}
+                          className={heroTheme.breadcrumbMobileLink}
+                          title={b.label}
+                        >
+                          {b.label}
+                        </a>
+                        {i < arr.length - 1 ? (
+                          <span aria-hidden className={heroTheme.breadcrumbMobileSep}>
+                            ›
+                          </span>
+                        ) : null}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className={heroTheme.breadcrumbDesktopOuter}>
+                {breadcrumb.map((b, i) => (
+                  <React.Fragment key={i}>
+                    <a href={b.href ?? '#'} className={heroTheme.breadcrumbDesktopLink}>
+                      {b.label}
+                    </a>
+                    {i < breadcrumb.length - 1 ? (
+                      <span aria-hidden className={heroTheme.breadcrumbDesktopSep} />
+                    ) : null}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {ctaLabel && ctaHref ? (
             <div className="mt-6">
               <a
@@ -63,25 +104,6 @@ export default function HeroSection({
         </div>
       </div>
 
-      {breadcrumb && breadcrumb.length > 0 ? (
-        <div className="pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 sm:bottom-4 md:bottom-5">
-          <div className="pointer-events-auto inline-flex items-stretch overflow-hidden rounded-md border border-white/30 bg-white/15 shadow-sm shadow-black/10">
-            {breadcrumb.map((b, i) => (
-              <React.Fragment key={i}>
-                <a
-                  href={b.href ?? '#'}
-                  className="px-5 py-2 text-xs font-semibold text-white hover:bg-white/10"
-                >
-                  {b.label}
-                </a>
-                {i < breadcrumb.length - 1 ? (
-                  <span aria-hidden className="w-px bg-white/30" />
-                ) : null}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      ) : null}
 
       <div
         className={`pointer-events-none absolute -right-24 -top-24 ${decorTopRight} rounded-full bg-white/10 blur-3xl`}

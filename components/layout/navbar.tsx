@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Search as SearchIcon, Menu, X } from 'lucide-react';
 import { getSettings } from '@/lib/api/settings';
@@ -14,8 +14,16 @@ export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [pinned, setPinned] = useState(false);
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const pathname = usePathname();
+
+  const lastScrollYRef = useRef(0);
+  const scrollElRef = useRef<HTMLElement | null>(null);
+  const activeScrollElRef = useRef<HTMLElement | null>(null);
+  const scrollDirRef = useRef<'up' | 'down'>('down');
+  const scrollAccumRef = useRef(0);
 
   const hrefFor = (item: string): string => {
     switch (item) {
@@ -41,11 +49,81 @@ export function Navbar() {
       }
     };
     window.addEventListener('keydown', onKey);
-    const onScroll = () => setScrolled(window.scrollY > 0);
+
+    const isScrollable = (el: Element): el is HTMLElement => {
+      if (!(el instanceof HTMLElement)) return false;
+      const style = window.getComputedStyle(el);
+      const oy = style.overflowY;
+      if (oy !== 'auto' && oy !== 'scroll') return false;
+      return el.scrollHeight > el.clientHeight + 1;
+    };
+
+    const rootScrollEl = (document.scrollingElement as HTMLElement | null) ?? document.documentElement;
+    scrollElRef.current = rootScrollEl;
+    activeScrollElRef.current = rootScrollEl;
+    lastScrollYRef.current = rootScrollEl.scrollTop;
+
+    let raf = 0;
+    const onScroll = (e?: Event) => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+
+        const target = e?.target;
+        if (target && target instanceof Element && isScrollable(target)) {
+          activeScrollElRef.current = target;
+        }
+
+        const active = activeScrollElRef.current ?? scrollElRef.current;
+        const y = active?.scrollTop ?? 0;
+        setScrolled(y > 0);
+
+        const PIN_THRESHOLD = 120;
+        const nextPinned = y > PIN_THRESHOLD;
+        setPinned(nextPinned);
+        if (!nextPinned) {
+          setHidden(false);
+        }
+
+        const lastY = lastScrollYRef.current;
+        const diff = y - lastY;
+        lastScrollYRef.current = y;
+
+        if (!nextPinned) return;
+
+        // Accumulate scroll distance per direction to support trackpads/momentum
+        if (Math.abs(diff) < 1) return;
+
+        const dir: 'up' | 'down' = diff > 0 ? 'down' : 'up';
+        if (dir !== scrollDirRef.current) {
+          scrollDirRef.current = dir;
+          scrollAccumRef.current = 0;
+        }
+
+        scrollAccumRef.current += Math.abs(diff);
+
+        const HIDE_AFTER = 24;
+        const SHOW_AFTER = 12;
+
+        if (dir === 'down' && scrollAccumRef.current >= HIDE_AFTER) {
+          setHidden(true);
+          scrollAccumRef.current = 0;
+        }
+
+        if (dir === 'up' && scrollAccumRef.current >= SHOW_AFTER) {
+          setHidden(false);
+          scrollAccumRef.current = 0;
+        }
+      });
+    };
+
     window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('scroll', onScroll, { passive: true, capture: true });
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('scroll', onScroll, { capture: true } as AddEventListenerOptions);
+      if (raf) window.cancelAnimationFrame(raf);
     };
   }, []);
 
@@ -72,18 +150,16 @@ export function Navbar() {
     console.log('Search:', query);
     setSearchOpen(false);
   };
-  return (
-    <>
-      {/* Bar atas */}
-      <div className="h-1 w-full bg-gray-800"></div>
 
-      {/* Navbar utama */}
+  const navbarContent = (
+    <>
+      <div className="h-1 w-full bg-gray-800" />
+
       <nav
-        className={`${'sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60'} ${scrolled ? 'shadow-sm' : ''}`}
+        className={`${'w-full border-b border-gray-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60'} ${scrolled ? 'shadow-sm' : ''}`}
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between md:h-24">
-            {/* Logo */}
             <div className="flex items-center">
               <Image
                 src={logoSrc}
@@ -95,7 +171,6 @@ export function Navbar() {
               />
             </div>
 
-            {/* Link Navigasi buat Laptop / Komputer (desktop) */}
             <div className="hidden items-center space-x-10 md:flex">
               {navItems.map(item => {
                 const href = hrefFor(item);
@@ -118,7 +193,6 @@ export function Navbar() {
             </div>
 
             <div className="flex items-center space-x-3 md:space-x-5">
-              {/* Ikon Pencarian */}
               <button
                 className="text-gray-600 transition-colors hover:text-gray-800"
                 aria-label="Search"
@@ -127,7 +201,6 @@ export function Navbar() {
                 <SearchIcon className="h-5 w-5" />
               </button>
 
-              {/* CTA Desktop */}
               <a
                 href="/login"
                 className="hidden items-center justify-center rounded-lg bg-[var(--brand-accent)] px-5 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 md:inline-flex"
@@ -135,7 +208,6 @@ export function Navbar() {
                 REGISTER NOW
               </a>
 
-              {/* Tombol menu (mobile) */}
               <button
                 type="button"
                 aria-label="Open menu"
@@ -146,15 +218,14 @@ export function Navbar() {
               </button>
             </div>
           </div>
-          {/* Panel buat Mobile Device */}
+
           {open && (
             <div className="md:hidden">
               <div className="mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
                 <div className="space-y-2">
                   {navItems.map(item => {
                     const href = hrefFor(item);
-                    const isActive =
-                      pathname === href || (href !== '/' && pathname.startsWith(href));
+                    const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
                     return (
                       <a
                         key={item}
@@ -185,6 +256,20 @@ export function Navbar() {
           )}
         </div>
       </nav>
+    </>
+  );
+
+  return (
+    <>
+      <div>{navbarContent}</div>
+
+      <div
+        className={`${'fixed left-0 right-0 top-0 z-50 will-change-transform transition-[transform,opacity] duration-300'} ${
+          pinned ? 'opacity-100' : 'pointer-events-none opacity-0'
+        } ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
+      >
+        {navbarContent}
+      </div>
 
       {/* Overlay buat Searchnya */}
       {searchOpen && (
