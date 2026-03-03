@@ -1,146 +1,36 @@
-# Japan Youth Summit
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A modern, scalable Next.js application built with international standards.
+## Getting Started
 
-## 🚀 Features
-
-- ⚡ **Next.js 14** with App Router
-- 🔷 **TypeScript** for type safety
-- 🎨 **Tailwind CSS** for styling
-- 🌍 **Internationalization** (i18n) support
-- 📦 **Clean Architecture** with organized folder structure
-- 🛠️ **ESLint & Prettier** for code quality
-- 🎯 **Best Practices** for enterprise applications
-
-## 📁 Project Structure
-
-```
-.
-├── app/                          # Next.js App Router (pages & layouts)
-│   ├── api/                      # API routes
-│   │   └── health/               # Health check endpoint
-│   ├── layout.tsx               # Root layout with metadata
-│   ├── page.tsx                 # Home page
-│   ├── globals.css              # Global styles
-│   ├── metadata.ts              # Default metadata configuration
-│   ├── loading.tsx              # Loading UI
-│   ├── error.tsx                # Error boundary
-│   └── not-found.tsx            # 404 page
-├── components/                   # React components
-│   ├── pages/                   # Page-specific components
-│   │   └── home/                # Home page components
-│   └── ui/                      # Reusable UI components
-│       ├── button/              # Button component
-│       └── card/                # Card component
-├── lib/                         # Utility functions & helpers
-│   ├── utils.ts                 # Common utilities (cn, formatDate, etc.)
-│   ├── constants.ts             # App constants
-│   ├── validation.ts            # Validation functions
-│   └── i18n.ts                  # Internationalization helpers
-├── hooks/                       # Custom React hooks
-│   └── use-media-query.ts       # Media query hook
-├── types/                       # TypeScript type definitions
-│   └── index.ts                 # Global types
-├── constants/                   # Application constants
-│   ├── routes.ts                # Route constants
-│   └── api.ts                   # API endpoint constants
-├── config/                      # Configuration files
-│   └── site.ts                  # Site configuration
-├── locales/                     # Internationalization files
-│   ├── en/                      # English translations
-│   └── id/                      # Indonesian translations
-├── public/                      # Static assets (images, fonts, etc.)
-├── styles/                      # Additional global styles
-├── middleware.ts                # Next.js middleware
-├── next.config.js               # Next.js configuration
-├── tailwind.config.ts           # Tailwind CSS configuration
-├── tsconfig.json                # TypeScript configuration
-└── package.json                 # Dependencies & scripts
-```
-
-## 🛠️ Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm 9+
-
-### Installation
+First, run the development server:
 
 ```bash
-# Install dependencies
-npm install
-
-# Run development server
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Open [http://localhost:3010](http://localhost:3010) in your browser (if using Docker Compose).
-Or [http://localhost:3000](http://localhost:3000) if running directly with `npm run dev`.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 📝 Available Scripts
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript type checking
-- `npm run format` - Format code with Prettier
-- `npm run format:check` - Check code formatting
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## 🌍 Internationalization
+## Learn More
 
-The project includes internationalization support with English and Indonesian locales. The structure is ready for full i18n implementation:
+To learn more about Next.js, take a look at the following resources:
 
-- Translation files are stored in `locales/[locale]/` directory
-- Use `lib/i18n.ts` helpers for loading translations
-- For production apps, consider using `next-intl` or similar library
-- Middleware is set up and ready for locale routing
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-To add more languages:
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-1. Create translation files in `locales/[new-locale]/` directory
-2. Update `types/index.ts` to include new locale
-3. Extend middleware for locale detection/routing
+## Deploy on Vercel
 
-## 🔧 Configuration
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-### Environment Variables
-
-Create a `.env.local` file in the root directory:
-
-```env
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=/api
-```
-
-## 📚 Tech Stack
-
-- **Framework**: Next.js 14
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Code Quality**: ESLint, Prettier
-- **Package Manager**: npm
-
-## 🎯 Best Practices
-
-- ✅ TypeScript strict mode enabled
-- ✅ Component-based architecture
-- ✅ Path aliases for clean imports
-- ✅ Separation of concerns
-- ✅ Reusable utilities and hooks
-- ✅ International standards compliance
-
-## 📄 License
-
-This project is private and proprietary.
-
-## 👥 Contributing
-
-This is a private project. Please follow the established code standards and practices.
-# YBBWEBSITE
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
