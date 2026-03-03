@@ -37,18 +37,37 @@ export default function FurtherInformationSection({
 }: FurtherInformationProps) {
   return (
     <section
-      className={jysSectionTheme.furtherInfo.sectionWrapper}
-      style={{
-        backgroundImage: "url('/img/halfback.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
+      className={`${jysSectionTheme.furtherInfo.sectionWrapper} min-h-[760px] py-14 sm:min-h-0 sm:py-28`}
     >
-      <div className={jysSectionTheme.furtherInfo.card}>
+      <div className="absolute inset-0 bg-pink-100 sm:hidden" />
+      <div className="absolute inset-x-0 bottom-0 h-[72%] sm:hidden">
+        <Image
+          src="/img/backgroundformobile.png"
+          alt=""
+          fill
+          priority
+          className="object-contain object-bottom"
+        />
+      </div>
+      <div className="absolute inset-0 hidden sm:block">
+        <Image
+          src="/img/halfback.png"
+          alt=""
+          fill
+          priority
+          className="object-cover object-center"
+        />
+      </div>
+
+      <div className={`${jysSectionTheme.furtherInfo.card} relative z-10`}>
         <div className={jysSectionTheme.furtherInfo.innerGrid}>
           <div className={jysSectionTheme.furtherInfo.leftCol}>
-            <SectionHeader eyebrow="Guidebook" title={title} align="left" />
+            <div className="sm:hidden">
+              <SectionHeader eyebrow="Guidebook" title={title} align="center" />
+            </div>
+            <div className="hidden sm:block">
+              <SectionHeader eyebrow="Guidebook" title={title} align="left" />
+            </div>
             <p className={jysSectionTheme.furtherInfo.description}>{subtitle}</p>
 
             <div className={jysSectionTheme.furtherInfo.buttonsCol}>

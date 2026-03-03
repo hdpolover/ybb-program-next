@@ -32,21 +32,70 @@ export type PortalDashboardSummary = {
   stats?: Record<string, unknown>;
 };
 
-type DashboardDataContextValue = {
-  dashboardSummary: PortalDashboardSummary | null;
+export type AuthMeData = {
+  userId: string;
+  email: string;
+  brandId?: string;
+  programCategoryId?: string;
+  participantId?: string;
+  registeredPrograms?: Array<{
+    programId: string;
+    programName: string;
+    programSlug: string;
+    year?: number;
+    applicationId?: string;
+    applicationStatus?: string;
+  }>;
+  isProfileCompleted?: boolean;
 };
 
-const DashboardDataContext = createContext<DashboardDataContextValue>({ dashboardSummary: null });
+export type ParticipantOnboardingData = {
+  profileCompletionPercentage?: number;
+  displayName?: string;
+  fullName?: string;
+  originCity?: string;
+  originState?: string;
+  originCountry?: string;
+};
+
+export type ParticipantMeData = {
+  id?: string;
+  profileCompletionPercentage?: number;
+  displayName?: string;
+  fullName?: string;
+};
+
+type DashboardDataContextValue = {
+  dashboardSummary: PortalDashboardSummary | null;
+  me: AuthMeData | null;
+  onboarding: ParticipantOnboardingData | null;
+  participantProfile: ParticipantMeData | null;
+};
+
+const DashboardDataContext = createContext<DashboardDataContextValue>({
+  dashboardSummary: null,
+  me: null,
+  onboarding: null,
+  participantProfile: null,
+});
 
 export function DashboardDataProvider({
   dashboardSummary,
+  me,
+  onboarding,
+  participantProfile,
   children,
 }: {
   dashboardSummary: PortalDashboardSummary | null;
+  me: AuthMeData | null;
+  onboarding: ParticipantOnboardingData | null;
+  participantProfile: ParticipantMeData | null;
   children: React.ReactNode;
 }) {
   return (
-    <DashboardDataContext.Provider value={{ dashboardSummary }}>{children}</DashboardDataContext.Provider>
+    <DashboardDataContext.Provider value={{ dashboardSummary, me, onboarding, participantProfile }}>
+      {children}
+    </DashboardDataContext.Provider>
   );
 }
 

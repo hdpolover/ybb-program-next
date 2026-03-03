@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 
 export default function DevtoolsGuard() {
+  if (process.env.NODE_ENV !== 'production') return null;
+
   const [show, setShow] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [password, setPassword] = useState('');

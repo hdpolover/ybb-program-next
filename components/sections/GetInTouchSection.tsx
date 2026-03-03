@@ -51,14 +51,28 @@ export default function GetInTouchSection({
   return (
     <section className={jysSectionTheme.getInTouch.sectionWrapper}>
       <div
-        className={jysSectionTheme.getInTouch.card}
-        style={{
-          backgroundImage: `url(${jysSectionTheme.getInTouch.cardBackground})`,
-          backgroundSize: 'auto 103%',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
+        className={`${jysSectionTheme.getInTouch.card} relative`}
       >
+        <div className="absolute inset-0 sm:hidden">
+          <Image
+            src="/img/touchwithusmobile.png"
+            alt=""
+            fill
+            priority
+            className="object-cover object-left"
+          />
+        </div>
+        <div className="absolute inset-0 hidden sm:block">
+          <Image
+            src={jysSectionTheme.getInTouch.cardBackground}
+            alt=""
+            fill
+            priority
+            className="object-cover object-center"
+          />
+        </div>
+
+        <div className="relative z-10">
         <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)] items-center gap-8">
           {/* Kiri: gambar ilustrasi */}
           <div className={jysSectionTheme.getInTouch.imageWrapper}></div>
@@ -78,7 +92,7 @@ export default function GetInTouchSection({
                     rel={item.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
                   >
                     <div className={jysSectionTheme.getInTouch.itemIconCircle}>{item.icon}</div>
-                    <div>
+                    <div className="min-w-0">
                       <p className={jysSectionTheme.getInTouch.itemTitle}>{item.title}</p>
                       <p className={jysSectionTheme.getInTouch.itemSubtitle}>{item.subtitle}</p>
                     </div>
@@ -87,6 +101,7 @@ export default function GetInTouchSection({
               })}
             </div>
           </div>
+        </div>
         </div>
       </div>
     </section>

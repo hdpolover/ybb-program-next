@@ -113,8 +113,8 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                 </div>
               )}
             </div>
-            <div className="flex items-center justify-between gap-2">
-              <div>
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-900 sm:text-base">
                   {currentVideo ? truncateTitle(currentVideo.title) : 'Video coming soon'}
                 </p>
@@ -122,7 +122,7 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                   {currentVideo ? currentVideo.description : 'Stay tuned, video will be added soon.'}
                 </p>
               </div>
-              <span className={jysSectionTheme.videoSection.badge}>JYS Program {year}</span>
+              <span className={`${jysSectionTheme.videoSection.badge} shrink-0`}>JYS Program {year}</span>
             </div>
           </div>
 

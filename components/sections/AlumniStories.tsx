@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
@@ -42,8 +42,18 @@ export default function AlumniStoriesSection({
 	items,
 }: AlumniStoriesProps) {
 	const [startIndex, setStartIndex] = useState(0);
+	const [pageSize, setPageSize] = useState(REELS_PAGE_SIZE);
 	const [loaded, setLoaded] = useState<Record<string, boolean>>({});
 	const [activeId, setActiveId] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+		const query = window.matchMedia('(min-width: 640px)');
+		const apply = () => setPageSize(query.matches ? REELS_PAGE_SIZE : 1);
+		apply();
+		query.addEventListener('change', apply);
+		return () => query.removeEventListener('change', apply);
+	}, []);
 
 	const normalizedItems = useMemo(() => {
 		if (!items || items.length === 0) return [] as AlumniStoryItem[];
@@ -51,7 +61,7 @@ export default function AlumniStoriesSection({
 	}, [items]);
 
 	const total = normalizedItems.length;
-	const safePageSize = total === 0 ? 0 : Math.min(REELS_PAGE_SIZE, total);
+	const safePageSize = total === 0 ? 0 : Math.min(pageSize, total);
 	const visibleReels =
 		total === 0 || safePageSize === 0
 			? []
@@ -230,8 +240,7 @@ export default function AlumniStoriesSection({
 									Video coming soon
 								</div>
 							)}
-							{/* kartu placeholder biar grid-nya tetap penuh sampai batas REELS_PAGE_SIZE */}
-							{Array.from({ length: Math.max(0, REELS_PAGE_SIZE - visibleReels.length) }).map(
+							{Array.from({ length: Math.max(0, safePageSize - visibleReels.length) }).map(
 								(_, idx) => (
 									<div
 										key={`alumni-placeholder-${idx}`}

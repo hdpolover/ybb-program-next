@@ -33,7 +33,15 @@ type FirebaseLoginResponse = {
   data?: {
     accessToken?: string;
     refreshToken?: string;
+    user?: { isOnboardingCompleted?: boolean; onboarding?: boolean };
   };
+  user?: { isOnboardingCompleted?: boolean; onboarding?: boolean };
+};
+
+type ProvidersResponse = {
+  statusCode: number;
+  message: string;
+  data: Array<{ id: string; name: string; isOAuth: boolean }>;
 };
 
 export async function POST(request: Request) {
@@ -50,6 +58,27 @@ export async function POST(request: Request) {
       );
     }
 
+    let providerId = (body.providerId || '').trim();
+    if (!providerId) {
+      try {
+        const providersRes = await fetch(new URL('/v1/auth/providers', 'https://staging-api.ybbhub.com').toString(), {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'x-brand-domain': brandDomain,
+          },
+          cache: 'no-store',
+        });
+        const providersJson = (await providersRes.json().catch(() => ({}))) as ProvidersResponse;
+        const providers = Array.isArray(providersJson.data) ? providersJson.data : [];
+        const google = providers.find(p => p?.isOAuth && p?.name === 'google');
+        if (google?.id) providerId = google.id;
+      } catch {
+        // ignore
+      }
+    }
+    if (!providerId) providerId = fallbackProviderId;
+
     const url = new URL('/v1/auth/firebase-login', 'https://staging-api.ybbhub.com');
 
     const res = await fetch(url.toString(), {
@@ -60,7 +89,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         idToken: body.idToken,
-        providerId: body.providerId || fallbackProviderId,
+        providerId,
         ...(body.referralCode ? { referralCode: body.referralCode } : {}),
       }),
     });
@@ -78,6 +107,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const isNewUser = json.statusCode === 201 || res.status === 201;
+
+    const isOnboardingCompleted =
+      json.data?.user?.isOnboardingCompleted ??
+      json.user?.isOnboardingCompleted ??
+      (typeof json.data?.user?.onboarding === 'boolean' ? !json.data.user.onboarding : undefined) ??
+      (typeof json.user?.onboarding === 'boolean' ? !json.user.onboarding : undefined);
+
     const accessToken = json.data?.accessToken ?? json.accessToken;
     const refreshToken = json.data?.refreshToken ?? json.refreshToken;
 
@@ -88,7 +125,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const response = NextResponse.json({ statusCode: 200, message: 'Success', data: null });
+    const response = NextResponse.json({
+      statusCode: isNewUser ? 201 : 200,
+      message: 'Success',
+      data: {
+        isNewUser,
+        ...(typeof isOnboardingCompleted === 'boolean' ? { isOnboardingCompleted } : {}),
+        ...(process.env.NODE_ENV !== 'production' ? { providerIdUsed: providerId } : {}),
+      },
+    });
 
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,

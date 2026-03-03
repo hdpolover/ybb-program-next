@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Search as SearchIcon, Menu, X } from 'lucide-react';
+import { getSettings } from '@/lib/api/settings';
+import type { SettingsData } from '@/types/settings';
 
 const navItems: string[] = ['Home', 'Programs', 'Partners & Sponsors', 'Announcements', 'FAQ'];
 
@@ -12,6 +14,7 @@ export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [settings, setSettings] = useState<SettingsData | null>(null);
   const pathname = usePathname();
 
   const hrefFor = (item: string): string => {
@@ -46,6 +49,23 @@ export function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await getSettings();
+        if (!cancelled) setSettings(data);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const logoSrc = settings?.brand?.logo_url?.trim() || '/img/jysfix.png';
+
   const submitSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     // TODO: ini baru hardcode, kalo mau berfungsi hubungin sama real search functionnya
@@ -66,7 +86,7 @@ export function Navbar() {
             {/* Logo */}
             <div className="flex items-center">
               <Image
-                src="/img/jysfix.png"
+                src={logoSrc}
                 alt="Logo"
                 width={420}
                 height={420}
@@ -87,8 +107,8 @@ export function Navbar() {
                     aria-current={isActive ? 'page' : undefined}
                     className={
                       isActive
-                        ? 'text-lg font-semibold text-pink-600 transition-colors'
-                        : 'text-lg font-semibold text-gray-600 transition-colors hover:text-pink-500'
+                        ? 'text-lg font-semibold text-[var(--brand-accent)] transition-colors'
+                        : 'text-lg font-semibold text-gray-600 transition-colors hover:text-[var(--brand-accent)]'
                     }
                   >
                     {item}
@@ -110,7 +130,7 @@ export function Navbar() {
               {/* CTA Desktop */}
               <a
                 href="/login"
-                className="hidden items-center justify-center rounded-lg bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 md:inline-flex"
+                className="hidden items-center justify-center rounded-lg bg-[var(--brand-accent)] px-5 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 md:inline-flex"
               >
                 REGISTER NOW
               </a>
@@ -142,8 +162,8 @@ export function Navbar() {
                         aria-current={isActive ? 'page' : undefined}
                         className={
                           isActive
-                            ? 'block w-full rounded-xl bg-pink-50 px-4 py-3 text-left text-base font-medium text-pink-600 transition'
-                            : 'block w-full rounded-xl px-4 py-3 text-left text-base font-medium text-slate-800 transition hover:bg-pink-50 hover:text-pink-600'
+                            ? 'block w-full rounded-xl bg-[var(--brand-accent-soft)] px-4 py-3 text-left text-base font-medium text-[var(--brand-accent)] transition'
+                            : 'block w-full rounded-xl px-4 py-3 text-left text-base font-medium text-slate-800 transition hover:bg-[var(--brand-accent-soft)] hover:text-[var(--brand-accent)]'
                         }
                         onClick={() => setOpen(false)}
                       >
@@ -155,7 +175,7 @@ export function Navbar() {
                 <div className="my-3 h-px w-full bg-gray-200" />
                 <a
                   href="/login"
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-pink-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700"
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand-accent)] px-4 py-3 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90"
                   onClick={() => setOpen(false)}
                 >
                   REGISTER NOW
@@ -189,12 +209,12 @@ export function Navbar() {
                   onChange={e => setQuery(e.target.value)}
                   type="text"
                   placeholder="Search..."
-                  className="w-full rounded-lg border border-slate-200 bg-white px-9 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-200"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-9 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[var(--brand-accent)] focus:ring-2 focus:ring-[var(--brand-accent-soft)]"
                 />
               </div>
               <button
                 type="submit"
-                className="rounded-lg bg-pink-600 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-pink-700"
+                className="rounded-lg bg-[var(--brand-accent)] px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90"
               >
                 Search
               </button>
