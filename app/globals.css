@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Local font faces (safe to keep even if files are not present yet) */
+@font-face {
+  font-family: 'Palo Neue';
+  src:
+    url('/fonts/PaloNeue-Regular.woff2') format('woff2'),
+    url('/fonts/PaloNeue-Regular.woff') format('woff'),
+    url('/fonts/PaloNeue-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Theme tokens (JYS default). Other programs override via [data-program="..."] on body */
+:root {
+  /* Base surface & text */
+  --color-background: #ffffff;
+  --color-foreground: #020617;
+
+  /* Brand-scoped tokens (default JYS, sinkron dengan BRAND_THEMES.jys) */
+  --brand-accent: #ec4899;
+  --brand-accent-soft: #fce7f3;
+  --brand-accent-foreground: #ffffff;
+  --brand-primary: #020617;
+  --brand-primary-foreground: #ffffff;
+  --brand-text: #0f172a;
+  --brand-border: #fb7185;
+
+  /* Shorthand tokens yang dipakai utilitas Tailwind berbasis CSS vars */
+  --color-primary: var(--brand-primary);
+  --color-primary-foreground: var(--brand-primary-foreground);
+  --color-accent: var(--brand-accent);
+  --color-accent-foreground: var(--brand-accent-foreground);
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body[data-program='jys'] {
+  /* Explicit supaya gampang dibaca & di-sync sama BRAND_THEMES.jys */
+  --brand-accent: #ec4899;
+  --brand-accent-soft: #fce7f3;
+  --brand-accent-foreground: #ffffff;
+  --brand-primary: #020617;
+  --brand-primary-foreground: #ffffff;
+  --brand-text: #0f172a;
+  --brand-border: #fb7185;
+}
+
+body[data-program='iys'] {
+  /* Contoh theme IYS, disesuaikan dari BRAND_THEMES.iys */
+  --brand-accent: #38bdf8;
+  --brand-accent-soft: #e0f2fe;
+  --brand-accent-foreground: #020617;
+  --brand-primary: #0f172a;
+  --brand-primary-foreground: #f9fafb;
+  --brand-text: #020617;
+  --brand-border: #0ea5e9;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  min-height: 100vh;
+  font-family:
+    'Palo Neue',
+    'Plus Jakarta Sans',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    'Apple Color Emoji',
+    'Segoe UI Emoji';
+}
