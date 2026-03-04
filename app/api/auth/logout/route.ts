@@ -15,7 +15,7 @@ export async function POST() {
     const accessToken = cookieStore.get('accessToken')?.value;
 
     if (accessToken) {
-      const apiUrl = new URL('/v1/auth/logout', 'https://staging-api.ybbhub.com');
+      const apiUrl = new URL('/v1/auth/logout', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
       const res = await fetch(apiUrl.toString(), {
         method: 'POST',
         headers: {

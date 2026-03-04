@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiUrl = new URL('/v1/auth/login', 'https://staging-api.ybbhub.com');
+    const apiUrl = new URL('/v1/auth/login', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {

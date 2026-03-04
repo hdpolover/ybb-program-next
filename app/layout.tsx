@@ -60,6 +60,8 @@ function pickForeground(hex: string): string {
   return relativeLuminance(hex) > 0.6 ? '#020617' : '#ffffff';
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
   const host = headersList.get('host') || 'youthacademicforum.com';
@@ -119,21 +121,32 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let brandAccent: string | null = null;
   let settingsData = null;
 
-  try {
-    const settings = await getSettingsForBrandDomain(host);
-    settingsData = settings;
-    brandAccent = normalizeHex(settings?.brand?.primary_color);
-  } catch {
-    // ignore
+  // Fetch both in parallel for faster loading
+  const [settingsResult, homeDataResult] = await Promise.allSettled([
+    getSettingsForBrandDomain(host),
+    getHomePageData(host),
+  ]);
+
+  if (settingsResult.status === 'fulfilled') {
+    settingsData = settingsResult.value;
+    const rawColor = settingsResult.value?.brand?.primary_color;
+    brandAccent = normalizeHex(rawColor);
+  } else {
+    console.error('[Layout] Failed to load settings:', settingsResult.reason);
   }
 
-  try {
-    const data = await getHomePageData(host);
-    if (data.slug) {
-      programSlug = data.slug;
-    }
-  } catch (e) {
-    console.error('Failed to fetch program data for layout', e);
+  // Fallback to env variable or default if API returns null
+  if (!brandAccent) {
+    brandAccent = normalizeHex(process.env.NEXT_PUBLIC_DEFAULT_BRAND_COLOR) || '#1c57b3';
+    console.log('[Layout] Using fallback theme:', brandAccent);
+  } else {
+    console.log('[Layout] Theme loaded from API:', brandAccent);
+  }
+
+  if (homeDataResult.status === 'fulfilled' && homeDataResult.value.slug) {
+    programSlug = homeDataResult.value.slug;
+  } else if (homeDataResult.status === 'rejected') {
+    console.error('[Layout] Failed to fetch program data:', homeDataResult.reason);
   }
 
   const accent = brandAccent;

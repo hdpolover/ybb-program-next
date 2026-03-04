@@ -55,7 +55,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/v1$/, '') || 'https://staging-api.ybbhub.com';
+    const baseCandidate = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
+    const apiBaseUrl = baseCandidate.replace(/\/v1\/?$/, '');
     const url = new URL('/v1/auth/firebase-login', apiBaseUrl);
 
     const res = await fetch(url.toString(), {

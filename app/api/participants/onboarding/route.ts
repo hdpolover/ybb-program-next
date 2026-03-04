@@ -40,7 +40,7 @@ export async function GET(request: Request) {
 
     const brandDomain = resolveBrandDomainFromRequest(request);
 
-    const apiUrl = new URL('/v1/participants/onboarding', 'https://staging-api.ybbhub.com');
+    const apiUrl = new URL('/v1/participants/onboarding', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
 
-    const apiUrl = new URL('/v1/participants/onboarding', 'https://staging-api.ybbhub.com');
+    const apiUrl = new URL('/v1/participants/onboarding', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {

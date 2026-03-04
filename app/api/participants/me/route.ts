@@ -42,7 +42,7 @@ export async function GET(request: Request) {
 
     const brandDomain = resolveBrandDomainFromRequest(request);
 
-    const apiUrl = new URL('/v1/participants/me', 'https://staging-api.ybbhub.com');
+    const apiUrl = new URL('/v1/participants/me', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
