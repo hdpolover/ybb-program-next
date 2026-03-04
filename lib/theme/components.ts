@@ -1,6 +1,6 @@
 // Per-component JYS theme config: kumpulin semua class warna di sini
 
-export const jysSectionTheme = {
+export const componentsTheme = {
   infoStrip: {
     background: 'bg-primary text-primary-foreground',
     divider: 'lg:border-blue-800/60',
@@ -812,9 +812,9 @@ export const jysSectionTheme = {
       'mt-2 w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30',
     checkbox: 'h-4 w-4 rounded border-white/30 bg-white/20 text-primary focus:ring-primary/40',
     primaryButton:
-      'inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-    forgotPasswordLink: 'font-semibold text-primary hover:text-primary',
-    switchModeLink: 'font-semibold text-primary underline hover:text-primary',
+      'inline-flex w-full cursor-pointer items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+    forgotPasswordLink: 'font-semibold cursor-pointer text-primary hover:text-primary',
+    switchModeLink: 'font-semibold cursor-pointer text-primary underline hover:text-primary',
     slideIndicatorWrapper:
       'inline-flex gap-2 rounded-full border border-white/40 bg-white/15 px-3 py-1 shadow-sm shadow-black/20 backdrop-blur',
     slideDotActive: 'h-2 w-2 rounded-full bg-primary/100 shadow-sm shadow-primary/100/40',
@@ -844,15 +844,15 @@ export const jysSectionTheme = {
     socialSection: 'space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 shadow-sm',
     socialGrid: 'grid grid-cols-1 gap-3 sm:grid-cols-2',
     googleButton:
-      'inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
+      'inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
     googleButtonIcon: 'h-5 w-5',
     facebookButton:
-      'inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
+      'inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
     facebookButtonIcon: 'h-5 w-5',
     secondaryButton:
-      'inline-flex w-full items-center justify-center rounded-xl border border-primary/100/70 bg-white px-5 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
+      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl border border-primary/100/70 bg-white px-5 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
     termsLabel: 'mt-1 inline-flex items-center gap-2 text-xs text-slate-600',
-    termsLink: 'underline',
+    termsLink: 'underline cursor-pointer',
   },
   onboarding: {
     layoutGrid:
@@ -2157,4 +2157,4 @@ export const jysSectionTheme = {
   },
 } as const;
 
-export type JysSectionTheme = typeof jysSectionTheme;
+export type JysSectionTheme = typeof componentsTheme;

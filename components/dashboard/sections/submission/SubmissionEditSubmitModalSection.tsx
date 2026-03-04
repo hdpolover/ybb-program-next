@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 type Props = {
   onClose: () => void;

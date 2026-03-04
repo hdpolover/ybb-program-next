@@ -1,5 +1,5 @@
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { PROGRAMS_OBJECTIVES_COPY } from '@/data/programs/sections/objectives/programsObjectives';
 
 export default function Objectives() {
@@ -17,7 +17,7 @@ export default function Objectives() {
               }`}
             >
               <div className="flex items-start gap-3">
-                <span className={jysSectionTheme.programsObjectives.numberCircle}>{obj.n}</span>
+                <span className={componentsTheme.programsObjectives.numberCircle}>{obj.n}</span>
                 <div>
                   <h3 className="text-lg font-extrabold text-blue-900">{obj.title}</h3>
                   <p className="mt-1 text-sm leading-6 text-slate-700">{obj.desc}</p>

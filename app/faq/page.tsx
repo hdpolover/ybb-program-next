@@ -3,7 +3,7 @@ import MainFAQSection from '@/components/faq/MainFAQSection';
 import { getFaqsPageData } from '@/lib/api/faqs';
 import type { CtaSupportSection, FaqListSection, FaqsHeroSection } from '@/types/faqs';
 import { SetPromoCTA } from '@/components/sections/PromoCTAContext';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 export default async function FaqPage() {
   let faqsPage: Awaited<ReturnType<typeof getFaqsPageData>> | null = null;
@@ -48,33 +48,33 @@ export default async function FaqPage() {
 
       {ctaSupportSection?.content.title && ctaSupportSection?.content.action_url ? (
         <SetPromoCTA>
-          <section className={jysSectionTheme.promoCta.sectionWrapper}>
-            <div className={jysSectionTheme.promoCta.glowLeft} />
-            <div className={jysSectionTheme.promoCta.glowRight} />
-            <div className={jysSectionTheme.promoCta.glowBottom} />
+          <section className={componentsTheme.promoCta.sectionWrapper}>
+            <div className={componentsTheme.promoCta.glowLeft} />
+            <div className={componentsTheme.promoCta.glowRight} />
+            <div className={componentsTheme.promoCta.glowBottom} />
 
-            <div className={jysSectionTheme.promoCta.container}>
-              <div className={jysSectionTheme.promoCta.leftCol}>
-                <p className={jysSectionTheme.promoCta.eyebrow}>Support</p>
-                <h2 className={jysSectionTheme.promoCta.title}>{ctaSupportSection.content.title}</h2>
+            <div className={componentsTheme.promoCta.container}>
+              <div className={componentsTheme.promoCta.leftCol}>
+                <p className={componentsTheme.promoCta.eyebrow}>Support</p>
+                <h2 className={componentsTheme.promoCta.title}>{ctaSupportSection.content.title}</h2>
                 {ctaSupportSection.content.description ? (
-                  <p className={jysSectionTheme.promoCta.subtitle}>
+                  <p className={componentsTheme.promoCta.subtitle}>
                     {ctaSupportSection.content.description}
                   </p>
                 ) : null}
-                <div className={jysSectionTheme.promoCta.actionsRow}>
+                <div className={componentsTheme.promoCta.actionsRow}>
                   <a
                     href={ctaSupportSection.content.action_url}
-                    className={jysSectionTheme.promoCta.primaryButton}
+                    className={componentsTheme.promoCta.primaryButton}
                   >
                     {ctaSupportSection.content.button_text || 'Contact Support'}
                   </a>
                 </div>
               </div>
 
-              <div className={jysSectionTheme.promoCta.rightCol}>
-                <div className={jysSectionTheme.promoCta.videoCard}>
-                  <div className={jysSectionTheme.promoCta.videoFrameWrapper}>
+              <div className={componentsTheme.promoCta.rightCol}>
+                <div className={componentsTheme.promoCta.videoCard}>
+                  <div className={componentsTheme.promoCta.videoFrameWrapper}>
                     <iframe
                       src="https://www.youtube.com/embed/tUR55Fi53rM?si=NEHbcyoMTTsFEVV4"
                       title="Japan Youth Summit 2025 Registration Guideline"
@@ -84,10 +84,10 @@ export default async function FaqPage() {
                     />
                   </div>
                   <div className="mt-3">
-                    <h3 className={jysSectionTheme.promoCta.videoTitle}>
+                    <h3 className={componentsTheme.promoCta.videoTitle}>
                       Japan Youth Summit 2025 Registration Guideline
                     </h3>
-                    <p className={jysSectionTheme.promoCta.videoDescription}>
+                    <p className={componentsTheme.promoCta.videoDescription}>
                       Watch this short walkthrough to understand the step-by-step registration flow,
                       required documents, and key deadlines before you submit your application.
                     </p>

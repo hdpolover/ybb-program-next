@@ -1,15 +1,15 @@
 import { Trophy, Gem, Network, Globe2 } from 'lucide-react';
 import StatCard from '@/components/ui/StatCard';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 // Section: Partnership Impact — angka-angka impact
 export default function PartnershipImpactSection() {
   return (
-    <section className={jysSectionTheme.partnersImpact.sectionWrapper}>
-      <div className={jysSectionTheme.partnersImpact.container}>
+    <section className={componentsTheme.partnersImpact.sectionWrapper}>
+      <div className={componentsTheme.partnersImpact.container}>
         <SectionHeader eyebrow="Impact" title="Partnership Impact" />
-        <div className={jysSectionTheme.partnersImpact.grid}>
+        <div className={componentsTheme.partnersImpact.grid}>
           <StatCard
             icon={<Trophy className="h-5 w-5" />}
             value="50+"

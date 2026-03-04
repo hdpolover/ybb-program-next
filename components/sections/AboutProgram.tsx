@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type AboutProgramProps = {
   about?: string;
@@ -25,24 +25,24 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
   };
 
   return (
-    <section className={jysSectionTheme.aboutProgram.sectionWrapper}>
-      <div className={jysSectionTheme.aboutProgram.blurTop} />
-      <div className={jysSectionTheme.aboutProgram.blurBottom} />
-      <div className={jysSectionTheme.aboutProgram.container}>
-        <div className={jysSectionTheme.aboutProgram.layoutGrid}>
+    <section className={componentsTheme.aboutProgram.sectionWrapper}>
+      <div className={componentsTheme.aboutProgram.blurTop} />
+      <div className={componentsTheme.aboutProgram.blurBottom} />
+      <div className={componentsTheme.aboutProgram.container}>
+        <div className={componentsTheme.aboutProgram.layoutGrid}>
           {/* Left: Konten dengan Tabs */}
-          <div className={jysSectionTheme.aboutProgram.leftCol}>
+          <div className={componentsTheme.aboutProgram.leftCol}>
             <SectionHeader align="left" eyebrow="Program Overview" title="About Our Program" />
 
             {/* Tabs */}
-            <div className={jysSectionTheme.aboutProgram.tabContainer}>
+            <div className={componentsTheme.aboutProgram.tabContainer}>
               <button
                 type="button"
                 onClick={() => setActiveTab('about')}
-                className={`${jysSectionTheme.aboutProgram.tabButtonBase} ${
+                className={`${componentsTheme.aboutProgram.tabButtonBase} ${
                   activeTab === 'about'
-                    ? jysSectionTheme.aboutProgram.tabButtonActive
-                    : jysSectionTheme.aboutProgram.tabButtonInactive
+                    ? componentsTheme.aboutProgram.tabButtonActive
+                    : componentsTheme.aboutProgram.tabButtonInactive
                 }`}
               >
                 About Us
@@ -50,10 +50,10 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
               <button
                 type="button"
                 onClick={() => setActiveTab('vision')}
-                className={`${jysSectionTheme.aboutProgram.tabButtonBase} ${
+                className={`${componentsTheme.aboutProgram.tabButtonBase} ${
                   activeTab === 'vision'
-                    ? jysSectionTheme.aboutProgram.tabButtonActive
-                    : jysSectionTheme.aboutProgram.tabButtonInactive
+                    ? componentsTheme.aboutProgram.tabButtonActive
+                    : componentsTheme.aboutProgram.tabButtonInactive
                 }`}
               >
                 Vision &amp; Mission
@@ -61,52 +61,52 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
             </div>
 
             <div className="mt-6 sm:hidden">
-              <div className={jysSectionTheme.aboutProgram.collageWrapper}>
-                <div className={jysSectionTheme.aboutProgram.collageGrid}>
+              <div className={componentsTheme.aboutProgram.collageWrapper}>
+                <div className={componentsTheme.aboutProgram.collageGrid}>
                   <div
-                    className={`${jysSectionTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                    className={`${componentsTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
                   >
                     <Image
                       src={imageMain}
                       alt="Japan Youth Summit main program"
                       fill
                       sizes="100vw"
-                      className={jysSectionTheme.aboutProgram.collageImage}
+                      className={componentsTheme.aboutProgram.collageImage}
                     />
                   </div>
 
                   <div
-                    className={`${jysSectionTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                    className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
                   >
                     <Image
                       src={imageSecondary}
                       alt="Japan Youth Summit activity"
                       fill
                       sizes="50vw"
-                      className={jysSectionTheme.aboutProgram.collageImage}
+                      className={componentsTheme.aboutProgram.collageImage}
                     />
                   </div>
                   <div
-                    className={`${jysSectionTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
+                    className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
                   >
                     <Image
                       src={imageThird}
                       alt="Japan Youth Summit highlight"
                       fill
                       sizes="50vw"
-                      className={jysSectionTheme.aboutProgram.collageImage}
+                      className={componentsTheme.aboutProgram.collageImage}
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className={`hidden sm:block ${jysSectionTheme.aboutProgram.contentWrapper}`}>
+            <div className={`hidden sm:block ${componentsTheme.aboutProgram.contentWrapper}`}>
               {activeTab === 'about' ? (
                 <>
                   {isHtmlContent(about) ? (
                     <div
-                      className={jysSectionTheme.aboutProgram.richText}
+                      className={componentsTheme.aboutProgram.richText}
                       dangerouslySetInnerHTML={{ __html: about ?? '' }}
                     />
                   ) : (
@@ -117,23 +117,23 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
                 <>
                   {isHtmlContent(vision) ? (
                     <div
-                      className={jysSectionTheme.aboutProgram.richText}
+                      className={componentsTheme.aboutProgram.richText}
                       dangerouslySetInnerHTML={{ __html: vision ?? '' }}
                     />
                   ) : (
                     <p>
-                      <span className={jysSectionTheme.aboutProgram.visionLabel}>Vision.</span>{' '}
+                      <span className={componentsTheme.aboutProgram.visionLabel}>Vision.</span>{' '}
                       {vision}
                     </p>
                   )}
                   {isHtmlContent(mission) ? (
                     <div
-                      className={jysSectionTheme.aboutProgram.richText}
+                      className={componentsTheme.aboutProgram.richText}
                       dangerouslySetInnerHTML={{ __html: mission ?? '' }}
                     />
                   ) : (
                     <p>
-                      <span className={jysSectionTheme.aboutProgram.visionLabel}>Mission.</span>{' '}
+                      <span className={componentsTheme.aboutProgram.visionLabel}>Mission.</span>{' '}
                       {mission}
                     </p>
                   )}
@@ -141,10 +141,10 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
               )}
             </div>
 
-            <div className={`hidden sm:block ${jysSectionTheme.aboutProgram.ctaWrapper}`}>
+            <div className={`hidden sm:block ${componentsTheme.aboutProgram.ctaWrapper}`}>
               <a
                 href="/apply"
-                className={`${jysSectionTheme.aboutProgram.ctaButton} w-full justify-center`}
+                className={`${componentsTheme.aboutProgram.ctaButton} w-full justify-center`}
               >
                 I Want To Join
               </a>
@@ -152,55 +152,55 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
           </div>
 
           {/* Right: Kolase Gambar */}
-          <div className={`hidden sm:flex ${jysSectionTheme.aboutProgram.rightCol}`}>
-            <div className={jysSectionTheme.aboutProgram.collageWrapper}>
-              <div className={jysSectionTheme.aboutProgram.collageGrid}>
+          <div className={`hidden sm:flex ${componentsTheme.aboutProgram.rightCol}`}>
+            <div className={componentsTheme.aboutProgram.collageWrapper}>
+              <div className={componentsTheme.aboutProgram.collageGrid}>
                 {/* Gambar besar kiri */}
                 <div
-                  className={`${jysSectionTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                  className={`${componentsTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
                 >
                   <Image
                     src={imageMain}
                     alt="Japan Youth Summit main program"
                     fill
                     sizes="(min-width:1024px) 420px, 100vw"
-                    className={jysSectionTheme.aboutProgram.collageImage}
+                    className={componentsTheme.aboutProgram.collageImage}
                   />
                 </div>
 
                 {/* Dua gambar kecil kanan */}
                 <div
-                  className={`${jysSectionTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                  className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
                 >
                   <Image
                     src={imageSecondary}
                     alt="Japan Youth Summit activity"
                     fill
                     sizes="(min-width:1024px) 260px, 50vw"
-                    className={jysSectionTheme.aboutProgram.collageImage}
+                    className={componentsTheme.aboutProgram.collageImage}
                   />
                 </div>
                 <div
-                  className={`${jysSectionTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
+                  className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
                 >
                   <Image
                     src={imageThird}
                     alt="Japan Youth Summit highlight"
                     fill
                     sizes="(min-width:1024px) 260px, 50vw"
-                    className={jysSectionTheme.aboutProgram.collageImage}
+                    className={componentsTheme.aboutProgram.collageImage}
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className={`sm:hidden ${jysSectionTheme.aboutProgram.contentWrapper}`}>
+          <div className={`sm:hidden ${componentsTheme.aboutProgram.contentWrapper}`}>
             {activeTab === 'about' ? (
               <>
                 {isHtmlContent(about) ? (
                   <div
-                    className={jysSectionTheme.aboutProgram.richText}
+                    className={componentsTheme.aboutProgram.richText}
                     dangerouslySetInnerHTML={{ __html: about ?? '' }}
                   />
                 ) : (
@@ -211,33 +211,33 @@ export default function AboutProgram({ about, vision, mission }: AboutProgramPro
               <>
                 {isHtmlContent(vision) ? (
                   <div
-                    className={jysSectionTheme.aboutProgram.richText}
+                    className={componentsTheme.aboutProgram.richText}
                     dangerouslySetInnerHTML={{ __html: vision ?? '' }}
                   />
                 ) : (
                   <p>
-                    <span className={jysSectionTheme.aboutProgram.visionLabel}>Vision.</span>{' '}
+                    <span className={componentsTheme.aboutProgram.visionLabel}>Vision.</span>{' '}
                     {vision}
                   </p>
                 )}
                 {isHtmlContent(mission) ? (
                   <div
-                    className={jysSectionTheme.aboutProgram.richText}
+                    className={componentsTheme.aboutProgram.richText}
                     dangerouslySetInnerHTML={{ __html: mission ?? '' }}
                   />
                 ) : (
                   <p>
-                    <span className={jysSectionTheme.aboutProgram.visionLabel}>Mission.</span>{' '}
+                    <span className={componentsTheme.aboutProgram.visionLabel}>Mission.</span>{' '}
                     {mission}
                   </p>
                 )}
               </>
             )}
 
-            <div className={jysSectionTheme.aboutProgram.ctaWrapper}>
+            <div className={componentsTheme.aboutProgram.ctaWrapper}>
               <a
                 href="/apply"
-                className={`${jysSectionTheme.aboutProgram.ctaButton} w-full justify-center`}
+                className={`${componentsTheme.aboutProgram.ctaButton} w-full justify-center`}
               >
                 I Want To Join
               </a>

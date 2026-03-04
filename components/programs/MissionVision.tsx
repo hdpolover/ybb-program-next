@@ -1,6 +1,6 @@
 import { Goal, Eye, Check } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { PROGRAMS_MISSION_VISION_COPY } from '@/data/programs/sections/mission-vision/programsMissionVision';
 
 export default function MissionVision() {
@@ -13,7 +13,7 @@ export default function MissionVision() {
           {/* Misi */}
           <div className="rounded-2xl bg-[url('/img/bgourprogram.png')] bg-cover bg-center shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 sm:p-8">
             <div className="flex items-center gap-3">
-              <span className={jysSectionTheme.programsMissionVision.missionIconMain}>
+              <span className={componentsTheme.programsMissionVision.missionIconMain}>
                 <Goal className="h-5 w-5" />
               </span>
               <h3 className="text-xl font-extrabold text-blue-900">{missionTitle}</h3>
@@ -21,7 +21,7 @@ export default function MissionVision() {
             <ul className="mt-4 space-y-3">
               {missions.map((m, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <span className={jysSectionTheme.programsMissionVision.missionBulletIcon}>
+                  <span className={componentsTheme.programsMissionVision.missionBulletIcon}>
                     <Check className="h-4 w-4" />
                   </span>
                   <span className="text-sm leading-6 text-slate-700">{m}</span>

@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
 
 export type AnnouncementCategory =
@@ -69,7 +69,7 @@ export default function AnnouncementsGrid({
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeader eyebrow="Announcements" title={title} />
-        {subtitle ? <p className={jysSectionTheme.announcementsGrid.subtitle}>{subtitle}</p> : null}
+        {subtitle ? <p className={componentsTheme.announcementsGrid.subtitle}>{subtitle}</p> : null}
 
         {/* Search bar + category filter (optional) */}
         {showControls ? (
@@ -133,7 +133,7 @@ export default function AnnouncementsGrid({
                 <Wrapper
                   key={n.id}
                   {...(n.href ? { href: n.href } : {})}
-                  className={jysSectionTheme.announcementsGrid.card}
+                  className={componentsTheme.announcementsGrid.card}
                 >
                   <div className="relative h-44 w-full overflow-hidden sm:h-52">
                     <Image
@@ -187,7 +187,7 @@ export default function AnnouncementsGrid({
             <button
               type="button"
               onClick={() => setVisible(v => Math.min(v + 6, filteredItems.length))}
-              className={jysSectionTheme.announcementsGrid.loadMoreButton}
+              className={componentsTheme.announcementsGrid.loadMoreButton}
             >
               Load More
             </button>

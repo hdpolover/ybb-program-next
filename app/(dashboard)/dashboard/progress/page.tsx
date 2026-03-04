@@ -2,9 +2,9 @@
 
 import { PROGRESS_STEPS, type ProgressStep } from "@/components/dashboard/sections/dashboardOverview/OverviewProgramDetailsSection";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const overviewTheme = jysSectionTheme.dashboardOverview;
+const overviewTheme = componentsTheme.dashboardOverview;
 
 function getCurrentStep(steps: ProgressStep[]) {
   const waitingIndex = steps.findIndex(step => step.status === "waiting");

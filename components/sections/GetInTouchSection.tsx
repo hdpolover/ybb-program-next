@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { PhoneCall, Mail, Instagram, MapPin } from 'lucide-react';
 
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { contactItems, contactSectionContent } from '@/data/contact';
 
 export type ContactItem = {
@@ -49,9 +49,9 @@ export default function GetInTouchSection({
 }: GetInTouchProps) {
   const resolvedItems = items ?? resolveDefaultItems();
   return (
-    <section className={jysSectionTheme.getInTouch.sectionWrapper}>
+    <section className={componentsTheme.getInTouch.sectionWrapper}>
       <div
-        className={`${jysSectionTheme.getInTouch.card} relative`}
+        className={`${componentsTheme.getInTouch.card} relative`}
       >
         <div className="absolute inset-0 sm:hidden">
           <Image
@@ -64,7 +64,7 @@ export default function GetInTouchSection({
         </div>
         <div className="absolute inset-0 hidden sm:block">
           <Image
-            src={jysSectionTheme.getInTouch.cardBackground}
+            src={componentsTheme.getInTouch.cardBackground}
             alt=""
             fill
             priority
@@ -75,26 +75,26 @@ export default function GetInTouchSection({
         <div className="relative z-10">
         <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)] items-center gap-8">
           {/* Kiri: gambar ilustrasi */}
-          <div className={jysSectionTheme.getInTouch.imageWrapper}></div>
+          <div className={componentsTheme.getInTouch.imageWrapper}></div>
 
           {/* Kanan: judul, deskripsi, dan daftar contact items */}
           <div>
             <SectionHeader eyebrow={eyebrow} title={title} align="left" />
-            <div className={jysSectionTheme.getInTouch.list}>
+            <div className={componentsTheme.getInTouch.list}>
               {resolvedItems.map(item => {
                 const Wrapper: React.ElementType = item.href ? 'a' : 'div';
                 return (
                   <Wrapper
                     key={item.id}
                     href={item.href}
-                    className={jysSectionTheme.getInTouch.item}
+                    className={componentsTheme.getInTouch.item}
                     target={item.href?.startsWith('http') ? '_blank' : undefined}
                     rel={item.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
                   >
-                    <div className={jysSectionTheme.getInTouch.itemIconCircle}>{item.icon}</div>
+                    <div className={componentsTheme.getInTouch.itemIconCircle}>{item.icon}</div>
                     <div className="min-w-0">
-                      <p className={jysSectionTheme.getInTouch.itemTitle}>{item.title}</p>
-                      <p className={jysSectionTheme.getInTouch.itemSubtitle}>{item.subtitle}</p>
+                      <p className={componentsTheme.getInTouch.itemTitle}>{item.title}</p>
+                      <p className={componentsTheme.getInTouch.itemSubtitle}>{item.subtitle}</p>
                     </div>
                   </Wrapper>
                 );

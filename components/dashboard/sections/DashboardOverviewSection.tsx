@@ -5,9 +5,9 @@ import OverviewRegistrationSection from "./dashboardOverview/OverviewRegistratio
 import OverviewProgramDetailsSection from "./dashboardOverview/OverviewProgramDetailsSection";
 import OverviewGuidebookSection from "./dashboardOverview/OverviewGuidebookSection";
 import OverviewNotificationSection from "./dashboardOverview/OverviewNotificationSection";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const overviewTheme = jysSectionTheme.dashboardOverview;
+const overviewTheme = componentsTheme.dashboardOverview;
 
 export default function DashboardOverviewSection() {
   return (

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import SubmissionReadProfileHeaderSection from "./submission/SubmissionReadProfileHeaderSection";
 import SubmissionReadPersonalDetailsSection from "./submission/SubmissionReadPersonalDetailsSection";
 import SubmissionReadProfessionalProfileSection from "./submission/SubmissionReadProfessionalProfileSection";
 import SubmissionReadEntryInformationSection from "./submission/SubmissionReadEntryInformationSection";
 import SubmissionReadMiscSection from "./submission/SubmissionReadMiscSection";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 const tabs = ["Personal Details", "Professional Profile", "Entry Information", "Miscellaneous"] as const;
 

@@ -1,9 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
-const theme = jysSectionTheme.programsBenefitsDetail;
+const theme = componentsTheme.programsBenefitsDetail;
 
 export default function BenefitsHighSchoolDetail() {
   return (

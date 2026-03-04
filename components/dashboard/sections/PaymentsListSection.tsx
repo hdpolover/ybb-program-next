@@ -12,9 +12,9 @@ import {
   Printer,
   Eye,
 } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const paymentsTheme = jysSectionTheme.dashboardPayments;
+const paymentsTheme = componentsTheme.dashboardPayments;
 
 export default function PaymentsListSection() {
   const mockPayments = [

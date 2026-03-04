@@ -3,9 +3,9 @@
 import { ArrowLeftRight, GraduationCap } from "lucide-react";
 import { useMemo } from "react";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const overviewTheme = jysSectionTheme.dashboardOverview;
+const overviewTheme = componentsTheme.dashboardOverview;
 
 export default function OverviewRegistrationSection() {
   const { dashboardSummary } = useDashboardData();

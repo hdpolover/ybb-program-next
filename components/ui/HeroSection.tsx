@@ -1,5 +1,5 @@
 import React from 'react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 // Komponen Hero reusable biar semua halaman konsisten gaya-nya
 // Pakai ini di tiap page: title, subtitle, dan background bisa diatur
@@ -26,7 +26,7 @@ export default function HeroSection({
   ctaHref?: string;
   textSize?: 'default' | 'sm';
 }) {
-  const heroTheme = jysSectionTheme.heroSection;
+  const heroTheme = componentsTheme.heroSection;
   const containerHeight = heightClass ?? 'min-h-[360px] md:min-h-[420px]';
   const decorTopRight = decorVariant === 'compact' ? 'h-[24rem] w-[24rem]' : 'h-[28rem] w-[28rem]';
   const decorMidRight = decorVariant === 'compact' ? 'h-[16rem] w-[16rem]' : 'h-[18rem] w-[18rem]';

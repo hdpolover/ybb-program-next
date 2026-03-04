@@ -1,9 +1,9 @@
 "use client";
 
 import { AlertTriangle, ClipboardList } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const overviewTheme = jysSectionTheme.dashboardOverview;
+const overviewTheme = componentsTheme.dashboardOverview;
 
 export default function OverviewNotificationSection() {
   return (

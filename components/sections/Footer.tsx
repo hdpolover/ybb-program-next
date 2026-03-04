@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Mail as MailIcon } from "lucide-react";
 import { FOOTER_COPY } from "@/data/footerCopy";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import { getSettings } from "@/lib/api/settings";
 import type { SettingsData, SettingsFooterNavSection } from "@/types/settings";
 
@@ -83,7 +83,7 @@ export default function Footer() {
 
   return (
     <>
-      <footer className={jysSectionTheme.footer.sectionWrapper}>
+      <footer className={componentsTheme.footer.sectionWrapper}>
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 lg:grid-cols-4 lg:gap-12 lg:px-8">
           {/* Kalimat Khusus program ( deskripsi program ) */}
           <div>
@@ -107,7 +107,7 @@ export default function Footer() {
             <ul className="mt-4 space-y-2 text-sm text-white/80">
               {menuLinks.map(item => (
                 <li key={item.label}>
-                  <a className={jysSectionTheme.footer.navLink} href={item.href}>
+                  <a className={componentsTheme.footer.navLink} href={item.href}>
                     {item.label}
                   </a>
                 </li>
@@ -136,7 +136,7 @@ export default function Footer() {
                     {emailHref && emailLabel && (
                       <a
                         href={emailHref}
-                        className={jysSectionTheme.footer.contactLink}
+                        className={componentsTheme.footer.contactLink}
                         target={emailHref.startsWith("http") ? "_blank" : undefined}
                         rel={emailHref.startsWith("http") ? "noreferrer" : undefined}
                       >
@@ -174,7 +174,7 @@ export default function Footer() {
                       <MailIcon className="h-4 w-4" />
                       <a
                         href={social.href}
-                        className={jysSectionTheme.footer.contactLink}
+                        className={componentsTheme.footer.contactLink}
                         target={social.href?.startsWith('http') ? '_blank' : undefined}
                         rel={social.href?.startsWith('http') ? 'noreferrer' : undefined}
                      >
@@ -239,7 +239,7 @@ export default function Footer() {
                 />
                 <button
                   type="button"
-                  className={jysSectionTheme.footer.newsletterButton}
+                  className={componentsTheme.footer.newsletterButton}
                 >
                   {FOOTER_COPY.newsletterCtaLabel}
                 </button>

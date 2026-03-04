@@ -1,6 +1,6 @@
 import { Globe2, Lightbulb, Handshake, Users, GraduationCap, Landmark } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { PROGRAMS_BENEFITS_COPY } from '@/data/programs/sections/benefits/programsBenefits';
 
 export default function Benefits() {
@@ -26,7 +26,7 @@ export default function Benefits() {
               className="group rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]"
             >
               <div className="flex items-start gap-3">
-                <span className={jysSectionTheme.programsBenefits.iconCircle}>
+                <span className={componentsTheme.programsBenefits.iconCircle}>
                   {iconEls[it.icon]}
                 </span>
                 <div>

@@ -19,7 +19,7 @@ import {
   Users,
   PencilLine,
 } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import SubmissionEditPersonalDetailsSection from "./submission/SubmissionEditPersonalDetailsSection";
 import SubmissionEditProfessionalProfileSection from "./submission/SubmissionEditProfessionalProfileSection";
 import SubmissionEditEntryInformationSection from "./submission/SubmissionEditEntryInformationSection";
@@ -149,7 +149,7 @@ export const DUMMY_ENTRY_INFO: EntryInfo = {
   ambassadorReferralCode: "YBBJYS-AMB01",
 };
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 function inputBaseClass() {
   return submissionTheme.editInputBase;

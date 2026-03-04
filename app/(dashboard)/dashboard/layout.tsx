@@ -15,7 +15,7 @@ import {
   type PortalDashboardSummary,
 } from '@/components/dashboard/DashboardDataContext';
 import NotificationsPopover from '@/components/dashboard/layout/NotificationsPopover';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type DashboardSearchItem = {
   id: string;
@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const searchTheme = jysSectionTheme.dashboardSearch;
+  const searchTheme = componentsTheme.dashboardSearch;
   const [me, setMe] = useState<AuthMeData | null>(null);
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
   const [participantProfile, setParticipantProfile] = useState<ParticipantMeData | null>(null);
@@ -263,7 +263,7 @@ function DashboardSearchResults({
 }: {
   query: string;
   items: DashboardSearchItem[];
-  theme: (typeof jysSectionTheme)['dashboardSearch'];
+  theme: (typeof componentsTheme)['dashboardSearch'];
 }) {
   const normalized = query.trim();
 

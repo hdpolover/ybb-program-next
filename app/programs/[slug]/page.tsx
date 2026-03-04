@@ -5,7 +5,7 @@ import FeaturedSpeakers from '@/components/programs/FeaturedSpeakers';
 import ProgramRundowns from '@/components/programs/ProgramRundowns';
 import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import {
   PROGRAM_DETAIL_HERO,
   PROGRAM_DETAIL_INFO_STRIP,
@@ -70,87 +70,87 @@ export default function ProgramDetailPage({ params }: { params: { slug: string }
   const ctaHref = meta.open ? '/apply' : undefined;
 
   return (
-    <main className={jysSectionTheme.programDetail.mainWrapper}>
+    <main className={componentsTheme.programDetail.mainWrapper}>
       {/* hero custom tanpa breadcrumb, sesuai request */}
       <section
-        className={jysSectionTheme.programDetail.heroSection}
+        className={componentsTheme.programDetail.heroSection}
         style={{ backgroundImage: `url('${PROGRAM_DETAIL_HERO.backgroundImage}')` }}
       >
-        <div className={jysSectionTheme.programDetail.heroInner}>
-          <p className={jysSectionTheme.programDetail.heroYearText}>{meta.yearText}</p>
-          <h1 className={jysSectionTheme.programDetail.heroTitle}>{meta.title}</h1>
-          <p className={jysSectionTheme.programDetail.heroTagline}>{meta.tagline}</p>
+        <div className={componentsTheme.programDetail.heroInner}>
+          <p className={componentsTheme.programDetail.heroYearText}>{meta.yearText}</p>
+          <h1 className={componentsTheme.programDetail.heroTitle}>{meta.title}</h1>
+          <p className={componentsTheme.programDetail.heroTagline}>{meta.tagline}</p>
 
-          <div className={jysSectionTheme.programDetail.heroCtaWrapper}>
+          <div className={componentsTheme.programDetail.heroCtaWrapper}>
             {ctaHref ? (
-              <a href={ctaHref} className={jysSectionTheme.programDetail.heroCta}>
+              <a href={ctaHref} className={componentsTheme.programDetail.heroCta}>
                 {ctaLabel}
               </a>
             ) : (
-              <span className={jysSectionTheme.programDetail.heroCtaClosed}>{ctaLabel}</span>
+              <span className={componentsTheme.programDetail.heroCtaClosed}>{ctaLabel}</span>
             )}
           </div>
         </div>
 
-        <div className={jysSectionTheme.programDetail.heroBlurPrimary} />
-        <div className={jysSectionTheme.programDetail.heroBlurSecondary} />
+        <div className={componentsTheme.programDetail.heroBlurPrimary} />
+        <div className={componentsTheme.programDetail.heroBlurSecondary} />
       </section>
 
       {/* info strip section (ngikut gaya InfoStrip homepage) */}
-      <section className={jysSectionTheme.programDetail.infoStripSection}>
-        <div className={jysSectionTheme.programDetail.infoStripBlurPrimary} />
-        <div className={jysSectionTheme.programDetail.infoStripBlurSecondary} />
-        <div className={jysSectionTheme.programDetail.infoStripBlurTertiary} />
-        <div className={jysSectionTheme.programDetail.infoStripContainer}>
-          <ul className={jysSectionTheme.programDetail.infoStripGrid}>
-            <li className={jysSectionTheme.programDetail.infoStripItem}>
-              <div className={jysSectionTheme.programDetail.infoStripIconCircle}>
-                <CalendarDays className={jysSectionTheme.programDetail.infoStripIcon} />
+      <section className={componentsTheme.programDetail.infoStripSection}>
+        <div className={componentsTheme.programDetail.infoStripBlurPrimary} />
+        <div className={componentsTheme.programDetail.infoStripBlurSecondary} />
+        <div className={componentsTheme.programDetail.infoStripBlurTertiary} />
+        <div className={componentsTheme.programDetail.infoStripContainer}>
+          <ul className={componentsTheme.programDetail.infoStripGrid}>
+            <li className={componentsTheme.programDetail.infoStripItem}>
+              <div className={componentsTheme.programDetail.infoStripIconCircle}>
+                <CalendarDays className={componentsTheme.programDetail.infoStripIcon} />
               </div>
               <div>
-                <p className={jysSectionTheme.programDetail.infoStripSubtitle}>
+                <p className={componentsTheme.programDetail.infoStripSubtitle}>
                   {PROGRAM_DETAIL_INFO_STRIP.programDate.label}
                 </p>
-                <h3 className={jysSectionTheme.programDetail.infoStripValue}>
+                <h3 className={componentsTheme.programDetail.infoStripValue}>
                   {PROGRAM_DETAIL_INFO_STRIP.programDate.value}
                 </h3>
               </div>
             </li>
-            <li className={jysSectionTheme.programDetail.infoStripItem}>
-              <div className={jysSectionTheme.programDetail.infoStripIconCircle}>
-                <MapPin className={jysSectionTheme.programDetail.infoStripIcon} />
+            <li className={componentsTheme.programDetail.infoStripItem}>
+              <div className={componentsTheme.programDetail.infoStripIconCircle}>
+                <MapPin className={componentsTheme.programDetail.infoStripIcon} />
               </div>
               <div>
-                <p className={jysSectionTheme.programDetail.infoStripSubtitle}>
+                <p className={componentsTheme.programDetail.infoStripSubtitle}>
                   {PROGRAM_DETAIL_INFO_STRIP.location.label}
                 </p>
-                <h3 className={jysSectionTheme.programDetail.infoStripValue}>
+                <h3 className={componentsTheme.programDetail.infoStripValue}>
                   {PROGRAM_DETAIL_INFO_STRIP.location.value}
                 </h3>
               </div>
             </li>
-            <li className={jysSectionTheme.programDetail.infoStripItem}>
-              <div className={jysSectionTheme.programDetail.infoStripIconCircle}>
-                <Clock className={jysSectionTheme.programDetail.infoStripIcon} />
+            <li className={componentsTheme.programDetail.infoStripItem}>
+              <div className={componentsTheme.programDetail.infoStripIconCircle}>
+                <Clock className={componentsTheme.programDetail.infoStripIcon} />
               </div>
               <div>
-                <p className={jysSectionTheme.programDetail.infoStripSubtitle}>
+                <p className={componentsTheme.programDetail.infoStripSubtitle}>
                   {PROGRAM_DETAIL_INFO_STRIP.duration.label}
                 </p>
-                <h3 className={jysSectionTheme.programDetail.infoStripValue}>
+                <h3 className={componentsTheme.programDetail.infoStripValue}>
                   {PROGRAM_DETAIL_INFO_STRIP.duration.value}
                 </h3>
               </div>
             </li>
-            <li className={jysSectionTheme.programDetail.infoStripItem}>
-              <div className={jysSectionTheme.programDetail.infoStripIconCircle}>
-                <Users className={jysSectionTheme.programDetail.infoStripIcon} />
+            <li className={componentsTheme.programDetail.infoStripItem}>
+              <div className={componentsTheme.programDetail.infoStripIconCircle}>
+                <Users className={componentsTheme.programDetail.infoStripIcon} />
               </div>
               <div>
-                <p className={jysSectionTheme.programDetail.infoStripSubtitle}>
+                <p className={componentsTheme.programDetail.infoStripSubtitle}>
                   {PROGRAM_DETAIL_INFO_STRIP.capacity.label}
                 </p>
-                <h3 className={jysSectionTheme.programDetail.infoStripValue}>
+                <h3 className={componentsTheme.programDetail.infoStripValue}>
                   {PROGRAM_DETAIL_INFO_STRIP.capacity.value}
                 </h3>
               </div>
@@ -159,28 +159,28 @@ export default function ProgramDetailPage({ params }: { params: { slug: string }
         </div>
       </section>
 
-      <section className={jysSectionTheme.programDetail.guidelinesSection}>
-        <div className={jysSectionTheme.programDetail.guidelinesContainer}>
+      <section className={componentsTheme.programDetail.guidelinesSection}>
+        <div className={componentsTheme.programDetail.guidelinesContainer}>
           <SectionHeader
             eyebrow={PROGRAM_DETAIL_GUIDELINES.eyebrow}
             title={PROGRAM_DETAIL_GUIDELINES.title}
           />
-          <div className={jysSectionTheme.programDetail.guidelinesCard}>
-            <div className={jysSectionTheme.programDetail.guidelinesBody}>
-              <div className={jysSectionTheme.programDetail.guidelinesIconCircle}>
-                <FileText className={jysSectionTheme.programDetail.guidelinesIcon} />
+          <div className={componentsTheme.programDetail.guidelinesCard}>
+            <div className={componentsTheme.programDetail.guidelinesBody}>
+              <div className={componentsTheme.programDetail.guidelinesIconCircle}>
+                <FileText className={componentsTheme.programDetail.guidelinesIcon} />
               </div>
-              <p className={jysSectionTheme.programDetail.guidelinesText}>
+              <p className={componentsTheme.programDetail.guidelinesText}>
                 {PROGRAM_DETAIL_GUIDELINES.body}
               </p>
-              <div className={jysSectionTheme.programDetail.guidelinesCtaWrapper}>
+              <div className={componentsTheme.programDetail.guidelinesCtaWrapper}>
                 <a
                   href={PROGRAM_DETAIL_GUIDELINES.ctaHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={jysSectionTheme.programDetail.guidelinesButton}
+                  className={componentsTheme.programDetail.guidelinesButton}
                 >
-                  <Download className={jysSectionTheme.programDetail.guidelinesDownloadIcon} />
+                  <Download className={componentsTheme.programDetail.guidelinesDownloadIcon} />
                   {PROGRAM_DETAIL_GUIDELINES.ctaLabel}
                 </a>
               </div>
@@ -189,33 +189,33 @@ export default function ProgramDetailPage({ params }: { params: { slug: string }
         </div>
       </section>
       {/* overview + program application (2 kartu) */}
-      <section className={jysSectionTheme.programDetail.overviewSection}>
-        <div className={jysSectionTheme.programDetail.overviewContainer}>
+      <section className={componentsTheme.programDetail.overviewSection}>
+        <div className={componentsTheme.programDetail.overviewContainer}>
           <SectionHeader
             eyebrow={PROGRAM_DETAIL_OVERVIEW.eyebrow}
             title={PROGRAM_DETAIL_OVERVIEW.title}
           />
-          <div className={jysSectionTheme.programDetail.overviewGrid}>
+          <div className={componentsTheme.programDetail.overviewGrid}>
             {/* kartu overview utama */}
-            <div className={jysSectionTheme.programDetail.overviewCard}>
-              <div className={jysSectionTheme.programDetail.overviewInner}>
-                <div className={jysSectionTheme.programDetail.overviewIconCircle}>
-                  <Info className={jysSectionTheme.programDetail.overviewIcon} />
+            <div className={componentsTheme.programDetail.overviewCard}>
+              <div className={componentsTheme.programDetail.overviewInner}>
+                <div className={componentsTheme.programDetail.overviewIconCircle}>
+                  <Info className={componentsTheme.programDetail.overviewIcon} />
                 </div>
-                <div className={jysSectionTheme.programDetail.overviewContent}>
-                  <p className={jysSectionTheme.programDetail.overviewText}>
+                <div className={componentsTheme.programDetail.overviewContent}>
+                  <p className={componentsTheme.programDetail.overviewText}>
                     {PROGRAM_DETAIL_OVERVIEW.intro}
                   </p>
-                  <ul className={jysSectionTheme.programDetail.overviewList}>
+                  <ul className={componentsTheme.programDetail.overviewList}>
                     {PROGRAM_DETAIL_OVERVIEW.bullets.map(bullet => (
                       <li
                         key={bullet}
-                        className={jysSectionTheme.programDetail.overviewListItem}
+                        className={componentsTheme.programDetail.overviewListItem}
                       >
-                        <span className={jysSectionTheme.programDetail.overviewBulletIconAlt}>
-                          <Check className={jysSectionTheme.programDetail.overviewCheckIcon} />
+                        <span className={componentsTheme.programDetail.overviewBulletIconAlt}>
+                          <Check className={componentsTheme.programDetail.overviewCheckIcon} />
                         </span>
-                        <span className={jysSectionTheme.programDetail.overviewText}>{bullet}</span>
+                        <span className={componentsTheme.programDetail.overviewText}>{bullet}</span>
                       </li>
                     ))}
                   </ul>
@@ -224,34 +224,34 @@ export default function ProgramDetailPage({ params }: { params: { slug: string }
             </div>
 
             {/* kartu program application */}
-            <div className={jysSectionTheme.programDetail.applicationCard}>
-              <div className={jysSectionTheme.programDetail.applicationImageWrapper}>
+            <div className={componentsTheme.programDetail.applicationCard}>
+              <div className={componentsTheme.programDetail.applicationImageWrapper}>
                 <Image
                   src="/img/coverjysbrosur.png"
                   alt="Program Cover"
                   fill
                   sizes="(min-width:1024px) 50vw, 100vw"
-                  className={jysSectionTheme.programDetail.applicationImage}
+                  className={componentsTheme.programDetail.applicationImage}
                   priority={false}
                 />
               </div>
-              <div className={jysSectionTheme.programDetail.applicationBody}>
-                <h3 className={jysSectionTheme.programDetail.applicationTitle}>
+              <div className={componentsTheme.programDetail.applicationBody}>
+                <h3 className={componentsTheme.programDetail.applicationTitle}>
                   {PROGRAM_DETAIL_APPLICATION.title}
                 </h3>
-                <p className={jysSectionTheme.programDetail.applicationSubtitle}>
+                <p className={componentsTheme.programDetail.applicationSubtitle}>
                   {PROGRAM_DETAIL_APPLICATION.subtitle}
                 </p>
-                <div className={jysSectionTheme.programDetail.applicationCtaWrapper}>
+                <div className={componentsTheme.programDetail.applicationCtaWrapper}>
                   {ctaHref ? (
                     <a
                       href={ctaHref}
-                      className={jysSectionTheme.programDetail.applicationPrimaryCta}
+                      className={componentsTheme.programDetail.applicationPrimaryCta}
                     >
                       {ctaLabel}
                     </a>
                   ) : (
-                    <span className={jysSectionTheme.programDetail.applicationSecondaryCta}>
+                    <span className={componentsTheme.programDetail.applicationSecondaryCta}>
                       {ctaLabel}
                     </span>
                   )}

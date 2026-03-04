@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 // Foto-foto program lain (biar ga lorem, pake aset yang ada di /public/img)
 const items: {
@@ -40,7 +40,7 @@ export default function OtherProgramsGallery() {
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeader title="Other Programs" />
-        <p className={jysSectionTheme.galleryOtherPrograms.subtitle}>
+        <p className={componentsTheme.galleryOtherPrograms.subtitle}>
           Discover photos from our other exciting events and initiatives
         </p>
 
@@ -67,9 +67,9 @@ export default function OtherProgramsGallery() {
               </div>
               {/* body */}
               <div className="p-5">
-                <h4 className={jysSectionTheme.galleryOtherPrograms.cardTitle}>{it.title}</h4>
+                <h4 className={componentsTheme.galleryOtherPrograms.cardTitle}>{it.title}</h4>
                 <div className="mt-4">
-                  <span className={jysSectionTheme.galleryOtherPrograms.visitChip}>
+                  <span className={componentsTheme.galleryOtherPrograms.visitChip}>
                     Visit Website
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

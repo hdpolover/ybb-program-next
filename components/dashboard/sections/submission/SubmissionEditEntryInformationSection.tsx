@@ -3,11 +3,11 @@
 import React from "react";
 import Image from "next/image";
 import { AlertTriangle, Award, BookOpen, Info, Lock, Users } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import type { EntryInfo } from "../SubmissionEditSection";
 import StyledSelect from "@/components/ui/StyledSelect";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 function InputWrapper({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (

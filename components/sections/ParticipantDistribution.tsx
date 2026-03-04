@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { IMPACT_DISTRIBUTION_COPY, CountryLevel } from '@/data/home/sections/impact/impactDistribution';
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
@@ -19,7 +19,7 @@ export type Level = CountryLevel;
 
 function getFillForCountry(nameKey: string): string {
   const level = (IMPACT_DISTRIBUTION_COPY.countryLevels[nameKey] ?? 'none') as Level;
-  const colors = jysSectionTheme.participantDistribution.mapColors;
+  const colors = componentsTheme.participantDistribution.mapColors;
   if (level === 'high') return colors.high;
   if (level === 'medium') return colors.medium;
   if (level === 'low') return colors.low;
@@ -58,7 +58,7 @@ export default function ParticipantDistribution() {
     .slice(0, 10);
 
   return (
-    <section className={jysSectionTheme.participantDistribution.sectionWrapper}>
+    <section className={componentsTheme.participantDistribution.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader
           eyebrow={IMPACT_DISTRIBUTION_COPY.participantHeader.eyebrow}
@@ -66,13 +66,13 @@ export default function ParticipantDistribution() {
           align="center"
         />
 
-        <div className={jysSectionTheme.participantDistribution.mapCard}>
-          <div className={jysSectionTheme.participantDistribution.mapWrapper}>
-            {jysSectionTheme.participantDistribution.mapBackdrop ? (
-              <div className={jysSectionTheme.participantDistribution.mapBackdrop} />
+        <div className={componentsTheme.participantDistribution.mapCard}>
+          <div className={componentsTheme.participantDistribution.mapWrapper}>
+            {componentsTheme.participantDistribution.mapBackdrop ? (
+              <div className={componentsTheme.participantDistribution.mapBackdrop} />
             ) : null}
 
-            <div className={jysSectionTheme.participantDistribution.mapInner}>
+            <div className={componentsTheme.participantDistribution.mapInner}>
               <ComposableMap
                 projectionConfig={{ scale: 145 }}
                 style={{ width: '100%', height: '100%' }}
@@ -86,7 +86,7 @@ export default function ParticipantDistribution() {
                           key={geo.rsmKey}
                           geography={geo}
                           fill={getFillForCountry(name)}
-                          stroke={jysSectionTheme.participantDistribution.mapStroke}
+                          stroke={componentsTheme.participantDistribution.mapStroke}
                           strokeWidth={0.4}
                           onClick={() => {
                             const level = (IMPACT_DISTRIBUTION_COPY.countryLevels[name] ?? 'none') as Level;
@@ -120,28 +120,28 @@ export default function ParticipantDistribution() {
           </div>
 
           {/* Legend row below the map, like the reference layout */}
-          <div className={jysSectionTheme.participantDistribution.legendRow}>
-            <div className={jysSectionTheme.participantDistribution.legendItem}>
+          <div className={componentsTheme.participantDistribution.legendRow}>
+            <div className={componentsTheme.participantDistribution.legendItem}>
               <span
-                className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotHigh}`}
+                className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotHigh}`}
               />
               <span>{IMPACT_DISTRIBUTION_COPY.legend.high}</span>
             </div>
-            <div className={jysSectionTheme.participantDistribution.legendItem}>
+            <div className={componentsTheme.participantDistribution.legendItem}>
               <span
-                className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotMedium}`}
+                className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotMedium}`}
               />
               <span>{IMPACT_DISTRIBUTION_COPY.legend.medium}</span>
             </div>
-            <div className={jysSectionTheme.participantDistribution.legendItem}>
+            <div className={componentsTheme.participantDistribution.legendItem}>
               <span
-                className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotLow}`}
+                className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotLow}`}
               />
               <span>{IMPACT_DISTRIBUTION_COPY.legend.low}</span>
             </div>
-            <div className={jysSectionTheme.participantDistribution.legendItem}>
+            <div className={componentsTheme.participantDistribution.legendItem}>
               <span
-                className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotNone}`}
+                className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotNone}`}
               />
               <span>{IMPACT_DISTRIBUTION_COPY.legend.none}</span>
             </div>

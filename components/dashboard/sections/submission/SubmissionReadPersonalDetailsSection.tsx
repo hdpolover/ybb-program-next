@@ -2,13 +2,13 @@
 
 import React from "react";
 import { Flag, Info, MapPin, Phone, Shirt, User, User2, UserRound } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import { DUMMY_PERSONAL_DETAILS } from "../SubmissionEditSection";
 import { getCountries, getShirtSizes, getStates } from "@/lib/api/metadata";
 import type { CountryMetadata, ShirtSizeMetadata, StateMetadata } from "@/types/metadata";
 import StyledSelect from "@/components/ui/StyledSelect";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 function InputWrapper({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (

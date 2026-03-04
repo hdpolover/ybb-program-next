@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import Image from 'next/image';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type Testimonial = {
   name: string;
@@ -174,24 +174,24 @@ export default function Testimonials() {
   ];
 
   return (
-    <section className={jysSectionTheme.testimonialsHome.sectionWrapper}>
-      <div className={jysSectionTheme.testimonialsHome.container}>
+    <section className={componentsTheme.testimonialsHome.sectionWrapper}>
+      <div className={componentsTheme.testimonialsHome.container}>
         <SectionHeader title="Voices of Success: Our Community Speaks" />
-        <p className={jysSectionTheme.testimonialsHome.subtitle}>
+        <p className={componentsTheme.testimonialsHome.subtitle}>
           Real stories from participants who've experienced transformational results with our
           program
         </p>
 
         {/* Full card dari ujung kanan ke kiri ( animasi geser ) */}
       </div>
-      <div className={jysSectionTheme.testimonialsHome.rowsWrapper}>
+      <div className={componentsTheme.testimonialsHome.rowsWrapper}>
         {rows.map((row, i) => (
-          <div key={i} className={jysSectionTheme.testimonialsHome.rowOuter}>
+          <div key={i} className={componentsTheme.testimonialsHome.rowOuter}>
             {/* fade mask kiri/kanan biar ga keliatan 'mentok' */}
-            <div className={jysSectionTheme.testimonialsHome.fadeLeft} />
-            <div className={jysSectionTheme.testimonialsHome.fadeRight} />
+            <div className={componentsTheme.testimonialsHome.fadeLeft} />
+            <div className={componentsTheme.testimonialsHome.fadeRight} />
             <div
-              className={`${jysSectionTheme.testimonialsHome.marqueeRowBase} ${
+              className={`${componentsTheme.testimonialsHome.marqueeRowBase} ${
                 row.direction === 'left' ? 'animate-marquee' : 'animate-marquee-reverse'
               }`}
               style={{ ['--duration' as any]: '55s' }}
@@ -199,7 +199,7 @@ export default function Testimonials() {
               {[...row.items, ...row.items].map((t, idx) => (
                 <div
                   key={idx}
-                  className={jysSectionTheme.testimonialsHome.card}
+                  className={componentsTheme.testimonialsHome.card}
                   onClick={() => setActive(t)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -210,16 +210,16 @@ export default function Testimonials() {
                   role="button"
                   tabIndex={0}
                 >
-                  <p className={jysSectionTheme.testimonialsHome.quote}>“{t.quote}”</p>
-                  <div className={jysSectionTheme.testimonialsHome.metaRow}>
+                  <p className={componentsTheme.testimonialsHome.quote}>“{t.quote}”</p>
+                  <div className={componentsTheme.testimonialsHome.metaRow}>
                     <div>
-                      <p className={jysSectionTheme.testimonialsHome.nameRow}>
-                        <span className={jysSectionTheme.testimonialsHome.nameFlag}>{t.flag}</span>
+                      <p className={componentsTheme.testimonialsHome.nameRow}>
+                        <span className={componentsTheme.testimonialsHome.nameFlag}>{t.flag}</span>
                         <span>{t.name}</span>
                       </p>
-                      <p className={jysSectionTheme.testimonialsHome.roleText}>{t.role}</p>
+                      <p className={componentsTheme.testimonialsHome.roleText}>{t.role}</p>
                     </div>
-                    <span className={jysSectionTheme.testimonialsHome.badge}>JYS</span>
+                    <span className={componentsTheme.testimonialsHome.badge}>JYS</span>
                   </div>
                 </div>
               ))}
@@ -231,48 +231,48 @@ export default function Testimonials() {
       {/* Modal Pop Up detail testimoninya */}
       {active && (
         <div
-          className={jysSectionTheme.testimonialsHome.modalOverlay}
+          className={componentsTheme.testimonialsHome.modalOverlay}
           role="dialog"
           aria-modal="true"
           onClick={() => setActive(null)}
         >
           <div
-            className={jysSectionTheme.testimonialsHome.modalCard}
+            className={componentsTheme.testimonialsHome.modalCard}
             onClick={e => e.stopPropagation()}
           >
-            <div className={jysSectionTheme.testimonialsHome.modalHeader}>
-              <h3 className={jysSectionTheme.testimonialsHome.modalTitle}>Testimonial Detail</h3>
+            <div className={componentsTheme.testimonialsHome.modalHeader}>
+              <h3 className={componentsTheme.testimonialsHome.modalTitle}>Testimonial Detail</h3>
               <button
                 onClick={() => setActive(null)}
-                className={jysSectionTheme.testimonialsHome.modalCloseButton}
+                className={componentsTheme.testimonialsHome.modalCloseButton}
                 aria-label="Close"
               >
                 Close
               </button>
             </div>
-            <div className={jysSectionTheme.testimonialsHome.modalBodyGrid}>
-              <div className={jysSectionTheme.testimonialsHome.modalAvatarWrapper}>
-                <div className={jysSectionTheme.testimonialsHome.modalAvatarInner}>
+            <div className={componentsTheme.testimonialsHome.modalBodyGrid}>
+              <div className={componentsTheme.testimonialsHome.modalAvatarWrapper}>
+                <div className={componentsTheme.testimonialsHome.modalAvatarInner}>
                   <Image
                     src={active.photo || '/img/jysfix.png'}
                     alt={active.name}
                     fill
                     sizes="96px"
-                    className={jysSectionTheme.testimonialsHome.modalAvatarImg}
+                    className={componentsTheme.testimonialsHome.modalAvatarImg}
                   />
                 </div>
               </div>
               <div>
-                <p className={jysSectionTheme.testimonialsHome.modalMetaNameRow}>
+                <p className={componentsTheme.testimonialsHome.modalMetaNameRow}>
                   <span className="text-base">{active.flag}</span>
                   <span>{active.name}</span>
                 </p>
-                <p className={jysSectionTheme.testimonialsHome.modalMetaSub}>
+                <p className={componentsTheme.testimonialsHome.modalMetaSub}>
                   {active.country} • {active.role} • {active.year}
                 </p>
               </div>
               <div className="sm:col-span-2">
-                <p className={jysSectionTheme.testimonialsHome.modalQuote}>“{active.quote}”</p>
+                <p className={componentsTheme.testimonialsHome.modalQuote}>“{active.quote}”</p>
               </div>
             </div>
           </div>

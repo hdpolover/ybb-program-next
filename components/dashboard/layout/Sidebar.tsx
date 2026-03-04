@@ -13,9 +13,9 @@ import {
 import { dashboardNav } from '@/lib/dashboard/nav';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const layoutTheme = jysSectionTheme.dashboardLayout;
+const layoutTheme = componentsTheme.dashboardLayout;
 
 // Sidebar kiri buat navigasi dashboard — simple dan konsisten sama tema
 export default function Sidebar({

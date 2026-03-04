@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { ChevronDown, Search } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramFaqsSection } from '@/types/programs';
 import { PROGRAMS_FAQ_COPY } from '@/data/programs/sections/faq/programsFaq';
 
@@ -146,7 +146,7 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
                     <span className="text-base font-extrabold text-blue-950 sm:text-lg">
                       {item.q}
                     </span>
-                    <span className={jysSectionTheme.faq.toggleIcon}>
+                    <span className={componentsTheme.faq.toggleIcon}>
                       <ChevronDown
                         className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                       />

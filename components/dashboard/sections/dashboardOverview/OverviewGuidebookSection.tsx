@@ -1,8 +1,8 @@
 "use client";
 
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const overviewTheme = jysSectionTheme.dashboardOverview;
+const overviewTheme = componentsTheme.dashboardOverview;
 
 export default function OverviewGuidebookSection() {
   return (

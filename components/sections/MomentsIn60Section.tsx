@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 const shorts = [
   {
@@ -57,11 +57,11 @@ export default function MomentsIn60Section() {
   };
 
   return (
-    <section className={jysSectionTheme.momentsShorts.sectionWrapper}>
+    <section className={componentsTheme.momentsShorts.sectionWrapper}>
       <div
-        className={jysSectionTheme.momentsShorts.card}
+        className={componentsTheme.momentsShorts.card}
         style={{
-          backgroundImage: `url(${jysSectionTheme.momentsShorts.cardBackground})`,
+          backgroundImage: `url(${componentsTheme.momentsShorts.cardBackground})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -74,20 +74,20 @@ export default function MomentsIn60Section() {
               title="Discover Our Moments in 60 Seconds"
               align="left"
             />
-            <p className={jysSectionTheme.momentsShorts.description}>
+            <p className={componentsTheme.momentsShorts.description}>
               Watch bite-sized YouTube Shorts from Japan Youth Summit’s workshops, cultural
               sessions, and everyday moments in Osaka.
             </p>
           </div>
 
           <div className="relative sm:px-10">
-            <div className={jysSectionTheme.momentsShorts.shortsRow}>
+            <div className={componentsTheme.momentsShorts.shortsRow}>
               {visibleShorts.map(short => (
-                <div key={short.id} className={jysSectionTheme.momentsShorts.shortWrapper}>
+                <div key={short.id} className={componentsTheme.momentsShorts.shortWrapper}>
                   <iframe
                     src={short.embedUrl}
                     title="Japan Youth Summit short highlight"
-                    className={jysSectionTheme.momentsShorts.shortIframe}
+                    className={componentsTheme.momentsShorts.shortIframe}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                   />

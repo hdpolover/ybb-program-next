@@ -4,9 +4,9 @@ import { CalendarDays, Clock3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const overviewTheme = jysSectionTheme.dashboardOverview;
+const overviewTheme = componentsTheme.dashboardOverview;
 
 type ProgressStatus = "done" | "waiting" | "upcoming";
 

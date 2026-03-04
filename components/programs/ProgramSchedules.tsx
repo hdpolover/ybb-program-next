@@ -1,5 +1,5 @@
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramImportantDatesSection } from '@/types/programs';
 import { PROGRAMS_SCHEDULES_COPY } from '@/data/programs/sections/schedules-info/programsSchedulesInfo';
 
@@ -21,21 +21,21 @@ function StatusBadge({ visualStatus, label }: { visualStatus: VisualStatus; labe
   const text = label || PROGRAMS_SCHEDULES_COPY.dataNotAdded;
   if (visualStatus === 'active') {
     return (
-      <span className={jysSectionTheme.programsSchedules.statusActive}>
-        <span className={jysSectionTheme.programsSchedules.statusActiveDot} /> {text}
+      <span className={componentsTheme.programsSchedules.statusActive}>
+        <span className={componentsTheme.programsSchedules.statusActiveDot} /> {text}
       </span>
     );
   }
   if (visualStatus === 'upcoming') {
     return (
-      <span className={jysSectionTheme.programsSchedules.statusUpcoming}>
-        <span className={jysSectionTheme.programsSchedules.statusUpcomingDot} /> {text}
+      <span className={componentsTheme.programsSchedules.statusUpcoming}>
+        <span className={componentsTheme.programsSchedules.statusUpcomingDot} /> {text}
       </span>
     );
   }
   return (
-    <span className={jysSectionTheme.programsSchedules.statusClosed}>
-      <span className={jysSectionTheme.programsSchedules.statusClosedDot} /> {text}
+    <span className={componentsTheme.programsSchedules.statusClosed}>
+      <span className={componentsTheme.programsSchedules.statusClosedDot} /> {text}
     </span>
   );
 }
@@ -46,8 +46,8 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
   const items = dates?.items ?? [];
 
   return (
-    <section className={jysSectionTheme.programsSchedules.sectionWrapper}>
-      <div className={jysSectionTheme.programsSchedules.container}>
+    <section className={componentsTheme.programsSchedules.sectionWrapper}>
+      <div className={componentsTheme.programsSchedules.container}>
         <SectionHeader
           eyebrow={PROGRAMS_SCHEDULES_COPY.headerEyebrow}
           title={title}
@@ -55,42 +55,42 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
           align="center"
         />
 
-        <div className={jysSectionTheme.programsSchedules.tableWrapper}>
-          <div className={jysSectionTheme.programsSchedules.tableInner}>
-            <table className={jysSectionTheme.programsSchedules.table}>
-              <thead className={jysSectionTheme.programsSchedules.thead}>
-                <tr className={jysSectionTheme.programsSchedules.headerRow}>
-                  <th scope="col" className={jysSectionTheme.programsSchedules.headerCell}>
+        <div className={componentsTheme.programsSchedules.tableWrapper}>
+          <div className={componentsTheme.programsSchedules.tableInner}>
+            <table className={componentsTheme.programsSchedules.table}>
+              <thead className={componentsTheme.programsSchedules.thead}>
+                <tr className={componentsTheme.programsSchedules.headerRow}>
+                  <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
                     {PROGRAMS_SCHEDULES_COPY.columnDateRange}
                   </th>
-                  <th scope="col" className={jysSectionTheme.programsSchedules.headerCell}>
+                  <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
                     {PROGRAMS_SCHEDULES_COPY.columnStatus}
                   </th>
-                  <th scope="col" className={jysSectionTheme.programsSchedules.headerCell}>
+                  <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
                     {PROGRAMS_SCHEDULES_COPY.columnName}
                   </th>
-                  <th scope="col" className={jysSectionTheme.programsSchedules.headerCell}>
+                  <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
                     {PROGRAMS_SCHEDULES_COPY.columnDescription}
                   </th>
                 </tr>
               </thead>
-              <tbody className={jysSectionTheme.programsSchedules.body}>
+              <tbody className={componentsTheme.programsSchedules.body}>
                 {items.length > 0 ? (
                   items.map(item => {
                     const visualStatus = mapStatus(item.status, item.is_active);
                     const descriptionLines = (item.description || PROGRAMS_SCHEDULES_COPY.dataNotAdded).split(/\n+/);
                     return (
-                      <tr key={item.name} className={jysSectionTheme.programsSchedules.row}>
-                        <td className={jysSectionTheme.programsSchedules.cellDate}>
+                      <tr key={item.name} className={componentsTheme.programsSchedules.row}>
+                        <td className={componentsTheme.programsSchedules.cellDate}>
                           {item.date_display || PROGRAMS_SCHEDULES_COPY.dataNotAdded}
                         </td>
-                        <td className={jysSectionTheme.programsSchedules.cellStatus}>
+                        <td className={componentsTheme.programsSchedules.cellStatus}>
                           <StatusBadge visualStatus={visualStatus} label={item.status} />
                         </td>
-                        <td className={jysSectionTheme.programsSchedules.cellName}>
+                        <td className={componentsTheme.programsSchedules.cellName}>
                           {item.name || PROGRAMS_SCHEDULES_COPY.dataNotAdded}
                         </td>
-                        <td className={jysSectionTheme.programsSchedules.cellDesc}>
+                        <td className={componentsTheme.programsSchedules.cellDesc}>
                           {descriptionLines.map(line => (
                             <span key={line} className="block">
                               {line}
@@ -101,9 +101,9 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
                     );
                   })
                 ) : (
-                  <tr className={jysSectionTheme.programsSchedules.row}>
+                  <tr className={componentsTheme.programsSchedules.row}>
                     <td
-                      className={jysSectionTheme.programsSchedules.cellDesc}
+                      className={componentsTheme.programsSchedules.cellDesc}
                       colSpan={4}
                     >
                       {PROGRAMS_SCHEDULES_COPY.dataNotAdded}
@@ -115,8 +115,8 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
           </div>
         </div>
 
-        <p className={jysSectionTheme.programsSchedules.note}>
-          <span className={jysSectionTheme.programsSchedules.noteEmphasis}>
+        <p className={componentsTheme.programsSchedules.note}>
+          <span className={componentsTheme.programsSchedules.noteEmphasis}>
             {PROGRAMS_SCHEDULES_COPY.notePrefix}
           </span>{' '}
           {PROGRAMS_SCHEDULES_COPY.noteBody}

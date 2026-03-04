@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { CalendarDays, Clock, Info } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { PROGRAMS_RUNDOWNS_COPY } from '@/data/programs/sections/rundowns/programsRundowns';
 
 export type RundownItem = {
@@ -41,17 +41,17 @@ export default function ProgramRundowns({
                 key={d.label}
                 type="button"
                 onClick={() => setActive(i)}
-                className={`${jysSectionTheme.programRundowns.tabButton} ${
+                className={`${componentsTheme.programRundowns.tabButton} ${
                   i === active ? 'text-blue-950' : 'text-blue-900/60 hover:bg-blue-50'
                 }`}
                 aria-current={i === active}
               >
                 <span className="inline-flex items-center justify-center gap-2">
-                  <CalendarDays className={jysSectionTheme.programRundowns.tabLabelIcon} />
+                  <CalendarDays className={componentsTheme.programRundowns.tabLabelIcon} />
                   <span>{d.label}</span>
                 </span>
                 {i === active ? (
-                  <span className={jysSectionTheme.programRundowns.tabActiveUnderline} />
+                  <span className={componentsTheme.programRundowns.tabActiveUnderline} />
                 ) : (
                   <span className="absolute inset-y-3 right-0 hidden w-px bg-blue-100 last:hidden sm:block" />
                 )}
@@ -106,7 +106,7 @@ export default function ProgramRundowns({
         {/* catatan di bawah tab */}
         {note ? (
           <div className="mt-4 flex items-start gap-3 rounded-xl bg-blue-50 p-4 ring-1 ring-blue-200">
-            <Info className={jysSectionTheme.programRundowns.noteIcon} />
+            <Info className={componentsTheme.programRundowns.noteIcon} />
             <p className="text-sm leading-6 text-blue-900">{note}</p>
           </div>
         ) : null}

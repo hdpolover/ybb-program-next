@@ -2,10 +2,10 @@
 
 import React from "react";
 import { PencilLine } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import type { EntryInfo, PersonalDetails, ProfessionalProfile } from "../SubmissionEditSection";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 type Props = {
   personal: PersonalDetails;

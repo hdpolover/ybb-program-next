@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 import HistoryList, { type HistoryItem } from "@/components/dashboard/payments/HistoryList";
 import HistoryPanel from "@/components/dashboard/payments/HistoryPanel";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const paymentsTheme = jysSectionTheme.dashboardPayments;
+const paymentsTheme = componentsTheme.dashboardPayments;
 
 interface PaymentDetailSectionProps {
   paymentId: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { PROGRAMS_FURTHER_INFO_DEFAULT } from '@/data/programs/sections/further-info/programsFurtherInfo';
 import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
 
@@ -24,7 +24,7 @@ export default function ProgramsFurtherInformationSection({
 }: ProgramsFurtherInformationProps) {
   return (
     <section
-      className={jysSectionTheme.furtherInfoPrograms.sectionWrapper}
+      className={componentsTheme.furtherInfoPrograms.sectionWrapper}
       style={{
         backgroundImage: "url('/img/halfback1.png')",
         backgroundSize: 'cover',
@@ -32,23 +32,23 @@ export default function ProgramsFurtherInformationSection({
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className={jysSectionTheme.furtherInfoPrograms.card}>
-        <div className={jysSectionTheme.furtherInfoPrograms.innerGrid}>
-          <div className={jysSectionTheme.furtherInfoPrograms.leftCol}>
+      <div className={componentsTheme.furtherInfoPrograms.card}>
+        <div className={componentsTheme.furtherInfoPrograms.innerGrid}>
+          <div className={componentsTheme.furtherInfoPrograms.leftCol}>
             <div>
               <SectionHeader eyebrow="Guidebook" title={title} align="left" />
-              <p className={jysSectionTheme.furtherInfoPrograms.description}>{subtitle}</p>
+              <p className={componentsTheme.furtherInfoPrograms.description}>{subtitle}</p>
 
-              <div className={jysSectionTheme.furtherInfoPrograms.buttonsCol}>
+              <div className={componentsTheme.furtherInfoPrograms.buttonsCol}>
                 {guidebooks.map(link =>
                   link.href && link.href !== '#' ? (
                     <a
                       key={link.label}
                       href={link.href}
-                      className={`${jysSectionTheme.furtherInfoPrograms.guideButtonBase} ${
+                      className={`${componentsTheme.furtherInfoPrograms.guideButtonBase} ${
                         link.locale === 'eng'
-                          ? jysSectionTheme.homeRegistration.guidePrimary
-                          : jysSectionTheme.homeRegistration.guideSecondary
+                          ? componentsTheme.homeRegistration.guidePrimary
+                          : componentsTheme.homeRegistration.guideSecondary
                       }`}
                       target="_blank"
                       rel="noreferrer"
@@ -59,10 +59,10 @@ export default function ProgramsFurtherInformationSection({
                     <span
                       key={`${link.label}-disabled`}
                       aria-disabled="true"
-                      className={`${jysSectionTheme.furtherInfoPrograms.guideButtonBase} ${
+                      className={`${componentsTheme.furtherInfoPrograms.guideButtonBase} ${
                         link.locale === 'eng'
-                          ? jysSectionTheme.homeRegistration.guidePrimary
-                          : jysSectionTheme.homeRegistration.guideSecondary
+                          ? componentsTheme.homeRegistration.guidePrimary
+                          : componentsTheme.homeRegistration.guideSecondary
                       } pointer-events-none flex cursor-not-allowed items-center justify-center opacity-60`}
                     >
                       {DATA_NOT_ADDED}
@@ -73,8 +73,8 @@ export default function ProgramsFurtherInformationSection({
             </div>
           </div>
 
-          <div className={jysSectionTheme.furtherInfoPrograms.rightCol}>
-            <div className={jysSectionTheme.furtherInfoPrograms.mockupWrapper}></div>
+          <div className={componentsTheme.furtherInfoPrograms.rightCol}>
+            <div className={componentsTheme.furtherInfoPrograms.mockupWrapper}></div>
           </div>
         </div>
       </div>

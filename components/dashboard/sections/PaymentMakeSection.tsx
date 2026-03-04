@@ -11,9 +11,9 @@ import {
   ShieldCheck,
   CheckCircle2,
 } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const paymentsTheme = jysSectionTheme.dashboardPayments;
+const paymentsTheme = componentsTheme.dashboardPayments;
 
 interface PaymentMakeSectionProps {
   paymentId: string;

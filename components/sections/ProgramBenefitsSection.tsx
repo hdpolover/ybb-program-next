@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import SectionHeader from "@/components/ui/SectionHeader";
 
-const theme = jysSectionTheme.homeProgramBenefits;
+const theme = componentsTheme.homeProgramBenefits;
 
 export default function ProgramBenefitsSection() {
   return (

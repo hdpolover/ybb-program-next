@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import type { CountryMetadata } from '@/types/metadata';
 import type { CityMetadata, StateMetadata } from '@/types/metadata';
 import { getCities, getCountries, getGenders, getKnowledgeSources, getStates } from '@/lib/api/metadata';
@@ -34,8 +34,8 @@ const PROGRAM_SOURCES = [
 export default function OnboardingPage() {
   const router = useRouter();
 
-  const submissionTheme = jysSectionTheme.dashboardSubmission;
-  const onboardingTheme = jysSectionTheme.onboarding;
+  const submissionTheme = componentsTheme.dashboardSubmission;
+  const onboardingTheme = componentsTheme.onboarding;
 
   const [imageIndex, setImageIndex] = useState(0);
 
@@ -528,14 +528,14 @@ export default function OnboardingPage() {
   };
 
   return (
-    <section className={`min-h-screen w-full ${jysSectionTheme.login.pageBackground}`}>
+    <section className={`min-h-screen w-full ${componentsTheme.login.pageBackground}`}>
       <div className={onboardingTheme.layoutGrid}>
         <div className={onboardingTheme.leftCol}>
           <p className={onboardingTheme.copyrightText}>
             Copyright © {new Date().getFullYear()} {brandName}
           </p>
           <div className={onboardingTheme.leftCenter}>
-            <div className={jysSectionTheme.login.formPanelInner}>
+            <div className={componentsTheme.login.formPanelInner}>
               <div className={onboardingTheme.logoWrapper}>
                 <Image
                   src="/img/jysfix.png"
@@ -590,14 +590,14 @@ export default function OnboardingPage() {
                 {activeStep === 'Basic Info' ? (
                   <>
                     <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Full name</label>
+                      <label className={componentsTheme.login.fieldLabel}>Full name</label>
                       <input
                         name="fullName"
                         value={form.fullName}
                         onChange={onChange}
                         type="text"
                         required
-                        className={jysSectionTheme.login.input}
+                        className={componentsTheme.login.input}
                         placeholder="Your full name"
                       />
                       {bioShowErrors && form.fullName.trim().length === 0 ? (
@@ -606,13 +606,13 @@ export default function OnboardingPage() {
                     </div>
 
                     <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Gender</label>
+                      <label className={componentsTheme.login.fieldLabel}>Gender</label>
                       <StyledSelect
                         value={form.gender}
                         onChange={value => setForm(prev => ({ ...prev, gender: value }))}
                         options={genderSelectOptions}
                         placeholder="Select gender"
-                        className={jysSectionTheme.login.input}
+                        className={componentsTheme.login.input}
                         searchable
                       />
                       {bioShowErrors && form.gender.trim().length === 0 ? (
@@ -625,7 +625,7 @@ export default function OnboardingPage() {
                 {activeStep === 'Location' ? (
                   <>
                     <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Country of origin</label>
+                      <label className={componentsTheme.login.fieldLabel}>Country of origin</label>
                       <StyledSelect
                         value={form.country}
                         onChange={value =>
@@ -638,7 +638,7 @@ export default function OnboardingPage() {
                         }
                         options={countrySelectOptions}
                         placeholder="Select country"
-                        className={jysSectionTheme.login.input}
+                        className={componentsTheme.login.input}
                         searchable
                       />
                       {domShowErrors && form.country.trim().length === 0 ? (
@@ -648,7 +648,7 @@ export default function OnboardingPage() {
 
                     <div className={onboardingTheme.locationGrid}>
                       <div>
-                        <label className={jysSectionTheme.login.fieldLabel}>State/Region</label>
+                        <label className={componentsTheme.login.fieldLabel}>State/Region</label>
                         {selectedCountry?.isoCode && !statesFailed ? (
                           <StyledSelect
                             value={form.state}
@@ -657,7 +657,7 @@ export default function OnboardingPage() {
                             }
                             options={stateSelectOptions}
                             placeholder={statesLoading ? 'Loading state/region...' : 'Select state/region'}
-                            className={jysSectionTheme.login.input}
+                            className={componentsTheme.login.input}
                             searchable
                             disabled={!selectedCountry?.isoCode || statesLoading}
                           />
@@ -668,7 +668,7 @@ export default function OnboardingPage() {
                             onChange={onChange}
                             type="text"
                             required
-                            className={jysSectionTheme.login.input}
+                            className={componentsTheme.login.input}
                             placeholder="State/Region"
                           />
                         )}
@@ -683,14 +683,14 @@ export default function OnboardingPage() {
                       </div>
 
                       <div>
-                        <label className={jysSectionTheme.login.fieldLabel}>City</label>
+                        <label className={componentsTheme.login.fieldLabel}>City</label>
                         {selectedCountry?.isoCode && form.state && !citiesFailed ? (
                           <StyledSelect
                             value={form.city}
                             onChange={value => setForm(prev => ({ ...prev, city: value }))}
                             options={citySelectOptions}
                             placeholder={citiesLoading ? 'Loading city...' : 'Select city'}
-                            className={jysSectionTheme.login.input}
+                            className={componentsTheme.login.input}
                             searchable
                             disabled={!form.state || citiesLoading}
                           />
@@ -701,7 +701,7 @@ export default function OnboardingPage() {
                             onChange={onChange}
                             type="text"
                             required
-                            className={jysSectionTheme.login.input}
+                            className={componentsTheme.login.input}
                             placeholder="City"
                           />
                         )}
@@ -721,12 +721,12 @@ export default function OnboardingPage() {
                 {activeStep === 'Age' ? (
                   <>
                     <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Birth date</label>
+                      <label className={componentsTheme.login.fieldLabel}>Birth date</label>
 
                       <div className="relative">
                         <button
                           type="button"
-                          className={`${jysSectionTheme.login.input} flex items-center justify-between`}
+                          className={`${componentsTheme.login.input} flex items-center justify-between`}
                           onClick={() => setBirthPickerOpen(v => !v)}
                         >
                           <span className={birthDateDisplay ? 'text-slate-900' : 'text-slate-400'}>
@@ -890,7 +890,7 @@ export default function OnboardingPage() {
                 {activeStep === 'Program Info' ? (
                   <>
                     <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>How did you hear about this program?</label>
+                      <label className={componentsTheme.login.fieldLabel}>How did you hear about this program?</label>
                       <div className={onboardingTheme.programSourceGrid}>
                         {displayedProgramSourceOptions.map(opt => {
                           const selected = form.programSource === opt.value;
@@ -927,13 +927,13 @@ export default function OnboardingPage() {
                     </div>
 
                     <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Referral Code (optional)</label>
+                      <label className={componentsTheme.login.fieldLabel}>Referral Code (optional)</label>
                       <input
                         name="referralCode"
                         value={form.referralCode}
                         onChange={onChange}
                         type="text"
-                        className={jysSectionTheme.login.input}
+                        className={componentsTheme.login.input}
                         placeholder="ABC-123"
                       />
                     </div>
@@ -944,20 +944,20 @@ export default function OnboardingPage() {
                   {activeStep === 'Program Info' ? (
                     <button
                       type="button"
-                      className={jysSectionTheme.login.primaryButton}
+                      className={componentsTheme.login.primaryButton}
                       onClick={onContinue}
                       disabled={submitLoading}
                     >
                       {submitLoading ? 'Saving...' : 'Continue'}
                     </button>
                   ) : (
-                    <button type="button" className={jysSectionTheme.login.primaryButton} onClick={goNext}>
+                    <button type="button" className={componentsTheme.login.primaryButton} onClick={goNext}>
                       Next
                     </button>
                   )}
 
                   {activeStep !== 'Basic Info' ? (
-                    <button type="button" className={jysSectionTheme.login.secondaryButton} onClick={goBack}>
+                    <button type="button" className={componentsTheme.login.secondaryButton} onClick={goBack}>
                       Back
                     </button>
                   ) : null}
@@ -1029,7 +1029,7 @@ export default function OnboardingPage() {
           </div>
         ) : null}
 
-        <div className={`${onboardingTheme.imagePanel} ${jysSectionTheme.login.imagePanelBackground}`}>
+        <div className={`${onboardingTheme.imagePanel} ${componentsTheme.login.imagePanelBackground}`}>
           <div className="relative h-full">
             <Image
               src={loginImageSrc}
@@ -1039,7 +1039,7 @@ export default function OnboardingPage() {
               priority
               className="h-full w-auto object-contain"
             />
-            <div className={jysSectionTheme.login.heroOverlay} />
+            <div className={componentsTheme.login.heroOverlay} />
           </div>
         </div>
       </div>

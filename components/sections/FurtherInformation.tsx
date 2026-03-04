@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { DATA_NOT_ADDED } from '@/data/home/shared/constants';
 
 interface GuidebookLink {
@@ -37,7 +37,7 @@ export default function FurtherInformationSection({
 }: FurtherInformationProps) {
   return (
     <section
-      className={`${jysSectionTheme.furtherInfo.sectionWrapper} min-h-[760px] py-14 sm:min-h-0 sm:py-28`}
+      className={`${componentsTheme.furtherInfo.sectionWrapper} min-h-[760px] py-14 sm:min-h-0 sm:py-28`}
     >
       <div className="absolute inset-0 bg-primary/20 sm:hidden" />
       <div className="absolute inset-x-0 bottom-0 h-[72%] sm:hidden">
@@ -59,27 +59,27 @@ export default function FurtherInformationSection({
         />
       </div>
 
-      <div className={`${jysSectionTheme.furtherInfo.card} relative z-10`}>
-        <div className={jysSectionTheme.furtherInfo.innerGrid}>
-          <div className={jysSectionTheme.furtherInfo.leftCol}>
+      <div className={`${componentsTheme.furtherInfo.card} relative z-10`}>
+        <div className={componentsTheme.furtherInfo.innerGrid}>
+          <div className={componentsTheme.furtherInfo.leftCol}>
             <div className="sm:hidden">
               <SectionHeader eyebrow="Guidebook" title={title} align="center" />
             </div>
             <div className="hidden sm:block">
               <SectionHeader eyebrow="Guidebook" title={title} align="left" />
             </div>
-            <p className={jysSectionTheme.furtherInfo.description}>{subtitle}</p>
+            <p className={componentsTheme.furtherInfo.description}>{subtitle}</p>
 
-            <div className={jysSectionTheme.furtherInfo.buttonsCol}>
+            <div className={componentsTheme.furtherInfo.buttonsCol}>
               {guidebooks.map((link, index) => (
                 link.href && link.href !== '#' ? (
                   <a
                     key={`${link.locale}-${link.href}-${index}`}
                     href={link.href}
-                    className={`${jysSectionTheme.furtherInfo.guideButtonBase} ${
+                    className={`${componentsTheme.furtherInfo.guideButtonBase} ${
                       link.locale === 'eng'
-                        ? jysSectionTheme.homeRegistration.guidePrimary
-                        : jysSectionTheme.homeRegistration.guideSecondary
+                        ? componentsTheme.homeRegistration.guidePrimary
+                        : componentsTheme.homeRegistration.guideSecondary
                     }`}
                     target="_blank"
                     rel="noreferrer"
@@ -90,10 +90,10 @@ export default function FurtherInformationSection({
                   <span
                     key={`${link.locale}-disabled-${index}`}
                     aria-disabled="true"
-                    className={`${jysSectionTheme.furtherInfo.guideButtonBase} ${
+                    className={`${componentsTheme.furtherInfo.guideButtonBase} ${
                       link.locale === 'eng'
-                        ? jysSectionTheme.homeRegistration.guidePrimary
-                        : jysSectionTheme.homeRegistration.guideSecondary
+                        ? componentsTheme.homeRegistration.guidePrimary
+                        : componentsTheme.homeRegistration.guideSecondary
                     } pointer-events-none flex cursor-not-allowed items-center justify-center opacity-60`}
                   >
                     {DATA_NOT_ADDED}
@@ -103,8 +103,8 @@ export default function FurtherInformationSection({
             </div>
           </div>
 
-          <div className={jysSectionTheme.furtherInfo.rightCol}>
-            <div className={jysSectionTheme.furtherInfo.mockupWrapper}></div>
+          <div className={componentsTheme.furtherInfo.rightCol}>
+            <div className={componentsTheme.furtherInfo.mockupWrapper}></div>
           </div>
         </div>
       </div>

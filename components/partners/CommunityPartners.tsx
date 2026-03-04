@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import type { SponsorItem } from '@/types/partners';
 import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
 
@@ -13,13 +13,13 @@ export default function CommunityPartnersSection({ partners }: CommunityPartners
   const hasItems = !!partners && partners.length > 0;
 
   return (
-    <section className={jysSectionTheme.partnersCommunity.sectionWrapper}>
-      <div className={jysSectionTheme.partnersCommunity.container}>
+    <section className={componentsTheme.partnersCommunity.sectionWrapper}>
+      <div className={componentsTheme.partnersCommunity.container}>
         <SectionHeader
           eyebrow="Community Partners"
           title="Organizations providing in-kind support and collaboration"
         />
-        <div className={jysSectionTheme.partnersCommunity.listWrapper}>
+        <div className={componentsTheme.partnersCommunity.listWrapper}>
           {hasItems ? (
             partners.map(p => (
               <a
@@ -27,7 +27,7 @@ export default function CommunityPartnersSection({ partners }: CommunityPartners
                 href={p.website || '#'}
                 target={p.website ? '_blank' : undefined}
                 rel={p.website ? 'noreferrer' : undefined}
-                className={jysSectionTheme.partnersCommunity.card}
+                className={componentsTheme.partnersCommunity.card}
               >
                 <Image
                   src={p.logo || '/img/jyslogosolo.png'}
@@ -35,11 +35,11 @@ export default function CommunityPartnersSection({ partners }: CommunityPartners
                   width={48}
                   height={48}
                   sizes="48px"
-                  className={jysSectionTheme.partnersCommunity.logoImg}
+                  className={componentsTheme.partnersCommunity.logoImg}
                 />
                 <div>
-                  <p className={jysSectionTheme.partnersCommunity.orgName}>{p.name}</p>
-                  <span className={jysSectionTheme.partnersCommunity.pinkChip}>
+                  <p className={componentsTheme.partnersCommunity.orgName}>{p.name}</p>
+                  <span className={componentsTheme.partnersCommunity.pinkChip}>
                     {p.tier ? p.tier.replace(/_/g, ' ') : DATA_NOT_ADDED}
                   </span>
                 </div>
@@ -47,11 +47,11 @@ export default function CommunityPartnersSection({ partners }: CommunityPartners
             ))
           ) : (
             <div
-              className={`${jysSectionTheme.partnersCommunity.card} border-dashed border-slate-200 bg-slate-50/60`}
+              className={`${componentsTheme.partnersCommunity.card} border-dashed border-slate-200 bg-slate-50/60`}
             >
               <div>
-                <p className={jysSectionTheme.partnersCommunity.orgName}>{DATA_NOT_ADDED}</p>
-                <span className={jysSectionTheme.partnersCommunity.pinkChip}>{DATA_NOT_ADDED}</span>
+                <p className={componentsTheme.partnersCommunity.orgName}>{DATA_NOT_ADDED}</p>
+                <span className={componentsTheme.partnersCommunity.pinkChip}>{DATA_NOT_ADDED}</span>
               </div>
             </div>
           )}

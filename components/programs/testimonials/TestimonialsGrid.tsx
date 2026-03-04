@@ -4,7 +4,7 @@ import React from 'react';
 import { Star, ChevronDown } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import Image from 'next/image';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 // Grid testimonial lengkap dengan data dan kartu — dipisah biar rapi
 
@@ -141,14 +141,14 @@ const data: Testimonial[] = [
 
 function Stars({ n }: { n: number }) {
   return (
-    <div className={jysSectionTheme.programsTestimonialsGrid.starsWrapper}>
+    <div className={componentsTheme.programsTestimonialsGrid.starsWrapper}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
           className={
             i < n
-              ? jysSectionTheme.programsTestimonialsGrid.starFilled
-              : jysSectionTheme.programsTestimonialsGrid.starEmpty
+              ? componentsTheme.programsTestimonialsGrid.starFilled
+              : componentsTheme.programsTestimonialsGrid.starEmpty
           }
         />
       ))}
@@ -159,45 +159,45 @@ function Stars({ n }: { n: number }) {
 function TestimonialCard({ t }: { t: Testimonial }) {
   const [open, setOpen] = React.useState(false);
   return (
-    <div className={jysSectionTheme.programsTestimonialsGrid.card}>
-      <div className={jysSectionTheme.programsTestimonialsGrid.cardInnerRow}>
+    <div className={componentsTheme.programsTestimonialsGrid.card}>
+      <div className={componentsTheme.programsTestimonialsGrid.cardInnerRow}>
         <Image
           src={t.avatar}
           alt={t.name}
           width={48}
           height={48}
           sizes="48px"
-          className={jysSectionTheme.programsTestimonialsGrid.avatarImg}
+          className={componentsTheme.programsTestimonialsGrid.avatarImg}
         />
-        <div className={jysSectionTheme.programsTestimonialsGrid.contentCol}>
-          <div className={jysSectionTheme.programsTestimonialsGrid.headerRow}>
-            <h3 className={jysSectionTheme.programsTestimonialsGrid.name}>{t.name}</h3>
-            <span className={jysSectionTheme.programsTestimonialsGrid.countryChip}>
-              <span className={jysSectionTheme.programsTestimonialsGrid.flagEmoji}>
+        <div className={componentsTheme.programsTestimonialsGrid.contentCol}>
+          <div className={componentsTheme.programsTestimonialsGrid.headerRow}>
+            <h3 className={componentsTheme.programsTestimonialsGrid.name}>{t.name}</h3>
+            <span className={componentsTheme.programsTestimonialsGrid.countryChip}>
+              <span className={componentsTheme.programsTestimonialsGrid.flagEmoji}>
                 {flagEmojiFromCode(countryCodeMap[t.country] || '')}
               </span>{' '}
               {t.country}
             </span>
-            <span className={jysSectionTheme.programsTestimonialsGrid.yearPill}>{t.year}</span>
+            <span className={componentsTheme.programsTestimonialsGrid.yearPill}>{t.year}</span>
           </div>
-          <p className={jysSectionTheme.programsTestimonialsGrid.quote}>
+          <p className={componentsTheme.programsTestimonialsGrid.quote}>
             {open ? t.full : t.quote}
           </p>
           <button
             type="button"
             onClick={() => setOpen(v => !v)}
-            className={jysSectionTheme.programsTestimonialsGrid.readMoreButton}
+            className={componentsTheme.programsTestimonialsGrid.readMoreButton}
           >
             Read Full Testimonial{' '}
             <ChevronDown
-              className={`${jysSectionTheme.programsTestimonialsGrid.readMoreIcon} ${
+              className={`${componentsTheme.programsTestimonialsGrid.readMoreIcon} ${
                 open ? 'rotate-180' : ''
               }`}
             />
           </button>
-          <div className={jysSectionTheme.programsTestimonialsGrid.divider} />
-          <div className={jysSectionTheme.programsTestimonialsGrid.metaRow}>
-            <span className={jysSectionTheme.programsTestimonialsGrid.roleText}>{t.role}</span>
+          <div className={componentsTheme.programsTestimonialsGrid.divider} />
+          <div className={componentsTheme.programsTestimonialsGrid.metaRow}>
+            <span className={componentsTheme.programsTestimonialsGrid.roleText}>{t.role}</span>
             <Stars n={t.rating} />
           </div>
         </div>
@@ -208,10 +208,10 @@ function TestimonialCard({ t }: { t: Testimonial }) {
 
 export default function TestimonialsGrid() {
   return (
-    <section className={jysSectionTheme.programsTestimonialsGrid.sectionWrapper}>
-      <div className={jysSectionTheme.programsTestimonialsGrid.container}>
+    <section className={componentsTheme.programsTestimonialsGrid.sectionWrapper}>
+      <div className={componentsTheme.programsTestimonialsGrid.container}>
         <SectionHeader eyebrow="Participant Voices" title="What they say" />
-        <div className={jysSectionTheme.programsTestimonialsGrid.grid}>
+        <div className={componentsTheme.programsTestimonialsGrid.grid}>
           {data.map(t => (
             <TestimonialCard key={`${t.name}-${t.year}`} t={t} />
           ))}

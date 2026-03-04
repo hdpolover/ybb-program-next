@@ -1,6 +1,6 @@
 import SectionHeader from '@/components/ui/SectionHeader';
 import { Flag } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import {
   PARTICIPANTS_BY_COUNTRY_COPY,
   PARTICIPANTS_BY_COUNTRY_DATA,
@@ -22,17 +22,17 @@ export default function ParticipantsByCountrySection() {
           <li key={d.country} className="rounded-xl border border-slate-200 bg-white p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <span className={jysSectionTheme.insightsParticipants.rankCircle}>{rank}</span>
-                <span className={jysSectionTheme.insightsParticipants.flagCircle}>
+                <span className={componentsTheme.insightsParticipants.rankCircle}>{rank}</span>
+                <span className={componentsTheme.insightsParticipants.flagCircle}>
                   <Flag className="h-4 w-4" />
                 </span>
                 <span className="text-sm font-semibold text-blue-900">{d.country}</span>
               </div>
               <span className="text-sm font-bold text-blue-900">{d.count}</span>
             </div>
-            <div className={jysSectionTheme.insightsParticipants.barTrack}>
+            <div className={componentsTheme.insightsParticipants.barTrack}>
               <div
-                className={jysSectionTheme.insightsParticipants.barFill}
+                className={componentsTheme.insightsParticipants.barFill}
                 style={{ width: `${pct}%` }}
               />
             </div>

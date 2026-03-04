@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type VerifyStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -76,16 +76,16 @@ export default function VerifyEmailPage() {
   }, [router, status]);
 
   return (
-    <section className={`min-h-screen w-full ${jysSectionTheme.login.pageBackground}`}>
-      <div className={jysSectionTheme.login.formPanelOuter}>
-        <div className={jysSectionTheme.login.formPanelInner}>
-          <div className={jysSectionTheme.login.card}>
-            <h1 className={jysSectionTheme.login.formHeading}>Verify Your Email</h1>
+    <section className={`min-h-screen w-full ${componentsTheme.login.pageBackground}`}>
+      <div className={componentsTheme.login.formPanelOuter}>
+        <div className={componentsTheme.login.formPanelInner}>
+          <div className={componentsTheme.login.card}>
+            <h1 className={componentsTheme.login.formHeading}>Verify Your Email</h1>
 
             {status === 'loading' ? (
-              <p className={jysSectionTheme.login.formSubheading}>Verifying your email address...</p>
+              <p className={componentsTheme.login.formSubheading}>Verifying your email address...</p>
             ) : (
-              <p className={jysSectionTheme.login.formSubheading}>{message}</p>
+              <p className={componentsTheme.login.formSubheading}>{message}</p>
             )}
 
             {status === 'success' ? (
@@ -98,7 +98,7 @@ export default function VerifyEmailPage() {
               <button
                 type="button"
                 onClick={() => router.push('/login')}
-                className={jysSectionTheme.login.primaryButton}
+                className={componentsTheme.login.primaryButton}
                 disabled={status === 'loading'}
               >
                 {buttonLabel}

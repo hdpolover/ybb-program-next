@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { PencilLine } from "lucide-react";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 export default function SubmissionReadProfileHeaderSection() {
   const { me, onboarding, participantProfile } = useDashboardData();

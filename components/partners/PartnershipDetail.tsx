@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 const PACKAGES: Record<
   string,
@@ -83,26 +83,26 @@ export default function PartnershipDetailSection({ slug }: { slug: string }) {
 
    const gradientVariant =
     slug === 'community-partner'
-      ? jysSectionTheme.partnersDetail.gradientRightCommunity
+      ? componentsTheme.partnersDetail.gradientRightCommunity
       : slug === 'silver-partner'
-        ? jysSectionTheme.partnersDetail.gradientRightSilver
+        ? componentsTheme.partnersDetail.gradientRightSilver
         : slug === 'gold-partner'
-          ? jysSectionTheme.partnersDetail.gradientRightGold
-          : jysSectionTheme.partnersDetail.gradientRightDiamond;
+          ? componentsTheme.partnersDetail.gradientRightGold
+          : componentsTheme.partnersDetail.gradientRightDiamond;
 
   return (
-    <section className={jysSectionTheme.partnersDetail.sectionWrapper}>
-      <div className={jysSectionTheme.partnersDetail.container}>
-        <div className={jysSectionTheme.partnersDetail.card}>
-          <div className={jysSectionTheme.partnersDetail.headerRow}>
+    <section className={componentsTheme.partnersDetail.sectionWrapper}>
+      <div className={componentsTheme.partnersDetail.container}>
+        <div className={componentsTheme.partnersDetail.card}>
+          <div className={componentsTheme.partnersDetail.headerRow}>
             <div>
-              <h2 className={jysSectionTheme.partnersDetail.title}>{pkg.title}</h2>
-              <p className={jysSectionTheme.partnersDetail.bestForLabel}>{pkg.bestFor}</p>
+              <h2 className={componentsTheme.partnersDetail.title}>{pkg.title}</h2>
+              <p className={componentsTheme.partnersDetail.bestForLabel}>{pkg.bestFor}</p>
             </div>
-            <div className={jysSectionTheme.partnersDetail.priceText}>{pkg.price}</div>
+            <div className={componentsTheme.partnersDetail.priceText}>{pkg.price}</div>
           </div>
 
-          <div className={jysSectionTheme.partnersDetail.bodyGrid}>
+          <div className={componentsTheme.partnersDetail.bodyGrid}>
             {slug === 'affiliate-program' ? (
               <>
                 <div className="pb-1 text-sm font-extrabold text-blue-900">Fully-funded Affiliate</div>
@@ -111,9 +111,9 @@ export default function PartnershipDetailSection({ slug }: { slug: string }) {
                   'Commission applies to registration fee',
                   'Performance-based partnership',
                 ].map(item => (
-                  <div key={`fully-${item}`} className={jysSectionTheme.partnersDetail.bulletRow}>
-                    <Check className={jysSectionTheme.partnersDetail.bulletIcon} />
-                    <span className={jysSectionTheme.partnersDetail.bulletText}>{item}</span>
+                  <div key={`fully-${item}`} className={componentsTheme.partnersDetail.bulletRow}>
+                    <Check className={componentsTheme.partnersDetail.bulletIcon} />
+                    <span className={componentsTheme.partnersDetail.bulletText}>{item}</span>
                   </div>
                 ))}
 
@@ -125,24 +125,24 @@ export default function PartnershipDetailSection({ slug }: { slug: string }) {
                   'No minimum referrals required',
                   'Flexible and results-driven',
                 ].map(item => (
-                  <div key={`self-${item}`} className={jysSectionTheme.partnersDetail.bulletRow}>
-                    <Check className={jysSectionTheme.partnersDetail.bulletIcon} />
-                    <span className={jysSectionTheme.partnersDetail.bulletText}>{item}</span>
+                  <div key={`self-${item}`} className={componentsTheme.partnersDetail.bulletRow}>
+                    <Check className={componentsTheme.partnersDetail.bulletIcon} />
+                    <span className={componentsTheme.partnersDetail.bulletText}>{item}</span>
                   </div>
                 ))}
               </>
             ) : (
               pkg.bullets.map(item => (
-                <div key={item} className={jysSectionTheme.partnersDetail.bulletRow}>
-                  <Check className={jysSectionTheme.partnersDetail.bulletIcon} />
-                  <span className={jysSectionTheme.partnersDetail.bulletText}>{item}</span>
+                <div key={item} className={componentsTheme.partnersDetail.bulletRow}>
+                  <Check className={componentsTheme.partnersDetail.bulletIcon} />
+                  <span className={componentsTheme.partnersDetail.bulletText}>{item}</span>
                 </div>
               ))
             )}
           </div>
 
           <div
-            className={`${jysSectionTheme.partnersDetail.gradientRightBase} ${gradientVariant}`}
+            className={`${componentsTheme.partnersDetail.gradientRightBase} ${gradientVariant}`}
             aria-hidden="true"
           />
         </div>

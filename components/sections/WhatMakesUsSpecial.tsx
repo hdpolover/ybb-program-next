@@ -1,10 +1,10 @@
 "use client";
 
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { WHAT_MAKES_US_SPECIAL_CONTENT, resolveSpecialIcon } from "@/data/home/sections/what-makes-us-special/whatMakesUsSpecial";
 
-const specialTheme = jysSectionTheme.homeWhatMakesSpecial;
+const specialTheme = componentsTheme.homeWhatMakesSpecial;
 
 export default function WhatMakesUsSpecialSection() {
   const content = WHAT_MAKES_US_SPECIAL_CONTENT;

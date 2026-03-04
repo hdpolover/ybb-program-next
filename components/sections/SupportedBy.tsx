@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type SupportedByItem = {
   id: string;
@@ -29,7 +29,7 @@ type SupportedByProps = {
 export default function SupportedBy({ items }: SupportedByProps) {
   const sponsors = items && items.length > 0 ? items : fallbackSupportedLogos;
   return (
-    <section className={jysSectionTheme.supportedBy.sectionWrapper}>
+    <section className={componentsTheme.supportedBy.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader
           eyebrow="Supported By"
@@ -44,14 +44,14 @@ export default function SupportedBy({ items }: SupportedByProps) {
                 href={sponsor.websiteUrl || '#'}
                 target={sponsor.websiteUrl ? '_blank' : undefined}
                 rel={sponsor.websiteUrl ? 'noreferrer' : undefined}
-                className={jysSectionTheme.supportedBy.logoWrapper}
+                className={componentsTheme.supportedBy.logoWrapper}
               >
                 <Image
                   src={sponsor.logoUrl}
                   alt={sponsor.name || 'Supporting organization logo'}
                   fill
                   sizes="(min-width:1024px) 160px, 33vw"
-                  className={jysSectionTheme.supportedBy.logoImg}
+                  className={componentsTheme.supportedBy.logoImg}
                 />
               </a>
             ))}

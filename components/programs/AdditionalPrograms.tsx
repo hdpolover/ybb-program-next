@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { PROGRAMS_ADDITIONAL_COPY } from '@/data/programs/sections/additional-programs/programsAdditional';
 import type { OtherProgramsSection } from '@/types/programs';
 import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
@@ -27,44 +27,44 @@ export default function AdditionalPrograms({ otherPrograms }: AdditionalPrograms
       }))
     : items;
   return (
-    <section className={jysSectionTheme.programsAdditional.sectionWrapper}>
-      <div className={jysSectionTheme.programsAdditional.container}>
+    <section className={componentsTheme.programsAdditional.sectionWrapper}>
+      <div className={componentsTheme.programsAdditional.container}>
         <SectionHeader title={sectionTitle} />
-        <p className={jysSectionTheme.programsAdditional.subtitle}>{subtitle}</p>
-        <div className={jysSectionTheme.programsAdditional.cardsWrapper}>
+        <p className={componentsTheme.programsAdditional.subtitle}>{subtitle}</p>
+        <div className={componentsTheme.programsAdditional.cardsWrapper}>
           {cards.map(it => (
             <a
               key={it.title}
               href={it.href || '#'}
-              className={jysSectionTheme.programsAdditional.card}
+              className={componentsTheme.programsAdditional.card}
             >
-              <div className={jysSectionTheme.programsAdditional.coverWrapper}>
+              <div className={componentsTheme.programsAdditional.coverWrapper}>
                 <Image
                   src={it.cover}
                   alt={`${it.title} Cover`}
                   fill
                   sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-                  className={jysSectionTheme.programsAdditional.coverImage}
+                  className={componentsTheme.programsAdditional.coverImage}
                 />
-                <div className={jysSectionTheme.programsAdditional.logoBadgesWrapper}>
-                  <div className={jysSectionTheme.programsAdditional.logoCircle}>
+                <div className={componentsTheme.programsAdditional.logoBadgesWrapper}>
+                  <div className={componentsTheme.programsAdditional.logoCircle}>
                     <Image
                       src={it.logo}
                       alt={`${it.title} Logo`}
                       fill
                       sizes="32px"
-                      className={jysSectionTheme.programsAdditional.logoImage}
+                      className={componentsTheme.programsAdditional.logoImage}
                     />
                   </div>
                 </div>
               </div>
-              <div className={jysSectionTheme.programsAdditional.cardMetaRow}>
+              <div className={componentsTheme.programsAdditional.cardMetaRow}>
                 <div>
-                  <h4 className={jysSectionTheme.programsAdditional.cardTitle}>{it.title}</h4>
-                  <p className={jysSectionTheme.programsAdditional.datesText}>{it.dates}</p>
+                  <h4 className={componentsTheme.programsAdditional.cardTitle}>{it.title}</h4>
+                  <p className={componentsTheme.programsAdditional.datesText}>{it.dates}</p>
                 </div>
-                <span className={jysSectionTheme.programsAdditional.arrowCircle}>
-                  <ArrowRight className={jysSectionTheme.programsAdditional.arrowIcon} />
+                <span className={componentsTheme.programsAdditional.arrowCircle}>
+                  <ArrowRight className={componentsTheme.programsAdditional.arrowIcon} />
                 </span>
               </div>
             </a>

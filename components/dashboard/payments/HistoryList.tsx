@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { Clock, XCircle, CheckCircle2 } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const paymentsTheme = jysSectionTheme.dashboardPayments;
+const paymentsTheme = componentsTheme.dashboardPayments;
 
 export type HistoryItem = {
   id: string;
@@ -171,7 +171,7 @@ export default function HistoryList({
                   {it.title}
                   {it.badge ? (
                     <span
-                      className={`ml-2 ${jysSectionTheme.dashboardDocuments.statusBadgeBase} ${badgeClass(it.badge.tone)}`}
+                      className={`ml-2 ${componentsTheme.dashboardDocuments.statusBadgeBase} ${badgeClass(it.badge.tone)}`}
                     >
                       {it.badge.label}
                     </span>

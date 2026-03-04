@@ -1,26 +1,26 @@
 import { Check } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 // Section: Partnership Opportunities — gaya Program Highlights
 export default function PartnershipOpportunitiesSection() {
   return (
-    <section className={jysSectionTheme.partnersOpportunities.sectionWrapper}>
-      <div className={jysSectionTheme.partnersOpportunities.container}>
+    <section className={componentsTheme.partnersOpportunities.sectionWrapper}>
+      <div className={componentsTheme.partnersOpportunities.container}>
         <SectionHeader eyebrow="Opportunities" title="Partnership Opportunities" />
-        <p className={jysSectionTheme.partnersOpportunities.subtitle}>
+        <p className={componentsTheme.partnersOpportunities.subtitle}>
           Choose the partnership path that best matches your role and goals with YBB.
         </p>
-        <div className={jysSectionTheme.partnersOpportunities.grid}>
+        <div className={componentsTheme.partnersOpportunities.grid}>
           {/* Ambassador Program */}
-          <div className={jysSectionTheme.partnersOpportunities.communityCard}>
-            <div className={jysSectionTheme.partnersOpportunities.cardBody}>
-              <h3 className={jysSectionTheme.partnersOpportunities.title}>Ambassador Program</h3>
-              <p className={jysSectionTheme.partnersOpportunities.description}>
+          <div className={componentsTheme.partnersOpportunities.communityCard}>
+            <div className={componentsTheme.partnersOpportunities.cardBody}>
+              <h3 className={componentsTheme.partnersOpportunities.title}>Ambassador Program</h3>
+              <p className={componentsTheme.partnersOpportunities.description}>
                 Best for: Content creators, youth leaders, and influencers.
               </p>
             </div>
-            <ul className={jysSectionTheme.partnersOpportunities.benefitsList}>
+            <ul className={componentsTheme.partnersOpportunities.benefitsList}>
               {[
                 'Selected based on content quality and audience engagement',
                 "Aligned with YBB's vision and mission",
@@ -29,25 +29,25 @@ export default function PartnershipOpportunitiesSection() {
               ].map((label, idx, arr) => (
                 <li
                   key={idx}
-                  className={`${jysSectionTheme.partnersOpportunities.benefitItemBase} ${
+                  className={`${componentsTheme.partnersOpportunities.benefitItemBase} ${
                     idx !== arr.length - 1
-                      ? jysSectionTheme.partnersOpportunities.benefitItemBordered
+                      ? componentsTheme.partnersOpportunities.benefitItemBordered
                       : ''
                   }`}
                 >
-                  <span className={jysSectionTheme.partnersOpportunities.checkCircle}>
-                    <Check className={jysSectionTheme.partnersOpportunities.checkIcon} />
+                  <span className={componentsTheme.partnersOpportunities.checkCircle}>
+                    <Check className={componentsTheme.partnersOpportunities.checkIcon} />
                   </span>
-                  <span className={jysSectionTheme.partnersOpportunities.benefitLabel}>
+                  <span className={componentsTheme.partnersOpportunities.benefitLabel}>
                     {label}
                   </span>
                 </li>
               ))}
             </ul>
-            <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
+            <div className={componentsTheme.partnersOpportunities.cardFooter}>
               <a
                 href="/apply/ambassador-program"
-                className={jysSectionTheme.partnersOpportunities.communityCta}
+                className={componentsTheme.partnersOpportunities.communityCta}
               >
                 Choose Plan
               </a>
@@ -55,15 +55,15 @@ export default function PartnershipOpportunitiesSection() {
           </div>
 
           {/* Affiliate Program */}
-          <div className={jysSectionTheme.partnersOpportunities.silverCard}>
-            <div className={jysSectionTheme.partnersOpportunities.cardBody}>
-              <h3 className={jysSectionTheme.partnersOpportunities.title}>Affiliate Program</h3>
-              <p className={jysSectionTheme.partnersOpportunities.description}>
+          <div className={componentsTheme.partnersOpportunities.silverCard}>
+            <div className={componentsTheme.partnersOpportunities.cardBody}>
+              <h3 className={componentsTheme.partnersOpportunities.title}>Affiliate Program</h3>
+              <p className={componentsTheme.partnersOpportunities.description}>
                 Best for: Individuals promoting YBB programs.
               </p>
             </div>
-            <ul className={jysSectionTheme.partnersOpportunities.benefitsList}>
-              <li className={jysSectionTheme.partnersOpportunities.affiliateSubheading}>
+            <ul className={componentsTheme.partnersOpportunities.benefitsList}>
+              <li className={componentsTheme.partnersOpportunities.affiliateSubheading}>
                 Fully-funded Affiliate
               </li>
               {[
@@ -73,22 +73,22 @@ export default function PartnershipOpportunitiesSection() {
               ].map((label, idx, arr) => (
                 <li
                   key={`fully-${idx}`}
-                  className={`${jysSectionTheme.partnersOpportunities.benefitItemBase} ${
+                  className={`${componentsTheme.partnersOpportunities.benefitItemBase} ${
                     idx !== arr.length - 1
-                      ? jysSectionTheme.partnersOpportunities.benefitItemBordered
+                      ? componentsTheme.partnersOpportunities.benefitItemBordered
                       : ''
                   }`}
                 >
-                  <span className={jysSectionTheme.partnersOpportunities.checkCircle}>
-                    <Check className={jysSectionTheme.partnersOpportunities.checkIcon} />
+                  <span className={componentsTheme.partnersOpportunities.checkCircle}>
+                    <Check className={componentsTheme.partnersOpportunities.checkIcon} />
                   </span>
-                  <span className={jysSectionTheme.partnersOpportunities.benefitLabel}>
+                  <span className={componentsTheme.partnersOpportunities.benefitLabel}>
                     {label}
                   </span>
                 </li>
               ))}
 
-              <li className={jysSectionTheme.partnersOpportunities.affiliateSubheadingSpaced}>
+              <li className={componentsTheme.partnersOpportunities.affiliateSubheadingSpaced}>
                 Self-Funded Affiliate
               </li>
               {[
@@ -98,25 +98,25 @@ export default function PartnershipOpportunitiesSection() {
               ].map((label, idx, arr) => (
                 <li
                   key={`self-${idx}`}
-                  className={`${jysSectionTheme.partnersOpportunities.benefitItemBase} ${
+                  className={`${componentsTheme.partnersOpportunities.benefitItemBase} ${
                     idx !== arr.length - 1
-                      ? jysSectionTheme.partnersOpportunities.benefitItemBordered
+                      ? componentsTheme.partnersOpportunities.benefitItemBordered
                       : ''
                   }`}
                 >
-                  <span className={jysSectionTheme.partnersOpportunities.checkCircle}>
-                    <Check className={jysSectionTheme.partnersOpportunities.checkIcon} />
+                  <span className={componentsTheme.partnersOpportunities.checkCircle}>
+                    <Check className={componentsTheme.partnersOpportunities.checkIcon} />
                   </span>
-                  <span className={jysSectionTheme.partnersOpportunities.benefitLabel}>
+                  <span className={componentsTheme.partnersOpportunities.benefitLabel}>
                     {label}
                   </span>
                 </li>
               ))}
             </ul>
-            <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
+            <div className={componentsTheme.partnersOpportunities.cardFooter}>
               <a
                 href="/partners/affiliate-program"
-                className={jysSectionTheme.partnersOpportunities.silverCta}
+                className={componentsTheme.partnersOpportunities.silverCta}
               >
                 Choose Plan
               </a>
@@ -124,19 +124,19 @@ export default function PartnershipOpportunitiesSection() {
           </div>
 
           {/* Community & Institution */}
-          <div className={jysSectionTheme.partnersOpportunities.goldCard}>
-            <div className={jysSectionTheme.partnersOpportunities.cardBody}>
+          <div className={componentsTheme.partnersOpportunities.goldCard}>
+            <div className={componentsTheme.partnersOpportunities.cardBody}>
               <div className="flex items-center gap-2">
-                <span className={jysSectionTheme.partnersOpportunities.popularChip}>Popular</span>
+                <span className={componentsTheme.partnersOpportunities.popularChip}>Popular</span>
               </div>
-              <h3 className={`${jysSectionTheme.partnersOpportunities.title} mt-2`}>
+              <h3 className={`${componentsTheme.partnersOpportunities.title} mt-2`}>
                 Community & Institution
               </h3>
-              <p className={jysSectionTheme.partnersOpportunities.description}>
+              <p className={componentsTheme.partnersOpportunities.description}>
                 Best for: Schools, universities, and communities.
               </p>
             </div>
-            <ul className={jysSectionTheme.partnersOpportunities.benefitsList}>
+            <ul className={componentsTheme.partnersOpportunities.benefitsList}>
               {[
                 'Group participant registration',
                 '1 free quota for every 15 registered participants',
@@ -145,25 +145,25 @@ export default function PartnershipOpportunitiesSection() {
               ].map((label, idx, arr) => (
                 <li
                   key={idx}
-                  className={`${jysSectionTheme.partnersOpportunities.benefitItemBase} ${
+                  className={`${componentsTheme.partnersOpportunities.benefitItemBase} ${
                     idx !== arr.length - 1
-                      ? jysSectionTheme.partnersOpportunities.benefitItemBordered
+                      ? componentsTheme.partnersOpportunities.benefitItemBordered
                       : ''
                   }`}
                 >
-                  <span className={jysSectionTheme.partnersOpportunities.checkCircle}>
-                    <Check className={jysSectionTheme.partnersOpportunities.checkIcon} />
+                  <span className={componentsTheme.partnersOpportunities.checkCircle}>
+                    <Check className={componentsTheme.partnersOpportunities.checkIcon} />
                   </span>
-                  <span className={jysSectionTheme.partnersOpportunities.benefitLabel}>
+                  <span className={componentsTheme.partnersOpportunities.benefitLabel}>
                     {label}
                   </span>
                 </li>
               ))}
             </ul>
-            <div className={jysSectionTheme.partnersOpportunities.cardFooter}>
+            <div className={componentsTheme.partnersOpportunities.cardFooter}>
               <a
                 href="/apply/community-institution"
-                className={jysSectionTheme.partnersOpportunities.goldCta}
+                className={componentsTheme.partnersOpportunities.goldCta}
               >
                 Choose Plan
               </a>

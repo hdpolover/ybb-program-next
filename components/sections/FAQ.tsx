@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import { HOME_FAQ_COPY } from '@/data/home/sections/faq/homeFaq';
 
 export default function FAQ() {
@@ -26,14 +26,14 @@ export default function FAQ() {
     <section className="relative w-full py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader eyebrow="FAQ" title={HOME_FAQ_COPY.title} />
-        <p className={jysSectionTheme.faq.subtitle}>
+        <p className={componentsTheme.faq.subtitle}>
           {HOME_FAQ_COPY.subtitle}
         </p>
 
         {/* Bar pencarian */}
-        <div className={jysSectionTheme.faq.searchWrapper}>
-          <div className={jysSectionTheme.faq.searchInner}>
-            <Search className={jysSectionTheme.faq.searchIcon} />
+        <div className={componentsTheme.faq.searchWrapper}>
+          <div className={componentsTheme.faq.searchInner}>
+            <Search className={componentsTheme.faq.searchIcon} />
             <input
               type="text"
               value={query}
@@ -42,15 +42,15 @@ export default function FAQ() {
                 setOpenIdx(0);
               }}
               placeholder="Search for program, registration, payments, etc."
-              className={jysSectionTheme.faq.searchInput}
+              className={componentsTheme.faq.searchInput}
             />
           </div>
         </div>
 
-        <div className={jysSectionTheme.faq.layoutGrid}>
+        <div className={componentsTheme.faq.layoutGrid}>
           {/* Kiri: Tab */}
-          <div className={jysSectionTheme.faq.tabsCard}>
-            <nav className={jysSectionTheme.faq.tabsNav}>
+          <div className={componentsTheme.faq.tabsCard}>
+            <nav className={componentsTheme.faq.tabsNav}>
               {groups.map((group, index) => {
                 const isActive = index === activeTab;
                 return (
@@ -61,20 +61,20 @@ export default function FAQ() {
                       setActiveTab(index);
                       setOpenIdx(0);
                     }}
-                    className={`${jysSectionTheme.faq.tabButtonBase} ${
+                    className={`${componentsTheme.faq.tabButtonBase} ${
                       isActive
-                        ? jysSectionTheme.faq.tabButtonActive
-                        : jysSectionTheme.faq.tabButtonInactive
+                        ? componentsTheme.faq.tabButtonActive
+                        : componentsTheme.faq.tabButtonInactive
                     }`}
                     aria-current={isActive}
                   >
                     {isActive ? (
                       <span
-                        className={jysSectionTheme.faq.tabIndicatorActive}
+                        className={componentsTheme.faq.tabIndicatorActive}
                         aria-hidden="true"
                       />
                     ) : (
-                      <span className={jysSectionTheme.faq.tabIndicatorIdle} aria-hidden="true" />
+                      <span className={componentsTheme.faq.tabIndicatorIdle} aria-hidden="true" />
                     )}
                     <span>{group.label}</span>
                   </button>
@@ -84,9 +84,9 @@ export default function FAQ() {
           </div>
 
           {/* Kanan: Daftar FAQ */}
-          <div className={jysSectionTheme.faq.faqListWrapper}>
+          <div className={componentsTheme.faq.faqListWrapper}>
             {filteredFaqs.length === 0 ? (
-              <div className={jysSectionTheme.faq.emptyCard}>
+              <div className={componentsTheme.faq.emptyCard}>
                 No questions match your search. Try a different keyword or category.
               </div>
             ) : null}
@@ -96,25 +96,25 @@ export default function FAQ() {
               return (
                 <div
                   key={`${item.q}-${idx}`}
-                  className={jysSectionTheme.faq.faqItemCard}
+                  className={componentsTheme.faq.faqItemCard}
                 >
                   <button
                     type="button"
                     onClick={() => setOpenIdx(isOpen ? null : idx)}
-                    className={jysSectionTheme.faq.faqItemHeader}
+                    className={componentsTheme.faq.faqItemHeader}
                     aria-expanded={isOpen}
                   >
-                    <span className={jysSectionTheme.faq.faqQuestion}>
+                    <span className={componentsTheme.faq.faqQuestion}>
                       {item.q}
                     </span>
-                    <span className={jysSectionTheme.faq.toggleIcon}>
+                    <span className={componentsTheme.faq.toggleIcon}>
                       <ChevronDown
                         className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                       />
                     </span>
                   </button>
                   {isOpen ? (
-                    <div className={jysSectionTheme.faq.faqAnswer}>
+                    <div className={componentsTheme.faq.faqAnswer}>
                       {item.a}
                     </div>
                   ) : null}
