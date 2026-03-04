@@ -4,9 +4,9 @@ export const authTheme = {
       'mt-2 w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30',
     checkbox: 'h-4 w-4 rounded border-white/30 bg-white/20 text-primary focus:ring-primary/40',
     primaryButton:
-      'inline-flex w-full cursor-pointer items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-    forgotPasswordLink: 'font-semibold cursor-pointer text-primary hover:text-primary',
-    switchModeLink: 'font-semibold cursor-pointer text-primary underline hover:text-primary',
+      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl bg-[var(--brand-primary)] px-5 py-3.5 text-[15px] font-bold text-white transition-all hover:bg-[var(--brand-primary)]/90 active:scale-[0.98]',
+    forgotPasswordLink: 'font-semibold cursor-pointer text-[var(--brand-primary)] hover:text-[var(--brand-primary)]/80 transition-colors',
+    switchModeLink: 'font-semibold cursor-pointer text-[var(--brand-primary)] hover:text-[var(--brand-primary)]/80 transition-colors',
     slideIndicatorWrapper:
       'inline-flex gap-2 rounded-full border border-white/40 bg-white/15 px-3 py-1 shadow-sm shadow-black/20 backdrop-blur',
     slideDotActive: 'h-2 w-2 rounded-full bg-primary/100 shadow-sm shadow-primary/100/40',
@@ -34,13 +34,13 @@ export const authTheme = {
     socialSection: 'space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 shadow-sm',
     socialGrid: 'grid grid-cols-1 gap-3 sm:grid-cols-2',
     googleButton:
-      'inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
+      'inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3.5 hover:shadow-sm active:scale-[0.98] text-[15px] font-bold text-slate-700 transition-all hover:bg-slate-50',
     googleButtonIcon: 'h-5 w-5',
     facebookButton:
-      'inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
+      'inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3.5 hover:shadow-sm active:scale-[0.98] text-[15px] font-bold text-slate-700 transition-all hover:bg-slate-50',
     facebookButtonIcon: 'h-5 w-5',
     secondaryButton:
-      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl border border-primary/100/70 bg-white px-5 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
+      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3.5 hover:shadow-sm active:scale-[0.98] text-[15px] font-bold text-[var(--brand-primary)] transition-all hover:bg-slate-50 hover:text-[var(--brand-primary)]/80',
     termsLabel: 'mt-1 inline-flex items-center gap-2 text-xs text-slate-600',
     termsLink: 'underline cursor-pointer',
   },
@@ -66,7 +66,7 @@ export const authTheme = {
     optionGrid: 'mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3',
     programSourceGrid: 'mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3',
     optionButtonBase:
-      'inline-flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
+      'inline-flex cursor-pointer active:scale-[0.98] items-center justify-center rounded-xl border px-4 py-3.5 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
     optionButtonSelected: 'border-primary bg-primary text-white',
     optionButtonUnselected: 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
     seeAllButton:
