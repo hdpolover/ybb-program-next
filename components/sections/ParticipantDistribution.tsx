@@ -183,7 +183,7 @@ export default function ParticipantDistribution() {
                     <div className="flex items-center gap-2">
                       <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
                         <div
-                          className="h-full rounded-full bg-pink-500"
+                          className="h-full rounded-full bg-primary/100"
                           style={{ width: `${row.percentage.toFixed(1)}%` }}
                         />
                       </div>

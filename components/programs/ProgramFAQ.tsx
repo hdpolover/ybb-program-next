@@ -106,12 +106,12 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
                     className={`relative flex items-center gap-3 px-5 py-4 text-left text-sm font-semibold transition-colors sm:px-6 sm:text-base ${
                       isActive
                         ? 'bg-white text-blue-950'
-                        : 'bg-white text-slate-500 hover:bg-pink-50 hover:text-blue-950'
+                        : 'bg-white text-slate-500 hover:bg-primary/10 hover:text-blue-950'
                     }`}
                     aria-current={isActive}
                   >
                     {isActive ? (
-                      <span className="h-9 w-0.5 rounded-full bg-pink-600" aria-hidden="true" />
+                      <span className="h-9 w-0.5 rounded-full bg-primary" aria-hidden="true" />
                     ) : (
                       <span className="h-9 w-0.5" aria-hidden="true" />
                     )}

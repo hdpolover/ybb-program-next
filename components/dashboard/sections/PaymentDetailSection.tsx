@@ -280,7 +280,7 @@ interface InfoRowProps {
 function InfoRow({ label, value, overdue, icon }: InfoRowProps) {
   return (
     <div className="flex gap-3">
-      <div className="mt-1 text-pink-600">{icon}</div>
+      <div className="mt-1 text-primary">{icon}</div>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
         <p className="mt-1 text-sm text-slate-700">
@@ -305,7 +305,7 @@ interface TagRowProps {
 function TagRow({ label, tag, icon }: TagRowProps) {
   return (
     <div className="flex gap-3">
-      <div className="mt-1 text-pink-600">{icon}</div>
+      <div className="mt-1 text-primary">{icon}</div>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
         <span className="mt-1 inline-block rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">

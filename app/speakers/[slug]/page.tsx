@@ -79,7 +79,7 @@ export default async function SpeakerDetailPage({ params }: { params: Promise<{ 
                       {data.expertise.map((tag, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-700"
+                          className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
                         >
                           {tag}
                         </span>
@@ -101,17 +101,17 @@ export default async function SpeakerDetailPage({ params }: { params: Promise<{ 
                     <ul className="space-y-2 text-sm text-slate-700">
                       {data.contact?.email ? (
                         <li>
-                          Email: <a className="text-pink-700 hover:underline" href={`mailto:${data.contact.email}`}>{data.contact.email}</a>
+                          Email: <a className="text-primary hover:underline" href={`mailto:${data.contact.email}`}>{data.contact.email}</a>
                         </li>
                       ) : null}
                       {data.contact?.website ? (
                         <li>
-                          Website: <a className="text-pink-700 hover:underline" href={data.contact.website} target="_blank" rel="noopener noreferrer">{data.contact.website}</a>
+                          Website: <a className="text-primary hover:underline" href={data.contact.website} target="_blank" rel="noopener noreferrer">{data.contact.website}</a>
                         </li>
                       ) : null}
                       {data.contact?.socials?.map((s, i) => (
                         <li key={i}>
-                          <a className="text-pink-700 hover:underline" href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
+                          <a className="text-primary hover:underline" href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
                         </li>
                       ))}
                     </ul>
@@ -141,7 +141,7 @@ export default async function SpeakerDetailPage({ params }: { params: Promise<{ 
                     sizes="(min-width:1024px) 520px, 90vw"
                     className="object-cover"
                   />
-                  <span className="absolute left-3 top-3 inline-flex items-center rounded-full border border-pink-200 bg-pink-600/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow">
+                  <span className="absolute left-3 top-3 inline-flex items-center rounded-full border border-primary/30 bg-primary/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow">
                     Featured
                   </span>
                 </div>

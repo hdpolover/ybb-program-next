@@ -314,7 +314,7 @@ export default function LoginPage() {
         <div
           className={`relative hidden items-center justify-center ${jysSectionTheme.login.imagePanelBackground} lg:flex`}
         >
-          <div className="relative h-[680px] w-full max-w-xl overflow-hidden rounded-3xl shadow-[0_18px_45px_rgba(15,23,42,0.35)] ring-1 ring-pink-300/80">
+          <div className="relative h-[680px] w-full max-w-xl overflow-hidden rounded-3xl shadow-[0_18px_45px_rgba(15,23,42,0.35)] ring-1 ring-primary/40/80">
             <Image
               src={loginImageSrc}
               alt="Japan Youth Summit Highlight"
@@ -431,7 +431,7 @@ export default function LoginPage() {
                       </a>
                     </div>
                     {localError ? (
-                      <p className="mt-3 text-xs font-medium text-pink-600">{localError}</p>
+                      <p className="mt-3 text-xs font-medium text-primary">{localError}</p>
                     ) : null}
                     <div className="pt-2 space-y-3">
                       <button
@@ -457,7 +457,7 @@ export default function LoginPage() {
                       </button>
                     </div>
                     {oauthError ? (
-                      <p className="mt-3 text-xs font-medium text-pink-600">{oauthError}</p>
+                      <p className="mt-3 text-xs font-medium text-primary">{oauthError}</p>
                     ) : null}
                   </div>
 

@@ -5,7 +5,7 @@ export default function NotificationsCard() {
       {/* header */}
       <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
         <h4 className="text-sm font-extrabold uppercase tracking-wider text-blue-900">Notifications & Alerts</h4>
-        <button className="text-xs font-semibold text-slate-600 hover:text-pink-700">Mark All as Read</button>
+        <button className="text-xs font-semibold text-slate-600 hover:text-primary">Mark All as Read</button>
       </div>
       {/* body: list 1 item */}
       <div className="px-5 py-4">

@@ -22,6 +22,7 @@ export async function getSettingsForBrandDomain(brandDomain: string): Promise<Se
     headers: {
       'x-brand-domain': normalized,
     },
+    next: { revalidate: 0 },
   });
 }
 
@@ -32,6 +33,7 @@ export async function getSettings(): Promise<SettingsData> {
       headers: {
         'Content-Type': 'application/json',
       },
+      next: { revalidate: 0 },
     });
 
     if (!res.ok) {
@@ -50,5 +52,6 @@ export async function getSettings(): Promise<SettingsData> {
     headers: {
       'x-brand-domain': DEFAULT_BRAND_URL,
     },
+    next: { revalidate: 0 },
   });
 }

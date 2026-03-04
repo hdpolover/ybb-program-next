@@ -151,7 +151,7 @@ export default function RequireNowSection({ slug }: RequireNowSectionProps) {
           <div className="sm:col-span-2 mt-4 flex flex-col gap-3">
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-xl bg-pink-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
               Submit
             </button>
@@ -164,7 +164,7 @@ export default function RequireNowSection({ slug }: RequireNowSectionProps) {
 
             <a
               href="mailto:partnership@ybbglobal.org"
-              className="inline-flex w-full items-center justify-center rounded-xl border border-pink-500/70 bg-white px-6 py-3 text-sm font-semibold text-pink-600 shadow-sm transition hover:bg-pink-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+              className="inline-flex w-full items-center justify-center rounded-xl border border-primary/100/70 bg-white px-6 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2"
             >
               Contact us Via Email
             </a>

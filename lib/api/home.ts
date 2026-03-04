@@ -57,6 +57,7 @@ const getHomePageDataCached = cache(async (host: string): Promise<HomePageData> 
         headers: {
           'x-brand-domain': brandUrl,
         },
+        next: { revalidate: 0 },
       });
     } catch (e) {
       lastError = e;

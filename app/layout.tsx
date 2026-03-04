@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import Script from 'next/script';
 import { getHomePageData } from '@/lib/api/home';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
+import { SettingsProvider } from '@/components/providers/SettingsProvider';
 import './globals.css';
 import ClientNavbarGate from '@/components/layout/ClientNavbarGate';
 import ClientFooterGate from '@/components/layout/ClientFooterGate';
@@ -116,9 +117,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let programSlug = 'jys'; // Default/fallback
 
   let brandAccent: string | null = null;
+  let settingsData = null;
 
   try {
     const settings = await getSettingsForBrandDomain(host);
+    settingsData = settings;
     brandAccent = normalizeHex(settings?.brand?.primary_color);
   } catch {
     // ignore
@@ -137,10 +140,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const themeStyle =
     accent
       ? ({
+          ['--brand-primary' as never]: accent,
+          ['--brand-primary-foreground' as never]: pickForeground(accent),
           ['--brand-accent' as never]: accent,
           ['--brand-accent-soft' as never]: mixWithWhite(accent, 0.85),
           ['--brand-accent-foreground' as never]: pickForeground(accent),
           ['--brand-border' as never]: accent,
+          ['--color-primary' as never]: accent,
+          ['--color-primary-foreground' as never]: pickForeground(accent),
           ['--color-accent' as never]: accent,
           ['--color-accent-foreground' as never]: pickForeground(accent),
         } as React.CSSProperties)
@@ -149,20 +156,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={plusJakarta.className} data-program={programSlug} style={themeStyle}>
-        <PromoCTAProvider>
-          <DevtoolsGuard />
-          <ClientNavbarGate />
-          {children}
-          <ClientCTAGate />
-          <BackToTop />
-          <ClientChatWidgetGate />
-          <ClientFooterGate />
-        </PromoCTAProvider>
+        <SettingsProvider initialSettings={settingsData}>
+          <PromoCTAProvider>
+            <DevtoolsGuard />
+            <ClientNavbarGate />
+            {children}
+            <ClientCTAGate />
+            <BackToTop />
+            <ClientChatWidgetGate />
+            <ClientFooterGate />
+          </PromoCTAProvider>
+        </SettingsProvider>
 
         <Script
           src="https://aksamu.com/chat-widget.js"
           data-bot-id="4a9ea369-4638-413f-92d4-9c4600f7c6be"
-          data-primary-color="#16a34a"
+          data-primary-color={accent || "#16a34a"}
           defer
         />
       </body>

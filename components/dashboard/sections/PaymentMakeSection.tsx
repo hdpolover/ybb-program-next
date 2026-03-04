@@ -144,7 +144,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
               </select>
 
               <div className={paymentsTheme.selectionSummaryRow}>
-                <CheckCircle2 className="h-4 w-4 text-pink-600" />
+                <CheckCircle2 className="h-4 w-4 text-primary" />
                 <span>
                   {paymentType === "gateway"
                     ? "You selected: Payment Gateway (Credit/Debit Card, Virtual Account, QRIS, etc.)"
@@ -301,7 +301,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       {manualMethod === "paypal" ? (
                         <Globe2 className="h-4 w-4 text-indigo-600" />
                       ) : (
-                        <CreditCard className="h-4 w-4 text-pink-600" />
+                        <CreditCard className="h-4 w-4 text-primary" />
                       )}
                       <span>
                         {manualMethod === "paypal"
@@ -357,52 +357,52 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                         1
                       </div>
                       <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <CreditCard className="h-4 w-4 text-pink-600" />
+                        <CreditCard className="h-4 w-4 text-primary" />
                         <span>Log in to your online banking account or visit your bank's branch.</span>
                       </p>
                     </div>
                     <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-pink-600 text-xs font-semibold text-white shadow-sm">
+                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
                         2
                       </div>
                       <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <CalendarClock className="h-4 w-4 text-pink-600" />
+                        <CalendarClock className="h-4 w-4 text-primary" />
                         <span>Navigate to the "Transfer" or "Send Money" section.</span>
                       </p>
                     </div>
                     <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-pink-600 text-xs font-semibold text-white shadow-sm">
+                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
                         3
                       </div>
                       <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <Info className="h-4 w-4 text-pink-600" />
+                        <Info className="h-4 w-4 text-primary" />
                         <span>Enter the recipient's bank details as listed above.</span>
                       </p>
                     </div>
                     <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-pink-600 text-xs font-semibold text-white shadow-sm">
+                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
                         4
                       </div>
                       <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <CreditCard className="h-4 w-4 text-pink-600" />
+                        <CreditCard className="h-4 w-4 text-primary" />
                         <span>Input the transfer amount and select the currency (if applicable).</span>
                       </p>
                     </div>
                     <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-pink-600 text-xs font-semibold text-white shadow-sm">
+                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
                         5
                       </div>
                       <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <Info className="h-4 w-4 text-pink-600" />
+                        <Info className="h-4 w-4 text-primary" />
                         <span>Review the details for accuracy.</span>
                       </p>
                     </div>
                     <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-pink-600 text-xs font-semibold text-white shadow-sm">
+                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
                         6
                       </div>
                       <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <ShieldCheck className="h-4 w-4 text-pink-600" />
+                        <ShieldCheck className="h-4 w-4 text-primary" />
                         <span>
                           Confirm the transfer and authorize the payment, then save the transaction confirmation
                           for your records.
@@ -424,7 +424,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       <input
                         id="manual-account-name"
                         type="text"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-200"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         value={manualAccountName}
                         onChange={(e) => setManualAccountName(e.target.value)}
                       />
@@ -436,7 +436,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       <input
                         id="manual-source-name"
                         type="text"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-200"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         value={manualSourceName}
                         onChange={(e) => setManualSourceName(e.target.value)}
                       />
@@ -448,7 +448,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       <input
                         id="manual-payment-date"
                         type="date"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-200"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         value={manualPaymentDate}
                         onChange={(e) => setManualPaymentDate(e.target.value)}
                       />
@@ -460,7 +460,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       <input
                         id="manual-payment-proof"
                         type="file"
-                        className="block w-full text-xs text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-pink-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-pink-700 hover:file:bg-pink-100"
+                        className="block w-full text-xs text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
                         onChange={(e) => setManualProofUploaded(!!e.target.files && e.target.files.length > 0)}
                       />
                     </div>
@@ -471,7 +471,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       <textarea
                         id="manual-notes"
                         rows={3}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-200"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         value={manualNotes}
                         onChange={(e) => setManualNotes(e.target.value)}
                       />
@@ -493,7 +493,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                 onChange={(e) => setAgreeFunding(e.target.checked)}
               />
               <div className={paymentsTheme.agreementRowInner}>
-                <ShieldCheck className="h-4 w-4 text-pink-600" />
+                <ShieldCheck className="h-4 w-4 text-primary" />
                 <span className="leading-snug">
                   If I am not selected as a fully funded participant, I agree to continue as a self-funded participant,
                   and the payment is non-refundable.

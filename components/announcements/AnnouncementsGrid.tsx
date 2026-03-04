@@ -88,7 +88,7 @@ export default function AnnouncementsGrid({
                   value={searchQuery}
                   onChange={e => handleSearchChange(e.target.value)}
                   placeholder="Type keywords (e.g. scholarship, visa, deadline)"
-                  className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-blue-950 shadow-sm outline-none transition focus:border-pink-400 focus:ring-2 focus:ring-pink-100"
+                  className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-blue-950 shadow-sm outline-none transition focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -109,8 +109,8 @@ export default function AnnouncementsGrid({
                   onClick={() => handleChangeCategory(tab.key as 'all' | AnnouncementCategory)}
                   className={`inline-flex items-center justify-center rounded-full border px-3 py-1 transition ${
                     activeCategory === tab.key
-                      ? 'border-pink-500 bg-pink-50 text-pink-700 shadow-sm'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-pink-200 hover:bg-pink-50/60 hover:text-pink-700'
+                      ? 'border-primary/100 bg-primary/10 text-primary shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:bg-primary/10/60 hover:text-primary'
                   }`}
                 >
                   {tab.label}
@@ -146,7 +146,7 @@ export default function AnnouncementsGrid({
                   </div>
                   <div className="flex flex-1 flex-col p-5">
                     {n.category ? (
-                      <p className="mb-2 inline-flex items-center rounded-full bg-pink-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-pink-700">
+                      <p className="mb-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
                         {n.category === 'program-news'
                           ? 'Program'
                           : n.category === 'scholarship'

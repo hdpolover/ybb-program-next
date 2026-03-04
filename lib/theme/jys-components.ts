@@ -5,9 +5,9 @@ export const jysSectionTheme = {
     background: 'bg-primary text-primary-foreground',
     divider: 'lg:border-blue-800/60',
     iconCircle:
-      'flex aspect-square h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-pink-500/80 bg-pink-500/30',
+      'flex aspect-square h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-primary/100/80 bg-primary/100/30',
     icon: 'h-5 w-5 text-white',
-    subtitle: 'text-sm font-semibold uppercase tracking-wider text-pink-400',
+    subtitle: 'text-sm font-semibold uppercase tracking-wider text-primary/60',
   },
   chatWidget: {
     wrapper: 'fixed bottom-4 right-3 z-50 sm:bottom-6 sm:right-6',
@@ -17,24 +17,24 @@ export const jysSectionTheme = {
     panelTitle: 'text-sm font-extrabold uppercase tracking-wide text-slate-900',
     panelSubtitle: 'mt-0.5 text-[11px] text-slate-500',
     closeButton:
-      'inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-pink-400',
+      'inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/60',
 
     messages: 'max-h-[340px] overflow-y-auto px-4 py-3',
     messageRow: 'flex py-1',
     messageBubbleBase: 'max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed',
     messageBubbleAssistant: 'bg-slate-100 text-slate-800',
-    messageBubbleUser: 'bg-pink-600 text-white',
+    messageBubbleUser: 'bg-primary text-white',
 
     inputRow: 'flex items-center gap-2 border-t border-slate-100 bg-white px-3 py-3',
     input:
-      'h-10 flex-1 rounded-full border border-slate-200 bg-white px-4 text-xs text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200',
+      'h-10 flex-1 rounded-full border border-slate-200 bg-white px-4 text-xs text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30',
     sendButton:
-      'inline-flex h-10 w-10 items-center justify-center rounded-full bg-pink-600 text-white shadow-sm ring-1 ring-pink-300 transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400',
+      'inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-sm ring-1 ring-primary/40 transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary/60',
 
     fab:
-      'relative inline-flex h-12 w-12 items-center justify-center rounded-full bg-pink-600 text-white shadow-lg ring-1 ring-pink-300 transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400',
+      'relative inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg ring-1 ring-primary/40 transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary/60',
     fabIcon: 'h-5 w-5',
-    fabBadge: 'absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-white ring-2 ring-pink-600',
+    fabBadge: 'absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-white ring-2 ring-primary',
   },
   heroHome: {
     sectionWrapper: 'relative w-full',
@@ -62,7 +62,7 @@ export const jysSectionTheme = {
   },
   videoSection: {
     badge:
-      'inline-flex items-center rounded-full bg-pink-600 px-3 py-1 text-xs font-semibold text-white shadow whitespace-nowrap',
+      'inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white shadow whitespace-nowrap',
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
     card: 'mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8',
     subtitle: 'mx-auto -mt-6 mb-8 max-w-2xl text-center text-sm text-slate-600 sm:text-base',
@@ -74,10 +74,10 @@ export const jysSectionTheme = {
     yearTabsWrapper: 'mb-3 inline-flex max-w-full overflow-x-auto rounded-full bg-slate-100 p-1 text-xs',
     yearTab:
       'inline-flex min-w-[64px] items-center justify-center rounded-full px-3 py-1 text-[11px] font-semibold text-slate-600 transition hover:text-slate-900',
-    yearTabActive: 'bg-pink-600 text-white shadow-sm',
+    yearTabActive: 'bg-primary text-white shadow-sm',
     listCard:
       'flex cursor-pointer items-center gap-3 rounded-xl bg-slate-50/90 p-3 text-left transition hover:bg-slate-100 border border-transparent',
-    listCardActive: 'border-pink-300 bg-pink-50 shadow-[0_12px_30px_rgba(15,23,42,0.12)]',
+    listCardActive: 'border-primary/40 bg-primary/10 shadow-[0_12px_30px_rgba(15,23,42,0.12)]',
     thumbnailWrapper: 'relative h-16 w-28 overflow-hidden rounded-lg bg-slate-200 flex-shrink-0',
     thumbnailImg: 'object-cover',
     listTitle: 'text-sm font-semibold text-slate-900',
@@ -105,7 +105,7 @@ export const jysSectionTheme = {
     buttonsCol: 'mt-4 flex flex-col items-center gap-3 sm:items-start',
     guideButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold shadow-sm transition',
-    guideButtonPrimary: 'border-pink-500/80 bg-white/95 text-pink-700 hover:bg-white',
+    guideButtonPrimary: 'border-primary/100/80 bg-white/95 text-primary hover:bg-white',
     guideButtonSecondary: 'border-blue-500/70 bg-blue-50/90 text-blue-800 hover:bg-blue-100',
     flagCircle: 'inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full',
     rightCol: 'hidden order-1 w-full justify-center lg:relative lg:flex lg:order-2',
@@ -120,7 +120,7 @@ export const jysSectionTheme = {
     card:
       'flex h-full w-full max-w-md flex-col rounded-2xl bg-white/90 p-6 text-sm text-slate-800 shadow-[0_10px_35px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70 backdrop-blur-sm',
     iconCircle:
-      'mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-pink-50 text-pink-600 shadow-sm',
+      'mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary shadow-sm',
     icon: 'h-5 w-5',
     cardTitle: 'text-base font-semibold text-slate-900',
     cardDescription: 'mt-2 text-sm leading-relaxed text-slate-600',
@@ -138,11 +138,11 @@ export const jysSectionTheme = {
     cardTitle: 'px-6 pt-5 text-base font-semibold text-slate-900 text-center',
     list: 'mt-3 space-y-1.5 px-6 pb-2 text-sm leading-relaxed text-slate-700',
     listItem: 'flex items-start gap-2 text-sm leading-relaxed text-slate-700',
-    listCheckIcon: 'mt-[3px] h-4 w-4 flex-shrink-0 text-pink-600',
+    listCheckIcon: 'mt-[3px] h-4 w-4 flex-shrink-0 text-primary',
     listText: 'text-sm leading-relaxed text-slate-700',
     actionsRow: 'mt-auto flex justify-center pb-6',
     readMoreButton:
-      'inline-flex min-w-[180px] items-center justify-center rounded-md bg-pink-600 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex min-w-[180px] items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   programsBenefitsDetail: {
     sectionWrapper: 'bg-slate-50 py-12 sm:py-16',
@@ -151,9 +151,9 @@ export const jysSectionTheme = {
     leftColumn: 'space-y-8 text-sm leading-7 text-slate-800',
     itemRow: 'flex gap-4',
     numberCircle:
-      'mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-pink-600 text-xs font-bold text-white',
+      'mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white',
     itemTitle: 'text-base font-extrabold text-slate-900',
-    itemSubtitle: 'block text-[0.8rem] font-semibold text-pink-700',
+    itemSubtitle: 'block text-[0.8rem] font-semibold text-primary',
     paragraphStrong: 'mt-2 font-semibold',
     paragraphNormal: 'mt-2',
     bulletList: 'mt-1 list-disc space-y-1 pl-5',
@@ -163,19 +163,19 @@ export const jysSectionTheme = {
     asideImage: 'object-cover',
     asideInner: 'p-6',
     asideEyebrow:
-      'text-xs font-extrabold uppercase tracking-[0.16em] text-pink-600',
+      'text-xs font-extrabold uppercase tracking-[0.16em] text-primary',
     asideTitle: 'mt-2 text-base font-bold text-slate-900',
     asideList: 'mt-4 space-y-2 text-sm text-slate-700',
     asideListItem: 'flex items-start gap-2',
-    asideCheckIcon: 'mt-[2px] h-4 w-4 flex-shrink-0 text-pink-600',
+    asideCheckIcon: 'mt-[2px] h-4 w-4 flex-shrink-0 text-primary',
     asideButtonWrapper: 'mt-6',
     asideButton:
-      'inline-flex w-full items-center justify-center rounded-md bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2 focus:ring-offset-pink-100',
+      'inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-primary/20',
   },
   testimonialsHome: {
-    sectionWrapper: 'relative w-full overflow-x-hidden bg-pink-50 py-16 sm:py-20',
+    sectionWrapper: 'relative w-full overflow-x-hidden bg-primary/10 py-16 sm:py-20',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
-    subtitle: '-mt-6 mb-10 text-center text-sm text-pink-600',
+    subtitle: '-mt-6 mb-10 text-center text-sm text-primary',
     rowsWrapper: 'space-y-8',
     rowOuter: 'relative overflow-hidden py-3',
     fadeLeft:
@@ -190,7 +190,7 @@ export const jysSectionTheme = {
     nameFlag: 'text-base',
     roleText: 'text-xs text-slate-500',
     badge:
-      'inline-flex items-center rounded-full bg-pink-600/10 px-2 py-1 text-[10px] font-semibold text-pink-700 ring-1 ring-pink-200',
+      'inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary ring-1 ring-primary/30',
     modalOverlay: 'fixed inset-0 z-50 grid place-items-center bg-black/50 p-4',
     modalCard:
       'w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10',
@@ -214,20 +214,20 @@ export const jysSectionTheme = {
     featureCard:
       'flex h-full flex-col gap-2 rounded-2xl bg-white p-5 text-left shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     featureIconCircle:
-      'inline-flex h-10 w-10 items-center justify-center rounded-full bg-pink-50 text-pink-600 ring-1 ring-pink-200',
+      'inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/30',
     featureIcon: 'h-5 w-5',
     featureTitle: 'text-base font-extrabold text-blue-900',
     featureDescription: 'text-sm leading-relaxed text-slate-700',
     ctaWrapper: 'mt-10 flex justify-center',
     ctaButton:
-      'inline-flex items-center justify-center rounded-full bg-pink-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   partnersJourney: {
     sectionWrapper: 'px-6 py-14 sm:py-16 md:py-20 lg:px-8',
     container: 'mx-auto max-w-7xl',
     grid: 'mt-20 grid gap-10 sm:grid-cols-2 lg:grid-cols-4',
     card: 'flex flex-col gap-2',
-    number: 'text-4xl font-extrabold tracking-tight text-pink-600 sm:text-5xl',
+    number: 'text-4xl font-extrabold tracking-tight text-primary sm:text-5xl',
     title: 'text-base font-extrabold text-blue-900 sm:text-lg',
     description: 'text-sm leading-relaxed text-slate-700 sm:text-base',
   },
@@ -236,9 +236,9 @@ export const jysSectionTheme = {
     container: 'mx-auto max-w-7xl',
     tiersGrid: 'grid gap-6 lg:grid-cols-3',
     diamondCard:
-      'rounded-2xl bg-white p-6 shadow-[0_10px_40px_rgba(2,6,23,0.08)] ring-2 ring-pink-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-pink-300',
-    diamondIconCircle: 'inline-grid h-9 w-9 place-items-center rounded-full bg-pink-600 text-white',
-    diamondLabel: 'text-xs font-semibold uppercase tracking-wide text-pink-600',
+      'rounded-2xl bg-white p-6 shadow-[0_10px_40px_rgba(2,6,23,0.08)] ring-2 ring-primary/30 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-primary/40',
+    diamondIconCircle: 'inline-grid h-9 w-9 place-items-center rounded-full bg-primary text-white',
+    diamondLabel: 'text-xs font-semibold uppercase tracking-wide text-primary',
     diamondLogoImg: 'h-9 w-9 rounded bg-white object-contain p-1 ring-1 ring-slate-200',
     diamondTitle: 'text-lg font-extrabold text-blue-900',
     mutedMeta: 'mt-1 text-xs text-slate-600',
@@ -285,7 +285,7 @@ export const jysSectionTheme = {
     cardSubtitle: 'text-sm text-slate-600',
     logosGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
     logoCard:
-      'flex items-center justify-center rounded-xl bg-white p-4 transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(15,23,42,0.18)] focus:outline-none focus:ring-2 focus:ring-pink-300',
+      'flex items-center justify-center rounded-xl bg-white p-4 transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(15,23,42,0.18)] focus:outline-none focus:ring-2 focus:ring-primary/40',
     logoImg: 'h-12 w-auto object-contain',
   },
   partnersImpact: {
@@ -601,8 +601,8 @@ export const jysSectionTheme = {
     tabButtonBase:
       'relative flex items-center gap-3 px-5 py-4 text-left text-sm font-semibold transition-colors sm:px-6 sm:text-base',
     tabButtonActive: 'bg-white text-blue-950',
-    tabButtonInactive: 'bg-white text-slate-500 hover:bg-pink-50 hover:text-blue-950',
-    tabIndicatorActive: 'h-9 w-0.5 rounded-full bg-pink-600',
+    tabButtonInactive: 'bg-white text-slate-500 hover:bg-primary/10 hover:text-blue-950',
+    tabIndicatorActive: 'h-9 w-0.5 rounded-full bg-primary',
     tabIndicatorIdle: 'h-9 w-0.5',
     faqListWrapper: 'space-y-3',
     emptyCard:
@@ -613,7 +613,7 @@ export const jysSectionTheme = {
     faqQuestion: 'text-base font-extrabold text-blue-950 sm:text-lg',
     faqAnswer: 'px-5 pb-5 text-sm leading-6 text-slate-700 sm:px-6',
     toggleIcon:
-      'shrink-0 rounded-full bg-pink-50 p-2 text-pink-600 ring-1 ring-pink-200 transition group-open:rotate-180',
+      'shrink-0 rounded-full bg-primary/10 p-2 text-primary ring-1 ring-primary/30 transition group-open:rotate-180',
   },
   programsCurrent: {
     sectionWrapper: 'sm:py-18 py-14 md:py-20',
@@ -624,7 +624,7 @@ export const jysSectionTheme = {
     richText:
       '[&_p]:text-slate-700 [&_p]:leading-7 [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4',
     themeBlock: 'mt-4 space-y-3',
-    themeHeading: 'text-sm font-semibold uppercase tracking-wide text-pink-600',
+    themeHeading: 'text-sm font-semibold uppercase tracking-wide text-primary',
     themeTitle: 'mt-1 text-sm font-semibold text-blue-950 sm:text-base',
     subthemesGrid: 'mt-2 grid gap-3 sm:grid-cols-2',
     subthemeCard:
@@ -636,23 +636,23 @@ export const jysSectionTheme = {
     coverImage: 'object-contain',
     infoList: 'mt-4 space-y-3 text-sm text-slate-700',
     infoRow: 'flex items-start gap-2',
-    infoIcon: 'mt-0.5 h-4 w-4 text-pink-600',
+    infoIcon: 'mt-0.5 h-4 w-4 text-primary',
     infoLabel: 'text-xs font-semibold uppercase tracking-wide text-slate-500',
     infoValue: 'text-sm font-semibold text-blue-950',
     infoGrid: 'grid gap-3 sm:grid-cols-2',
     guideButtonsWrapper: 'mt-5 flex flex-col gap-3',
-    subtitle: 'mt-1 text-sm font-medium text-pink-700',
+    subtitle: 'mt-1 text-sm font-medium text-primary',
     statusBadge:
-      'inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-pink-700',
+      'inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary',
     primaryCta:
-      'inline-flex items-center justify-center rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700',
+      'inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary',
     secondaryCta:
-      'inline-flex items-center justify-center rounded-lg border border-pink-200 bg-white px-4 py-2 text-sm font-semibold text-pink-700 shadow-sm transition hover:bg-pink-50',
+      'inline-flex items-center justify-center rounded-lg border border-primary/30 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10',
     tertiaryCta:
       'inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-100',
     infoItemCard: 'rounded-xl border border-gray-200 bg-white p-4',
     infoItemHeader: 'flex items-center gap-2 text-gray-600',
-    infoItemIcon: 'h-5 w-5 text-pink-600',
+    infoItemIcon: 'h-5 w-5 text-primary',
     infoItemLabel: 'text-xs',
     infoItemValue: 'mt-1 text-base font-semibold text-gray-900',
   },
@@ -660,8 +660,8 @@ export const jysSectionTheme = {
     sectionWrapper: 'sm:py-18 relative w-full overflow-hidden px-6 py-16 md:py-20',
     container: 'mx-auto max-w-7xl',
     yearBadge:
-      'absolute left-3 top-3 inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-pink-700',
-    subtitle: '-mt-6 mb-8 text-center text-sm text-pink-600 sm:text-base',
+      'absolute left-3 top-3 inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary',
+    subtitle: '-mt-6 mb-8 text-center text-sm text-primary sm:text-base',
     stageWrapper: 'relative mt-10 flex h-[480px] items-center justify-center',
     chevronIcon: 'h-5 w-5',
     carouselInner: 'relative mx-auto flex h-full w-full max-w-5xl items-center justify-center',
@@ -674,13 +674,13 @@ export const jysSectionTheme = {
     cardDate: 'mt-1 text-sm text-slate-600',
     arrowButton:
       'flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900',
-    dotActive: 'h-2.5 w-8 rounded-full bg-pink-500',
+    dotActive: 'h-2.5 w-8 rounded-full bg-primary/100',
     dotInactive: 'h-2.5 w-2.5 rounded-full bg-gray-300 hover:bg-gray-400',
   },
   programsAdditional: {
     sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8',
     container: 'mx-auto max-w-7xl',
-    subtitle: '-mt-6 mb-8 text-center text-sm text-pink-600 sm:text-base',
+    subtitle: '-mt-6 mb-8 text-center text-sm text-primary sm:text-base',
     cardsWrapper: 'flex flex-wrap justify-center gap-6',
     card: 'group w-[320px] overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200 transition hover:shadow-md sm:w-[360px]',
     coverWrapper: 'relative aspect-[16/9] overflow-hidden',
@@ -690,22 +690,22 @@ export const jysSectionTheme = {
     logoImage: 'bg-white object-contain',
     cardMetaRow: 'flex items-start justify-between gap-3 p-5',
     datesText: 'mt-1 text-sm text-gray-600',
-    cardTitle: 'text-base font-extrabold text-gray-900 group-hover:text-pink-700 sm:text-lg',
+    cardTitle: 'text-base font-extrabold text-gray-900 group-hover:text-primary sm:text-lg',
     arrowCircle:
-      'mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-pink-200 bg-pink-50 text-pink-600 transition group-hover:bg-pink-600 group-hover:text-white',
+      'mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-white',
     arrowIcon: 'h-4 w-4',
   },
   programsMissionVision: {
-    missionIconMain: 'grid h-9 w-9 place-items-center rounded-full bg-pink-600 text-white',
+    missionIconMain: 'grid h-9 w-9 place-items-center rounded-full bg-primary text-white',
     missionBulletIcon:
-      'mt-1 grid h-6 w-6 place-items-center rounded-full bg-pink-100 text-pink-700 ring-1 ring-pink-200',
+      'mt-1 grid h-6 w-6 place-items-center rounded-full bg-primary/20 text-primary ring-1 ring-primary/30',
   },
   programsObjectives: {
     numberCircle:
-      'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-pink-600 text-white',
+      'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-white',
   },
   programsBenefits: {
-    iconCircle: 'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-pink-600 text-white',
+    iconCircle: 'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-white',
   },
   programsActivities: {
     sectionWrapper:
@@ -716,32 +716,32 @@ export const jysSectionTheme = {
     card: 'flex h-full flex-col rounded-3xl bg-white px-5 py-5 shadow-[0_18px_50px_rgba(15,23,42,0.24)] ring-1 ring-slate-200/80 sm:px-6 sm:py-6',
     metaRow: 'flex flex-wrap items-center gap-3 text-xs font-medium text-slate-600 sm:text-[13px]',
     metaItem: 'flex items-center gap-1.5',
-    metaIcon: 'h-4 w-4 text-pink-600',
+    metaIcon: 'h-4 w-4 text-primary',
     titleWrapper: 'mt-3 flex-1',
     title: 'text-base font-extrabold text-blue-950 sm:text-lg',
-    dayLabel: 'text-pink-600',
+    dayLabel: 'text-primary',
     bulletsGrid: 'mt-3 grid gap-x-6 gap-y-1 text-sm text-slate-800 sm:grid-cols-2',
     bulletRow: 'flex items-start gap-2',
     bulletIconWrapper: 'mt-0.5 text-emerald-500',
     bulletIcon: 'h-4 w-4',
     description: 'mt-3 text-xs leading-relaxed text-slate-600 sm:text-sm',
     note: 'mx-auto mt-6 max-w-3xl text-center text-xs text-slate-600 sm:text-sm',
-    noteEmphasis: 'font-semibold text-pink-700',
+    noteEmphasis: 'font-semibold text-primary',
   },
   programsSteps: {
     sectionWrapper:
-      'relative w-full bg-gradient-to-b from-white to-pink-50/50 py-10 sm:py-14 lg:py-16',
+      'relative w-full bg-gradient-to-b from-white to-primary/10/50 py-10 sm:py-14 lg:py-16',
     container: 'relative mx-auto max-w-5xl px-6 lg:px-8',
     timelineGrid: 'mt-8 grid grid-cols-[auto,1fr] gap-x-5 sm:gap-x-7',
     lineCol: 'relative col-span-1 row-span-full',
-    line: 'mx-auto h-full w-px bg-gradient-to-b from-pink-400 via-pink-300 to-transparent',
+    line: 'mx-auto h-full w-px bg-gradient-to-b from-primary/60 via-primary/40 to-transparent',
     stepsCol: 'space-y-6',
     stepRow: 'grid grid-cols-[auto,1fr] gap-x-4 gap-y-1',
     stepIconCol: 'relative col-span-1 flex flex-col items-center',
     stepIconCircle:
-      'grid h-9 w-9 place-items-center rounded-full bg-pink-600 text-white shadow-[0_10px_25px_rgba(219,39,119,0.6)]',
+      'grid h-9 w-9 place-items-center rounded-full bg-primary text-white shadow-[0_10px_25px_rgba(219,39,119,0.6)]',
     stepIcon: 'h-5 w-5',
-    stepLabel: 'mt-1 text-[11px] font-semibold uppercase tracking-wide text-pink-600',
+    stepLabel: 'mt-1 text-[11px] font-semibold uppercase tracking-wide text-primary',
     stepCard:
       'col-span-1 rounded-2xl bg-white/95 px-4 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/70 sm:px-5 sm:py-5',
     stepTitle: 'text-sm font-extrabold text-blue-950 sm:text-base',
@@ -757,7 +757,7 @@ export const jysSectionTheme = {
       'mt-8 overflow-hidden rounded-3xl bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80',
     tableInner: 'overflow-x-auto',
     table: 'min-w-full divide-y divide-slate-200 text-sm',
-    thead: 'bg-pink-50',
+    thead: 'bg-primary/10',
     headerRow: 'text-left text-xs font-semibold uppercase tracking-wide text-slate-500',
     headerCell: 'px-5 py-3 sm:px-6',
     body: 'divide-y divide-slate-100 bg-white',
@@ -767,7 +767,7 @@ export const jysSectionTheme = {
     cellName: 'px-5 py-4 font-semibold text-blue-950 sm:px-6',
     cellDesc: 'px-5 py-4 text-slate-600 sm:px-6',
     note: 'mx-auto mt-4 max-w-3xl text-center text-xs text-slate-600 sm:mt-5 sm:text-sm',
-    noteEmphasis: 'font-semibold text-pink-700',
+    noteEmphasis: 'font-semibold text-primary',
     statusActive:
       'inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100',
     statusActiveDot: 'h-1.5 w-1.5 rounded-full bg-emerald-500',
@@ -779,59 +779,59 @@ export const jysSectionTheme = {
     statusClosedDot: 'h-1.5 w-1.5 rounded-full bg-slate-400',
   },
   insightsStats: {
-    iconCircle: 'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-pink-600 text-white',
-    label: 'text-xs font-semibold uppercase tracking-wide text-pink-600',
+    iconCircle: 'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-white',
+    label: 'text-xs font-semibold uppercase tracking-wide text-primary',
     value: 'mt-1 text-2xl font-extrabold text-blue-900',
   },
   insightsTheme: {
-    card: 'relative overflow-hidden rounded-xl border border-pink-200/60 bg-gradient-to-br from-pink-50 to-white p-5 shadow-[0_8px_30px_rgba(2,6,23,0.06)]',
-    leftAccent: 'absolute left-0 top-0 h-full w-1 bg-pink-500/60',
+    card: 'relative overflow-hidden rounded-xl border border-primary/30/60 bg-gradient-to-br from-primary/10 to-white p-5 shadow-[0_8px_30px_rgba(2,6,23,0.06)]',
+    leftAccent: 'absolute left-0 top-0 h-full w-1 bg-primary/100/60',
     tagChip:
-      'inline-flex items-center rounded-full bg-pink-50 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-pink-600 ring-1 ring-pink-200',
+      'inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary ring-1 ring-primary/30',
     iconCircle:
-      'grid h-8 w-8 place-items-center rounded-full bg-white text-pink-600 ring-1 ring-pink-200',
+      'grid h-8 w-8 place-items-center rounded-full bg-white text-primary ring-1 ring-primary/30',
     sdgCircle:
-      'inline-flex h-7 w-7 items-center justify-center rounded-full bg-pink-600 text-xs font-bold text-white',
+      'inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white',
   },
   insightsParticipants: {
     rankCircle:
-      'inline-flex h-7 w-7 items-center justify-center rounded-full bg-pink-600 text-xs font-bold text-white',
+      'inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white',
     flagCircle:
-      'grid h-7 w-7 place-items-center rounded-full bg-pink-50 text-pink-600 ring-1 ring-pink-200',
+      'grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/30',
     barTrack: 'mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100',
-    barFill: 'h-full bg-pink-500',
+    barFill: 'h-full bg-primary/100',
   },
   announcementsGrid: {
-    subtitle: '-mt-6 mb-8 text-center text-sm text-pink-600',
-    card: 'group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-pink-200',
+    subtitle: '-mt-6 mb-8 text-center text-sm text-primary',
+    card: 'group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30',
     loadMoreButton:
-      'inline-flex items-center justify-center rounded-md bg-pink-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   login: {
     input:
-      'mt-2 w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-200',
-    checkbox: 'h-4 w-4 rounded border-white/30 bg-white/20 text-pink-600 focus:ring-pink-300',
+      'mt-2 w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30',
+    checkbox: 'h-4 w-4 rounded border-white/30 bg-white/20 text-primary focus:ring-primary/40',
     primaryButton:
-      'inline-flex w-full items-center justify-center rounded-md bg-pink-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
-    forgotPasswordLink: 'font-semibold text-pink-700 hover:text-pink-800',
-    switchModeLink: 'font-semibold text-pink-700 underline hover:text-pink-800',
+      'inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+    forgotPasswordLink: 'font-semibold text-primary hover:text-primary',
+    switchModeLink: 'font-semibold text-primary underline hover:text-primary',
     slideIndicatorWrapper:
       'inline-flex gap-2 rounded-full border border-white/40 bg-white/15 px-3 py-1 shadow-sm shadow-black/20 backdrop-blur',
-    slideDotActive: 'h-2 w-2 rounded-full bg-pink-500 shadow-sm shadow-pink-500/40',
+    slideDotActive: 'h-2 w-2 rounded-full bg-primary/100 shadow-sm shadow-primary/100/40',
     slideDotInactive: 'h-2 w-2 rounded-full bg-white/70',
-    heroEyebrow: 'text-xs font-semibold uppercase tracking-[0.24em] text-pink-100',
+    heroEyebrow: 'text-xs font-semibold uppercase tracking-[0.24em] text-primary/20',
     heroTitle: 'text-3xl font-extrabold leading-tight',
-    heroDescription: 'text-sm text-pink-50',
+    heroDescription: 'text-sm text-primary/10',
     pageBackground: 'bg-slate-50',
     imagePanelBackground: 'bg-slate-50',
     heroOverlay:
-      'absolute inset-0 bg-gradient-to-t from-pink-700/85 via-pink-700/40 to-transparent',
+      'absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/40 to-transparent',
     heroTextContainer: 'absolute inset-x-0 bottom-0 px-8 pb-12 pt-6 text-white',
     heroLogo: 'h-10 w-auto',
     heroLogoWrapper: 'space-y-4',
     formPanelOuter: 'flex items-center justify-start px-6 py-10 lg:px-20 lg:py-0',
     formPanelInner: 'w-full max-w-xl',
-    formHeading: 'text-2xl font-extrabold tracking-tight text-pink-600 sm:text-3xl',
+    formHeading: 'text-2xl font-extrabold tracking-tight text-primary sm:text-3xl',
     formSubheading: 'mt-2 text-sm text-slate-600',
     card:
       'space-y-4 rounded-2xl border border-slate-100 bg-white/80 p-6 shadow-sm',
@@ -844,13 +844,13 @@ export const jysSectionTheme = {
     socialSection: 'space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 shadow-sm',
     socialGrid: 'grid grid-cols-1 gap-3 sm:grid-cols-2',
     googleButton:
-      'inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
+      'inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
     googleButtonIcon: 'h-5 w-5',
     facebookButton:
-      'inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
+      'inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
     facebookButtonIcon: 'h-5 w-5',
     secondaryButton:
-      'inline-flex w-full items-center justify-center rounded-xl border border-pink-500/70 bg-white px-5 py-3 text-sm font-semibold text-pink-600 shadow-sm transition hover:bg-pink-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
+      'inline-flex w-full items-center justify-center rounded-xl border border-primary/100/70 bg-white px-5 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
     termsLabel: 'mt-1 inline-flex items-center gap-2 text-xs text-slate-600',
     termsLink: 'underline',
   },
@@ -866,23 +866,23 @@ export const jysSectionTheme = {
     progressButtonBase: 'group flex-1',
     progressButtonLocked: 'cursor-not-allowed opacity-60',
     progressBarBase: 'h-1 w-full rounded-full',
-    progressBarActive: 'bg-pink-600',
+    progressBarActive: 'bg-primary',
     progressBarInactive: 'bg-slate-200',
     stepLine: 'mt-6 text-sm text-slate-700',
-    stepLineEmphasis: 'font-semibold text-pink-600',
+    stepLineEmphasis: 'font-semibold text-primary',
     questionTitle: 'mt-6 text-4xl font-extrabold tracking-tight text-slate-900',
     questionDescription: 'mt-4 text-base text-slate-600',
     form: 'mt-6 space-y-4',
-    fieldError: 'mt-1 text-xs text-pink-600',
+    fieldError: 'mt-1 text-xs text-primary',
     locationGrid: 'grid grid-cols-1 gap-4 sm:grid-cols-2',
     optionGrid: 'mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3',
     programSourceGrid: 'mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3',
     optionButtonBase:
-      'inline-flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
-    optionButtonSelected: 'border-pink-600 bg-pink-600 text-white',
+      'inline-flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
+    optionButtonSelected: 'border-primary bg-primary text-white',
     optionButtonUnselected: 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
     seeAllButton:
-      'mt-3 inline-flex items-center justify-center text-sm font-semibold text-pink-600 underline underline-offset-4 hover:text-pink-700',
+      'mt-3 inline-flex items-center justify-center text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary',
     modalOverlay: 'fixed inset-0 z-[100] grid place-items-center bg-black/50 p-4',
     modalCard: 'w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10',
     modalHeader: 'flex items-center justify-between border-b border-slate-200 px-5 py-4',
@@ -897,20 +897,20 @@ export const jysSectionTheme = {
     image: 'object-cover',
   },
   applyImportant: {
-    card: 'overflow-hidden rounded-2xl bg-pink-50 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-pink-200 sm:p-8',
-    chip: 'rounded-full border border-pink-300 bg-white/70 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-pink-700',
-    bulletDot: 'mt-1 h-1.5 w-1.5 rounded-full bg-pink-500',
-    legalLink: 'font-semibold underline decoration-pink-300 underline-offset-2 hover:text-pink-700',
+    card: 'overflow-hidden rounded-2xl bg-primary/10 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-primary/30 sm:p-8',
+    chip: 'rounded-full border border-primary/40 bg-white/70 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary',
+    bulletDot: 'mt-1 h-1.5 w-1.5 rounded-full bg-primary/100',
+    legalLink: 'font-semibold underline decoration-primary/40 underline-offset-2 hover:text-primary',
   },
   applyRegistrationTypes: {
-    card: 'group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-pink-200',
+    card: 'group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30',
     iconCircle:
-      'grid h-10 w-10 aspect-square place-items-center rounded-full bg-pink-600 text-white',
-    priceText: 'text-2xl font-extrabold text-pink-600',
-    calendarIcon: 'h-4 w-4 text-pink-600',
-    bulletCircle: 'grid h-7 w-7 place-items-center rounded-full bg-pink-600 text-white',
+      'grid h-10 w-10 aspect-square place-items-center rounded-full bg-primary text-white',
+    priceText: 'text-2xl font-extrabold text-primary',
+    calendarIcon: 'h-4 w-4 text-primary',
+    bulletCircle: 'grid h-7 w-7 place-items-center rounded-full bg-primary text-white',
     ctaButton:
-      'inline-flex items-center justify-center rounded-md bg-pink-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-pink-700',
+      'inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-primary',
     headerWrapper: 'border-b border-slate-200 bg-gradient-to-b from-blue-50/70 to-transparent p-5',
     headerRow: 'flex items-center justify-between',
     headerRowTopAligned: 'flex items-start justify-between',
@@ -950,17 +950,17 @@ export const jysSectionTheme = {
     tabButtonActive: 'text-blue-950',
     tabButtonInactive: 'text-slate-500 hover:text-slate-700',
     tabActiveUnderline:
-      'absolute inset-x-0 bottom-0 mx-auto block h-0.5 max-w-[70%] rounded-full bg-pink-500',
+      'absolute inset-x-0 bottom-0 mx-auto block h-0.5 max-w-[70%] rounded-full bg-primary/100',
     detailsContentWrapper: 'mt-5 space-y-6 text-[15px] leading-7 text-slate-700 sm:text-base',
     descriptionBlock: 'space-y-3',
-    sectionHeading: 'text-sm font-semibold uppercase tracking-wide text-pink-600',
+    sectionHeading: 'text-sm font-semibold uppercase tracking-wide text-primary',
     requirementsList: 'grid gap-2 text-[15px] text-slate-700 sm:grid-cols-2',
     requirementItem:
       'flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-2 ring-1 ring-slate-200',
-    requirementIcon: 'h-4 w-4 flex-shrink-0 text-pink-600',
+    requirementIcon: 'h-4 w-4 flex-shrink-0 text-primary',
     benefitsList: 'grid gap-2 text-[15px] text-slate-700 sm:grid-cols-2',
     benefitsItem: 'flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-2 ring-1 ring-slate-200',
-    benefitsIcon: 'h-4 w-4 flex-shrink-0 text-pink-600',
+    benefitsIcon: 'h-4 w-4 flex-shrink-0 text-primary',
     benefitsTabContent: 'mt-5 space-y-4 text-[15px] leading-7 text-slate-700 sm:text-base',
     rightColWrapper: 'mx-auto h-full w-fit',
     rightCard:
@@ -969,7 +969,7 @@ export const jysSectionTheme = {
     coverImage: 'h-auto w-auto object-contain',
     infoList: 'mt-4 space-y-3 text-sm text-slate-700',
     infoRow: 'flex items-start gap-2',
-    infoIcon: 'mt-0.5 h-4 w-4 text-pink-600',
+    infoIcon: 'mt-0.5 h-4 w-4 text-primary',
     infoLabel: 'text-xs font-semibold uppercase tracking-wide text-slate-500',
     infoValue: 'text-sm font-semibold text-blue-950',
     infoGrid: 'grid gap-3 sm:grid-cols-2',
@@ -982,12 +982,12 @@ export const jysSectionTheme = {
     cardsGrid: 'mt-8 grid gap-6 md:grid-cols-2',
     card: 'flex h-full flex-col rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.14)] ring-1 ring-slate-200/80',
     cardTitle: 'text-lg font-semibold text-blue-950 sm:text-xl',
-    cardPrice: 'mt-1 text-sm font-semibold text-pink-600 sm:text-base',
+    cardPrice: 'mt-1 text-sm font-semibold text-primary sm:text-base',
     cardSubtitle: 'mt-1 text-xs text-slate-600 sm:text-sm',
     stagesList: 'mt-5 space-y-3 text-sm text-slate-800 sm:text-base',
     stageItem:
       'flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200',
-    stageLabel: 'text-xs font-semibold uppercase tracking-[0.16em] text-pink-600',
+    stageLabel: 'text-xs font-semibold uppercase tracking-[0.16em] text-primary',
     stageLabelMuted: 'text-xs font-semibold uppercase tracking-[0.16em] text-slate-700',
     stagePrice: 'text-sm font-semibold text-blue-950 sm:text-base',
     stagePriceSub: 'text-xs text-slate-600',
@@ -996,7 +996,7 @@ export const jysSectionTheme = {
     footerNote: 'text-xs text-slate-600 sm:text-sm',
     footerNoteEmphasis: 'font-semibold',
     footerCta:
-      'inline-flex items-center justify-center rounded-full bg-pink-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
   },
   applyPaymentMethods: {
     sectionWrapper: 'py-14 sm:py-16 md:py-20',
@@ -1007,8 +1007,8 @@ export const jysSectionTheme = {
     bankCard:
       'flex h-full flex-col rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.14)] ring-1 ring-slate-200/80',
     bankHeaderRow: 'flex items-center gap-3',
-    bankIconCircle: 'flex h-9 w-9 items-center justify-center rounded-full bg-pink-50',
-    bankIcon: 'h-4 w-4 text-pink-600',
+    bankIconCircle: 'flex h-9 w-9 items-center justify-center rounded-full bg-primary/10',
+    bankIcon: 'h-4 w-4 text-primary',
     cardTitle: 'text-base font-semibold text-blue-950 sm:text-lg',
     cardSubtitle: 'text-xs text-slate-600 sm:text-sm',
     banksGrid: 'mt-5 grid grid-cols-2 gap-4',
@@ -1046,20 +1046,20 @@ export const jysSectionTheme = {
     guidePrimary:
       'inline-flex items-center justify-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-sm transition hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2',
     guideSecondary:
-      'inline-flex items-center justify-center rounded-full border border-pink-200 bg-white px-5 py-3 text-sm font-semibold text-pink-700 shadow-sm transition hover:bg-pink-50 focus:outline-none focus:ring-2 focus:ring-pink-200 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full border border-primary/30 bg-white px-5 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2',
   },
   homeImportantPayment: {
     sectionWrapper: 'relative w-full bg-white py-14 sm:py-16',
     introText: 'mx-auto -mt-6 mb-10 max-w-3xl text-center text-sm text-slate-600 sm:text-base',
     card: 'flex h-full flex-col rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     iconCircle:
-      'mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-pink-100 text-pink-600',
+      'mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-primary',
     cardTitle: 'text-base font-semibold text-slate-900',
     cardBody: 'mt-2 text-sm leading-relaxed text-slate-600',
     noteBar:
-      'mt-8 flex items-center gap-3 rounded-xl bg-pink-50 px-4 py-3 text-xs text-slate-900 border-l-4 border-pink-400/80 shadow-[0_8px_30px_rgba(2,6,23,0.06)]',
-    noteIcon: 'h-4 w-4 text-pink-500',
-    noteEmphasis: 'font-semibold text-pink-700',
+      'mt-8 flex items-center gap-3 rounded-xl bg-primary/10 px-4 py-3 text-xs text-slate-900 border-l-4 border-primary/60/80 shadow-[0_8px_30px_rgba(2,6,23,0.06)]',
+    noteIcon: 'h-4 w-4 text-primary/100',
+    noteEmphasis: 'font-semibold text-primary',
     infoSideWrapper: 'flex h-full items-stretch',
     infoSideCard:
       'flex w-full flex-col justify-between rounded-3xl bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.15)] ring-1 ring-slate-200/80 sm:p-7',
@@ -1067,7 +1067,7 @@ export const jysSectionTheme = {
     infoIntro: 'mt-2 text-sm text-slate-700',
     infoPointsWrapper: 'mt-5 space-y-4 text-sm text-slate-800',
     infoPointRow: 'flex gap-3',
-    infoPointIcon: 'mt-1 text-pink-600',
+    infoPointIcon: 'mt-1 text-primary',
     infoPointTitle: 'text-sm font-semibold text-blue-950',
     infoPointBody: 'text-xs text-slate-600',
     infoFooter: 'mt-6 border-t border-slate-200 pt-4 text-xs text-slate-500',
@@ -1076,16 +1076,16 @@ export const jysSectionTheme = {
     sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8',
     container: 'mx-auto max-w-7xl',
     grid: 'grid gap-6 md:grid-cols-2 lg:grid-cols-3',
-    card: 'rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition will-change-transform hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-pink-200',
+    card: 'rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition will-change-transform hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30',
     cardInnerRow: 'flex items-start gap-4',
     avatarImg: 'h-12 w-12 rounded-full object-cover ring-2 ring-white',
     contentCol: 'flex-1',
     headerRow: 'flex flex-wrap items-center gap-2',
     name: 'text-lg font-extrabold text-blue-900',
     countryChip:
-      'inline-flex items-center gap-1 rounded-full bg-pink-50 px-2 py-1 text-[11px] font-semibold text-pink-700 ring-1 ring-pink-200',
+      'inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/30',
     yearPill:
-      'inline-flex items-center rounded-full bg-pink-600 px-2 py-1 text-[11px] font-semibold text-white',
+      'inline-flex items-center rounded-full bg-primary px-2 py-1 text-[11px] font-semibold text-white',
     flagEmoji: 'text-base leading-none',
     quote: 'mt-3 text-sm leading-6 text-slate-700',
     readMoreButton:
@@ -1094,24 +1094,24 @@ export const jysSectionTheme = {
     divider: 'my-4 h-px w-full bg-slate-200',
     metaRow: 'flex items-center justify-between',
     roleText: 'text-sm text-slate-600',
-    starsWrapper: 'flex items-center gap-0.5 text-pink-500',
-    starFilled: 'h-4 w-4 fill-pink-500 stroke-pink-600',
-    starEmpty: 'h-4 w-4 stroke-pink-300',
+    starsWrapper: 'flex items-center gap-0.5 text-primary/100',
+    starFilled: 'h-4 w-4 fill-primary/100 stroke-primary',
+    starEmpty: 'h-4 w-4 stroke-primary/40',
   },
   programsTestimonialsImpact: {
     sectionWrapper: 'px-6 pb-12 sm:pb-14 md:pb-16 lg:px-8',
     container: 'mx-auto max-w-7xl',
     grid: 'grid gap-5 sm:grid-cols-2 lg:grid-cols-4',
-    card: 'group rounded-2xl bg-white p-5 text-center shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-pink-200',
+    card: 'group rounded-2xl bg-white p-5 text-center shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30',
     iconCircle:
-      'mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-pink-600 text-white transition group-hover:bg-pink-700',
+      'mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-primary text-white transition group-hover:bg-primary',
     icon: 'h-5 w-5',
     value: 'text-2xl font-extrabold text-blue-900',
-    label: 'text-xs font-semibold uppercase tracking-wide text-pink-600',
+    label: 'text-xs font-semibold uppercase tracking-wide text-primary',
   },
   ctaCard: {
-    card: "relative flex w-full max-w-md flex-col items-center justify-center overflow-hidden rounded-2xl bg-[url('/img/bgourprogram.png')] bg-cover bg-center p-10 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-pink-100 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-pink-200",
-    iconCircle: 'mb-3 grid h-16 w-16 place-items-center rounded-full bg-pink-600 text-white shadow',
+    card: "relative flex w-full max-w-md flex-col items-center justify-center overflow-hidden rounded-2xl bg-[url('/img/bgourprogram.png')] bg-cover bg-center p-10 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-primary/20 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30",
+    iconCircle: 'mb-3 grid h-16 w-16 place-items-center rounded-full bg-primary text-white shadow',
   },
   partnersOpportunities: {
     sectionWrapper: 'relative w-full py-16 sm:py-20',
@@ -1125,7 +1125,7 @@ export const jysSectionTheme = {
     goldCard:
       'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-amber-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-amber-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     diamondCard:
-      'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-pink-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-pink-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
+      'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-primary/10 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     cardBody: 'p-5',
     title: 'text-xl font-extrabold text-blue-900',
     description: 'mt-1 text-sm leading-6 text-slate-700',
@@ -1136,13 +1136,13 @@ export const jysSectionTheme = {
       'flex items-center gap-3 py-3 transition-colors duration-200 hover:bg-slate-50',
     benefitItemBordered: 'border-b border-slate-200',
     checkCircle:
-      'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white',
+      'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-white',
     checkIcon: 'h-4 w-4',
     benefitLabel: 'text-sm font-medium text-blue-950',
     affiliateSubheading: 'pb-1 text-sm font-extrabold text-blue-950',
     affiliateSubheadingSpaced: 'pt-4 pb-1 text-sm font-extrabold text-blue-950',
     popularChip:
-      'rounded-full bg-pink-50 px-2 py-0.5 text-xs font-semibold text-pink-700 ring-1 ring-pink-200',
+      'rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary ring-1 ring-primary/30',
     cardFooter: 'p-5 pt-0',
     communityCta:
       'inline-flex w-full items-center justify-center rounded-md bg-blue-700 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2',
@@ -1151,18 +1151,18 @@ export const jysSectionTheme = {
     goldCta:
       'inline-flex w-full items-center justify-center rounded-md bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2',
     diamondCta:
-      'inline-flex w-full items-center justify-center rounded-md bg-pink-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   partnersCommunity: {
     sectionWrapper:
       "relative w-full bg-[url('/img/sebelumfooter.png')] bg-cover bg-center px-6 py-12 sm:py-14 md:py-16 lg:px-8",
     container: 'mx-auto max-w-7xl',
     listWrapper: 'flex flex-wrap justify-center gap-6',
-    card: 'group w-[340px] sm:w-[360px] flex items-start gap-4 rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-pink-300',
+    card: 'group w-[340px] sm:w-[360px] flex items-start gap-4 rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-primary/40',
     logoImg: 'h-12 w-12 rounded bg-white object-contain p-1.5 ring-1 ring-slate-200',
     orgName: 'font-extrabold text-blue-900',
     pinkChip:
-      'mt-1 inline-block rounded-full bg-pink-50 px-2.5 py-0.5 text-xs font-semibold text-pink-700 ring-1 ring-pink-200',
+      'mt-1 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary ring-1 ring-primary/30',
     academicChip:
       'mt-1 inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-200',
     innovationChip:
@@ -1198,8 +1198,8 @@ export const jysSectionTheme = {
     gradientRightSilver: 'from-slate-100 via-slate-50',
     // goldCard: bg-gradient-to-t from-amber-50 to-white
     gradientRightGold: 'from-amber-100 via-amber-50',
-    // diamondCard: bg-gradient-to-t from-pink-50 to-white
-    gradientRightDiamond: 'from-pink-100 via-pink-50',
+    // diamondCard: bg-gradient-to-t from-primary/10 to-white
+    gradientRightDiamond: 'from-primary/20 via-primary/10',
   },
   programDetail: {
     // Hero section
@@ -1216,7 +1216,7 @@ export const jysSectionTheme = {
     heroBlurSecondary:
       'pointer-events-none absolute -right-40 top-24 h-[16rem] w-[16rem] rounded-full bg-white/5 blur-2xl md:h-[18rem] md:w-[18rem]',
     heroCta:
-      'inline-flex items-center justify-center rounded-lg bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700',
+      'inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary',
     heroCtaClosed:
       'inline-flex items-center justify-center rounded-lg border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/80',
     // Info strip section
@@ -1231,10 +1231,10 @@ export const jysSectionTheme = {
     infoStripGrid: 'grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4',
     infoStripItem: 'flex items-start gap-6 lg:border-r lg:border-blue-800/60 lg:px-6',
     infoStripIconCircle:
-      'flex aspect-square h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-pink-500/80 bg-white/5',
-    infoStripSubtitle: 'text-sm font-semibold uppercase tracking-wider text-pink-400',
+      'flex aspect-square h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-primary/100/80 bg-white/5',
+    infoStripSubtitle: 'text-sm font-semibold uppercase tracking-wider text-primary/60',
     infoStripValue: 'mt-1 text-2xl font-extrabold leading-tight',
-    infoStripIcon: 'h-5 w-5 text-pink-400',
+    infoStripIcon: 'h-5 w-5 text-primary/60',
     // Guidelines section
     guidelinesSection: 'relative bg-white',
     guidelinesContainer: 'mx-auto max-w-7xl px-6 py-16 lg:px-8',
@@ -1242,10 +1242,10 @@ export const jysSectionTheme = {
       "mx-auto max-w-3xl overflow-hidden rounded-2xl bg-[url('/img/bgourprogram.png')] bg-cover bg-center bg-blend-multiply ring-1 ring-gray-200",
     guidelinesBody: 'p-6 text-center sm:p-8',
     guidelinesIconCircle:
-      'mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border-2 border-pink-500/80 bg-pink-50',
-    guidelinesIcon: 'h-5 w-5 text-pink-600',
+      'mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border-2 border-primary/100/80 bg-primary/10',
+    guidelinesIcon: 'h-5 w-5 text-primary',
     guidelinesButton:
-      'inline-flex items-center justify-center gap-2 rounded-lg bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700',
+      'inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary',
     guidelinesText: 'text-base leading-7 text-gray-600',
     guidelinesCtaWrapper: 'mt-6 flex justify-center',
     guidelinesDownloadIcon: 'h-4 w-4',
@@ -1256,20 +1256,20 @@ export const jysSectionTheme = {
     overviewCard: 'overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
     overviewInner: 'flex items-start gap-4 p-6 sm:p-8',
     overviewIconCircle:
-      'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-pink-500/80 bg-pink-50',
-    overviewIcon: 'h-5 w-5 text-pink-600',
+      'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-primary/100/80 bg-primary/10',
+    overviewIcon: 'h-5 w-5 text-primary',
     overviewContent: 'text-gray-700',
     overviewText: 'leading-7',
     overviewList: 'mt-4 space-y-3',
     overviewListItem: 'flex items-start gap-3',
     overviewBulletIcon:
-      'inline-flex aspect-square h-7 w-7 shrink-0 items-center justify-center rounded-full bg-pink-600 text-white',
+      'inline-flex aspect-square h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white',
     overviewBulletIconAlt:
-      'inline-flex aspect-square h-7 w-7 shrink-0 items-center justify-center rounded-full bg-pink-600 text-white',
+      'inline-flex aspect-square h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white',
     overviewHighlightText: 'font-semibold',
     overviewCheckIcon: 'h-4 w-4',
     applicationPrimaryCta:
-      'inline-flex items-center justify-center rounded-lg bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700',
+      'inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary',
     applicationSecondaryCta:
       'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500',
     applicationCard: 'overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
@@ -1281,17 +1281,17 @@ export const jysSectionTheme = {
     applicationCtaWrapper: 'mt-6',
   },
   galleryOtherPrograms: {
-    subtitle: '-mt-6 mb-8 text-center text-sm text-pink-600 sm:text-base',
-    cardTitle: 'text-base font-extrabold text-blue-950 group-hover:text-pink-700 sm:text-lg',
+    subtitle: '-mt-6 mb-8 text-center text-sm text-primary sm:text-base',
+    cardTitle: 'text-base font-extrabold text-blue-950 group-hover:text-primary sm:text-lg',
     visitChip:
-      'inline-flex items-center gap-1 rounded-md border border-pink-200 px-3 py-2 text-xs font-semibold text-pink-700 transition group-hover:border-pink-300',
+      'inline-flex items-center gap-1 rounded-md border border-primary/30 px-3 py-2 text-xs font-semibold text-primary transition group-hover:border-primary/40',
   },
   programRundowns: {
     tabButton:
-      'relative px-4 py-5 text-center text-base font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 sm:px-6 sm:text-lg',
-    tabLabelIcon: 'h-4 w-4 text-pink-600',
-    tabActiveUnderline: 'absolute inset-x-0 bottom-0 block h-0.5 bg-pink-600',
-    noteIcon: 'mt-0.5 h-5 w-5 flex-shrink-0 text-pink-600',
+      'relative px-4 py-5 text-center text-base font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 sm:px-6 sm:text-lg',
+    tabLabelIcon: 'h-4 w-4 text-primary',
+    tabActiveUnderline: 'absolute inset-x-0 bottom-0 block h-0.5 bg-primary',
+    noteIcon: 'mt-0.5 h-5 w-5 flex-shrink-0 text-primary',
   },
   programFAQ: {
     sectionWrapper: 'bg-[#eef5ff] px-6 py-12 sm:py-14 md:py-16 lg:px-8',
@@ -1299,12 +1299,12 @@ export const jysSectionTheme = {
     tabsCard: 'mx-auto mt-2 w-full overflow-hidden rounded-2xl border border-blue-100 bg-white',
     tabsGrid: 'grid grid-cols-3',
     tabButton:
-      'relative px-4 py-5 text-center text-base font-extrabold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 sm:px-6 sm:text-lg',
+      'relative px-4 py-5 text-center text-base font-extrabold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 sm:px-6 sm:text-lg',
     tabInactive:
-      'text-blue-900/70 hover:bg-pink-50 hover:text-blue-950 hover:shadow-sm hover:ring-1 hover:ring-pink-200',
-    tabActiveUnderline: 'absolute inset-y-3 left-0 block w-0.5 rounded-full bg-pink-600',
+      'text-blue-900/70 hover:bg-primary/10 hover:text-blue-950 hover:shadow-sm hover:ring-1 hover:ring-primary/30',
+    tabActiveUnderline: 'absolute inset-y-3 left-0 block w-0.5 rounded-full bg-primary',
     tabLabelInner: 'inline-flex items-center justify-center gap-2',
-    tabLabelIcon: 'h-4 w-4 text-pink-600',
+    tabLabelIcon: 'h-4 w-4 text-primary',
     tabDivider: 'absolute inset-y-3 right-0 hidden w-px bg-blue-100 last:hidden sm:block',
     faqListWrapper: 'mt-6 space-y-3',
     faqCard: 'overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
@@ -1325,7 +1325,7 @@ export const jysSectionTheme = {
     buttonsCol: 'mt-4 flex flex-col items-start gap-3',
     guideButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold shadow-sm transition',
-    guideButtonPrimary: 'border-pink-500/80 bg-white/95 text-pink-700 hover:bg-white',
+    guideButtonPrimary: 'border-primary/100/80 bg-white/95 text-primary hover:bg-white',
     guideButtonSecondary: 'border-blue-500/70 bg-blue-50/90 text-blue-800 hover:bg-blue-100',
     flagCircle: 'inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full',
     rightCol: 'order-1 relative flex w-full justify-center lg:order-2',
@@ -1360,7 +1360,7 @@ export const jysSectionTheme = {
     rightCol: 'relative z-10 flex flex-col',
     countdownCard:
       'rounded-2xl bg-white/95 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/70',
-    countdownEyebrow: 'text-xs font-semibold uppercase tracking-[0.18em] text-pink-600',
+    countdownEyebrow: 'text-xs font-semibold uppercase tracking-[0.18em] text-primary',
     countdownGrid: 'mt-5 grid grid-cols-4 gap-2 sm:gap-3',
     countdownItem:
       'flex flex-col items-center justify-center rounded-2xl bg-slate-50 px-2 py-3 ring-1 ring-slate-200',
@@ -1379,22 +1379,22 @@ export const jysSectionTheme = {
     navGroupWrapper: 'space-y-1',
     navParentButtonBase:
       'flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-semibold transition',
-    navParentButtonActive: 'bg-white text-pink-700 ring-1 ring-pink-200',
+    navParentButtonActive: 'bg-white text-primary ring-1 ring-primary/30',
     navParentButtonInactive: 'text-white/85 hover:bg-white/10',
     navParentLabelRow: 'flex items-center gap-2',
     navParentChevron:
       'h-4 w-4 transition-transform',
     navLinkBase:
       'flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition',
-    navLinkActive: 'bg-white text-pink-700 ring-1 ring-pink-200',
+    navLinkActive: 'bg-white text-primary ring-1 ring-primary/30',
     navLinkInactive: 'text-white/85 hover:bg-white/10',
-    navActiveDot: 'inline-block h-2 w-2 rounded-full bg-pink-600',
+    navActiveDot: 'inline-block h-2 w-2 rounded-full bg-primary',
     navSubmenuGrid:
       'grid transition-all ml-3 pl-3',
     navSubmenuInner: 'min-h-0 border-l border-slate-200 pl-2',
     navSubLinkBase:
       'block rounded-lg px-2 py-1.5 text-[13px] font-medium transition',
-    navSubLinkActive: 'bg-white text-pink-700 ring-1 ring-pink-200',
+    navSubLinkActive: 'bg-white text-primary ring-1 ring-primary/30',
     navSubLinkInactive:
       'text-white/80 hover:bg-white/10 hover:text-white',
     profileSectionWrapper:
@@ -1413,24 +1413,24 @@ export const jysSectionTheme = {
   dashboardSearch: {
     resultsWrapper: 'mt-5 space-y-3',
     summaryText: 'text-xs text-slate-500 sm:text-sm',
-    summaryKeyword: 'font-semibold text-pink-600',
+    summaryKeyword: 'font-semibold text-primary',
     list: 'space-y-3',
     itemCard:
       'rounded-2xl bg-white p-4 text-sm text-slate-800 shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     itemInnerRow: 'flex items-start gap-3',
     itemIconCircle:
-      'mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-pink-50 text-pink-600',
+      'mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary',
     itemIcon: 'h-4 w-4',
     itemTitle: 'text-sm leading-relaxed text-slate-800',
-    itemHighlight: 'font-semibold text-pink-600',
+    itemHighlight: 'font-semibold text-primary',
     itemBreadcrumb: 'mt-2 text-[11px] text-slate-500',
-    itemBreadcrumbActive: 'font-semibold text-pink-600',
+    itemBreadcrumbActive: 'font-semibold text-primary',
     emptyWrapper:
       'flex min-h-[220px] flex-col items-center justify-center space-y-3 text-center',
     emptyIconCircle:
       'inline-flex h-14 w-14 items-center justify-center rounded-full border-2 border-rose-300 bg-rose-50 text-rose-500',
     emptyIcon: 'h-7 w-7',
-    emptyKeyword: 'font-semibold text-pink-600',
+    emptyKeyword: 'font-semibold text-primary',
     emptyTextMain: 'text-sm text-slate-700',
     emptyTextSub: 'text-xs text-slate-500',
   },
@@ -1439,13 +1439,13 @@ export const jysSectionTheme = {
     tabsWrapper:
       'inline-flex rounded-full border border-slate-200 bg-slate-50 p-1 text-sm font-medium text-slate-600',
     tabButton:
-      'rounded-full px-4 py-1.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50',
-    tabButtonActive: 'bg-white text-pink-700 shadow-sm',
+      'rounded-full px-4 py-1.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/100 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50',
+    tabButtonActive: 'bg-white text-primary shadow-sm',
     tabButtonInactive: 'text-slate-600 hover:text-slate-900 hover:bg-white/60',
     tableCard:
       'overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     tableHeader:
-      'items-center gap-4 bg-pink-600 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white',
+      'items-center gap-4 bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white',
     tableHeaderSortButton: 'flex items-center gap-1 text-left',
     tableHeaderSortButtonRight: 'ml-auto flex items-center gap-1 text-right',
     tableHeaderSortIcon: 'text-[10px] leading-none',
@@ -1457,7 +1457,7 @@ export const jysSectionTheme = {
     docTypeCell: 'text-slate-700',
     actionCell: 'flex justify-end',
     downloadButton:
-      'inline-flex items-center gap-1 rounded-full bg-pink-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-pink-700',
+      'inline-flex items-center gap-1 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-primary',
     emptyStateWrapper:
       'flex min-h-[260px] flex-col items-center justify-center bg-slate-50 px-6 py-10 text-center',
     emptyStateImageWrapper: 'mb-4 flex items-center justify-center',
@@ -1479,7 +1479,7 @@ export const jysSectionTheme = {
     breadcrumbNav: 'text-xs font-semibold uppercase tracking-wide text-slate-500',
     breadcrumbLink: 'text-slate-700 hover:text-slate-900',
     breadcrumbSeparator: 'mx-1.5 text-slate-400',
-    breadcrumbCurrent: 'text-pink-600',
+    breadcrumbCurrent: 'text-primary',
     headingRow: 'mt-2 flex items-center justify-between gap-3',
     headingTitle: 'text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl',
     backButton:
@@ -1503,9 +1503,9 @@ export const jysSectionTheme = {
     bankMethodGrid:
       'mt-1 grid grid-cols-2 gap-2 text-[11px] font-normal text-slate-600 sm:grid-cols-3',
     bankMethodCard:
-      'flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-700 shadow-sm transition hover:border-pink-300 hover:shadow-md focus:outline-none',
+      'flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-700 shadow-sm transition hover:border-primary/40 hover:shadow-md focus:outline-none',
     bankMethodCardSelected:
-      'border-pink-500 ring-2 ring-pink-200',
+      'border-primary/100 ring-2 ring-primary/30',
     bankMethodLogoWrapper:
       'flex h-10 w-full items-center justify-center',
     bankMethodLogoImage:
@@ -1513,7 +1513,7 @@ export const jysSectionTheme = {
     stepWrapper: 'space-y-3 text-sm text-slate-700',
     stepRow: 'flex gap-3',
     stepNumberCircle:
-      'mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-pink-600 text-xs font-semibold text-white shadow-sm',
+      'mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm',
     stepTextTitle: 'font-semibold text-slate-900',
     stepTextBody: 'mt-1 text-sm text-slate-700',
     manualPaymentWrapper: 'space-y-5 text-sm text-slate-700',
@@ -1527,28 +1527,28 @@ export const jysSectionTheme = {
     agreementTitle:
       'mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500',
     agreementRowPink:
-      'flex items-center gap-3 rounded-md bg-pink-50 px-3 py-2 text-xs text-slate-700 ring-1 ring-pink-100',
+      'flex items-center gap-3 rounded-md bg-primary/10 px-3 py-2 text-xs text-slate-700 ring-1 ring-primary/20',
     agreementRowIndigo:
       'flex items-center gap-3 rounded-md bg-indigo-50 px-3 py-2 text-xs text-slate-700 ring-1 ring-indigo-100',
     agreementCheckboxPink:
-      'h-4 w-4 rounded border-slate-300 text-pink-600 focus:ring-pink-500',
+      'h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/100',
     agreementCheckboxIndigo:
       'h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500',
     agreementRowInner: 'flex items-center gap-2',
     completeButtonWrapper: 'pt-2 flex justify-center',
     completeButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-sm transition',
-    completeButtonEnabled: 'bg-pink-600 text-white hover:bg-pink-700',
+    completeButtonEnabled: 'bg-primary text-white hover:bg-primary',
     completeButtonDisabled: 'bg-slate-200 text-slate-500 cursor-not-allowed',
     detailPrimaryCard:
       'rounded-2xl bg-white p-5 shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     detailEmptyStateCard:
       'rounded-2xl bg-white p-6 text-center shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
-    detailEmptyStateIconWrapper: 'mx-auto mb-3 text-pink-600',
+    detailEmptyStateIconWrapper: 'mx-auto mb-3 text-primary',
     detailEmptyStateTitle: 'text-sm font-extrabold text-slate-900',
     detailEmptyStateBody: 'mt-1 text-sm text-slate-600',
     detailEmptyStateButton:
-      'mt-4 inline-flex items-center justify-center gap-2 rounded-md bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-pink-700',
+      'mt-4 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary',
     detailSideCardOuter:
       'overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     detailSideCardHeader: 'px-5 py-3',
@@ -1561,14 +1561,14 @@ export const jysSectionTheme = {
     detailIllustrationTitle: 'mt-3 text-sm font-extrabold text-slate-900',
     detailIllustrationBody: 'mt-1 text-sm text-slate-600',
     detailMakePaymentButton:
-      'inline-flex w-full items-center justify-center gap-2 rounded-md bg-pink-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pink-700',
+      'inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary',
     detailMakePaymentInner:
       'inline-flex w-full items-center justify-center gap-2',
     detailQuickActionsBody: 'space-y-2 px-5 pb-5',
     detailQuickPrimaryButton:
       'inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800',
     detailQuickSecondaryLink:
-      'inline-flex w-full items-center justify-center gap-2 rounded-md bg-pink-50 px-3 py-2 text-sm font-semibold text-pink-700 ring-1 ring-pink-100 transition hover:bg-pink-100',
+      'inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20 transition hover:bg-primary/20',
     summaryGrid: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4',
     summaryCardBase: 'flex flex-col justify-between rounded-2xl p-4 text-sm shadow-sm',
     summaryCompleteCard: 'border border-emerald-100 bg-emerald-50/60',
@@ -1609,12 +1609,12 @@ export const jysSectionTheme = {
     categoryBulletIconPrimary:
       'bg-emerald-50 text-emerald-600 ring-emerald-100',
     categoryBulletIconSecondary:
-      'bg-pink-50 text-pink-600 ring-pink-100',
+      'bg-primary/10 text-primary ring-primary/20',
     categoryBulletIconTertiary:
       'bg-violet-50 text-violet-600 ring-violet-100',
     categoryBulletIconInner: 'h-3 w-3',
     categoryPrimaryCta:
-      'inline-flex items-center gap-2 rounded-full bg-pink-600 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
     tableCard:
       'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)]',
     tableHeaderRow:
@@ -1624,14 +1624,14 @@ export const jysSectionTheme = {
     tableControlsWrapper: 'flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4',
     tableShowWrapper: 'flex items-center gap-2 text-xs text-slate-600',
     tableShowSelect:
-      'h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-pink-500',
+      'h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-primary/100',
     tableSearchWrapper:
       'flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-600',
     tableSearchInput:
       'w-40 border-none bg-transparent text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:w-52',
     tableOuter: 'overflow-x-auto',
     table: 'min-w-full text-left text-sm',
-    tableHeadRow: 'bg-pink-600 text-xs font-semibold uppercase tracking-wide text-white',
+    tableHeadRow: 'bg-primary text-xs font-semibold uppercase tracking-wide text-white',
     tableHeadCell: 'px-4 py-3',
     tableHeadCellRight: 'px-4 py-3 text-right',
     tableBody: 'divide-y divide-slate-100 bg-white text-slate-800',
@@ -1648,7 +1648,7 @@ export const jysSectionTheme = {
     statusBadgeUnpaid: 'bg-rose-50 text-rose-700 ring-rose-200',
     actionsWrapper: 'inline-flex items-center gap-2',
     primaryIconButton:
-      'inline-flex h-7 w-7 items-center justify-center rounded-md border border-pink-600 bg-pink-600 text-slate-50 shadow-sm transition hover:bg-pink-700',
+      'inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary bg-primary text-slate-50 shadow-sm transition hover:bg-primary',
     secondaryIconButton:
       'inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-700 shadow-sm transition hover:bg-slate-100',
     tertiaryIconButton:
@@ -1691,7 +1691,7 @@ export const jysSectionTheme = {
     historyProofLinkButton:
       'rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100',
     historyProofDownloadButton:
-      'rounded-md bg-pink-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-pink-700',
+      'rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary',
     historyEmptyProofText: 'mt-2 text-sm text-slate-600',
   },
   dashboardOverview: {
@@ -1731,14 +1731,14 @@ export const jysSectionTheme = {
     registrationCard:
       'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)]',
     registrationIconCircle:
-      'flex h-11 w-11 items-center justify-center rounded-full bg-pink-50 text-pink-600 ring-1 ring-pink-200',
+      'flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/30',
     registrationBodyWrapper: 'flex-1 space-y-3',
     registrationHeaderRow:
       'flex flex-wrap items-baseline justify-between gap-3',
     registrationTitle:
       'text-sm font-extrabold uppercase tracking-wide text-slate-700',
     registrationSubtitle:
-      'mt-1 text-xs font-semibold uppercase tracking-wide text-pink-600',
+      'mt-1 text-xs font-semibold uppercase tracking-wide text-primary',
     registrationDescription:
       'text-sm leading-relaxed text-slate-700',
     registrationFooterRow:
@@ -1748,7 +1748,7 @@ export const jysSectionTheme = {
     registrationSwitchText:
       'max-w-xl text-xs leading-relaxed text-slate-700 sm:text-sm',
     registrationSwitchButton:
-      'inline-flex items-center gap-2 rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
 
     // program details + progress overview
     programCard:
@@ -1760,7 +1760,7 @@ export const jysSectionTheme = {
     programGrid: 'grid gap-4 md:grid-cols-2',
 
     progressSeeDetailsButton:
-      'inline-flex items-center justify-center rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
 
     // compact overview summary (Your Progress card)
     progressSummaryWrapper: 'mt-4',
@@ -1771,12 +1771,12 @@ export const jysSectionTheme = {
     progressBarTrack:
       'absolute bottom-0 left-0 right-0 h-2 w-full overflow-hidden rounded-full bg-slate-100',
     progressBarFill:
-      'h-full rounded-full bg-gradient-to-r from-pink-600 to-pink-400 shadow-[0_0_0_1px_rgba(248,250,252,0.8)]',
+      'h-full rounded-full bg-gradient-to-r from-primary to-primary/60 shadow-[0_0_0_1px_rgba(248,250,252,0.8)]',
     progressStepLabelRow: 'flex items-center justify-between text-xs',
     progressStepChipFloating:
       'absolute -top-5 translate-x-[-50%]',
     progressStepChip:
-      'inline-flex items-center rounded-full bg-pink-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-pink-700 ring-1 ring-pink-200',
+      'inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary ring-1 ring-primary/30',
 
     progressCurrentDetailWrapper: 'space-y-1 text-sm',
     progressStatusPill:
@@ -1796,11 +1796,11 @@ export const jysSectionTheme = {
     progressDetailSubtitle:
       'mt-1 max-w-2xl text-xs leading-relaxed text-slate-600 sm:text-sm',
     progressDetailCurrentChip:
-      'inline-flex max-w-md flex-col rounded-2xl bg-pink-50 px-4 py-3 text-xs text-pink-900 ring-1 ring-pink-200 sm:text-sm',
+      'inline-flex max-w-md flex-col rounded-2xl bg-primary/10 px-4 py-3 text-xs text-primary ring-1 ring-primary/30 sm:text-sm',
     progressDetailCurrentLabel:
-      'text-[11px] font-semibold uppercase tracking-wide text-pink-600',
+      'text-[11px] font-semibold uppercase tracking-wide text-primary',
     progressDetailCurrentValue:
-      'mt-0.5 text-xs font-semibold text-pink-900 sm:text-sm',
+      'mt-0.5 text-xs font-semibold text-primary sm:text-sm',
 
     // detailed progress page timeline (vertical)
     progressDetailListWrapper: 'mt-6',
@@ -1808,7 +1808,7 @@ export const jysSectionTheme = {
       'grid grid-cols-[auto,1fr] gap-x-4 sm:gap-x-5',
     progressLineCol: 'relative col-span-1 row-span-full',
     progressLine:
-      'mx-auto h-full w-px bg-gradient-to-b from-emerald-400 via-pink-400 to-slate-300',
+      'mx-auto h-full w-px bg-gradient-to-b from-emerald-400 via-primary/60 to-slate-300',
     progressStepsCol:
       'space-y-4',
     progressStepRow: 'grid grid-cols-[auto,1fr] gap-x-3 gap-y-1',
@@ -1816,7 +1816,7 @@ export const jysSectionTheme = {
     progressStepIndexCircleBase:
       'flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white shadow-sm',
     progressStepIndexDone: 'bg-emerald-600',
-    progressStepIndexCurrent: 'bg-pink-600',
+    progressStepIndexCurrent: 'bg-primary',
     progressStepIndexUpcoming: 'bg-slate-300',
     progressStepConnector:
       'mt-1 h-full w-px flex-1 bg-slate-200',
@@ -1828,7 +1828,7 @@ export const jysSectionTheme = {
     progressStatusChipDone:
       'bg-emerald-50 text-emerald-700 ring-emerald-200',
     progressStatusChipWaiting:
-      'bg-pink-50 text-pink-600 ring-pink-200',
+      'bg-primary/10 text-primary ring-primary/30',
     progressStatusChipUpcoming:
       'bg-slate-50 text-slate-700 ring-slate-200',
 
@@ -1870,18 +1870,18 @@ export const jysSectionTheme = {
     guideInner: 'relative flex flex-col gap-3',
     guideHeaderWrapper: 'space-y-2',
     guideEyebrow:
-      'text-xs font-semibold uppercase tracking-wide text-pink-600',
+      'text-xs font-semibold uppercase tracking-wide text-primary',
     guideTitle: 'text-base font-extrabold text-slate-900',
     guideBodyText: 'text-xs leading-relaxed text-slate-700',
     guideLinksWrapper: 'space-y-2',
     guideLink:
-      'flex items-center justify-between gap-2 rounded-full border border-pink-600/80 bg-transparent px-3 py-2 text-xs font-semibold text-pink-700 shadow-sm transition hover:border-pink-700 hover:text-pink-800',
+      'flex items-center justify-between gap-2 rounded-full border border-primary/80 bg-transparent px-3 py-2 text-xs font-semibold text-primary shadow-sm transition hover:border-primary hover:text-primary',
     guideLeftLinkInner: 'inline-flex items-center gap-2',
     guideBadgeCircle:
       'flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white shadow-sm',
     guideBadgeText: 'leading-none',
     guideFileType:
-      'text-[10px] font-semibold uppercase tracking-wide text-pink-600',
+      'text-[10px] font-semibold uppercase tracking-wide text-primary',
 
     // notification alert
     notificationCard:
@@ -1901,7 +1901,7 @@ export const jysSectionTheme = {
     notificationBodyText:
       'max-w-2xl text-xs leading-relaxed text-amber-900 sm:text-sm',
     notificationButton:
-      'inline-flex items-center justify-center gap-2 rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   dashboardSubmission: {
     sectionWrapper: 'space-y-6 text-sm',
@@ -1913,12 +1913,12 @@ export const jysSectionTheme = {
     profileLeft: 'flex items-start gap-5',
     profileAvatarWrapper: 'relative h-20 w-20',
     profileAvatarInner:
-      'absolute inset-0 overflow-hidden rounded-full bg-pink-600 shadow-lg ring-4 ring-pink-100',
+      'absolute inset-0 overflow-hidden rounded-full bg-primary shadow-lg ring-4 ring-primary/20',
     profileAvatarImage: 'object-cover',
     profileAvatarButton:
-      'absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-white text-pink-600 shadow-md ring-1 ring-pink-100',
+      'absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-white text-primary shadow-md ring-1 ring-primary/20',
     profileName: 'text-lg font-extrabold text-slate-900',
-    profileRole: 'text-[11px] font-semibold uppercase tracking-wide text-pink-600',
+    profileRole: 'text-[11px] font-semibold uppercase tracking-wide text-primary',
     profileMeta: 'text-xs text-slate-600',
     profileMetaLabel: 'font-semibold text-slate-700',
     profileRightWrapper: 'max-w-md text-xs text-slate-600 md:text-right',
@@ -1930,7 +1930,7 @@ export const jysSectionTheme = {
     tabsWrapper: 'flex flex-wrap items-center gap-2',
     tabButtonBase:
       'rounded-full px-4 py-1.5 text-xs font-semibold transition ring-1',
-    tabButtonActive: 'bg-pink-600 text-white shadow-sm ring-pink-500',
+    tabButtonActive: 'bg-primary text-white shadow-sm ring-primary/100',
     tabButtonInactive:
       'bg-white/70 text-slate-700 ring-slate-200 hover:bg-white',
 
@@ -1939,7 +1939,7 @@ export const jysSectionTheme = {
     readSectionHeader:
       'flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-slate-700',
     readSectionIconCircle:
-      'inline-flex h-6 w-6 items-center justify-center rounded-full bg-pink-50 text-pink-600',
+      'inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary',
     readSectionTitle: '',
     readSectionSubtitle: 'mt-1 text-xs text-slate-500',
     readGrid: 'grid gap-4 md:grid-cols-2',
@@ -1947,7 +1947,7 @@ export const jysSectionTheme = {
     readFieldLabelText:
       'block text-[11px] font-semibold uppercase tracking-wide text-slate-500',
     readInputBase:
-      'w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200 read-only:bg-slate-50 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-100',
+      'w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30 read-only:bg-slate-50 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-100',
     readInputWrapper:
       'relative',
     readInputIcon:
@@ -1965,21 +1965,21 @@ export const jysSectionTheme = {
     stepperPillRow: 'flex items-center gap-3',
     stepperCircle:
       'flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition',
-    stepperCircleActive: 'bg-pink-600 text-white shadow-md',
+    stepperCircleActive: 'bg-primary text-white shadow-md',
     stepperCircleDone: 'bg-emerald-600 text-white',
     stepperCircleIdle: 'bg-slate-300 text-white',
     stepperConnectorWrapper:
       'hidden h-[2px] w-16 overflow-hidden rounded-full bg-slate-200 md:block',
     stepperConnectorBar: 'h-full rounded-full transition-all',
-    stepperConnectorDone: 'w-full bg-pink-500',
-    stepperConnectorActive: 'w-1/2 bg-pink-400',
+    stepperConnectorDone: 'w-full bg-primary/100',
+    stepperConnectorActive: 'w-1/2 bg-primary/60',
     stepperConnectorIdle: 'w-0',
     stepperTextWrapper: 'space-y-1 text-center',
     stepperStepTitle:
       'text-[11px] font-semibold uppercase tracking-wide text-slate-800',
     stepperStatusPill:
       'inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
-    stepperStatusActive: 'bg-pink-50 text-pink-600',
+    stepperStatusActive: 'bg-primary/10 text-primary',
     stepperStatusDone: 'bg-emerald-50 text-emerald-600',
     stepperStatusIdle: 'bg-slate-100 text-slate-500',
 
@@ -1998,7 +1998,7 @@ export const jysSectionTheme = {
     editInputIcon:
       'pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center text-slate-400',
     editInputBase:
-      'w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200',
+      'w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30',
     editInputError:
       'border-red-500 focus:border-red-500 focus:ring-red-200',
     errorText: 'mt-1 text-[11px] text-red-600',
@@ -2011,25 +2011,25 @@ export const jysSectionTheme = {
     helperBodyText: 'mt-1 text-[12px]',
     helperList: 'mt-2 space-y-1.5',
     helperListItem: 'flex items-start gap-1.5',
-    helperListIcon: 'mt-[2px] h-3 w-3 text-pink-500',
+    helperListIcon: 'mt-[2px] h-3 w-3 text-primary/100',
 
     // edit: essay guidelines panel (image helper, currently unused but kept)
     essayPanelWrapper:
-      'mt-5 grid gap-5 rounded-2xl border border-pink-100 bg-pink-50/40 p-5 text-xs text-slate-700 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]',
+      'mt-5 grid gap-5 rounded-2xl border border-primary/20 bg-primary/10/40 p-5 text-xs text-slate-700 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]',
     essayPanelTitle:
-      'text-xs font-semibold uppercase tracking-wide text-pink-700',
+      'text-xs font-semibold uppercase tracking-wide text-primary',
     essayPanelBody: 'mt-1 text-[12px] text-slate-700',
     essayPanelList: 'mt-2 space-y-1.5',
     essayPanelListItem: 'flex items-start gap-1.5',
-    essayPanelListIcon: 'mt-[2px] h-3 w-3 text-pink-500',
+    essayPanelListIcon: 'mt-[2px] h-3 w-3 text-primary/100',
     essayImageWrapper:
-      'relative h-32 w-full overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-pink-100 sm:h-40',
+      'relative h-32 w-full overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-primary/20 sm:h-40',
     essayImage: 'h-full w-full object-cover',
 
     // edit: essay fields
     essayFormGrid: 'mt-5 grid gap-4 md:grid-cols-2',
     essayTextarea:
-      'min-h-[120px] resize-vertical rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200',
+      'min-h-[120px] resize-vertical rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30',
 
     // edit: essay guidelines summary & note & guidebook CTA
     essaySummaryWrapper: 'mt-10 space-y-4 text-sm text-slate-700',
@@ -2041,7 +2041,7 @@ export const jysSectionTheme = {
     essayNoteIconCircle:
       'inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-amber-500 ring-1 ring-amber-200',
     essayGuidebookCard:
-      'mt-3 relative flex items-center overflow-hidden rounded-2xl border border-pink-100 min-h-[250px]',
+      'mt-3 relative flex items-center overflow-hidden rounded-2xl border border-primary/20 min-h-[250px]',
     essayGuidebookInner:
       'relative z-10 w-full px-6 py-5',
     essayGuidebookBackgroundImage: 'absolute inset-0 h-full w-full object-cover',
@@ -2059,7 +2059,7 @@ export const jysSectionTheme = {
     twibbonStepsList: 'mt-3 space-y-2 text-[12px] text-slate-700',
     twibbonStepItem: 'flex items-start gap-2',
     twibbonStepBadge:
-      'mt-[2px] inline-flex h-5 w-5 items-center justify-center rounded-full bg-pink-600 text-[11px] font-semibold text-white',
+      'mt-[2px] inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-white',
     twibbonStepText: 'flex-1',
 
     // edit: main essay question section
@@ -2074,12 +2074,12 @@ export const jysSectionTheme = {
       'mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-500',
     keywordChipsRow: 'flex flex-wrap items-center gap-1',
     keywordChip:
-      'inline-flex items-center gap-1 rounded-full bg-pink-50 px-2.5 py-1 text-[11px] font-medium text-pink-700 ring-1 ring-pink-200',
+      'inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary ring-1 ring-primary/30',
     keywordChipRemove: 'cursor-pointer text-[10px]',
     keywordChevron: 'ml-2 text-slate-400',
     keywordDropdownWrapper: 'mt-2 space-y-2',
     keywordSearchInput:
-      'w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-pink-300',
+      'w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary/40',
     keywordOptionsList:
       'max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-white text-xs shadow-lg',
     keywordOptionItem:
@@ -2095,26 +2095,26 @@ export const jysSectionTheme = {
       'w-full text-xs',
     readEssayKeywordRow: 'flex flex-wrap gap-1',
     readEssayKeywordChip:
-      'rounded-full bg-pink-50 px-2.5 py-0.5 text-[11px] font-medium text-pink-700 ring-1 ring-pink-200',
+      'rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-primary ring-1 ring-primary/30',
 
     // edit: buttons
     buttonRow: 'flex justify-end gap-3',
     secondaryButton:
       'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50',
     primaryButton:
-      'rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
     twibbonValidateButton:
-      'inline-flex h-11 min-w-[150px] items-center justify-center gap-1 rounded-md bg-pink-600 px-5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex h-11 min-w-[150px] items-center justify-center gap-1 rounded-md bg-primary px-5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
     shirtSizeButton:
-      'inline-flex items-center justify-center rounded-full bg-pink-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-pink-700 ring-1 ring-pink-200 shadow-sm hover:bg-pink-100 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary ring-1 ring-primary/30 shadow-sm hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2',
     shirtSizeRow: 'flex items-center gap-3',
 
     // edit: resume upload
     uploadOuter: 'space-y-2',
     uploadLabelSrOnly: 'sr-only',
     uploadDropzone:
-      'relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 px-6 py-8 text-center text-xs text-slate-600 transition hover:border-pink-400 hover:bg-pink-50/40',
-    uploadIcon: 'mb-3 h-8 w-8 text-pink-600',
+      'relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 px-6 py-8 text-center text-xs text-slate-600 transition hover:border-primary/60 hover:bg-primary/10/40',
+    uploadIcon: 'mb-3 h-8 w-8 text-primary',
     uploadTitle:
       'text-[11px] font-semibold uppercase tracking-wide text-slate-800',
     uploadSubtitle: 'mt-1 text-[11px] text-slate-500',
@@ -2133,7 +2133,7 @@ export const jysSectionTheme = {
     previewCardTitle:
       'text-[11px] font-semibold uppercase tracking-wide text-slate-500',
     previewEditButton:
-      'inline-flex items-center gap-1 text-[11px] font-semibold text-pink-600 hover:text-pink-700',
+      'inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary',
     previewEditIcon: 'h-3.5 w-3.5',
     previewDefinitionList: 'mt-2 grid gap-2 md:grid-cols-2',
     previewDt: 'text-[11px] text-slate-500',
@@ -2153,7 +2153,7 @@ export const jysSectionTheme = {
     modalSecondaryButton:
       'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50',
     modalPrimaryLink:
-      'inline-flex items-center justify-center rounded-full bg-pink-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
 } as const;
 

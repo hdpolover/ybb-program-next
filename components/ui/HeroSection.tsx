@@ -95,7 +95,7 @@ export default function HeroSection({
             <div className="mt-6">
               <a
                 href={ctaHref}
-                className="inline-flex items-center justify-center rounded-full bg-pink-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-pink-600/40"
+                className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2 focus:ring-offset-primary/40"
               >
                 {ctaLabel}
               </a>

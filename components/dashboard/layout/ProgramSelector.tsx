@@ -102,7 +102,7 @@ export default function ProgramSelector({
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
-        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 shadow-sm transition hover:border-pink-500 hover:text-pink-700"
+        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 shadow-sm transition hover:border-primary/100 hover:text-primary"
       >
         <span className="relative h-6 w-6 overflow-hidden rounded-full bg-slate-100">
           <Image src={displayedLogo} alt={displayedLabel} fill className="object-contain" />

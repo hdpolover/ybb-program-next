@@ -270,7 +270,7 @@ export default function SubmissionEditEntryInformationSection({
                   {/* Left: title */}
                   <div className={submissionTheme.essayGuidebookTitle}>
                     <p>More Information?</p>
-                    <p className="text-pink-600">Check this Guidebook!</p>
+                    <p className="text-primary">Check this Guidebook!</p>
                   </div>
 
                   {/* Center: description + button */}

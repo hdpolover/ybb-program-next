@@ -85,7 +85,7 @@ export default function AnnouncementsHero() {
         <button
           type="button"
           onClick={goPrev}
-          className="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-pink-600 shadow-md shadow-pink-500/20 ring-1 ring-white/60 backdrop-blur transition hover:bg-pink-50 hover:text-pink-700"
+          className="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-primary shadow-md shadow-primary/100/20 ring-1 ring-white/60 backdrop-blur transition hover:bg-primary/10 hover:text-primary"
           aria-label="Previous announcement"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -93,7 +93,7 @@ export default function AnnouncementsHero() {
         <button
           type="button"
           onClick={goNext}
-          className="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-pink-600 shadow-md shadow-pink-500/20 ring-1 ring-white/60 backdrop-blur transition hover:bg-pink-50 hover:text-pink-700"
+          className="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-primary shadow-md shadow-primary/100/20 ring-1 ring-white/60 backdrop-blur transition hover:bg-primary/10 hover:text-primary"
           aria-label="Next announcement"
         >
           <ChevronRight className="h-4 w-4" />
@@ -110,7 +110,7 @@ export default function AnnouncementsHero() {
               onClick={() => setIndex(i)}
               className={`h-2 w-2 rounded-full transition ${
                 i === index
-                  ? 'bg-white shadow-sm shadow-pink-500/40'
+                  ? 'bg-white shadow-sm shadow-primary/100/40'
                   : 'bg-white/50 hover:bg-white/80'
               }`}
               aria-label={`Go to slide ${i + 1}`}

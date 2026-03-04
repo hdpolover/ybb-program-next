@@ -1,12 +1,16 @@
 export interface ApiGetOptions {
   query?: Record<string, string | number | boolean | undefined>;
   headers?: HeadersInit;
+  cache?: RequestCache;
+  next?: NextFetchRequestConfig;
 }
 
 export interface ApiPostOptions {
   query?: Record<string, string | number | boolean | undefined>;
   headers?: HeadersInit;
   body?: unknown;
+  cache?: RequestCache;
+  next?: NextFetchRequestConfig;
 }
 
 export class ApiRequestError extends Error {
@@ -42,6 +46,8 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
       'Content-Type': 'application/json',
       ...(options.headers ?? {}),
     },
+    cache: options.cache,
+    next: options.next,
   });
 
   if (!res.ok) {
@@ -69,6 +75,8 @@ export async function apiPost<T>(path: string, options: ApiPostOptions = {}): Pr
       ...(options.headers ?? {}),
     },
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    cache: options.cache,
+    next: options.next,
   });
 
   if (!res.ok) {

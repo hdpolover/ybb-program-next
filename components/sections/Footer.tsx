@@ -210,7 +210,7 @@ export default function Footer() {
                     ) : null}
                     <a
                       href={social.href}
-                      className="transition hover:text-pink-100"
+                      className="transition hover:text-primary/20"
                       target={social.href?.startsWith('http') ? '_blank' : undefined}
                       rel={social.href?.startsWith('http') ? 'noreferrer' : undefined}
                     >
@@ -259,7 +259,7 @@ export default function Footer() {
                   <a
                     key={link.label}
                     href={link.href}
-                    className="transition hover:text-pink-100"
+                    className="transition hover:text-primary/20"
                   >
                     {link.label}
                   </a>

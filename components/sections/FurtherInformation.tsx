@@ -39,7 +39,7 @@ export default function FurtherInformationSection({
     <section
       className={`${jysSectionTheme.furtherInfo.sectionWrapper} min-h-[760px] py-14 sm:min-h-0 sm:py-28`}
     >
-      <div className="absolute inset-0 bg-pink-100 sm:hidden" />
+      <div className="absolute inset-0 bg-primary/20 sm:hidden" />
       <div className="absolute inset-x-0 bottom-0 h-[72%] sm:hidden">
         <Image
           src="/img/backgroundformobile.png"
