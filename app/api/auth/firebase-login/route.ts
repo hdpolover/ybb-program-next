@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-const DEFAULT_PROVIDER_ID = '8b4646ec-1e17-4815-bcca-703418b9db9f';
 function normalizeBrandUrl(input: string): string {
   const trimmed = (input || '').trim().replace(/\/+$/, '');
   if (!trimmed) return '';
@@ -46,9 +45,7 @@ type ProvidersResponse = {
 
 export async function POST(request: Request) {
   try {
-    const fallbackProviderId = process.env.YBB_FIREBASE_GOOGLE_PROVIDER_ID || DEFAULT_PROVIDER_ID;
     const brandDomain = resolveBrandDomainFromRequest(request);
-
     const body = (await request.json()) as FirebaseLoginBody;
 
     if (!body?.idToken) {
@@ -58,28 +55,8 @@ export async function POST(request: Request) {
       );
     }
 
-    let providerId = (body.providerId || '').trim();
-    if (!providerId) {
-      try {
-        const providersRes = await fetch(new URL('/v1/auth/providers', 'https://staging-api.ybbhub.com').toString(), {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'x-brand-domain': brandDomain,
-          },
-          cache: 'no-store',
-        });
-        const providersJson = (await providersRes.json().catch(() => ({}))) as ProvidersResponse;
-        const providers = Array.isArray(providersJson.data) ? providersJson.data : [];
-        const google = providers.find(p => p?.isOAuth && p?.name === 'google');
-        if (google?.id) providerId = google.id;
-      } catch {
-        // ignore
-      }
-    }
-    if (!providerId) providerId = fallbackProviderId;
-
-    const url = new URL('/v1/auth/firebase-login', 'https://staging-api.ybbhub.com');
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/v1$/, '') || 'https://staging-api.ybbhub.com';
+    const url = new URL('/v1/auth/firebase-login', apiBaseUrl);
 
     const res = await fetch(url.toString(), {
       method: 'POST',
@@ -89,7 +66,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         idToken: body.idToken,
-        providerId,
+        providerId: body.providerId, // Now optional
         ...(body.referralCode ? { referralCode: body.referralCode } : {}),
       }),
     });
@@ -131,7 +108,7 @@ export async function POST(request: Request) {
       data: {
         isNewUser,
         ...(typeof isOnboardingCompleted === 'boolean' ? { isOnboardingCompleted } : {}),
-        ...(process.env.NODE_ENV !== 'production' ? { providerIdUsed: providerId } : {}),
+        ...(process.env.NODE_ENV !== 'production' ? { providerIdUsed: body.providerId } : {}),
       },
     });
 
