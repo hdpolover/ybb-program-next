@@ -181,7 +181,7 @@ export default function OnboardingPage() {
   const genderSelectOptions = useMemo(() => {
     return genderOptions.map(g => ({
       value: g,
-      label: g,
+      label: g.charAt(0).toUpperCase() + g.slice(1).toLowerCase(),
     }));
   }, [genderOptions]);
 
@@ -967,6 +967,15 @@ export default function OnboardingPage() {
                   <p className={onboardingTheme.fieldError}>{submitError}</p>
                 ) : null}
               </form>
+
+              <div className="mt-8 pt-6 border-t border-slate-100">
+                <p className="text-sm text-slate-500 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  Don&apos;t worry, you can always update these details later from your profile settings.
+                </p>
+              </div>
             </div>
           </div>
         </div>
