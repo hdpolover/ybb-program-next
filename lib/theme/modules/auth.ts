@@ -4,11 +4,11 @@ export const authTheme = {
     inputIcon: 'absolute left-4 h-5 w-5 text-slate-400',
     inputEyeBtn: 'absolute right-4 h-5 w-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer',
     input:
-      'w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-base text-slate-800 outline-none placeholder:text-slate-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all',
+      'w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-12 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all',
     inputPassword: 'pr-12',
     checkbox: 'h-4 w-4 rounded border-white/30 bg-white/20 text-primary focus:ring-primary/40',
     primaryButton:
-      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl bg-[var(--brand-primary)] px-5 py-4 text-base font-bold text-white transition-all hover:bg-[var(--brand-primary)]/90 active:scale-[0.98]',
+      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl bg-[var(--brand-primary)] px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[var(--brand-primary)]/90 active:scale-[0.98]',
     forgotPasswordLink: 'font-semibold cursor-pointer text-[var(--brand-primary)] hover:text-[var(--brand-primary)]/80 transition-colors',
     switchModeLink: 'font-semibold cursor-pointer text-[var(--brand-primary)] hover:text-[var(--brand-primary)]/80 transition-colors',
     slideIndicatorWrapper:
@@ -24,14 +24,14 @@ export const authTheme = {
     heroTextContainer: 'absolute inset-x-0 bottom-0 px-8 pb-20 pt-32 text-white',
     heroLogo: 'h-8 w-auto brightness-0 invert',
     heroLogoWrapper: 'space-y-3',
-    formPanelOuter: 'flex items-center justify-center w-full h-full px-8 py-8 lg:px-16',
-    formPanelInner: 'w-full',
-    formHeading: 'text-3xl font-bold tracking-tight text-slate-900',
-    formSubheading: 'mt-2 text-base text-slate-500 mb-2',
+    formPanelOuter: 'flex items-start justify-center w-full min-h-screen px-6 py-16 lg:px-16 lg:py-24',
+    formPanelInner: 'w-full max-w-[400px]',
+    formHeading: 'text-2xl font-bold tracking-tight text-slate-900',
+    formSubheading: 'mt-1.5 text-sm text-slate-500 mb-2',
     card: 'space-y-5 rounded-2xl border border-slate-100 bg-white p-8 shadow-sm',
-    fieldLabel: 'block text-sm font-semibold uppercase tracking-wide text-slate-600 mb-2',
-    helperText: 'text-base text-slate-600 text-center mt-2',
-    checkboxRow: 'flex items-center justify-between text-base text-slate-600',
+    fieldLabel: 'block text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2',
+    helperText: 'text-sm text-slate-600 text-center mt-2',
+    checkboxRow: 'flex items-center justify-between text-sm text-slate-600',
     dividerRow:
       'flex items-center justify-center gap-3 text-[11px] font-medium uppercase tracking-[0.15em] text-slate-400',
     dividerLine: 'h-px w-20 bg-slate-200',
@@ -41,17 +41,17 @@ export const authTheme = {
       'inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-4 hover:shadow-sm active:scale-[0.98] text-base font-medium text-slate-600 transition-all hover:bg-slate-50',
     googleButtonIcon: 'h-5 w-5',
     facebookButton:
-      'inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3.5 hover:shadow-sm active:scale-[0.98] text-[15px] font-bold text-slate-700 transition-all hover:bg-slate-50',
+      'inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 hover:shadow-sm active:scale-[0.98] text-[14px] font-bold text-slate-700 transition-all hover:bg-slate-50',
     facebookButtonIcon: 'h-5 w-5',
     secondaryButton:
-      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl border-2 border-[var(--brand-primary)] bg-transparent px-5 py-3.5 hover:shadow-sm active:scale-[0.98] text-[13px] font-bold text-[var(--brand-primary)] uppercase tracking-[0.1em] transition-all hover:bg-[var(--brand-primary)]/5',
+      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl border-2 border-[var(--brand-primary)] bg-transparent px-4 py-3 hover:shadow-sm active:scale-[0.98] text-[13px] font-bold text-[var(--brand-primary)] uppercase tracking-[0.1em] transition-all hover:bg-[var(--brand-primary)]/5',
     termsLabel: 'mt-1 inline-flex items-center gap-2 text-xs text-slate-600',
     termsLink: 'underline cursor-pointer',
   },
   onboarding: {
     layoutGrid: 'grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto]',
     leftCol: 'relative bg-white lg:overflow-hidden lg:rounded-r-3xl',
-    leftCenter: 'flex min-h-screen items-center justify-center px-6 py-10 lg:px-20 lg:py-0',
+    leftCenter: 'flex min-h-screen items-start justify-center px-4 py-16 lg:px-16 lg:py-24',
     logoWrapper: 'mb-8',
     logoImage: 'h-16 w-auto sm:h-20',
     progressGrid: 'flex items-center gap-3',
@@ -62,15 +62,15 @@ export const authTheme = {
     progressBarInactive: 'bg-slate-200',
     stepLine: 'mt-6 text-sm text-slate-700',
     stepLineEmphasis: 'font-semibold text-primary',
-    questionTitle: 'mt-6 text-4xl font-extrabold tracking-tight text-slate-900',
-    questionDescription: 'mt-4 text-base text-slate-600',
+    questionTitle: 'mt-6 text-2xl font-bold tracking-tight text-slate-900',
+    questionDescription: 'mt-2 text-sm text-slate-600',
     form: 'mt-6 space-y-4',
     fieldError: 'mt-1 text-xs text-primary',
     locationGrid: 'grid grid-cols-1 gap-4 sm:grid-cols-2',
     optionGrid: 'mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3',
     programSourceGrid: 'mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3',
     optionButtonBase:
-      'inline-flex cursor-pointer active:scale-[0.98] items-center justify-center rounded-xl border px-4 py-3.5 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
+      'inline-flex cursor-pointer active:scale-[0.98] items-center justify-center rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
     optionButtonSelected: 'border-primary bg-primary text-white',
     optionButtonUnselected: 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
     seeAllButton:
@@ -89,3 +89,4 @@ export const authTheme = {
     image: 'object-cover',
   },
 };
+// trigger tailwind cache

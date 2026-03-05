@@ -362,8 +362,8 @@ export default function LoginPage() {
               <div className={componentsTheme.login.heroLogoWrapper}>
                 <a href="/" className="inline-block">
                   <Image
-                    src="/img/jysfooters.png"
-                    alt="Japan Youth Summit"
+                    src={settings?.brand?.logo_url?.trim() || "/img/jysfooters.png"}
+                    alt={settings?.brand?.name?.trim() || "Japan Youth Summit"}
                     width={120}
                     height={40}
                     className={componentsTheme.login.heroLogo}
