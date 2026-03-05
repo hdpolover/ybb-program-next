@@ -108,7 +108,7 @@ export default function ProgramSelector({
         className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 shadow-sm transition hover:border-primary/100 hover:text-primary"
       >
         <span className="relative h-6 w-6 overflow-hidden rounded-full bg-slate-100">
-          <Image src={displayedLogo} alt={displayedLabel} fill className="object-contain" />
+          <Image src={displayedLogo} alt={displayedLabel} fill className="object-contain" priority unoptimized />
         </span>
         <span>{displayedLabel}</span>
         <ChevronDown
@@ -129,7 +129,7 @@ export default function ProgramSelector({
               className="flex w-full items-center gap-2 px-3 py-2 text-left font-medium text-slate-700 hover:bg-slate-50"
             >
               <span className="relative h-6 w-6 overflow-hidden rounded-full bg-slate-100">
-                <Image src={program.logo} alt={program.label} fill className="object-contain" />
+                <Image src={program.logo} alt={program.label} fill className="object-contain" unoptimized />
               </span>
               <span>{program.label}</span>
             </button>

@@ -5,30 +5,13 @@ import { useEffect, useState } from "react";
 import { Mail as MailIcon } from "lucide-react";
 import { FOOTER_COPY } from "@/data/footerCopy";
 import { componentsTheme } from "@/lib/theme/components";
-import { getSettings } from "@/lib/api/settings";
+import { useSettings } from "@/components/providers/SettingsProvider";
 import type { SettingsData, SettingsFooterNavSection } from "@/types/settings";
 
 export default function Footer() {
-  const [settings, setSettings] = useState<SettingsData | null>(null);
+  const { settings } = useSettings();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const data = await getSettings();
-        if (!cancelled) {
-          setSettings(data);
-        }
-      } catch {
-        // kalau API-nya error, diam-diam balik pake data FOOTER_COPY aja
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  
 
   const footerNav: SettingsFooterNavSection[] | null = settings?.footer_navigation ?? null;
   const brand = settings?.brand ?? null;
@@ -94,6 +77,7 @@ export default function Footer() {
                 width={700}
                 height={700}
                 className="h-12 w-auto sm:h-16 md:h-20"
+                unoptimized
               />
             </div>
             <p className="mt-2 max-w-sm text-sm text-white/80">{FOOTER_COPY.description}</p>

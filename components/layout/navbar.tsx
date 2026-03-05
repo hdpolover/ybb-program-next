@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Search as SearchIcon, Menu, X } from 'lucide-react';
-import { getSettings } from '@/lib/api/settings';
+import { useSettings } from '@/components/providers/SettingsProvider';
 import type { SettingsData } from '@/types/settings';
 
 const navItems: string[] = ['Home', 'Programs', 'Partners & Sponsors', 'Announcements', 'FAQ'];
@@ -16,7 +16,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [pinned, setPinned] = useState(false);
-  const [settings, setSettings] = useState<SettingsData | null>(null);
+  const { settings } = useSettings();
   const pathname = usePathname();
 
   const lastScrollYRef = useRef(0);
@@ -127,20 +127,7 @@ export function Navbar() {
     };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await getSettings();
-        if (!cancelled) setSettings(data);
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+
 
   const logoSrc = settings?.brand?.logo_url?.trim() || '/img/jysfix.png';
 

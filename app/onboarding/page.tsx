@@ -8,7 +8,7 @@ import { componentsTheme } from '@/lib/theme/components';
 import type { CountryMetadata } from '@/types/metadata';
 import type { CityMetadata, StateMetadata } from '@/types/metadata';
 import { getCities, getCountries, getGenders, getKnowledgeSources, getStates } from '@/lib/api/metadata';
-import { getSettings } from '@/lib/api/settings';
+import { useSettings } from '@/components/providers/SettingsProvider';
 import StyledSelect from '@/components/ui/StyledSelect';
 import { FormField } from '@/components/ui/FormField';
 import { User, Users, MapPin, Globe, Building, Gift, Map as MapIcon } from 'lucide-react';
@@ -16,6 +16,7 @@ import { User, Users, MapPin, Globe, Building, Gift, Map as MapIcon } from 'luci
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { settings } = useSettings();
 
   const submissionTheme = componentsTheme.dashboardSubmission;
   const onboardingTheme = componentsTheme.onboarding;
@@ -31,8 +32,9 @@ export default function OnboardingPage() {
   const [statesLoading, setStatesLoading] = useState(false);
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [knowledgeSources, setKnowledgeSources] = useState<string[]>([]);
-  const [brandName, setBrandName] = useState('Japan Youth Summit');
-  const [brandLogo, setBrandLogo] = useState('/img/jysfix.png');
+  const brandLogo = settings?.brand?.logo_url?.trim() || '/img/jysfix.png';
+  // if user is authenticated and has programs, we could override this, but let's just use settings first
+  const [brandName, setBrandName] = useState(settings?.active_program?.name?.trim() || settings?.brand?.name?.trim() || 'Japan Youth Summit');
 
   const statesCacheRef = useRef<Map<string, StateMetadata[]>>(new Map());
   const citiesCacheRef = useRef<Map<string, CityMetadata[]>>(new Map());
@@ -95,9 +97,7 @@ export default function OnboardingPage() {
 
     (async () => {
       try {
-        const data = await getSettings();
-        
-        let nextName = data?.active_program?.name?.trim() || data?.brand?.name?.trim();
+        let nextName = settings?.active_program?.name?.trim() || settings?.brand?.name?.trim();
         try {
           const homeRes = await fetch('/api/auth/me');
           if (homeRes.ok) {
@@ -110,10 +110,8 @@ export default function OnboardingPage() {
           console.error(err);
         }
 
-        const nextLogo = data?.brand?.logo_url?.trim();
         if (!cancelled) {
           if (nextName) setBrandName(nextName);
-          if (nextLogo) setBrandLogo(nextLogo);
         }
       } catch {
         // ignore

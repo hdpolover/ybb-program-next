@@ -4,7 +4,9 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { componentsTheme } from '@/lib/theme/components';
-import { getSettings } from '@/lib/api/settings';
+import { useSettings } from '@/components/providers/SettingsProvider';
+// import { useSettings } from '@/components/providers/SettingsProvider';
+// import { getSettings } from '@/lib/api/settings';
 import type { SettingsData, SettingsFooterNavSection } from '@/types/settings';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
@@ -21,6 +23,7 @@ const FALLBACK_IMAGES = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const { settings } = useSettings();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
@@ -30,8 +33,7 @@ export default function LoginPage() {
   const [agree, setAgree] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [loginImages, setLoginImages] = useState<string[]>(FALLBACK_IMAGES);
-  const [settings, setSettings] = useState<SettingsData | null>(null);
-  const [oauthLoading, setOauthLoading] = useState<string>('');
+    const [oauthLoading, setOauthLoading] = useState<string>('');
   const [oauthError, setOauthError] = useState<string>('');
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string>('');
@@ -239,80 +241,7 @@ export default function LoginPage() {
     }
   };
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const data = await getSettings();
-        if (!cancelled) {
-          setSettings(data);
-        }
-      } catch {
-        // kalau API-nya error, link legal bakal fallback ke '#'
-      }
-    })();
-
-    (async () => {
-      try {
-        const res = await fetch('/api/auth/providers', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const json = (await res.json()) as {
-          statusCode: number;
-          message: string;
-          data: Array<{ id: string; name: string; displayName: string; isOAuth: boolean; buttonColor?: string }>;
-        };
-
-        if (!cancelled && res.ok && json.statusCode === 200 && Array.isArray(json.data)) {
-          setAuthProviders(json.data);
-          const ids: Record<string, string> = {};
-          json.data.forEach(p => {
-            if (p.isOAuth && p.id && p.name) ids[p.name] = p.id;
-          });
-          setOauthProviderIds(ids);
-        }
-      } catch {
-        // ignore, will show error on click
-      }
-    })();
-
-    // Fetch gallery images from API
-    (async () => {
-      try {
-        const res = await fetch('/api/home', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!cancelled && res.ok) {
-          const json = await res.json();
-          const sections = json?.data?.sections || [];
-          const gallerySection = sections.find((s: { type: string }) => s.type === 'program_gallery');
-          const images = gallerySection?.content?.images;
-          
-          if (Array.isArray(images) && images.length > 0) {
-            const imageUrls = images.map((img: { url: string }) => img.url).filter(Boolean);
-            if (imageUrls.length > 0) {
-              setLoginImages(imageUrls);
-            }
-          }
-        }
-      } catch {
-        // Fallback to default images on error
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  
 
   useEffect(() => {
     if (loginImages.length <= 1) return;
@@ -367,6 +296,8 @@ export default function LoginPage() {
                     width={120}
                     height={40}
                     className={componentsTheme.login.heroLogo}
+                    priority
+                    unoptimized
                   />
                 </a>
                 <div className="space-y-2 mt-4">
