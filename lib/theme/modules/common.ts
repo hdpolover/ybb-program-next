@@ -82,7 +82,7 @@ export const commonTheme = {
     image: 'object-contain',
     title: 'text-2xl font-extrabold leading-tight sm:text-3xl lg:text-4xl',
     list: 'mt-6 space-y-3',
-    item: 'flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm text-blue-950 shadow-[0_10px_30px_rgba(15,23,42,0.18)]',
+    item: 'flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_10px_30px_rgba(15,23,42,0.18)]',
     itemIconCircle:
       'grid aspect-square h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-[0_6px_20px_rgba(236,72,153,0.55)]',
     itemTitle: 'text-sm font-semibold',
@@ -106,15 +106,15 @@ export const commonTheme = {
       'relative flex items-center overflow-hidden rounded-full bg-white px-4 py-2 shadow-[0_10px_35px_rgba(15,23,42,0.12)] ring-1 ring-slate-200',
     searchIcon: 'h-4 w-4 text-slate-400',
     searchInput:
-      'ml-3 w-full border-none bg-transparent text-sm text-blue-950 placeholder:text-slate-400 focus:outline-none focus:ring-0',
+      'ml-3 w-full border-none bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0',
     layoutGrid: 'grid items-start gap-8 lg:grid-cols-[minmax(0,0.6fr)_minmax(0,1.4fr)]',
     tabsCard:
-      'w-full overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] ring-1 ring-blue-100',
+      'w-full overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] ring-1 ring-primary/20',
     tabsNav: 'flex flex-col divide-y divide-slate-100',
     tabButtonBase:
       'relative flex items-center gap-3 px-5 py-4 text-left text-sm font-semibold transition-colors sm:px-6 sm:text-base',
-    tabButtonActive: 'bg-white text-blue-950',
-    tabButtonInactive: 'bg-white text-slate-500 hover:bg-primary/10 hover:text-blue-950',
+    tabButtonActive: 'bg-white text-slate-900',
+    tabButtonInactive: 'bg-white text-slate-500 hover:bg-primary/10 hover:text-slate-900',
     tabIndicatorActive: 'h-9 w-0.5 rounded-full bg-primary',
     tabIndicatorIdle: 'h-9 w-0.5',
     faqListWrapper: 'space-y-3',
@@ -123,7 +123,7 @@ export const commonTheme = {
     faqItemCard:
       'overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(15,23,42,0.1)] ring-1 ring-slate-200',
     faqItemHeader: 'flex w-full items-center justify-between gap-4 px-5 py-4 text-left sm:px-6',
-    faqQuestion: 'text-base font-extrabold text-blue-950 sm:text-lg',
+    faqQuestion: 'text-base font-extrabold text-slate-900 sm:text-lg',
     faqAnswer: 'px-5 pb-5 text-sm leading-6 text-slate-700 sm:px-6',
     toggleIcon:
       'shrink-0 rounded-full bg-primary/10 p-2 text-primary ring-1 ring-primary/30 transition group-open:rotate-180',

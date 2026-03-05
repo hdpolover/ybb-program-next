@@ -1,7 +1,6 @@
 'use client';
 
 import { OnboardingForm, StepKey, steps, LOGIN_IMAGES, PROGRAM_SOURCES } from "./types";
-import { BirthDatePicker } from "./components/BirthDatePicker";
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -97,7 +96,20 @@ export default function OnboardingPage() {
     (async () => {
       try {
         const data = await getSettings();
-        const nextName = data?.brand?.name?.trim();
+        
+        let nextName = data?.active_program?.name?.trim() || data?.brand?.name?.trim();
+        try {
+          const homeRes = await fetch('/api/auth/me');
+          if (homeRes.ok) {
+            const homeJson = await homeRes.json();
+            if (homeJson?.data?.registeredPrograms?.length > 0) {
+              nextName = homeJson.data.registeredPrograms[0].programName.trim();
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        }
+
         const nextLogo = data?.brand?.logo_url?.trim();
         if (!cancelled) {
           if (nextName) setBrandName(nextName);
@@ -160,6 +172,17 @@ export default function OnboardingPage() {
       label: `${country.flag ? `${country.flag} ` : ''}${country.name}`,
     }));
   }, [countryOptions]);
+
+
+
+  const yearSelectOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const options = [];
+    for (let i = currentYear; i >= 1950; i--) {
+      options.push({ value: i.toString(), label: i.toString() });
+    }
+    return options;
+  }, []);
 
   const genderSelectOptions = useMemo(() => {
     return genderOptions.map(g => ({
@@ -405,29 +428,29 @@ export default function OnboardingPage() {
   const stepMeta = useMemo(() => {
     if (activeStep === 'Basic Info') {
       return {
-        line: "Let’s get to know you. This will only take a minute.",
+        line: "Let's get to know you. This will only take a minute.",
         title: 'What should we call you?',
         description: 'Enter your full name and select your gender.',
       };
     }
     if (activeStep === 'Location') {
       return {
-        line: 'Tell us where you live.',
-        title: 'Where are you from?',
+        line: 'Let us know your current location.',
+        title: 'Where are you currently located?',
         description: 'Select your country, state/region, and city.',
       };
     }
     if (activeStep === 'Age') {
       return {
-        line: 'Just a quick one.',
-        title: 'How old are you?',
-        description: 'Select your age range.',
+        line: 'Just a quick validation.',
+        title: 'What year were you born?',
+        description: 'Select your birth year from the dropdown.',
       };
     }
     return {
       line: 'One last thing.',
       title: 'How did you hear about this program?',
-      description: 'Choose one option below.',
+      description: 'Choose an option below.',
     };
   }, [activeStep]);
 
@@ -437,8 +460,8 @@ export default function OnboardingPage() {
       <div className={onboardingTheme.layoutGrid}>
         <div className={onboardingTheme.leftCol}>
           <div className={onboardingTheme.leftCenter}>
-            <div className={componentsTheme.login.formPanelInner}>
-              <div className={onboardingTheme.logoWrapper}>
+            <div className={`${componentsTheme.login.formPanelInner} flex flex-col flex-1`}>
+              <div className={`${onboardingTheme.logoWrapper} flex items-center gap-3`}>
                 <Image
                   src={brandLogo}
                   alt={brandName}
@@ -447,6 +470,9 @@ export default function OnboardingPage() {
                   className={onboardingTheme.logoImage}
                   priority
                 />
+                <span className="font-bold text-xl text-[var(--brand-primary)] tracking-tight whitespace-nowrap">
+                  {brandName}
+                </span>
               </div>
 
               <div className={onboardingTheme.progressGrid}>
@@ -533,7 +559,7 @@ export default function OnboardingPage() {
                 {activeStep === 'Location' ? (
                   <>
                     <FormField
-                      label="Country of origin"
+                      label="Country"
                       icon={Globe}
                       required={true}
                       error={domShowErrors && form.country.trim().length === 0 ? "Required" : ""}
@@ -632,16 +658,19 @@ export default function OnboardingPage() {
                 {activeStep === "Age" ? (
                   <>
                     <FormField
-                        label="Birth date"
+                        label="Year of birth"
                         icon={Gift}
                         required={true}
                         error={ageShowErrors && form.birthDate.trim().length === 0 ? "Required" : ""}
                       >
                        {(errorClass) => (
-                         <BirthDatePicker 
-                           value={form.birthDate} 
-                           onChange={(val) => setForm(prev => ({ ...prev, birthDate: val }))} 
-                           errorClassName={errorClass}
+                         <StyledSelect
+                           value={form.birthDate}
+                           onChange={value => setForm(prev => ({ ...prev, birthDate: value }))}
+                           options={yearSelectOptions}
+                           placeholder="Select year"
+                           className={`${componentsTheme.login.input} ${errorClass}`}
+                           searchable
                          />
                        )}
                     </FormField>
@@ -650,23 +679,21 @@ export default function OnboardingPage() {
 
                 {activeStep === "Program Info" ? (
                   <>
-                    <FormField
-                      label="How did you hear about this program?"
-                      icon={Building}
-                      required={true}
-                      error={infoShowErrors && form.programSource.trim().length === 0 ? "Required" : ""}
-                    >
-                      {(errorClass) => (
-                      <>
+                    <div className="flex flex-col gap-2">
+                      <p className={componentsTheme.login.fieldLabel}>
+                        PROGRAM SOURCE <span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
+                      </p>
+                      
                       <div className={onboardingTheme.programSourceGrid}>
                         {displayedProgramSourceOptions.map(opt => {
                           const selected = form.programSource === opt.value;
+                          const errClass = infoShowErrors && form.programSource.trim().length === 0 ? "!border-red-500 focus:!ring-red-500/20" : "";
                           return (
                             <button
                               key={opt.value}
                               type="button"
                               onClick={() => setForm(prev => ({ ...prev, programSource: opt.value }))}
-                              className={`${onboardingTheme.optionButtonBase} ${errorClass} ${
+                              className={`${onboardingTheme.optionButtonBase} ${errClass} ${
                                 selected
                                   ? onboardingTheme.optionButtonSelected
                                   : onboardingTheme.optionButtonUnselected
@@ -679,17 +706,23 @@ export default function OnboardingPage() {
                       </div>
 
                       {programSourceOptions.length > 6 ? (
-                        <button
-                          type="button"
-                          className={onboardingTheme.seeAllButton}
-                          onClick={() => setProgramSourceModalOpen(true)}
-                        >
-                          See all
-                        </button>
+                        <div className="flex justify-start">
+                          <button
+                            type="button"
+                            className={onboardingTheme.seeAllButton}
+                            onClick={() => setProgramSourceModalOpen(true)}
+                          >
+                            See all
+                          </button>
+                        </div>
                       ) : null}
-                      </>
+
+                      {infoShowErrors && form.programSource.trim().length === 0 && (
+                        <p style={{ marginTop: "6px", fontSize: "12px", color: "#ef4444", display: "flex", alignItems: "center", fontWeight: 500 }}>
+                          Required
+                        </p>
                       )}
-                    </FormField>
+                    </div>
 
                     <FormField
                       label="Referral Code"
@@ -711,6 +744,12 @@ export default function OnboardingPage() {
                 ) : null}
 
                 <div className={onboardingTheme.buttonGroup}>
+                  {activeStep !== 'Basic Info' ? (
+                    <button type="button" className={componentsTheme.login.secondaryButton} onClick={goBack}>
+                      Back
+                    </button>
+                  ) : null}
+
                   {activeStep === 'Program Info' ? (
                     <button
                       type="button"
@@ -725,31 +764,32 @@ export default function OnboardingPage() {
                       Next
                     </button>
                   )}
-
-                  {activeStep !== 'Basic Info' ? (
-                    <button type="button" className={componentsTheme.login.secondaryButton} onClick={goBack}>
-                      Back
-                    </button>
-                  ) : null}
                 </div>
 
                 {submitError ? (
                   <p className={onboardingTheme.fieldError}>{submitError}</p>
                 ) : null}
               </form>
+            </div>
+          </div>
 
-              <div className="mt-8 pt-6 pb-6 lg:pb-0 border-t border-slate-100 flex flex-col gap-4">
-                <p className="text-sm text-slate-500 flex items-start gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 shrink-0 mt-0.5">
+          <div className="w-full flex justify-center border-t border-slate-100 bg-slate-50/50 px-4 py-4 lg:px-16 lg:py-6">
+            <div className="w-full max-w-[440px]">
+              <div className="rounded-xl bg-blue-50/50 border border-blue-100/50 p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0 mt-0.5">
                     <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                   </svg>
-                  <span>Don&apos;t worry, you can always update these details later from your profile settings.</span>
-                </p>
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-xs text-slate-400">
-                    Copyright © {new Date().getFullYear()} {brandName}
+                  <p className="text-[13px] leading-relaxed text-slate-600">
+                    Don&apos;t worry, you can always update these details later from your profile settings.
                   </p>
                 </div>
+              </div>
+              
+              <div className="flex items-center justify-center w-full">
+                <p className="text-xs text-slate-400">
+                  Copyright © {new Date().getFullYear()} {brandName}
+                </p>
               </div>
             </div>
           </div>

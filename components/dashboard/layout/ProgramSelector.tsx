@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
+import { useSettings } from "@/components/providers/SettingsProvider";
 import { useEffect, useRef, useState } from "react";
 
 type RegisteredProgram = {
@@ -33,6 +34,7 @@ export default function ProgramSelector({
 }: {
   programs?: RegisteredProgram[];
 }) {
+  const { settings } = useSettings();
   const [open, setOpen] = useState(false);
   const [activeId, setActiveId] = useState<string>("");
   const ref = useRef<HTMLDivElement | null>(null);
@@ -44,7 +46,7 @@ export default function ProgramSelector({
       programName: p.programName,
       year: p.year,
       label: `${abbreviateProgramName(p.programName)}${p.year ? ` ${p.year}` : ''} Participant`.trim(),
-      logo: "/img/jysfix.png",
+      logo: settings?.brand?.logo_url || "/img/jysfix.png",
     }));
 
   useEffect(() => {
@@ -94,8 +96,9 @@ export default function ProgramSelector({
   }, [activeId]);
 
   const active = normalizedPrograms.find(p => p.id === activeId) ?? normalizedPrograms[0] ?? null;
-  const displayedLabel = active?.label ?? 'Participant';
-  const displayedLogo = active?.logo ?? '/img/jysfix.png';
+  const defaultLabel = settings?.active_program?.name ? `${abbreviateProgramName(settings.active_program.name)} ${settings.active_program.year || ''} Participant`.trim().replace(/\s+/, ' ') : (settings?.brand?.name ? `${abbreviateProgramName(settings.brand.name)} Participant` : 'Participant');
+  const displayedLabel = active?.label ?? defaultLabel;
+  const displayedLogo = active?.logo ?? settings?.brand?.logo_url ?? '/img/jysfix.png';
 
   return (
     <div ref={ref} className="relative inline-block text-xs font-semibold uppercase tracking-wide">
@@ -131,7 +134,7 @@ export default function ProgramSelector({
               <span>{program.label}</span>
             </button>
           )) : (
-            <div className="px-3 py-2 text-left font-medium text-slate-500">Participant</div>
+            <div className="px-3 py-2 text-left font-medium text-slate-500">{defaultLabel}</div>
           )}
         </div>
       ) : null}

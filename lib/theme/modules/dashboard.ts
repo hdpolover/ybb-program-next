@@ -1,7 +1,7 @@
 export const dashboardTheme = {
   dashboardLayout: {
     sidebarWrapper:
-      'sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-slate-200 bg-[#e53b8c] px-3 py-6',
+      'sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-slate-200 bg-primary px-3 py-6',
     sidebarLogoRow: 'mb-5 flex justify-start',
     sidebarLogoImageWrapper: 'relative h-14 w-32',
     sidebarMainColumn: 'flex flex-1 flex-col justify-between gap-4',
@@ -91,7 +91,7 @@ export const dashboardTheme = {
     certificatesSubtitle: 'mt-1 max-w-2xl text-xs text-slate-500 sm:text-sm',
     statusBadgeBase: 'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1',
     statusApproved: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-    statusOngoing: 'bg-indigo-50 text-indigo-700 ring-indigo-100',
+    statusOngoing: 'bg-primary/5 text-primary ring-primary/20',
     statusDefault: 'bg-slate-50 text-slate-700 ring-slate-200',
   },
   dashboardPayments: {
@@ -141,10 +141,10 @@ export const dashboardTheme = {
     agreementRowPink:
       'flex items-center gap-3 rounded-md bg-primary/10 px-3 py-2 text-xs text-slate-700 ring-1 ring-primary/20',
     agreementRowIndigo:
-      'flex items-center gap-3 rounded-md bg-indigo-50 px-3 py-2 text-xs text-slate-700 ring-1 ring-indigo-100',
+      'flex items-center gap-3 rounded-md bg-primary/5 px-3 py-2 text-xs text-slate-700 ring-1 ring-primary/20',
     agreementCheckboxPink: 'h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/100',
     agreementCheckboxIndigo:
-      'h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500',
+      'h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary',
     agreementRowInner: 'flex items-center gap-2',
     completeButtonWrapper: 'pt-2 flex justify-center',
     completeButtonBase:
@@ -264,11 +264,11 @@ export const dashboardTheme = {
     historyListItem: 'p-4',
     historyListItemHeader: 'flex items-start gap-3',
     historyStatusIconCircle: 'grid h-7 w-7 place-items-center rounded-full ring-1',
-    historyTitle: 'text-sm font-semibold text-blue-950',
+    historyTitle: 'text-sm font-semibold text-slate-900',
     historyMetaRow: 'mt-1 flex flex-wrap items-center gap-2',
     historyNote: 'mt-2 text-sm text-slate-700',
     historyViewDetailsButton:
-      'rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100',
+      'rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10',
     historyPaginationRow: 'flex items-center justify-between border-t border-slate-100 px-4 py-2',
     historyPaginationText: 'text-xs text-slate-600',
     historyPaginationButton:
@@ -289,7 +289,7 @@ export const dashboardTheme = {
     historyProofImage: 'h-auto w-full object-contain',
     historyProofActionsRow: 'flex gap-2',
     historyProofLinkButton:
-      'rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100',
+      'rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10',
     historyProofDownloadButton:
       'rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary',
     historyEmptyProofText: 'mt-2 text-sm text-slate-600',

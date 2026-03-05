@@ -19,7 +19,7 @@ export const applyTheme = {
     headerRow: 'flex items-center justify-between',
     headerRowTopAligned: 'flex items-start justify-between',
     headerTitleRow: 'flex items-center gap-3',
-    headerTitle: 'text-xl font-extrabold text-blue-900',
+    headerTitle: 'text-xl font-extrabold text-slate-900',
     headerSubtitle: 'text-xs font-medium text-slate-600',
     statusBadgeOpen:
       'whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-[11px] font-semibold text-green-700',
@@ -33,7 +33,7 @@ export const applyTheme = {
     sectionLabel: 'text-xs font-semibold uppercase tracking-wide text-slate-500',
     list: 'mt-2 space-y-2 text-sm text-slate-700',
     listItemRow: 'flex items-center gap-3',
-    listItemText: 'font-medium text-blue-950',
+    listItemText: 'font-medium text-slate-900',
     bodySectionSpacer: 'mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500',
     cardFooter: 'p-5 pt-0',
     ctaWrapper: 'flex justify-center',
@@ -45,13 +45,13 @@ export const applyTheme = {
     sectionWrapper: 'sm:py-18 py-16 md:py-20',
     container: 'mx-auto max-w-6xl px-6 lg:px-8',
     layoutGrid: 'grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)] lg:gap-1',
-    leftCol: 'h-full text-blue-950',
+    leftCol: 'h-full text-slate-900',
     leftCard:
       'flex h-full flex-col rounded-3xl bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80',
     tabsHeader:
       'mb-4 flex items-center justify-between border-b border-slate-200 text-sm font-semibold text-slate-500',
     tabButtonBase: 'relative flex-1 px-3 pb-2 pt-1 text-center transition',
-    tabButtonActive: 'text-blue-950',
+    tabButtonActive: 'text-slate-900',
     tabButtonInactive: 'text-slate-500 hover:text-slate-700',
     tabActiveUnderline:
       'absolute inset-x-0 bottom-0 mx-auto block h-0.5 max-w-[70%] rounded-full bg-primary/100',
@@ -75,7 +75,7 @@ export const applyTheme = {
     infoRow: 'flex items-start gap-2',
     infoIcon: 'mt-0.5 h-4 w-4 text-primary',
     infoLabel: 'text-xs font-semibold uppercase tracking-wide text-slate-500',
-    infoValue: 'text-sm font-semibold text-blue-950',
+    infoValue: 'text-sm font-semibold text-slate-900',
     infoGrid: 'grid gap-3 sm:grid-cols-2',
   },
   applyPayment: {
@@ -85,7 +85,7 @@ export const applyTheme = {
     headerSubtitle: 'mx-auto -mt-4 text-sm leading-relaxed text-slate-700 sm:text-base',
     cardsGrid: 'mt-8 grid gap-6 md:grid-cols-2',
     card: 'flex h-full flex-col rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.14)] ring-1 ring-slate-200/80',
-    cardTitle: 'text-lg font-semibold text-blue-950 sm:text-xl',
+    cardTitle: 'text-lg font-semibold text-slate-900 sm:text-xl',
     cardPrice: 'mt-1 text-sm font-semibold text-primary sm:text-base',
     cardSubtitle: 'mt-1 text-xs text-slate-600 sm:text-sm',
     stagesList: 'mt-5 space-y-3 text-sm text-slate-800 sm:text-base',
@@ -93,7 +93,7 @@ export const applyTheme = {
       'flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200',
     stageLabel: 'text-xs font-semibold uppercase tracking-[0.16em] text-primary',
     stageLabelMuted: 'text-xs font-semibold uppercase tracking-[0.16em] text-slate-700',
-    stagePrice: 'text-sm font-semibold text-blue-950 sm:text-base',
+    stagePrice: 'text-sm font-semibold text-slate-900 sm:text-base',
     stagePriceSub: 'text-xs text-slate-600',
     footerWrapper:
       'mt-6 flex flex-col items-start justify-between gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center',
@@ -113,7 +113,7 @@ export const applyTheme = {
     bankHeaderRow: 'flex items-center gap-3',
     bankIconCircle: 'flex h-9 w-9 items-center justify-center rounded-full bg-primary/10',
     bankIcon: 'h-4 w-4 text-primary',
-    cardTitle: 'text-base font-semibold text-blue-950 sm:text-lg',
+    cardTitle: 'text-base font-semibold text-slate-900 sm:text-lg',
     cardSubtitle: 'text-xs text-slate-600 sm:text-sm',
     banksGrid: 'mt-5 grid grid-cols-2 gap-4',
     bankLogoCard:
@@ -122,17 +122,17 @@ export const applyTheme = {
     intlCard:
       'flex h-full flex-col rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.14)] ring-1 ring-slate-200/80',
     intlHeaderRow: 'flex items-center gap-3',
-    intlIconCircle: 'flex h-9 w-9 items-center justify-center rounded-full bg-blue-50',
-    intlIcon: 'h-4 w-4 text-blue-700',
+    intlIconCircle: 'flex h-9 w-9 items-center justify-center rounded-full bg-primary/5',
+    intlIcon: 'h-4 w-4 text-primary',
     paypalBox: 'mt-5 space-y-4 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200',
     paypalHeaderRow: 'flex items-center justify-between gap-4',
     paypalLogoCircle: 'flex items-center justify-center rounded-full bg-white h-12 w-12',
     paypalLogoImage: 'h-8 w-auto object-contain',
-    paypalTitle: 'text-sm font-semibold text-blue-950 sm:text-base',
+    paypalTitle: 'text-sm font-semibold text-slate-900 sm:text-base',
     paypalMeta: 'space-y-2 text-xs text-slate-700 sm:text-sm',
     paypalMetaRow: 'flex items-center justify-between gap-4',
     paypalMetaLabel: 'font-medium',
-    paypalMetaValue: 'font-semibold text-blue-950',
+    paypalMetaValue: 'font-semibold text-slate-900',
     notesGrid: 'mt-4 grid gap-6 text-xs leading-relaxed text-slate-600 sm:grid-cols-2 sm:text-sm',
   },
   applyEarlyBidCta: {
@@ -150,13 +150,13 @@ export const applyTheme = {
     // kiri
     leftCol: 'relative z-10',
     title: 'text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl',
-    subtitle: 'mt-4 max-w-xl text-blue-950-200',
-    statsRow: 'mt-7 flex items-center gap-8 text-blue-950-200',
+    subtitle: 'mt-4 max-w-xl text-slate-900-200',
+    statsRow: 'mt-7 flex items-center gap-8 text-slate-900-200',
     statGroup: 'flex items-center gap-3',
     statIconCircle: 'flex h-11 w-11 items-center justify-center rounded-full bg-white',
-    statIcon: 'h-5 w-5 text-blue-950',
-    statValue: 'text-3xl font-extrabold leading-tight text-blue-950',
-    statLabel: 'text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-950',
+    statIcon: 'h-5 w-5 text-slate-900',
+    statValue: 'text-3xl font-extrabold leading-tight text-slate-900',
+    statLabel: 'text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-900',
     statsDivider: 'h-11 w-px bg-white/60',
 
     // kanan
@@ -167,7 +167,7 @@ export const applyTheme = {
     countdownGrid: 'mt-5 grid grid-cols-4 gap-2 sm:gap-3',
     countdownItem:
       'flex flex-col items-center justify-center rounded-2xl bg-slate-50 px-2 py-3 ring-1 ring-slate-200',
-    countdownValue: 'text-lg font-extrabold tracking-tight text-blue-950 sm:text-2xl',
+    countdownValue: 'text-lg font-extrabold tracking-tight text-slate-900 sm:text-2xl',
     countdownLabel:
       'mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-[11px]',
     note: 'mt-4 text-center text-[11px] text-slate-500 sm:text-xs',

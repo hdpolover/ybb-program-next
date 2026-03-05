@@ -104,6 +104,11 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
 
+    // Pad user-provided birth year to match backend date requirements smoothly
+    if (typeof body.birthDate === 'string' && body.birthDate.length === 4) {
+      body.birthDate = `${body.birthDate}-01-01`;
+    }
+
     const apiUrl = new URL('/v1/participants/onboarding', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',

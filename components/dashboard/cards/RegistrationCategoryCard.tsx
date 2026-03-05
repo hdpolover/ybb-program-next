@@ -14,12 +14,12 @@ export default function RegistrationCategoryCard({
           <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
             ✓
           </span>
-          <h3 className="text-lg font-extrabold text-blue-950">Your Registration Category</h3>
+          <h3 className="text-lg font-extrabold text-slate-900">Your Registration Category</h3>
         </div>
         <div className="flex items-center gap-2">
           <a
             href="#"
-            className="rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+            className="rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
           >
             Learn More
           </a>

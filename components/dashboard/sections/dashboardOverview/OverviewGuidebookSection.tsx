@@ -8,13 +8,15 @@ export default function OverviewGuidebookSection() {
   return (
     <aside
       className={overviewTheme.guideAside}
-      style={{
-        backgroundImage: "url('/img/bgguidebookdashboard.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center bottom',
-      }}
+      
     >
+      
+      
+            {/* Decorative gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary)]/10 via-transparent to-[var(--brand-primary)]/5 pointer-events-none" />
       <div className={overviewTheme.guideInner}>
+
+
         <div className={overviewTheme.guideHeaderWrapper}>
           <p className={overviewTheme.guideEyebrow}>More Information?</p>
           <h2 className={overviewTheme.guideTitle}>Check this Guidebook!</h2>

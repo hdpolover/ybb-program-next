@@ -70,7 +70,7 @@ export default function HistoryList({
       {active && (
         <Modal onClose={() => setActive(null)}>
           <div className="space-y-4">
-            <p className="text-base font-extrabold text-blue-950">Transaction Details</p>
+            <p className="text-base font-extrabold text-slate-900">Transaction Details</p>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
@@ -181,7 +181,7 @@ export default function HistoryList({
                   <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
                     {it.method}
                   </span>
-                  <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+                  <span className="rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[11px] font-semibold text-primary">
                     {it.amountLabel}
                   </span>
                   <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-700">

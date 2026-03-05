@@ -8,7 +8,7 @@ export const partnersTheme = {
     featureIconCircle:
       'inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/30',
     featureIcon: 'h-5 w-5',
-    featureTitle: 'text-base font-extrabold text-blue-900',
+    featureTitle: 'text-base font-extrabold text-slate-900',
     featureDescription: 'text-sm leading-relaxed text-slate-700',
     ctaWrapper: 'mt-10 flex justify-center',
     ctaButton:
@@ -20,7 +20,7 @@ export const partnersTheme = {
     grid: 'mt-20 grid gap-10 sm:grid-cols-2 lg:grid-cols-4',
     card: 'flex flex-col gap-2',
     number: 'text-4xl font-extrabold tracking-tight text-primary sm:text-5xl',
-    title: 'text-base font-extrabold text-blue-900 sm:text-lg',
+    title: 'text-base font-extrabold text-slate-900 sm:text-lg',
     description: 'text-sm leading-relaxed text-slate-700 sm:text-base',
   },
   partnersSponsorTiers: {
@@ -32,7 +32,7 @@ export const partnersTheme = {
     diamondIconCircle: 'inline-grid h-9 w-9 place-items-center rounded-full bg-primary text-white',
     diamondLabel: 'text-xs font-semibold uppercase tracking-wide text-primary',
     diamondLogoImg: 'h-9 w-9 rounded bg-white object-contain p-1 ring-1 ring-slate-200',
-    diamondTitle: 'text-lg font-extrabold text-blue-900',
+    diamondTitle: 'text-lg font-extrabold text-slate-900',
     mutedMeta: 'mt-1 text-xs text-slate-600',
     bodyText: 'mt-2 text-sm text-slate-700',
     goldCard:
@@ -44,7 +44,7 @@ export const partnersTheme = {
     goldOrgCard:
       'block rounded-xl border border-amber-200 bg-amber-50/30 p-4 transition hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300',
     goldLogoImg: 'h-8 w-8 rounded bg-white object-contain p-1 ring-1 ring-amber-200',
-    goldOrgTitle: 'text-base font-extrabold text-blue-900',
+    goldOrgTitle: 'text-base font-extrabold text-slate-900',
     goldOrgMeta: 'text-xs text-slate-600',
     goldOrgBody: 'mt-1 text-sm text-slate-700',
     silverCard:
@@ -56,7 +56,7 @@ export const partnersTheme = {
     silverOrgCard:
       'rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300',
     silverLogoImg: 'h-7 w-7 rounded bg-white object-contain p-1 ring-1 ring-slate-200',
-    silverOrgName: 'font-semibold text-blue-900',
+    silverOrgName: 'font-semibold text-slate-900',
     silverOrgDesc: 'text-sm text-slate-700',
     silverOrgCardWide:
       'rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300 sm:col-span-2',
@@ -67,12 +67,12 @@ export const partnersTheme = {
     subtitle:
       'mx-auto -mt-6 mb-2 max-w-2xl text-center text-sm text-slate-600 sm:mb-0 sm:text-base',
     layout: 'mt-10 grid items-center gap-10 md:grid-cols-[minmax(0,0.35fr)_minmax(0,1fr)]',
-    impactCol: 'space-y-3 text-blue-950',
-    impactValue: 'text-3xl md:text-4xl font-extrabold tracking-tight text-blue-950',
+    impactCol: 'space-y-3 text-slate-900',
+    impactValue: 'text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900',
     impactLabel: 'text-sm md:text-base text-slate-700 max-w-xs',
     card: 'rounded-2xl bg-white/90 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     cardHeader: 'mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between',
-    cardTitle: 'text-lg font-extrabold text-blue-900',
+    cardTitle: 'text-lg font-extrabold text-slate-900',
     cardSubtitle: 'text-sm text-slate-600',
     logosGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
     logoCard:
@@ -118,7 +118,7 @@ export const partnersTheme = {
     subtitle: 'mx-auto -mt-6 mb-8 max-w-2xl text-center text-sm text-slate-600 sm:mb-10',
     grid: 'mx-auto grid max-w-5xl gap-6 md:grid-cols-3',
     communityCard:
-      'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-blue-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-blue-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
+      'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-blue-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     silverCard:
       'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-slate-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     goldCard:
@@ -126,7 +126,7 @@ export const partnersTheme = {
     diamondCard:
       'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-primary/10 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     cardBody: 'p-5',
-    title: 'text-xl font-extrabold text-blue-900',
+    title: 'text-xl font-extrabold text-slate-900',
     description: 'mt-1 text-sm leading-6 text-slate-700',
     priceLabel: 'mt-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500',
     priceValue: 'text-sm font-semibold text-slate-700',
@@ -136,9 +136,9 @@ export const partnersTheme = {
     benefitItemBordered: 'border-b border-slate-200',
     checkCircle: 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-white',
     checkIcon: 'h-4 w-4',
-    benefitLabel: 'text-sm font-medium text-blue-950',
-    affiliateSubheading: 'pb-1 text-sm font-extrabold text-blue-950',
-    affiliateSubheadingSpaced: 'pt-4 pb-1 text-sm font-extrabold text-blue-950',
+    benefitLabel: 'text-sm font-medium text-slate-900',
+    affiliateSubheading: 'pb-1 text-sm font-extrabold text-slate-900',
+    affiliateSubheadingSpaced: 'pt-4 pb-1 text-sm font-extrabold text-slate-900',
     popularChip:
       'rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary ring-1 ring-primary/30',
     cardFooter: 'p-5 pt-0',
@@ -158,11 +158,11 @@ export const partnersTheme = {
     listWrapper: 'flex flex-wrap justify-center gap-6',
     card: 'group w-[340px] sm:w-[360px] flex items-start gap-4 rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-primary/40',
     logoImg: 'h-12 w-12 rounded bg-white object-contain p-1.5 ring-1 ring-slate-200',
-    orgName: 'font-extrabold text-blue-900',
+    orgName: 'font-extrabold text-slate-900',
     pinkChip:
       'mt-1 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary ring-1 ring-primary/30',
     academicChip:
-      'mt-1 inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-200',
+      'mt-1 inline-block rounded-full bg-primary/5 px-2.5 py-0.5 text-xs font-semibold text-primary ring-1 ring-primary/30',
     innovationChip:
       'mt-1 inline-block rounded-full bg-fuchsia-50 px-2.5 py-0.5 text-xs font-semibold text-fuchsia-700 ring-1 ring-fuchsia-200',
     mediaChip:
@@ -170,14 +170,14 @@ export const partnersTheme = {
     businessChip:
       'mt-1 inline-block rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200',
     culturalChip:
-      'mt-1 inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200',
+      'mt-1 inline-block rounded-full bg-primary/5 px-2.5 py-0.5 text-xs font-semibold text-primary ring-1 ring-indigo-200',
   },
   partnersDetail: {
     sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8 bg-white',
     container: 'mx-auto max-w-5xl',
     card: 'relative overflow-hidden rounded-3xl bg-white p-6 shadow-[0_14px_45px_rgba(15,23,42,0.12)] ring-1 ring-slate-200 sm:p-8',
     headerRow: 'relative z-10 mb-4 flex items-baseline justify-between gap-4',
-    title: 'text-lg font-extrabold text-blue-900 sm:text-xl',
+    title: 'text-lg font-extrabold text-slate-900 sm:text-xl',
     bestForLabel: 'mt-1 text-sm text-slate-600',
     priceText: 'relative z-10 text-xl font-extrabold text-[#5C3BFF] whitespace-nowrap sm:text-2xl',
     bodyGrid: 'relative z-10 mt-3 grid gap-2 text-sm text-slate-700',

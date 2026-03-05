@@ -3,8 +3,8 @@ export const homeTheme = {
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-20 sm:py-24',
     card: 'mx-auto max-w-7xl overflow-hidden rounded-3xl px-6 py-12 text-accent-foreground shadow-[0_18px_60px_rgba(15,23,42,0.35)] sm:px-10 lg:px-16',
     cardBackground: '/img/bgshorts60.jpg',
-    title: 'text-2xl font-extrabold leading-tight text-blue-950 sm:text-3xl lg:text-4xl',
-    description: 'mt-3 max-w-md text-sm leading-relaxed text-blue-950/90 sm:text-base lg:text-lg',
+    title: 'text-2xl font-extrabold leading-tight text-slate-900 sm:text-3xl lg:text-4xl',
+    description: 'mt-3 max-w-md text-sm leading-relaxed text-slate-900/90 sm:text-base lg:text-lg',
     shortsRow:
       'flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible sm:pb-0',
     shortWrapper:
@@ -17,13 +17,13 @@ export const homeTheme = {
     innerGrid:
       'grid w-full items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)] lg:gap-12',
     leftCol:
-      'order-2 flex w-full max-w-xl flex-col items-center justify-center space-y-4 text-center text-blue-950 sm:items-start sm:text-left lg:order-1 lg:pr-6',
-    description: 'mt-3 max-w-md text-sm leading-relaxed text-blue-950/90 sm:text-base lg:text-lg',
+      'order-2 flex w-full max-w-xl flex-col items-center justify-center space-y-4 text-center text-slate-900 sm:items-start sm:text-left lg:order-1 lg:pr-6',
+    description: 'mt-3 max-w-md text-sm leading-relaxed text-slate-900/90 sm:text-base lg:text-lg',
     buttonsCol: 'mt-4 flex flex-col items-center gap-3 sm:items-start',
     guideButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold shadow-sm transition',
     guideButtonPrimary: 'border-primary/100/80 bg-white/95 text-primary hover:bg-white',
-    guideButtonSecondary: 'border-blue-500/70 bg-blue-50/90 text-blue-800 hover:bg-blue-100',
+    guideButtonSecondary: 'border-blue-500/70 bg-primary/5/90 text-blue-800 hover:bg-primary/10',
     flagCircle: 'inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full',
     rightCol: 'hidden order-1 w-full justify-center lg:relative lg:flex lg:order-2',
     mockupWrapper:
@@ -71,7 +71,7 @@ export const homeTheme = {
     card: 'my-2 inline-flex w-[260px] shrink-0 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl bg-white p-5 text-left shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(2,6,23,0.08)] sm:w-[300px] md:w-[340px] lg:w-[360px]',
     quote: 'whitespace-normal break-words text-sm italic leading-6 text-slate-700',
     metaRow: 'mt-5 flex items-center justify-between',
-    nameRow: 'flex items-center gap-2 text-sm font-semibold text-blue-950',
+    nameRow: 'flex items-center gap-2 text-sm font-semibold text-slate-900',
     nameFlag: 'text-base',
     roleText: 'text-xs text-slate-500',
     badge:
@@ -80,7 +80,7 @@ export const homeTheme = {
     modalCard:
       'w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10',
     modalHeader: 'flex items-center justify-between border-b border-slate-200 p-4',
-    modalTitle: 'text-lg font-extrabold text-blue-950',
+    modalTitle: 'text-lg font-extrabold text-slate-900',
     modalCloseButton:
       'rounded-md bg-slate-100 px-2 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200',
     modalBodyGrid: 'grid gap-5 p-5 sm:grid-cols-[96px,1fr]',
@@ -88,7 +88,7 @@ export const homeTheme = {
       'aspect-square w-24 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200',
     modalAvatarInner: 'relative h-full w-full',
     modalAvatarImg: 'object-cover',
-    modalMetaNameRow: 'flex items-center gap-2 text-sm font-semibold text-blue-950',
+    modalMetaNameRow: 'flex items-center gap-2 text-sm font-semibold text-slate-900',
     modalMetaSub: 'mt-1 text-xs text-slate-600',
     modalQuote: 'text-sm leading-7 text-slate-700',
   },
@@ -167,7 +167,7 @@ export const homeTheme = {
       'overflow-hidden rounded-2xl bg-white px-4 py-4 shadow-[0_12px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     proofIconCircle:
       'bg-accent text-accent-foreground inline-grid h-7 w-7 place-items-center rounded-full',
-    proofTitle: 'text-[14px] font-extrabold text-blue-900',
+    proofTitle: 'text-[14px] font-extrabold text-slate-900',
     proofSubtitle: 'mt-0.5 text-[11px] leading-5 text-slate-700',
     bulletChip:
       'rounded-full bg-[var(--brand-accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--brand-accent)] ring-1 ring-[var(--brand-border)]',
@@ -176,13 +176,13 @@ export const homeTheme = {
     hakiCol: 'col-span-12 flex items-center justify-center lg:col-span-5',
     hakiCard:
       'w-full max-w-md rounded-2xl bg-white p-5 shadow-[0_12px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
-    hakiTitle: 'text-lg font-extrabold text-blue-900',
+    hakiTitle: 'text-lg font-extrabold text-slate-900',
     hakiSubtitle: 'text-xs font-medium text-slate-600',
-    hakiBrand: 'text-sm font-semibold text-blue-900',
+    hakiBrand: 'text-sm font-semibold text-slate-900',
     hakiClassText: 'text-xs text-slate-600',
     hakiMeta: 'rounded-lg bg-slate-50 p-2 ring-1 ring-slate-200',
     hakiMetaLabel: 'text-slate-500',
-    hakiMetaValue: 'font-semibold text-blue-950',
+    hakiMetaValue: 'font-semibold text-slate-900',
     hakiButton:
       'inline-flex items-center gap-2 rounded-md bg-[var(--brand-accent)] px-4 py-2 text-xs font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90',
     hakiChip:
@@ -212,7 +212,7 @@ export const homeTheme = {
       'mt-5 min-h-[220px] space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base',
     richText:
       '[&_p]:text-slate-600 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4',
-    visionLabel: 'font-semibold text-blue-950',
+    visionLabel: 'font-semibold text-slate-900',
     ctaWrapper: 'mt-6',
     rightCol: 'flex items-center justify-center',
     collageWrapper: 'relative h-full w-full',
@@ -226,7 +226,7 @@ export const homeTheme = {
   programHighlights: {
     card: 'hover:ring-accent/30 group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     imageWrapper: 'h-40 w-full overflow-hidden bg-blue-100/60',
-    title: 'text-xl font-extrabold text-blue-900',
+    title: 'text-xl font-extrabold text-slate-900',
     intro: 'mt-2 text-sm leading-6 text-slate-600',
     listItem:
       'flex items-center gap-3 py-3 transition-colors duration-200 hover:bg-slate-50 border-slate-200',
@@ -242,7 +242,7 @@ export const homeTheme = {
       'relative aspect-[4/3] overflow-hidden rounded-2xl bg-white/40 shadow-[0_8px_30px_rgba(31,41,55,0.12)] ring-1 ring-slate-200/80',
     rightWrapper: 'order-2 lg:order-2 lg:pl-4',
     objectiveIntro: 'text-sm leading-relaxed text-slate-600 sm:text-base',
-    objectivePointText: 'text-sm font-medium text-blue-950 sm:text-base',
+    objectivePointText: 'text-sm font-medium text-slate-900 sm:text-base',
   },
   awards: {
     sectionWrapper: 'relative w-full bg-background py-16 sm:py-20',
@@ -253,17 +253,17 @@ export const homeTheme = {
     cardInner: 'p-5',
     cardHeader: 'mb-2 flex items-center gap-2',
     iconCircleBase: 'inline-grid h-9 w-9 place-items-center rounded-full',
-    title: 'text-lg font-extrabold text-blue-900',
+    title: 'text-lg font-extrabold text-slate-900',
     desc: 'text-sm leading-6 text-slate-700',
     highlightsList: 'flex flex-1 flex-col p-5 pt-0',
     highlightItemBase: 'flex items-center justify-between gap-3 py-3 text-sm transition-colors',
     highlightDivider: 'border-b border-slate-200',
-    highlightLabel: 'font-medium text-blue-950',
+    highlightLabel: 'font-medium text-slate-900',
     highlightBadge:
       'rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700 ring-1 ring-slate-200',
     singleHighlightBox:
       'flex flex-1 items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4',
-    singleHighlightValue: 'text-3xl font-extrabold text-blue-900',
+    singleHighlightValue: 'text-3xl font-extrabold text-slate-900',
     singleHighlightUnit: 'text-xs font-semibold uppercase tracking-wide text-slate-600',
     chip: 'rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700 ring-1 ring-slate-200',
   },
@@ -311,7 +311,7 @@ export const homeTheme = {
     videoCard:
       'rounded-2xl bg-white/95 p-3 shadow-[0_18px_50px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/70',
     videoFrameWrapper: 'relative aspect-video w-full overflow-hidden rounded-xl bg-black/5',
-    videoTitle: 'text-base font-semibold text-blue-950',
+    videoTitle: 'text-base font-semibold text-slate-900',
     videoDescription: 'mt-1 text-xs text-slate-600 sm:text-sm',
   },
   homeRegistration: {
@@ -346,12 +346,12 @@ export const homeTheme = {
     infoSideWrapper: 'flex h-full items-stretch',
     infoSideCard:
       'flex w-full flex-col justify-between rounded-3xl bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.15)] ring-1 ring-slate-200/80 sm:p-7',
-    infoTitle: 'text-lg font-extrabold text-blue-950',
+    infoTitle: 'text-lg font-extrabold text-slate-900',
     infoIntro: 'mt-2 text-sm text-slate-700',
     infoPointsWrapper: 'mt-5 space-y-4 text-sm text-slate-800',
     infoPointRow: 'flex gap-3',
     infoPointIcon: 'mt-1 text-primary',
-    infoPointTitle: 'text-sm font-semibold text-blue-950',
+    infoPointTitle: 'text-sm font-semibold text-slate-900',
     infoPointBody: 'text-xs text-slate-600',
     infoFooter: 'mt-6 border-t border-slate-200 pt-4 text-xs text-slate-500',
   },

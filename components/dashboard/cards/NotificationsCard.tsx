@@ -4,7 +4,7 @@ export default function NotificationsCard() {
     <div className="overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200">
       {/* header */}
       <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
-        <h4 className="text-sm font-extrabold uppercase tracking-wider text-blue-900">Notifications & Alerts</h4>
+        <h4 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">Notifications & Alerts</h4>
         <button className="text-xs font-semibold text-slate-600 hover:text-primary">Mark All as Read</button>
       </div>
       {/* body: list 1 item */}
@@ -13,7 +13,7 @@ export default function NotificationsCard() {
           <div className="flex items-start gap-3">
             <span className="mt-1 grid h-8 w-8 place-items-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200">🛈</span>
             <div>
-              <p className="text-sm font-semibold text-blue-950">Incomplete Registration</p>
+              <p className="text-sm font-semibold text-slate-900">Incomplete Registration</p>
               <p className="mt-1 text-xs text-slate-600">You have not completed your registration form yet.</p>
               <p className="text-xs text-slate-500">Please complete your submission to be eligible for the program.</p>
             </div>

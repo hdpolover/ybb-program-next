@@ -14,6 +14,7 @@ import { dashboardNav } from '@/lib/dashboard/nav';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { componentsTheme } from "@/lib/theme/components";
+import { useSettings } from "@/components/providers/SettingsProvider";
 
 const layoutTheme = componentsTheme.dashboardLayout;
 
@@ -25,6 +26,7 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { settings } = useSettings();
   // Pas SSR dibuat ketutup dulu biar ga bentrok hidrasi, ntar dibuka pas komponen udah kepasang
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [mounted, setMounted] = useState(false);
@@ -80,7 +82,18 @@ export default function Sidebar({
       {/* Logo header */}
       <div className={layoutTheme.sidebarLogoRow}>
         <div className={layoutTheme.sidebarLogoImageWrapper}>
-          <Image src="/img/jysfooters.png" alt="Japan Youth Summit" fill className="object-contain" />
+          
+          {settings?.brand?.logo_url ? (
+            <Image
+              src={settings.brand.logo_url}
+              alt={settings?.brand?.name || "Logo"}
+              fill
+              className="object-contain object-left"
+            />
+          ) : (
+            <span className="text-white font-bold text-xl">{settings?.brand?.name || "Dashboard"}</span>
+          )}
+
         </div>
       </div>
 

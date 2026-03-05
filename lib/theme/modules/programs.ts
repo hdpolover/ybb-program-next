@@ -3,16 +3,16 @@ export const programsTheme = {
     sectionWrapper: 'sm:py-18 py-14 md:py-20',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
     layoutGrid: 'grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]',
-    leftCol: 'space-y-5 text-blue-950',
+    leftCol: 'space-y-5 text-slate-900',
     bodyParagraph: 'text-sm leading-7 text-slate-700 sm:text-base',
     richText:
       '[&_p]:text-slate-700 [&_p]:leading-7 [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4',
     themeBlock: 'mt-4 space-y-3',
     themeHeading: 'text-sm font-semibold uppercase tracking-wide text-primary',
-    themeTitle: 'mt-1 text-sm font-semibold text-blue-950 sm:text-base',
+    themeTitle: 'mt-1 text-sm font-semibold text-slate-900 sm:text-base',
     subthemesGrid: 'mt-2 grid gap-3 sm:grid-cols-2',
     subthemeCard:
-      'rounded-2xl bg-white px-4 py-3 text-sm font-medium text-blue-950 shadow-[0_10px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80',
+      'rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-[0_10px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80',
     rightCol: 'mx-auto w-fit',
     rightCard:
       'w-[340px] sm:w-[380px] rounded-3xl bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80 sm:p-5',
@@ -22,7 +22,7 @@ export const programsTheme = {
     infoRow: 'flex items-start gap-2',
     infoIcon: 'mt-0.5 h-4 w-4 text-primary',
     infoLabel: 'text-xs font-semibold uppercase tracking-wide text-slate-500',
-    infoValue: 'text-sm font-semibold text-blue-950',
+    infoValue: 'text-sm font-semibold text-slate-900',
     infoGrid: 'grid gap-3 sm:grid-cols-2',
     guideButtonsWrapper: 'mt-5 flex flex-col gap-3',
     subtitle: 'mt-1 text-sm font-medium text-primary',
@@ -33,7 +33,7 @@ export const programsTheme = {
     secondaryCta:
       'inline-flex items-center justify-center rounded-lg border border-primary/30 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10',
     tertiaryCta:
-      'inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-100',
+      'inline-flex items-center justify-center rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10',
     infoItemCard: 'rounded-xl border border-gray-200 bg-white p-4',
     infoItemHeader: 'flex items-center gap-2 text-gray-600',
     infoItemIcon: 'h-5 w-5 text-primary',
@@ -54,7 +54,7 @@ export const programsTheme = {
     cardImageWrapper: 'relative h-[220px] w-full',
     cardImage: 'object-cover',
     cardBody: 'p-6',
-    cardTitle: 'text-base font-semibold text-blue-950 sm:text-lg',
+    cardTitle: 'text-base font-semibold text-slate-900 sm:text-lg',
     cardDate: 'mt-1 text-sm text-slate-600',
     arrowButton:
       'flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900',
@@ -102,7 +102,7 @@ export const programsTheme = {
     metaItem: 'flex items-center gap-1.5',
     metaIcon: 'h-4 w-4 text-primary',
     titleWrapper: 'mt-3 flex-1',
-    title: 'text-base font-extrabold text-blue-950 sm:text-lg',
+    title: 'text-base font-extrabold text-slate-900 sm:text-lg',
     dayLabel: 'text-primary',
     bulletsGrid: 'mt-3 grid gap-x-6 gap-y-1 text-sm text-slate-800 sm:grid-cols-2',
     bulletRow: 'flex items-start gap-2',
@@ -128,7 +128,7 @@ export const programsTheme = {
     stepLabel: 'mt-1 text-[11px] font-semibold uppercase tracking-wide text-primary',
     stepCard:
       'col-span-1 rounded-2xl bg-white/95 px-4 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/70 sm:px-5 sm:py-5',
-    stepTitle: 'text-sm font-extrabold text-blue-950 sm:text-base',
+    stepTitle: 'text-sm font-extrabold text-slate-900 sm:text-base',
     stepList: 'mt-2 space-y-1.5 text-xs text-slate-700 sm:text-sm',
     stepListItem: 'flex gap-2',
     stepListBulletIcon: 'mt-1 hidden text-emerald-500 sm:inline',
@@ -148,7 +148,7 @@ export const programsTheme = {
     row: 'align-top text-[13px] text-slate-800',
     cellDate: 'whitespace-nowrap px-5 py-4 text-slate-700 sm:px-6',
     cellStatus: 'px-5 py-4 sm:px-6',
-    cellName: 'px-5 py-4 font-semibold text-blue-950 sm:px-6',
+    cellName: 'px-5 py-4 font-semibold text-slate-900 sm:px-6',
     cellDesc: 'px-5 py-4 text-slate-600 sm:px-6',
     note: 'mx-auto mt-4 max-w-3xl text-center text-xs text-slate-600 sm:mt-5 sm:text-sm',
     noteEmphasis: 'font-semibold text-primary',
@@ -165,7 +165,7 @@ export const programsTheme = {
   insightsStats: {
     iconCircle: 'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-white',
     label: 'text-xs font-semibold uppercase tracking-wide text-primary',
-    value: 'mt-1 text-2xl font-extrabold text-blue-900',
+    value: 'mt-1 text-2xl font-extrabold text-slate-900',
   },
   insightsTheme: {
     card: 'relative overflow-hidden rounded-xl border border-primary/30/60 bg-gradient-to-br from-primary/10 to-white p-5 shadow-[0_8px_30px_rgba(2,6,23,0.06)]',
@@ -266,13 +266,13 @@ export const programsTheme = {
     applicationImageWrapper: 'relative aspect-[16/9]',
     applicationImage: 'object-cover',
     applicationBody: 'p-6 text-center sm:p-8',
-    applicationTitle: 'text-xl font-extrabold text-blue-950 sm:text-2xl',
+    applicationTitle: 'text-xl font-extrabold text-slate-900 sm:text-2xl',
     applicationSubtitle: 'mt-2 text-sm text-gray-600',
     applicationCtaWrapper: 'mt-6',
   },
   galleryOtherPrograms: {
     subtitle: '-mt-6 mb-8 text-center text-sm text-primary sm:text-base',
-    cardTitle: 'text-base font-extrabold text-blue-950 group-hover:text-primary sm:text-lg',
+    cardTitle: 'text-base font-extrabold text-slate-900 group-hover:text-primary sm:text-lg',
     visitChip:
       'inline-flex items-center gap-1 rounded-md border border-primary/30 px-3 py-2 text-xs font-semibold text-primary transition group-hover:border-primary/40',
   },
@@ -291,7 +291,7 @@ export const programsTheme = {
     tabButton:
       'relative px-4 py-5 text-center text-base font-extrabold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 sm:px-6 sm:text-lg',
     tabInactive:
-      'text-blue-900/70 hover:bg-primary/10 hover:text-blue-950 hover:shadow-sm hover:ring-1 hover:ring-primary/30',
+      'text-slate-900/70 hover:bg-primary/10 hover:text-slate-900 hover:shadow-sm hover:ring-1 hover:ring-primary/30',
     tabActiveUnderline: 'absolute inset-y-3 left-0 block w-0.5 rounded-full bg-primary',
     tabLabelInner: 'inline-flex items-center justify-center gap-2',
     tabLabelIcon: 'h-4 w-4 text-primary',
@@ -299,7 +299,7 @@ export const programsTheme = {
     faqListWrapper: 'mt-6 space-y-3',
     faqCard: 'overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
     faqHeaderButton: 'flex w-full items-center justify-between gap-3 px-5 py-4 text-left',
-    faqQuestion: 'text-base font-extrabold text-blue-950',
+    faqQuestion: 'text-base font-extrabold text-slate-900',
     faqChevron: 'h-5 w-5 text-slate-500 transition-transform',
     faqBody: 'px-5 pb-5 pt-0',
     faqAnswer: 'text-sm leading-6 text-slate-700',
@@ -310,13 +310,13 @@ export const programsTheme = {
     innerGrid:
       'grid w-full items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)] lg:gap-12',
     leftCol:
-      'order-2 flex w-full max-w-xl flex-col justify-center space-y-4 text-blue-950 lg:order-1 lg:pr-6',
-    description: 'mt-3 max-w-md text-sm leading-relaxed text-blue-950/90 sm:text-base lg:text-lg',
+      'order-2 flex w-full max-w-xl flex-col justify-center space-y-4 text-slate-900 lg:order-1 lg:pr-6',
+    description: 'mt-3 max-w-md text-sm leading-relaxed text-slate-900/90 sm:text-base lg:text-lg',
     buttonsCol: 'mt-4 flex flex-col items-start gap-3',
     guideButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold shadow-sm transition',
     guideButtonPrimary: 'border-primary/100/80 bg-white/95 text-primary hover:bg-white',
-    guideButtonSecondary: 'border-blue-500/70 bg-blue-50/90 text-blue-800 hover:bg-blue-100',
+    guideButtonSecondary: 'border-blue-500/70 bg-primary/5/90 text-blue-800 hover:bg-primary/10',
     flagCircle: 'inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full',
     rightCol: 'order-1 relative flex w-full justify-center lg:order-2',
     mockupWrapper:
@@ -358,7 +358,7 @@ export const programsTheme = {
     avatarImg: 'h-12 w-12 rounded-full object-cover ring-2 ring-white',
     contentCol: 'flex-1',
     headerRow: 'flex flex-wrap items-center gap-2',
-    name: 'text-lg font-extrabold text-blue-900',
+    name: 'text-lg font-extrabold text-slate-900',
     countryChip:
       'inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/30',
     yearPill:
@@ -366,7 +366,7 @@ export const programsTheme = {
     flagEmoji: 'text-base leading-none',
     quote: 'mt-3 text-sm leading-6 text-slate-700',
     readMoreButton:
-      'mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:text-blue-800',
+      'mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-blue-800',
     readMoreIcon: 'h-4 w-4 transition-transform',
     divider: 'my-4 h-px w-full bg-slate-200',
     metaRow: 'flex items-center justify-between',
@@ -383,7 +383,7 @@ export const programsTheme = {
     iconCircle:
       'mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-primary text-white transition group-hover:bg-primary',
     icon: 'h-5 w-5',
-    value: 'text-2xl font-extrabold text-blue-900',
+    value: 'text-2xl font-extrabold text-slate-900',
     label: 'text-xs font-semibold uppercase tracking-wide text-primary',
   },
 };

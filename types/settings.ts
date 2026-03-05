@@ -39,4 +39,5 @@ export type SettingsData = {
   brand: SettingsBrand;
   footer_navigation: SettingsFooterNavSection[];
   currency: SettingsCurrency;
+  active_program?: { id: string; name: string; slug: string; };
 };

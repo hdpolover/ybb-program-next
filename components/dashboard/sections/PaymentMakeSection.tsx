@@ -299,7 +299,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
 
                     <div className={paymentsTheme.selectionSummaryRow}>
                       {manualMethod === "paypal" ? (
-                        <Globe2 className="h-4 w-4 text-indigo-600" />
+                        <Globe2 className="h-4 w-4 text-primary" />
                       ) : (
                         <CreditCard className="h-4 w-4 text-primary" />
                       )}
@@ -509,7 +509,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                 onChange={(e) => setAgreeReady(e.target.checked)}
               />
               <div className={paymentsTheme.agreementRowInner}>
-                <Globe2 className="h-4 w-4 text-indigo-600" />
+                <Globe2 className="h-4 w-4 text-primary" />
                 <span className="leading-snug">
                   I am ready to join the Japan Youth Summit 2026 in Kyoto, Japan.
                 </span>
