@@ -49,6 +49,9 @@ export async function GET() {
       brand: {
         name: 'Youth Summit',
         logo_url: null,
+        logo_white_url: null,
+        logo_color_url: null,
+        logo_icon_url: null,
         primary_color: null,
         support_email: null,
         contact_phone: null,

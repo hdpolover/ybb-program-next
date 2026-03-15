@@ -129,7 +129,7 @@ export function Navbar() {
 
 
 
-  const logoSrc = settings?.brand?.logo_url?.trim() || '/img/jysfix.png';
+  const logoSrc = settings?.brand?.logo_color_url?.trim() || settings?.brand?.logo_url?.trim() || '/img/jysfix.png';
 
   const submitSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -154,7 +154,8 @@ export function Navbar() {
                 width={420}
                 height={420}
                 className="h-9 w-auto sm:h-11 md:h-12 lg:h-14"
-                priority
+                unoptimized
+
               />
             </div>
 

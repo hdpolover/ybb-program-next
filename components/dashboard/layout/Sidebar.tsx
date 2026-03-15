@@ -91,8 +91,6 @@ export default function Sidebar({
               className="object-contain object-left"
               priority
               unoptimized
-              priority
-              unoptimized
             />
           ) : (
             <span className="text-white font-bold text-xl">{settings?.brand?.name || "Dashboard"}</span>

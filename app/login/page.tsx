@@ -274,9 +274,9 @@ export default function LoginPage() {
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[40%_60%]">
         {/* Panel Gambar (selalu di kiri, dalam card dengan background full) */}
         <div
-          className="relative hidden lg:flex items-center justify-center bg-slate-50 p-6"
+          className="relative hidden lg:flex items-center justify-center bg-slate-50 p-10"
         >
-          <div className="relative h-[calc(100vh-3rem)] w-full overflow-hidden rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+          <div className="relative h-[calc(100vh-5rem)] w-full overflow-hidden rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
             <Image
               src={loginImageSrc}
               alt="Japan Youth Summit Highlight"
