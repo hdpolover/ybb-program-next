@@ -8,7 +8,7 @@ function normalizeBrandUrl(input: string): string {
 }
 
 const BRAND_URL =
-  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
+  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'japanyouthsummit.com';
 
 export async function getAnnouncementsPageData(): Promise<AnnouncementsPageData> {
   return apiGetWithEnvelope<AnnouncementsPageData>('/v1/landing/announcements', {

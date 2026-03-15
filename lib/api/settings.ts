@@ -10,7 +10,7 @@ function normalizeBrandUrl(input: string): string {
 }
 
 const DEFAULT_BRAND_URL =
-  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
+  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'japanyouthsummit.com';
 
 export async function getSettingsForBrandDomain(brandDomain: string): Promise<SettingsData> {
   const normalizedHost = normalizeBrandUrl(brandDomain);

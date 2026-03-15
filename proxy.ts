@@ -9,7 +9,7 @@ function normalizeBrandUrl(input: string): string {
 }
 
 const BRAND_URL =
-  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
+  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'japanyouthsummit.com';
 
 async function isMaintenanceModeEnabled(): Promise<boolean> {
   try {

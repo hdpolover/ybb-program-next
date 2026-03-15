@@ -3,7 +3,7 @@ import { apiGetWithEnvelope, ApiRequestError } from '@/lib/api/httpClient';
 import { cache } from 'react';
 
 // Must match backend expectation exactly (see Postman collection)
-const BRAND_URL = 'istanbulyouthsummit.com';
+const BRAND_URL = 'japanyouthsummit.com';
 
 function normalizeBrandUrl(input: string): string {
   const trimmed = (input || '').trim().replace(/\/+$/, '');
