@@ -1,20 +1,15 @@
 import { NextResponse } from 'next/server';
 import type { SettingsData } from '@/types/settings';
-import { apiGet } from '@/lib/api/httpClient';
+import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { resolveBrandDomain } from '@/lib/server/envContext';
+
 export async function GET() {
   try {
     const brandDomain = await resolveBrandDomain();
-    const json = await apiGet<{ statusCode: number; message: string; data: SettingsData }>(
-      '/v1/landing/settings',
-      {
-        headers: {
-          'x-brand-domain': brandDomain,
-        },
-      },
-    );
-
-    return NextResponse.json(json);
+    // Uses the same unstable_cache-backed fetch as the SSR layout —
+    // so repeated calls within the 1-hour window hit Next.js Data Cache, not the backend.
+    const data = await getSettingsForBrandDomain(brandDomain);
+    return NextResponse.json({ statusCode: 200, message: 'Success', data });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
 
