@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { getEnvBrandDomain } from '@/lib/server/envContext';
 
-const BRAND_DOMAIN = process.env.YBB_BRAND_DOMAIN || 'https://istanyouthsummit.com';
+const BRAND_DOMAIN = getEnvBrandDomain();
 
 type LogoutResponse = {
   statusCode?: number;

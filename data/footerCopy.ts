@@ -25,7 +25,7 @@ export type FooterCopy = {
 
 export const FOOTER_COPY: FooterCopy = {
   description:
-    'Japan Youth Summit brings together young leaders from around the world to co-create sustainable solutions, build meaningful connections, and celebrate cultural diversity in Japan.',
+    'Youth Break the Boundaries brings together young leaders from around the world to co-create sustainable solutions, build meaningful connections, and celebrate cultural diversity.',
   menuTitle: 'Menu',
   contactTitle: 'Contact Us',
   newsletterTitle: 'Subscribe to Our Newsletter',
@@ -50,28 +50,28 @@ export const FOOTER_COPY: FooterCopy = {
   socials: [
     {
       id: 'email',
-      label: 'info@jys.org',
-      href: 'mailto:info@jys.org',
+      label: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@youthbreaktheboundaries.com',
+      href: `mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@youthbreaktheboundaries.com'}`,
     },
     {
       id: 'instagram',
-      label: '@japanyouthsummit',
-      href: 'https://instagram.com/japanyouthsummit',
+      label: '@youthbreaktheboundaries',
+      href: 'https://instagram.com/youthbreaktheboundaries',
     },
     {
       id: 'tiktok',
-      label: '@japanyouthsummit',
-      href: 'https://www.tiktok.com/@japanyouthsummit',
+      label: '@youthbreaktheboundaries',
+      href: 'https://www.tiktok.com/@youthbreaktheboundaries',
     },
     {
       id: 'youtube',
-      label: 'japanyouthsummit',
-      href: 'https://www.youtube.com/@japanyouthsummit',
+      label: 'YouthBreakTheBoundaries',
+      href: 'https://www.youtube.com/@youthbreaktheboundaries',
     },
     {
       id: 'telegram',
-      label: 't.me/japanyouthsummit',
-      href: 'https://t.me/japanyouthsummit',
+      label: 't.me/youthbreaktheboundaries',
+      href: 'https://t.me/youthbreaktheboundaries',
     },
     {
       id: 'location',

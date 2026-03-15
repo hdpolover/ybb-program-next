@@ -19,10 +19,10 @@ export default function Footer() {
   const programsSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'programs');
   const legalSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'legal');
 
-  const brandName = brand?.name?.trim() ? brand.name.trim() : 'Japan Youth Summit';
+  const brandName = brand?.name?.trim() ? brand.name.trim() : 'Youth Break the Boundaries';
   const copyrightText = `Copyright © ${new Date().getFullYear()} ${brandName}`;
 
-  const brandLogo = brand?.logo_url?.trim() ? brand.logo_url.trim() : '/img/jysfooters.png';
+  const brandLogo = brand?.logo_url?.trim() ? brand.logo_url.trim() : '/img/ybb-logo.png';
 
   // Menu is partially dynamic: show only Programs links from API.
   // If API missing or empty, fallback to FOOTER_COPY.nav.

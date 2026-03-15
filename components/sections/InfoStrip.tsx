@@ -6,19 +6,19 @@ export default function InfoStrip() {
     {
       subtitle: 'Location',
       title: 'Programs Held in',
-      description: 'Osaka, Japan',
+      description: process.env.NEXT_PUBLIC_PROGRAM_LOCATION || 'Asia',
       icon: <MapPin className={componentsTheme.infoStrip.icon} />,
     },
     {
       subtitle: 'Contact',
       title: 'Customer Service',
-      description: '+6285173386622',
+      description: process.env.NEXT_PUBLIC_CONTACT_PHONE || '+6280000000000',
       icon: <Phone className={componentsTheme.infoStrip.icon} />,
     },
     {
       subtitle: 'Email',
       title: 'Official Email',
-      description: 'japanyouthsummit@gmail.com',
+      description: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@youthbreaktheboundaries.com',
       icon: <Mail className={componentsTheme.infoStrip.icon} />,
     },
   ];

@@ -36,14 +36,14 @@ export const contactItems: ContactItemContent[] = [
   {
     id: 'email',
     title: 'Email to Customer Support',
-    subtitle: 'japanyouthsummit@gmail.com',
-    href: 'mailto:japanyouthsummit@gmail.com',
+    subtitle: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@youthbreaktheboundaries.com',
+    href: `mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@youthbreaktheboundaries.com'}`,
   },
   {
     id: 'instagram',
     title: 'Visit Us',
-    subtitle: 'japanyouthsummit',
-    href: 'https://instagram.com/japanyouthsummit',
+    subtitle: process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE || 'youthbreaktheboundaries',
+    href: `https://instagram.com/${process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE || 'youthbreaktheboundaries'}`,
   },
   {
     id: 'address',

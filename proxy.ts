@@ -2,14 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
 
-const BRAND_URL =
-  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'japanyouthsummit.com';
+const BRAND_URL = (() => {
+  const raw = process.env.NEXT_PUBLIC_BRAND_DOMAIN || process.env.YBB_BRAND_DOMAIN;
+  if (!raw) throw new Error('Missing NEXT_PUBLIC_BRAND_DOMAIN or YBB_BRAND_DOMAIN environment variable.');
+  return raw.trim().replace(/\/+$/, '').replace(/^https?:\/\//, '');
+})();
 
 async function isMaintenanceModeEnabled(): Promise<boolean> {
   try {
