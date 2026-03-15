@@ -3,7 +3,9 @@ import { headers } from 'next/headers';
 export function normalizeBrandUrl(input: string): string {
   const trimmed = (input || '').trim().replace(/\/+$/, '');
   if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
+  // Strip protocol first, then strip port (localhost:3000 → localhost, domain.com:8080 → domain.com)
+  const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
+  return withoutProtocol.split(':')[0];
 }
 
 /**

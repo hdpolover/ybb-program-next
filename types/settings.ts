@@ -13,6 +13,7 @@ export type SettingsBrand = {
   logo_color_url: string | null;
   logo_icon_url: string | null;
   primary_color: string | null;
+  description?: string | null;
   support_email: string | null;
   contact_phone: string | null;
   contact_whatsapp: string | null;

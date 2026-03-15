@@ -80,7 +80,7 @@ export default function Footer() {
                 unoptimized
               />
             </div>
-            <p className="mt-2 max-w-sm text-sm text-white/80">{FOOTER_COPY.description}</p>
+            <p className="mt-2 max-w-sm text-sm text-white/80">{brand?.description || FOOTER_COPY.description}</p>
           </div>
 
           {/* Navigasi / Menu utama (Quick Links) */}

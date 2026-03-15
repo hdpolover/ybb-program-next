@@ -6,6 +6,7 @@ import { PhoneCall, Mail, Instagram, MapPin } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { contactItems, contactSectionContent } from '@/data/contact';
+import { useSettings } from '@/components/providers/SettingsProvider';
 
 export type ContactItem = {
   id: 'chat' | 'email' | 'instagram' | 'address';
@@ -21,33 +22,37 @@ export type GetInTouchProps = {
   items?: ContactItem[];
 };
 
-const resolveDefaultItems = (): ContactItem[] =>
-  contactItems.map(item => {
-    const base = {
-      id: item.id,
-      title: item.title,
-      subtitle: item.subtitle,
-      href: item.href,
-    } as const;
-
-    if (item.id === 'chat') {
-      return { ...base, icon: <PhoneCall className="h-4 w-4" /> };
-    }
-    if (item.id === 'email') {
-      return { ...base, icon: <Mail className="h-4 w-4" /> };
-    }
-    if (item.id === 'instagram') {
-      return { ...base, icon: <Instagram className="h-4 w-4" /> };
-    }
-    return { ...base, icon: <MapPin className="h-4 w-4" /> };
-  });
-
 export default function GetInTouchSection({
   title = contactSectionContent.subtitle,
   eyebrow = contactSectionContent.title,
   items,
 }: GetInTouchProps) {
-  const resolvedItems = items ?? resolveDefaultItems();
+  const { settings } = useSettings();
+  const brand = settings?.brand ?? null;
+
+  const resolvedItems: ContactItem[] = items ?? contactItems.map(item => {
+    if (item.id === 'chat') {
+      const phone = brand?.contact_whatsapp || brand?.contact_phone || item.subtitle;
+      const href = brand?.contact_whatsapp
+        ? `https://wa.me/${brand.contact_whatsapp.replace(/\D/g, '')}`
+        : (brand?.contact_phone ? `tel:${brand.contact_phone}` : item.href);
+      return { id: item.id, title: item.title, subtitle: phone, href, icon: <PhoneCall className="h-4 w-4" /> };
+    }
+    if (item.id === 'email') {
+      const email = brand?.support_email || item.subtitle;
+      return { id: item.id, title: item.title, subtitle: email, href: `mailto:${email}`, icon: <Mail className="h-4 w-4" /> };
+    }
+    if (item.id === 'instagram') {
+      const handle = brand?.social_media?.instagram
+        ? brand.social_media.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\/?/, '').replace(/^@/, '')
+        : item.subtitle;
+      const href = brand?.social_media?.instagram || `https://instagram.com/${handle}`;
+      return { id: item.id, title: item.title, subtitle: `@${handle}`, href, icon: <Instagram className="h-4 w-4" /> };
+    }
+    // address
+    const address = brand?.address || item.subtitle;
+    return { id: item.id, title: item.title, subtitle: address, href: item.href, icon: <MapPin className="h-4 w-4" /> };
+  });
   return (
     <section className={componentsTheme.getInTouch.sectionWrapper}>
       <div
