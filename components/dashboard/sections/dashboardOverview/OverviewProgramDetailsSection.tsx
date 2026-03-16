@@ -1,9 +1,10 @@
 "use client";
 
-import { CalendarDays, Clock3 } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
+import { usePortalSubmissionProgress } from "@/hooks/usePortalSubmissionProgress";
 import { componentsTheme } from "@/lib/theme/components";
 
 const overviewTheme = componentsTheme.dashboardOverview;
@@ -19,76 +20,33 @@ export interface ProgressStep {
   estimatedRelease?: string;
 }
 
-export const PROGRESS_STEPS: ProgressStep[] = [
-  {
-    id: 1,
-    title: "Participant Registration",
-    description: "Register an account and complete the registration form including payment.",
-    status: "done",
-  },
-  {
-    id: 2,
-    title: "LoA Announcement",
-    description:
-      "Your application has passed the registration review stage. The Letter of Acceptance (LoA) is currently being prepared by the YBB team.",
-    status: "done",
-    processingPeriod: "22 January - 23 January 2026",
-    estimatedRelease: "24 January 2026",
-  },
-  {
-    id: 3,
-    title: "Participant Registration Fully Funded",
-    description:
-      "Your registration is complete. Don't forget to complete your payment as scheduled to officially join the program.",
-    status: "waiting",
-    processingPeriod: "01 August - 30 September 2025",
-  },
-  {
-    id: 4,
-    title: "First Payment",
-    description:
-      "Program fees are available when the payment period begins and after you complete the registration fee.",
-    status: "upcoming",
-  },
-  {
-    id: 5,
-    title: "Mentoring",
-    description: "Participants will receive mentoring after the first stage of payment.",
-    status: "upcoming",
-  },
-  {
-    id: 6,
-    title: "Second Payment",
-    description:
-      "Participants must complete the second installment after the mentoring session to proceed.",
-    status: "upcoming",
-  },
-  {
-    id: 7,
-    title: "Fully Funded Candidate Interview Announcement",
-    description: "Selected fully funded candidates are invited to attend the interview stage.",
-    status: "upcoming",
-  },
-  {
-    id: 8,
-    title: "Interview Fully Funded Candidates",
-    description: "Interview session for shortlisted fully funded candidates.",
-    status: "upcoming",
-  },
-  {
-    id: 9,
-    title: "Final Announcement of Fully Funded Candidates",
-    description: "Final results for fully funded candidates who have been selected.",
-    status: "upcoming",
-  },
-  {
-    id: 10,
-    title: "Japan Youth Summit Program",
-    description:
-      "The Japan Youth Summit program will take place on February 2 - 5, 2026, in Osaka & Kyoto, Japan.",
-    status: "upcoming",
-  },
-];
+export function mapSubmissionStatusToProgressStatus(status?: string): ProgressStatus {
+  if (status === "completed") return "done";
+  if (status === "in_progress") return "waiting";
+  return "upcoming";
+}
+
+export function buildProgressSteps(
+  sections: Array<{ id: string; title: string; description?: string; status?: string }> | null | undefined,
+): ProgressStep[] {
+  if (!sections?.length) {
+    return [
+      {
+        id: 1,
+        title: "Application Progress",
+        description: "Your submission progress will appear here once the application form is available.",
+        status: "upcoming",
+      },
+    ];
+  }
+
+  return sections.map((section, index) => ({
+    id: index + 1,
+    title: section.title,
+    description: section.description || "Complete this part of your application to move forward.",
+    status: mapSubmissionStatusToProgressStatus(section.status),
+  }));
+}
 
 interface OverviewProgramDetailsSectionProps {
   showSeeDetailsButton?: boolean;
@@ -100,48 +58,52 @@ export default function OverviewProgramDetailsSection({
   const router = useRouter();
   const { dashboardSummary } = useDashboardData();
   const activeApplication = dashboardSummary?.activeApplication ?? null;
+  const { submissionProgress, currentStepIndex, loading } = usePortalSubmissionProgress();
 
-  const totalSteps = PROGRESS_STEPS.length;
-  const currentIndex = Math.max(
-    0,
-    PROGRESS_STEPS.findIndex(step => step.status === "waiting")
-  );
-  const currentStep = PROGRESS_STEPS[currentIndex] ?? PROGRESS_STEPS[0];
+  const progressSteps = useMemo(() => buildProgressSteps(submissionProgress?.sections), [submissionProgress?.sections]);
 
-  const completedCount = PROGRESS_STEPS.filter(step => step.status === "done").length;
+  const totalSteps = progressSteps.length;
+  const currentIndex = Math.min(currentStepIndex, Math.max(0, totalSteps - 1));
+  const currentStep = progressSteps[currentIndex] ?? progressSteps[0];
+
+  const completedCount = progressSteps.filter(step => step.status === "done").length;
   const progressRatio = totalSteps > 0 ? (completedCount + 1) / totalSteps : 0;
-
-  const statusLabel =
-    currentStep.status === "done"
-      ? "Completed"
-      : currentStep.status === "waiting"
-      ? "In Progress"
-      : "Upcoming";
 
   const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
 
   const progressPercentage = useMemo(() => {
-    const pct = activeApplication?.progress;
+    const pct = submissionProgress?.overallProgress ?? activeApplication?.progress;
     if (typeof pct !== "number" || Number.isNaN(pct)) return fallbackProgressPercentage;
     return Math.min(100, Math.max(0, Math.round(pct)));
-  }, [activeApplication?.progress, fallbackProgressPercentage]);
+  }, [activeApplication?.progress, fallbackProgressPercentage, submissionProgress?.overallProgress]);
 
-  const currentTitle = activeApplication?.currentStep?.trim() || currentStep.title;
+  const currentTitle = currentStep?.title || activeApplication?.currentStep?.trim() || "Application Progress";
 
   const currentBody = useMemo(() => {
+    if (currentStep?.description) {
+      return currentStep.description;
+    }
     if (activeApplication?.currentStep?.trim()) {
       return "Continue your application to complete the next requirements.";
     }
-    return currentStep.description;
-  }, [activeApplication?.currentStep, currentStep.description]);
+    return "Complete the remaining submission sections to move your application forward.";
+  }, [activeApplication?.currentStep, currentStep?.description]);
 
   const metaProcessingText = useMemo(() => {
     const days = activeApplication?.daysUntilDeadline;
     if (typeof days === "number" && !Number.isNaN(days)) {
       return `${days} days until deadline`;
     }
-    return currentStep.processingPeriod || null;
-  }, [activeApplication?.daysUntilDeadline, currentStep.processingPeriod]);
+    return null;
+  }, [activeApplication?.daysUntilDeadline]);
+
+  const statusLabel = useMemo(() => {
+    if (loading) return "Loading";
+    if (!currentStep) return "Upcoming";
+    if (currentStep.status === "done") return "Completed";
+    if (currentStep.status === "waiting") return "In Progress";
+    return "Upcoming";
+  }, [currentStep, loading]);
 
   return (
     <div className={overviewTheme.programCard}>
@@ -149,7 +111,7 @@ export default function OverviewProgramDetailsSection({
         <div>
           <h2 className={overviewTheme.programTitle}>Your Progress</h2>
           <p className={overviewTheme.programSubtitle}>
-            See which stage of the Japan Youth Summit journey you are currently in.
+            See which submission sections are done and what still needs attention.
           </p>
         </div>
         {showSeeDetailsButton && (
@@ -188,23 +150,14 @@ export default function OverviewProgramDetailsSection({
             <span className={overviewTheme.progressStatusPill}>{statusLabel}</span>
             <h3 className={overviewTheme.progressCurrentTitle}>{currentTitle}</h3>
             <p className={overviewTheme.progressCurrentBody}>{currentBody}</p>
-            {(metaProcessingText || currentStep.estimatedRelease) && (
+            {metaProcessingText && (
               <ul className={overviewTheme.progressMetaList}>
                 {metaProcessingText && (
                   <li className={overviewTheme.progressMetaItem}>
                     <CalendarDays className={overviewTheme.progressMetaIcon} />
                     <span>
-                      <span className={overviewTheme.progressMetaLabel}>Processing period:</span>{" "}
+                      <span className={overviewTheme.progressMetaLabel}>Deadline:</span>{" "}
                       {metaProcessingText}
-                    </span>
-                  </li>
-                )}
-                {currentStep.estimatedRelease && (
-                  <li className={overviewTheme.progressMetaItem}>
-                    <Clock3 className={overviewTheme.progressMetaIcon} />
-                    <span>
-                      <span className={overviewTheme.progressMetaLabel}>Estimated release:</span>{" "}
-                      {currentStep.estimatedRelease}
                     </span>
                   </li>
                 )}

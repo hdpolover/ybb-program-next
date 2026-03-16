@@ -12,10 +12,16 @@ export async function GET(request: Request) {
     }
 
     const brandDomain = resolveBrandDomainFromRequest(request);
+    const requestUrl = new URL(request.url);
+    const programId = requestUrl.searchParams.get('programId');
     const apiUrl = new URL(
       '/v1/portal/submissions/detail',
       (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''),
     );
+
+    if (programId) {
+      apiUrl.searchParams.set('programId', programId);
+    }
 
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',

@@ -4,6 +4,10 @@ import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { useSettings } from "@/components/providers/SettingsProvider";
 import { useEffect, useRef, useState } from "react";
+import {
+  ACTIVE_PROGRAM_STORAGE_KEY,
+  announceActiveProgramChange,
+} from "@/lib/dashboard/activeProgram";
 
 type RegisteredProgram = {
   programId: string;
@@ -76,7 +80,7 @@ export default function ProgramSelector({
 
     let stored = '';
     try {
-      stored = window.localStorage.getItem('ybb_active_program_id') || '';
+      stored = window.localStorage.getItem(ACTIVE_PROGRAM_STORAGE_KEY) || '';
     } catch {
       // ignore
     }
@@ -89,10 +93,12 @@ export default function ProgramSelector({
   useEffect(() => {
     if (!activeId) return;
     try {
-      window.localStorage.setItem('ybb_active_program_id', activeId);
+      window.localStorage.setItem(ACTIVE_PROGRAM_STORAGE_KEY, activeId);
     } catch {
       // ignore
     }
+
+    announceActiveProgramChange(activeId);
   }, [activeId]);
 
   const active = normalizedPrograms.find(p => p.id === activeId) ?? normalizedPrograms[0] ?? null;

@@ -4,6 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Info } from "lucide-react";
 import Image from "next/image";
 import { componentsTheme } from "@/lib/theme/components";
+import {
+  ACTIVE_PROGRAM_CHANGED_EVENT,
+  appendProgramId,
+  readActiveProgramId,
+} from "@/lib/dashboard/activeProgram";
 import type {
   PortalSubmissionDetail,
   PortalSubmissionEssay,
@@ -144,12 +149,30 @@ export default function SubmissionEditSection() {
   const [sectionValues, setSectionValues] = useState<Record<string, Record<string, string>>>({});
   const [essayValues, setEssayValues] = useState<Record<string, string>>({});
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [programSelectionReady, setProgramSelectionReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingSectionId, setSavingSectionId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    const syncSelectedProgram = () => {
+      setSelectedProgramId(readActiveProgramId());
+      setProgramSelectionReady(true);
+    };
+
+    syncSelectedProgram();
+    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, syncSelectedProgram as EventListener);
+
+    return () => {
+      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, syncSelectedProgram as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!programSelectionReady) return;
+
     let cancelled = false;
 
     (async () => {
@@ -157,7 +180,7 @@ export default function SubmissionEditSection() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch("/api/portal/submissions/detail", {
+        const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
@@ -196,7 +219,7 @@ export default function SubmissionEditSection() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [programSelectionReady, selectedProgramId]);
 
   const activeSection = useMemo(() => {
     return detail?.sections.find(section => section.id === activeSectionId) ?? detail?.sections[0] ?? null;
@@ -231,7 +254,7 @@ export default function SubmissionEditSection() {
     try {
       const sectionPayload = sectionValues[activeSection.id] || {};
       const requests: Promise<Response>[] = [
-        fetch(`/api/portal/submissions/sections/${activeSection.id}`, {
+        fetch(appendProgramId(`/api/portal/submissions/sections/${activeSection.id}`, selectedProgramId), {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ data: sectionPayload }),
@@ -240,7 +263,7 @@ export default function SubmissionEditSection() {
 
       if (activeSection.id === "entry_information" && sectionEssays.length > 0) {
         requests.push(
-          fetch("/api/portal/submissions/sections/essays", {
+          fetch(appendProgramId("/api/portal/submissions/sections/essays", selectedProgramId), {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ data: Object.fromEntries(sectionEssays.map(essay => [essay.id, essayValues[essay.id] || ""])) }),

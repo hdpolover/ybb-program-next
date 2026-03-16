@@ -5,6 +5,11 @@ import { AlertCircle, FileText, Info } from "lucide-react";
 import Image from "next/image";
 import { componentsTheme } from "@/lib/theme/components";
 import SubmissionReadProfileHeaderSection from "./submission/SubmissionReadProfileHeaderSection";
+import {
+  ACTIVE_PROGRAM_CHANGED_EVENT,
+  appendProgramId,
+  readActiveProgramId,
+} from "@/lib/dashboard/activeProgram";
 import type {
   PortalSubmissionDetail,
   PortalSubmissionField,
@@ -82,10 +87,28 @@ function FieldRow({ field, value }: { field: PortalSubmissionField; value: unkno
 export default function SubmissionReadSection() {
   const [detail, setDetail] = useState<PortalSubmissionDetail | null>(null);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [programSelectionReady, setProgramSelectionReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const syncSelectedProgram = () => {
+      setSelectedProgramId(readActiveProgramId());
+      setProgramSelectionReady(true);
+    };
+
+    syncSelectedProgram();
+    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, syncSelectedProgram as EventListener);
+
+    return () => {
+      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, syncSelectedProgram as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!programSelectionReady) return;
+
     let cancelled = false;
 
     (async () => {
@@ -93,7 +116,7 @@ export default function SubmissionReadSection() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch("/api/portal/submissions/detail", {
+        const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
@@ -119,7 +142,7 @@ export default function SubmissionReadSection() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [programSelectionReady, selectedProgramId]);
 
   const activeSection = useMemo(() => {
     return detail?.sections.find(section => section.id === activeSectionId) ?? detail?.sections[0] ?? null;

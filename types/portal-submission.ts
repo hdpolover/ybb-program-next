@@ -59,3 +59,20 @@ export type PortalSubmissionDetail = {
   essays: PortalSubmissionEssay[];
   requirements: PortalSubmissionRequirement[];
 };
+
+export type PortalSubmissionProgressSection = {
+  id: string;
+  title: string;
+  description?: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'issues' | string;
+  isRequired: boolean;
+  updatedAt?: string;
+};
+
+export type PortalSubmissionProgress = {
+  applicationId: string;
+  programName: string;
+  status: string;
+  overallProgress: number;
+  sections: PortalSubmissionProgressSection[];
+};
