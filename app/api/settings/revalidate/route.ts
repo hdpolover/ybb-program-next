@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     }
   }
 
-  revalidateTag(SETTINGS_CACHE_TAG);
+  revalidateTag(SETTINGS_CACHE_TAG, 'max');
 
   return NextResponse.json({ revalidated: true, tag: SETTINGS_CACHE_TAG });
 }

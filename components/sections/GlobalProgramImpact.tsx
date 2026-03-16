@@ -4,18 +4,24 @@ import { Users, Globe2, GraduationCap } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { IMPACT_DISTRIBUTION_COPY } from '@/data/home/sections/impact/impactDistribution';
+import type { ProgramImpactSection } from '@/types/home';
 
-export default function GlobalProgramImpact() {
+interface Props {
+  section?: ProgramImpactSection;
+}
+
+export default function GlobalProgramImpact({ section }: Props) {
+  const eyebrow = section?.content.eyebrow ?? IMPACT_DISTRIBUTION_COPY.globalImpactEyebrow;
+  const title = section?.content.title ?? IMPACT_DISTRIBUTION_COPY.globalImpactTitle;
+  const stats = section?.content.stats ?? IMPACT_DISTRIBUTION_COPY.stats;
+
   return (
     <section className={componentsTheme.globalImpact.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader
-          eyebrow={IMPACT_DISTRIBUTION_COPY.globalImpactEyebrow}
-          title={IMPACT_DISTRIBUTION_COPY.globalImpactTitle}
-        />
+        <SectionHeader eyebrow={eyebrow} title={title} />
 
         <div className={componentsTheme.globalImpact.statsGrid}>
-          {IMPACT_DISTRIBUTION_COPY.stats.map(stat => {
+          {stats.map(stat => {
             const Icon = stat.icon === 'participants' ? Users : stat.icon === 'countries' ? Globe2 : GraduationCap;
             return (
               <div key={stat.id} className={componentsTheme.globalImpact.card}>

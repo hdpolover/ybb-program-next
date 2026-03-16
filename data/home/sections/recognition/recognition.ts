@@ -21,6 +21,7 @@ export type RecognitionHakiInfo = {
   status: string;
   classText: string;
   owner: string;
+  logoUrl?: string;
 };
 
 export type RecognitionContent = {
@@ -96,6 +97,7 @@ export const recognitionContent: RecognitionContent = {
     status: '(TM) Registered',
     classText: '41 -A look back at past Japan Youth Summit editions Education, seminars, conferences, cultural events, etc.',
     owner: 'MUHAMMAD ALDI SUBAKTI (ID)',
+    logoUrl: '/img/jysfix.png',
   },
 };
 

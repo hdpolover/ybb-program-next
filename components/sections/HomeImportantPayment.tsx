@@ -2,6 +2,7 @@ import { AlertTriangle, CalendarCheck, Users2, BadgeCheck, RefreshCw } from 'luc
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { HOME_IMPORTANT_PAYMENT_CONTENT } from '@/data/home/sections/important-payment/homeImportantPayment';
+import type { PaymentInfoSection } from '@/types/home';
 
 function renderIcon(iconKey: string) {
   switch (iconKey) {
@@ -18,8 +19,12 @@ function renderIcon(iconKey: string) {
   }
 }
 
-export default function HomeImportantPayment() {
-  const content = HOME_IMPORTANT_PAYMENT_CONTENT;
+interface Props {
+  section?: PaymentInfoSection;
+}
+
+export default function HomeImportantPayment({ section }: Props) {
+  const content = section?.content ?? HOME_IMPORTANT_PAYMENT_CONTENT;
 
   return (
     <section className={componentsTheme.homeImportantPayment.sectionWrapper}>

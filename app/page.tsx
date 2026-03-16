@@ -31,6 +31,13 @@ import type {
   AlumniStoriesSection as AlumniStoriesApiSection,
   ProgramAwardsSection,
   SupportedBySection,
+  ProgramShortsSection,
+  ProgramImpactSection,
+  ProgramFeaturesSection,
+  ProgramBenefitsSection as ProgramBenefitsSectionType,
+  DelegateTestimonialsSection,
+  OrganizationCredentialsSection,
+  PaymentInfoSection,
 } from '@/types/home';
 
 export const dynamic = 'force-dynamic';
@@ -83,6 +90,27 @@ export default async function Home() {
   const supportedBySection = homeData.sections.find(
     (section): section is SupportedBySection => section.type === 'supported_by'
   );
+  const programShortsSection = homeData.sections.find(
+    (section): section is ProgramShortsSection => section.type === 'program_shorts'
+  );
+  const programImpactSection = homeData.sections.find(
+    (section): section is ProgramImpactSection => section.type === 'program_impact'
+  );
+  const programFeaturesSection = homeData.sections.find(
+    (section): section is ProgramFeaturesSection => section.type === 'program_features'
+  );
+  const programBenefitsSection = homeData.sections.find(
+    (section): section is ProgramBenefitsSectionType => section.type === 'program_benefits'
+  );
+  const delegateTestimonialsSection = homeData.sections.find(
+    (section): section is DelegateTestimonialsSection => section.type === 'delegate_testimonials'
+  );
+  const organizationCredentialsSection = homeData.sections.find(
+    (section): section is OrganizationCredentialsSection => section.type === 'organization_credentials'
+  );
+  const paymentInfoSection = homeData.sections.find(
+    (section): section is PaymentInfoSection => section.type === 'payment_info'
+  );
 
   const objectivesImageGallery = programObjectivesSection
     ? programObjectivesSection.content.images.map(img => ({
@@ -133,7 +161,7 @@ export default async function Home() {
         registrationTypes={registrationOverviewSection?.content.registration_types}
         guidelines={registrationOverviewSection?.content.guidelines}
       />
-      <HomeImportantPayment />
+      <HomeImportantPayment section={paymentInfoSection} />
       <AboutProgram
         about={programOverviewSection?.content.about_us}
         vision={programOverviewSection?.content.vision_mission.vision}
@@ -150,19 +178,19 @@ export default async function Home() {
         subtitle={programHighlightVideosSection?.content.subtitle}
         tabs={programHighlightVideosSection?.content.tabs}
       />
-      <MomentsIn60Section />
+      <MomentsIn60Section section={programShortsSection} />
       <section className="h-20" />
-      <GlobalProgramImpact />
+      <GlobalProgramImpact section={programImpactSection} />
       <ParticipantDistribution />
       <FurtherInformationSection guidebooks={furtherGuidebooks} />
-      <WhatMakesUsSpecialSection />
-      <ProgramBenefitsSection />
+      <WhatMakesUsSpecialSection section={programFeaturesSection} />
+      <ProgramBenefitsSection section={programBenefitsSection} />
       <AlumniStoriesSection
         title={alumniStoriesSection?.content.title}
         subtitle={alumniStoriesSection?.content.subtitle}
         items={alumniStoriesSection?.content.items}
       />
-      <Testimonials />
+      <Testimonials section={delegateTestimonialsSection} />
       <PhotoGallery
         mode="home"
         title={galleryTitle}
@@ -176,7 +204,7 @@ export default async function Home() {
         subtitle={programAwardsSection?.content.subtitle}
         apiItems={programAwardsSection?.content.items}
       />
-      <Recognition />
+      <Recognition section={organizationCredentialsSection} />
       <GetInTouchSection />
       {/* <FAQ /> */}
     </main>

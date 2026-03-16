@@ -3,43 +3,29 @@
 import { useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
+import type { ProgramShortsSection } from '@/types/home';
 
-const shorts = [
-  {
-    id: 'short-1',
-    embedUrl: 'https://www.youtube.com/embed/TnCyfXh_p2M?rel=0&mute=1',
-  },
-  {
-    id: 'short-2',
-    embedUrl: 'https://www.youtube.com/embed/Jwgd05MZ4iI?rel=0&mute=1',
-  },
-  {
-    id: 'short-3',
-    embedUrl: 'https://www.youtube.com/embed/vsNbESxF1wM?rel=0&mute=1',
-  },
-  {
-    id: 'short-4',
-    embedUrl: 'https://www.youtube.com/embed/PKJyaMElURY?rel=0&mute=1',
-  },
-  {
-    id: 'short-5',
-    embedUrl: 'https://www.youtube.com/embed/2h8vSDcr5PI?rel=0&mute=1',
-  },
-  {
-    id: 'short-6',
-    embedUrl: 'https://www.youtube.com/embed/2OViDwjKre0?rel=0&mute=1',
-  },
-  {
-    id: 'short-7',
-    embedUrl: 'https://www.youtube.com/embed/HX5Wesz0jgk?rel=0&mute=1',
-  },
-  {
-    id: 'short-8',
-    embedUrl: 'https://www.youtube.com/embed/DxDSMQLvyS0?rel=0&mute=1',
-  },
+const DEFAULT_SHORTS = [
+  { id: 'short-1', embed_url: 'https://www.youtube.com/embed/TnCyfXh_p2M?rel=0&mute=1' },
+  { id: 'short-2', embed_url: 'https://www.youtube.com/embed/Jwgd05MZ4iI?rel=0&mute=1' },
+  { id: 'short-3', embed_url: 'https://www.youtube.com/embed/vsNbESxF1wM?rel=0&mute=1' },
+  { id: 'short-4', embed_url: 'https://www.youtube.com/embed/PKJyaMElURY?rel=0&mute=1' },
+  { id: 'short-5', embed_url: 'https://www.youtube.com/embed/2h8vSDcr5PI?rel=0&mute=1' },
+  { id: 'short-6', embed_url: 'https://www.youtube.com/embed/2OViDwjKre0?rel=0&mute=1' },
+  { id: 'short-7', embed_url: 'https://www.youtube.com/embed/HX5Wesz0jgk?rel=0&mute=1' },
+  { id: 'short-8', embed_url: 'https://www.youtube.com/embed/DxDSMQLvyS0?rel=0&mute=1' },
 ];
 
-export default function MomentsIn60Section() {
+interface Props {
+  section?: ProgramShortsSection;
+}
+
+export default function MomentsIn60Section({ section }: Props) {
+  const shorts = (section?.content.items ?? DEFAULT_SHORTS).filter(s => s.embed_url);
+  const eyebrow = section?.content.eyebrow ?? 'Short Highlights';
+  const title = section?.content.title ?? 'Discover Our Moments in 60 Seconds';
+  const description = section?.content.description ?? "Japan Youth Summit's workshops, cultural night, and sessions — all captured in 60-second highlights straight from Osaka."
+
   const [startIndex, setStartIndex] = useState(0);
 
   const visibleShorts = shorts
@@ -70,13 +56,12 @@ export default function MomentsIn60Section() {
         <div className="grid grid-cols-1 items-center gap-8 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)]">
           <div>
             <SectionHeader
-              eyebrow="Short Highlights"
-              title="Discover Our Moments in 60 Seconds"
+              eyebrow={eyebrow}
+              title={title}
               align="left"
             />
             <p className={componentsTheme.momentsShorts.description}>
-              Watch bite-sized YouTube Shorts from Japan Youth Summit’s workshops, cultural
-              sessions, and everyday moments in Osaka.
+              {description}
             </p>
           </div>
 
@@ -85,8 +70,8 @@ export default function MomentsIn60Section() {
               {visibleShorts.map(short => (
                 <div key={short.id} className={componentsTheme.momentsShorts.shortWrapper}>
                   <iframe
-                    src={short.embedUrl}
-                    title="Japan Youth Summit short highlight"
+                    src={short.embed_url!}
+                    title="Program short highlight"
                     className={componentsTheme.momentsShorts.shortIframe}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen

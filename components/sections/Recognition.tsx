@@ -15,12 +15,13 @@ import {
   ArrowRight,
   Users,
 } from 'lucide-react';
+import type { OrganizationCredentialsSection } from '@/types/home';
 import {
   recognitionContent,
   type RecognitionProofItem,
 } from '@/data/home/sections/recognition/recognition';
 
-const resolveProofIcon = (key: RecognitionProofItem['iconKey']): JSX.Element => {
+const resolveProofIcon = (key: RecognitionProofItem['iconKey'] | string): JSX.Element => {
   switch (key) {
     case 'ministry':
       return <Building2 className="h-5 w-5" />;
@@ -45,8 +46,15 @@ const resolveProofIcon = (key: RecognitionProofItem['iconKey']): JSX.Element => 
   }
 };
 
-export default function Recognition() {
-  const { title, subtitle, proofs, haki } = recognitionContent;
+interface Props {
+  section?: OrganizationCredentialsSection;
+}
+
+export default function Recognition({ section }: Props) {
+  const title = section?.content.title ?? recognitionContent.title;
+  const subtitle = section?.content.subtitle ?? recognitionContent.subtitle;
+  const proofs = section?.content.proofs ?? recognitionContent.proofs;
+  const trademark = section?.content.trademark ?? recognitionContent.haki;
   return (
     <section className={componentsTheme.recognition.sectionWrapper}>
       <div className={componentsTheme.recognition.container}>
@@ -56,6 +64,7 @@ export default function Recognition() {
         <div className="grid gap-6 lg:grid-cols-12">
           {/* Kiri: panel visual + CTA PDKI */}
           <div className="flex items-center justify-center lg:col-span-5">
+            {trademark && (
             <div className={componentsTheme.recognition.hakiCard}>
               <div className="mb-3 inline-flex items-center gap-2">
                 <span className={componentsTheme.recognition.hakiIconCircle}>
@@ -67,35 +76,38 @@ export default function Recognition() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                {trademark.logoUrl && (
                 <Image
-                  src="/img/jysfix.png"
-                  alt="JYS"
+                  src={trademark.logoUrl}
+                  alt={trademark.brand}
                   width={80}
                   height={80}
                   className="h-12 w-auto"
+                  unoptimized={trademark.logoUrl.startsWith('http')}
                 />
+                )}
                 <div>
-                  <p className={componentsTheme.recognition.hakiBrand}>{haki.brand}</p>
-                  <p className={componentsTheme.recognition.hakiClassText}>{haki.classText}</p>
+                  <p className={componentsTheme.recognition.hakiBrand}>{trademark.brand}</p>
+                  <p className={componentsTheme.recognition.hakiClassText}>{trademark.classText}</p>
                 </div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <div className={componentsTheme.recognition.hakiMeta}>
                   <p className={componentsTheme.recognition.hakiMetaLabel}>Registration No.</p>
-                  <p className={componentsTheme.recognition.hakiMetaValue}>{haki.regNo}</p>
+                  <p className={componentsTheme.recognition.hakiMetaValue}>{trademark.regNo}</p>
                 </div>
                 <div className={componentsTheme.recognition.hakiMeta}>
                   <p className={componentsTheme.recognition.hakiMetaLabel}>Status</p>
-                  <p className={componentsTheme.recognition.hakiMetaValue}>{haki.status}</p>
+                  <p className={componentsTheme.recognition.hakiMetaValue}>{trademark.status}</p>
                 </div>
                 <div className={componentsTheme.recognition.hakiMeta}>
                   <p className={componentsTheme.recognition.hakiMetaLabel}>Owner</p>
-                  <p className={componentsTheme.recognition.hakiMetaValue}>{haki.owner}</p>
+                  <p className={componentsTheme.recognition.hakiMetaValue}>{trademark.owner}</p>
                 </div>
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <a
-                  href={haki.href}
+                  href={trademark.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={componentsTheme.recognition.hakiButton}
@@ -105,6 +117,7 @@ export default function Recognition() {
                 <span className={componentsTheme.recognition.hakiChip}>HAKI</span>
               </div>
             </div>
+            )}
           </div>
 
           {/* Kanan: daftar bukti */}

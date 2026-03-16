@@ -125,7 +125,7 @@ const mapApiToAwardItem = (api: ApiAwardItem): AwardItem => {
 export default function RecognitionAwards({
   title = 'Awards at Japan Youth Summit',
   subtitle =
-    'At JYS, we recognize students who lead, speak up, and make an impact. Your teen could be one of them!',
+    'At JYS, we recognize students who go above and beyond — those who lead, collaborate, and inspire.',
   apiItems,
 }: RecognitionAwardsProps) {
   const normalizedApiItems = dedupeApiItems(apiItems);

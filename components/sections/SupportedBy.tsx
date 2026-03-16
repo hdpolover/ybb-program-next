@@ -14,12 +14,12 @@ type SupportedByItem = {
 };
 
 const fallbackSupportedLogos: SupportedByItem[] = [
-  { id: 'local-jys', name: 'JYS', logoUrl: '/img/jysfix.png', websiteUrl: '#', type: 'local', tier: 'primary' },
   { id: 'local-iys', name: 'IYS', logoUrl: '/img/IYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
   { id: 'local-yaf', name: 'YAF', logoUrl: '/img/YAFlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
   { id: 'local-kys', name: 'KYS', logoUrl: '/img/KYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
   { id: 'local-meys', name: 'MEYS', logoUrl: '/img/MEYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
   { id: 'local-wys', name: 'WYS', logoUrl: '/img/WYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
+  { id: 'local-jys', name: 'JYS', logoUrl: '/img/jysfix.png', websiteUrl: '#', type: 'local', tier: 'primary' },
 ];
 
 type SupportedByProps = {
