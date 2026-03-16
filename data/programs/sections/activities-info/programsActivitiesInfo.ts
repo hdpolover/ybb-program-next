@@ -12,7 +12,7 @@ export type ProgramsActivitiesCopy = {
 
 export const PROGRAMS_ACTIVITIES_COPY: ProgramsActivitiesCopy = {
   headerEyebrow: 'Program Rundown',
-  headerTitle: 'Japan Youth Summit 2026 Activity',
+  headerTitle: 'Program Activities',
   headerSubtitleFallback: 'Data not added',
   dataNotAdded: 'Data not added',
   notePrefix: 'Note:',

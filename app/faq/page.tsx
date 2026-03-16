@@ -29,7 +29,7 @@ export default async function FaqPage() {
   const heroTitle = heroSection?.content.title ?? 'Frequently Asked Questions';
   const heroSubtitle =
     heroSection?.content.subheadline ??
-    'Find quick answers about the Japan Youth Summit program, registration, and payments.';
+    'Find quick answers about the program, registration, and payments.';
   const heroBgImage = heroSection?.content.bg_image ?? '/img/faqhero.png';
 
   return (

@@ -246,9 +246,9 @@ export default function RegistrationTypePrograms({
                 <div className={componentsTheme.applyRegistrationTypes.periodRow}>
                   <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
-                    Registration Period:
+                    {PROGRAMS_REGISTRATION_COPY.periodLabel}
                   </span>
-                  <span>Aug 01 – Sep 30, 2025</span>
+                  <span>{registrationPeriodLabel}</span>
                 </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>

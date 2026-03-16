@@ -100,7 +100,9 @@ export default async function ProgramOverviewPage() {
       <ProgramActivities activities={programActivitiesSection?.content} />
       <ProgramSteps journey={programJourneySection?.content} />
       <ProgramSchedules dates={programImportantDatesSection?.content} />
-      <PreviousProgramsGrid previous={previousProgramsSection?.content} />
+      {previousProgramsSection && previousProgramsSection.content.items.length > 0 && (
+        <PreviousProgramsGrid previous={previousProgramsSection.content} />
+      )}
       {/* <MissionVision />
       <Objectives />
       <Benefits /> */}

@@ -42,6 +42,6 @@ export const PROGRAMS_REGISTRATION_COPY: ProgramsRegistrationCopy = {
     intro:
       'Make sure you understand the key details about payments, selection, guarantees, and important deadlines before choosing your registration type. This overview is designed to help you make a well-informed decision.',
     footer:
-      'For complete terms and conditions, please read the official guidebook and FAQ on the Japan Youth Summit website and check regularly for the most recent updates from the organizing committee.',
+      'For complete terms and conditions, please read the official guidebook and FAQ on the official program website and check regularly for the most recent updates from the organizing committee.',
   },
 };

@@ -1,6 +1,6 @@
 export const PROGRAMS_CURRENT_COPY = {
   eyebrow: 'Active Program',
-  title: 'Japan Youth Summit 2026',
+  title: 'Active Program',
   labels: {
     location: 'Location',
     duration: 'Duration',

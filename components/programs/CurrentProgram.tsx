@@ -81,7 +81,7 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
           <div className={componentsTheme.programsCurrent.leftCol}>
             <SectionHeader
               eyebrow={PROGRAMS_CURRENT_COPY.eyebrow}
-              title={PROGRAMS_CURRENT_COPY.title}
+              title={overview?.program_name || PROGRAMS_CURRENT_COPY.title}
               align="left"
             />
             {isHtmlContent(description) ? (
