@@ -5,6 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile.prod
       args:
+        APP_BUILD_ID: ${APP_BUILD_ID}
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_S3_URL: ${NEXT_PUBLIC_S3_URL}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
@@ -20,6 +21,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+      - APP_BUILD_ID=${APP_BUILD_ID}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - NEXT_PUBLIC_S3_URL=${NEXT_PUBLIC_S3_URL}
       - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}

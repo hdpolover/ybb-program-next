@@ -13,6 +13,7 @@ import ClientCTAGate from '@/components/layout/ClientCTAGate';
 import BackToTop from '@/components/ui/BackToTop';
 import DevtoolsGuard from '@/components/layout/DevtoolsGuard';
 import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
+import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -116,6 +117,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
   const host = headersList.get('host') || 'youthacademicforum.com';
+  const appVersion = process.env.NEXT_PUBLIC_APP_BUILD_ID || 'development';
   let programSlug = 'jys'; // Default/fallback
 
   let brandAccent: string | null = null;
@@ -169,6 +171,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={plusJakarta.className} data-program={programSlug} style={themeStyle}>
+        <AppVersionWatcher currentVersion={appVersion} />
         <SettingsProvider initialSettings={settingsData}>
           <PromoCTAProvider>
             <DevtoolsGuard />
