@@ -42,10 +42,12 @@ export async function POST(request: Request) {
     const ctxJson = (await ctxRes.json()) as {
       statusCode: number;
       message: string;
-      data: { brandId: string } | null;
+      data: { brandId: string; programId?: string; programSlug?: string | null } | null;
     };
 
     const brandId = envBrandId || ctxJson?.data?.brandId;
+    const programId = ctxJson?.data?.programId || undefined;
+    const programSlug = ctxJson?.data?.programSlug || undefined;
     if (!brandId) {
       return NextResponse.json(
         { statusCode: 500, message: 'Missing brandId', data: null },
@@ -64,6 +66,8 @@ export async function POST(request: Request) {
         email: body.email,
         password: body.password,
         brandId,
+        ...(programId ? { programId } : {}),
+        ...(programSlug ? { programSlug } : {}),
       }),
     });
 

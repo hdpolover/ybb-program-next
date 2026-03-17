@@ -21,8 +21,12 @@ const layoutTheme = componentsTheme.dashboardLayout;
 // Sidebar kiri buat navigasi dashboard — simple dan konsisten sama tema
 export default function Sidebar({
   profileEmail,
+  profileImageUrl,
+  profileName,
 }: {
   profileEmail?: string;
+  profileImageUrl?: string;
+  profileName?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -190,11 +194,12 @@ export default function Sidebar({
           <div className={layoutTheme.profileRow}>
             <div className={layoutTheme.profileAvatarWrapper}>
               <Image
-                src="/img/photoprofile.png"
-                alt="Dashboard profile"
+                src={profileImageUrl || "/img/photoprofile.png"}
+                alt={profileName ? `${profileName} profile photo` : "Dashboard profile"}
                 fill
                 className={layoutTheme.profileAvatarImage}
                 sizes="36px"
+                unoptimized
               />
             </div>
             <div>

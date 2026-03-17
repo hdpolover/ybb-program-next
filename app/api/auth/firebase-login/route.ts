@@ -43,6 +43,25 @@ export async function POST(request: Request) {
     const apiBaseUrl = baseCandidate.replace(/\/v1\/?$/, '');
     const url = new URL('/v1/auth/firebase-login', apiBaseUrl);
 
+    const ctxRes = await fetch(new URL('/api/auth/context', request.url).toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const ctxJson = (await ctxRes.json().catch(() => ({}))) as {
+      data?: {
+        brandId?: string;
+        programId?: string;
+        programSlug?: string | null;
+      } | null;
+    };
+
+    const brandId = ctxJson?.data?.brandId || undefined;
+    const programId = ctxJson?.data?.programId || undefined;
+    const programSlug = ctxJson?.data?.programSlug || undefined;
+
     const res = await fetch(url.toString(), {
       method: 'POST',
       headers: {
@@ -52,6 +71,9 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         idToken: body.idToken,
         providerId: body.providerId, // Now optional
+        ...(brandId ? { brandId } : {}),
+        ...(programId ? { programId } : {}),
+        ...(programSlug ? { programSlug } : {}),
         ...(body.referralCode ? { referralCode: body.referralCode } : {}),
       }),
     });

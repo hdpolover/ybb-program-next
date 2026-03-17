@@ -173,14 +173,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     onboarding?.displayName?.trim() ||
     onboarding?.fullName?.trim() ||
     'Participant';
-  const greetingText = dashboardSummary?.greeting?.trim() || null;
-
   // shell grid: sidebar kiri + konten kanan
   return (
     <main className="relative h-screen overflow-hidden bg-white">
       <div className="flex h-screen">
         {/* Sidebar nempel di kiri */}
-        <Sidebar profileEmail={me?.email ?? ''} />
+        <Sidebar
+          profileEmail={me?.email ?? ''}
+          profileImageUrl={participantProfile?.profilePictureUrl}
+          profileName={greetingName}
+        />
 
         {/* Kolom kanan: navbar atas + konten */}
         <DashboardDataProvider
@@ -235,7 +237,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Greeting cuma nongol di halaman utama dashboard overview, dan disembunyikan saat sedang mencari */}
               {pathname === '/dashboard' && searchQuery.trim().length < 2 && (
-                <GreetingWithClock name={greetingText || greetingName} />
+                <GreetingWithClock name={greetingName} />
               )}
 
               {/* Hasil smart search dashboard */}
