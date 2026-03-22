@@ -22,6 +22,8 @@ export default function FeaturedSpeakers({
   title?: string;
   subtitle?: string;
 }) {
+  if (!speakers || speakers.length === 0) return null;
+
   const listRef = useRef<HTMLDivElement | null>(null);
 
   const scrollBy = (dir: 'prev' | 'next') => {

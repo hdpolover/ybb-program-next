@@ -5,23 +5,16 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramShortsSection } from '@/types/home';
 
-const DEFAULT_SHORTS = [
-  { id: 'short-1', embed_url: 'https://www.youtube.com/embed/TnCyfXh_p2M?rel=0&mute=1' },
-  { id: 'short-2', embed_url: 'https://www.youtube.com/embed/Jwgd05MZ4iI?rel=0&mute=1' },
-  { id: 'short-3', embed_url: 'https://www.youtube.com/embed/vsNbESxF1wM?rel=0&mute=1' },
-  { id: 'short-4', embed_url: 'https://www.youtube.com/embed/PKJyaMElURY?rel=0&mute=1' },
-  { id: 'short-5', embed_url: 'https://www.youtube.com/embed/2h8vSDcr5PI?rel=0&mute=1' },
-  { id: 'short-6', embed_url: 'https://www.youtube.com/embed/2OViDwjKre0?rel=0&mute=1' },
-  { id: 'short-7', embed_url: 'https://www.youtube.com/embed/HX5Wesz0jgk?rel=0&mute=1' },
-  { id: 'short-8', embed_url: 'https://www.youtube.com/embed/DxDSMQLvyS0?rel=0&mute=1' },
-];
-
 interface Props {
   section?: ProgramShortsSection;
 }
 
 export default function MomentsIn60Section({ section }: Props) {
-  const shorts = (section?.content.items ?? DEFAULT_SHORTS).filter(s => s.embed_url);
+  if (!section || !section.content.items || section.content.items.length === 0) return null;
+
+  const shorts = section.content.items.filter(s => s.embed_url);
+  if (shorts.length === 0) return null;
+
   const eyebrow = section?.content.eyebrow ?? 'Short Highlights';
   const title = section?.content.title ?? 'Discover Our Moments in 60 Seconds';
   const description = section?.content.description ?? "Japan Youth Summit's workshops, cultural night, and sessions — all captured in 60-second highlights straight from Osaka."

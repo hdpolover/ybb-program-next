@@ -59,6 +59,7 @@ export default function WhyPartnerSection({
   items = DEFAULT_ITEMS,
   ctaLabel = 'Join Our Network',
 }: WhyPartnerProps) {
+  if (!items || items.length === 0) return null;
   return (
     <section className={componentsTheme.partnersWhy.sectionWrapper}>
       <div className={componentsTheme.partnersWhy.container}>

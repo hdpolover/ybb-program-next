@@ -56,6 +56,7 @@ export default function ProgramSteps({ journey }: ProgramStepsProps) {
   const title = journey.title || 'What steps will you go through in this program?';
   const subtitle = journey.subtitle || '';
   const items = journey.items ?? [];
+  if (items.length === 0) return null;
 
   return (
     <section className={componentsTheme.programsSteps.sectionWrapper}>
@@ -75,8 +76,7 @@ export default function ProgramSteps({ journey }: ProgramStepsProps) {
           </div>
 
           <div className={componentsTheme.programsSteps.stepsCol}>
-            {items.length > 0 ? (
-              items.map((item, index) => {
+            {items.map((item, index) => {
                 const iconType = inferStepIcon(item.title || '');
                 const stepNumber = item.step_number || '';
                 const descriptionLines = (item.description || DATA_NOT_ADDED).split(
@@ -118,21 +118,7 @@ export default function ProgramSteps({ journey }: ProgramStepsProps) {
                     </div>
                   </div>
                 );
-              })
-            ) : (
-              <div className={componentsTheme.programsSteps.stepRow}>
-                <div className={componentsTheme.programsSteps.stepIconCol}>
-                  <div className={componentsTheme.programsSteps.stepIconCircle}>
-                    <CheckCircle2 className={componentsTheme.programsSteps.stepIcon} />
-                  </div>
-                </div>
-                <div className={componentsTheme.programsSteps.stepCard}>
-                  <h3 className={componentsTheme.programsSteps.stepTitle}>
-                    {DATA_NOT_ADDED}
-                  </h3>
-                </div>
-              </div>
-            )}
+            })}
           </div>
         </div>
       </div>

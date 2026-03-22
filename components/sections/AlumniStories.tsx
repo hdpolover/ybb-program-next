@@ -41,6 +41,8 @@ export default function AlumniStoriesSection({
 	subtitle,
 	items,
 }: AlumniStoriesProps) {
+	if (!items || items.length === 0) return null;
+
 	const [startIndex, setStartIndex] = useState(0);
 	const [pageSize, setPageSize] = useState(REELS_PAGE_SIZE);
 	const [loaded, setLoaded] = useState<Record<string, boolean>>({});
@@ -235,32 +237,7 @@ export default function AlumniStoriesSection({
 									</button>
 								);
 							})}
-							{visibleReels.length === 0 && (
-								<div className="flex min-h-[150px] items-center justify-center text-sm text-slate-500">
-									Video coming soon
-								</div>
-							)}
-							{Array.from({ length: Math.max(0, safePageSize - visibleReels.length) }).map(
-								(_, idx) => (
-									<div
-										key={`alumni-placeholder-${idx}`}
-										className={`${componentsTheme.alumniStories.reelItem} opacity-60`}
-									>
-										<div className={componentsTheme.alumniStories.reelVideo}>
-											<div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-												Video coming soon
-											</div>
-										</div>
-										<div className="mt-2 text-left">
-											<p className="text-xs font-semibold text-slate-900">Coming soon</p>
-											<p className="text-[11px] text-slate-500">
-												This video slot will be filled soon.
-											</p>
-										</div>
-									</div>
-								)
-							)}
-						</div>
+												</div>
 					</div>
 				</div>
 			</div>

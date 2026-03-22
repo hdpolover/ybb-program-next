@@ -36,6 +36,8 @@ export default function HomeRegistrationStrip({
   registrationTypes,
   guidelines,
 }: HomeRegistrationStripProps) {
+  if (!registrationTypes || registrationTypes.length === 0) return null;
+
   const primaryPost = igFeed?.[0];
   const primaryType = registrationTypes?.[0];
   const secondaryType = registrationTypes?.[1];

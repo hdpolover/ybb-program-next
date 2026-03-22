@@ -42,18 +42,7 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
 
   if (!fqs && !groupsOverride) return null;
 
-  if (groups.length === 0) {
-    return (
-      <section className="relative w-full py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <SectionHeader eyebrow="FAQ" title={title} />
-          <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-slate-600">
-            No FAQ data available yet.
-          </p>
-        </div>
-      </section>
-    );
-  }
+  if (groups.length === 0) return null;
 
   const activeGroup = groups[activeTab];
 

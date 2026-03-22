@@ -458,7 +458,7 @@ export default function OnboardingPage() {
       <div className={onboardingTheme.layoutGrid}>
         <div className={onboardingTheme.leftCol}>
           <div className={onboardingTheme.leftCenter}>
-            <div className={`${componentsTheme.login.formPanelInner} flex flex-col flex-1`}>
+            <div className="w-full max-w-lg flex flex-col flex-1">
               <div className={`${onboardingTheme.logoWrapper} flex items-center gap-3`}>
                 <Image
                   src={brandLogo}
@@ -468,7 +468,7 @@ export default function OnboardingPage() {
                   className={onboardingTheme.logoImage}
                   priority
                 />
-                <span className="font-bold text-xl text-[var(--brand-primary)] tracking-tight whitespace-nowrap">
+                <span className="font-bold text-lg text-[var(--brand-primary)] tracking-tight">
                   {brandName}
                 </span>
               </div>
@@ -768,27 +768,21 @@ export default function OnboardingPage() {
                   <p className={onboardingTheme.fieldError}>{submitError}</p>
                 ) : null}
               </form>
-            </div>
-          </div>
 
-          <div className="w-full flex justify-center border-t border-slate-100 bg-slate-50/50 px-4 py-4 lg:px-16 lg:py-6">
-            <div className="w-full max-w-[440px]">
-              <div className="rounded-xl bg-blue-50/50 border border-blue-100/50 p-4 mb-4">
-                <div className="flex items-start gap-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0 mt-0.5">
+              <div className="mt-8 rounded-xl bg-blue-50/60 border border-blue-100/60 p-3.5">
+                <div className="flex items-start gap-2.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400 shrink-0 mt-0.5">
                     <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                   </svg>
-                  <p className="text-[13px] leading-relaxed text-slate-600">
-                    Don&apos;t worry, you can always update these details later from your profile settings.
+                  <p className="text-xs leading-relaxed text-slate-500">
+                    You can always update these details later from your profile settings.
                   </p>
                 </div>
               </div>
-              
-              <div className="flex items-center justify-center w-full">
-                <p className="text-xs text-slate-400">
-                  Copyright © {new Date().getFullYear()} {brandName}
-                </p>
-              </div>
+
+              <p className="mt-4 text-center text-xs text-slate-400">
+                Copyright &copy; {new Date().getFullYear()} {brandName}
+              </p>
             </div>
           </div>
         </div>
@@ -843,17 +837,15 @@ export default function OnboardingPage() {
         ) : null}
 
         <div className={`${onboardingTheme.imagePanel} ${componentsTheme.login.imagePanelBackground}`}>
-          <div className="relative h-full">
-            <Image
-              src={loginImageSrc}
-              alt="Japan Youth Summit"
-              width={3024}
-              height={1828}
-              priority
-              className="h-full w-auto object-contain"
-            />
-            <div className={componentsTheme.login.heroOverlay} />
-          </div>
+          <Image
+            src={loginImageSrc}
+            alt={brandName}
+            fill
+            priority
+            sizes="45vw"
+            className="object-cover"
+          />
+          <div className={componentsTheme.login.heroOverlay} />
         </div>
       </div>
     </section>

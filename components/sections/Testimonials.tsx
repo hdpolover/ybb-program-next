@@ -17,42 +17,24 @@ type Testimonial = {
 
 const DIRECTIONS: Array<'left' | 'right'> = ['left', 'right', 'left'];
 
-const DEFAULT_ITEMS: Testimonial[] = [
-  { name: 'Aiko Tanaka', role: 'Delegate 2024', quote: 'CYS transformed how I collaborate and lead. The network I built is priceless.', flag: '🇯🇵', country: 'Japan', year: 2024 },
-  { name: 'Rafi Pratama', role: 'Finalist 2023', quote: 'Hands-on mentorship and global exposure boosted my confidence tremendously.', flag: '🇮🇩', country: 'Indonesia', year: 2023 },
-  { name: 'Mina Park', role: 'Participant 2022', quote: 'I learned to turn ideas into action while meeting inspiring people from many fields.', flag: '🇰🇷', country: 'South Korea', year: 2022 },
-  { name: 'Samuel Lee', role: 'Delegate 2025', quote: 'An empowering space to innovate for sustainability and culture.', flag: '🇺🇸', country: 'United States', year: 2025 },
-  { name: 'Nadia Putri', role: 'Alumni', quote: 'Opportunities and friendships that last beyond the program.', flag: '🇮🇩', country: 'Indonesia', year: 2021 },
-  { name: 'Akira Watanabe', role: 'Volunteer', quote: 'Incredible energy and impact. Every session felt meaningful.', flag: '🇯🇵', country: 'Japan', year: 2024 },
-  { name: 'Sophie Müller', role: 'Delegate 2024', quote: 'I leave with a global mindset, a project idea, and 300 new friends.', flag: '🇩🇪', country: 'Germany', year: 2024 },
-  { name: 'Chen Wei', role: 'Participant 2023', quote: 'The innovation challenge pushed me to think beyond borders.', flag: '🇨🇳', country: 'China', year: 2023 },
-  { name: 'Amara Diallo', role: 'Delegate 2025', quote: 'CYS gave me the confidence to speak up and the platform to be heard.', flag: '🇸🇳', country: 'Senegal', year: 2025 },
-  { name: 'Lucas Ferreira', role: 'Alumni', quote: 'A life-changing week that shaped my career path.', flag: '🇧🇷', country: 'Brazil', year: 2022 },
-  { name: 'Hana Kim', role: 'Delegate', quote: 'I gained clarity about my goals and a plan to achieve them.', flag: '🇰🇷', country: 'South Korea', year: 2023 },
-  { name: 'William Chen', role: 'Alumni', quote: 'I still collaborate with friends I met here. Powerful network.', flag: '🇸🇬', country: 'Singapore', year: 2021 },
-  { name: 'Nurul Azizah', role: 'Delegate', quote: 'The best platform to build confidence and take initiative.', flag: '🇮🇩', country: 'Indonesia', year: 2025 },
-  { name: 'Carlos Diaz', role: 'Mentor', quote: 'Loved the problem-solving spirit. Outcomes were practical and inspiring.', flag: '🇪🇸', country: 'Spain', year: 2023 },
-  { name: 'Sakura Ito', role: 'Participant', quote: 'Workshops were top-notch and the culture exchange was unforgettable.', flag: '🇯🇵', country: 'Japan', year: 2022 },
-];
-
 interface Props {
   section?: DelegateTestimonialsSection;
 }
 
 export default function Testimonials({ section }: Props) {
+  if (!section || !section.content.items || section.content.items.length === 0) return null;
+
   const [active, setActive] = useState<Testimonial | null>(null);
 
-  const allItems: Testimonial[] = section?.content.items.length
-    ? section.content.items.map(t => ({
-        name: t.name,
-        role: t.role,
-        quote: t.quote,
-        flag: '',
-        country: t.country,
-        year: t.year,
-        photo: t.photo || undefined,
-      }))
-    : DEFAULT_ITEMS;
+  const allItems: Testimonial[] = section.content.items.map(t => ({
+    name: t.name,
+    role: t.role,
+    quote: t.quote,
+    flag: '',
+    country: t.country,
+    year: t.year,
+    photo: t.photo || undefined,
+  }));
 
   // Split into 3 rows of roughly equal chunks
   const chunkSize = Math.ceil(allItems.length / 3);

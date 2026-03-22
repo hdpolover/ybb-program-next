@@ -28,6 +28,8 @@ export default function PhotoGallery({
   ctaLabel = 'See All Photos',
   ctaUrl = '/programs/gallery',
 }: PhotoGalleryProps) {
+  if (!images || images.length === 0) return null;
+
   const [selected, setSelected] = useState<number | null>(null);
   const [visible, setVisible] = useState<number>(12);
   useEffect(() => {
@@ -45,37 +47,31 @@ export default function PhotoGallery({
         <SectionHeader title={title} />
         <p className={componentsTheme.photoGallery.subtitle}>{description}</p>
 
-        {photos.length > 0 ? (
-          <div className={componentsTheme.photoGallery.grid}>
-            {photos.slice(0, visible).map((p, idx) => (
-              <div
-                key={p.id ?? `${p.src}-${idx}`}
-                className={componentsTheme.photoGallery.itemWrapper}
+        <div className={componentsTheme.photoGallery.grid}>
+          {photos.slice(0, visible).map((p, idx) => (
+            <div
+              key={p.id ?? `${p.src}-${idx}`}
+              className={componentsTheme.photoGallery.itemWrapper}
+            >
+              <button
+                type="button"
+                onClick={() => setSelected(idx)}
+                className={componentsTheme.photoGallery.itemButton}
+                aria-label="Open photo"
               >
-                <button
-                  type="button"
-                  onClick={() => setSelected(idx)}
-                  className={componentsTheme.photoGallery.itemButton}
-                  aria-label="Open photo"
-                >
-                  <span className={componentsTheme.photoGallery.itemImageWrapper}>
-                    <Image
-                      src={p.src}
-                      alt={p.caption}
-                      fill
-                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 50vw"
-                      className={componentsTheme.photoGallery.itemImage}
-                    />
-                  </span>
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 flex items-center justify-center text-sm text-slate-500">
-            Belum ada foto yang ditambahkan.
-          </div>
-        )}
+                <span className={componentsTheme.photoGallery.itemImageWrapper}>
+                  <Image
+                    src={p.src}
+                    alt={p.caption}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 50vw"
+                    className={componentsTheme.photoGallery.itemImage}
+                  />
+                </span>
+              </button>
+            </div>
+          ))}
+        </div>
 
         {selected !== null && (
           <div

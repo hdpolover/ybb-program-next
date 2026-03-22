@@ -11,6 +11,8 @@ type SponsorTiersSectionProps = {
 
 // Section: Sponsor Tiers — kartu detail
 export default function SponsorTiersSection({ sponsors }: SponsorTiersSectionProps) {
+  if (!sponsors || sponsors.length === 0) return null;
+
   const diamondSponsor = sponsors?.find(s => s.tier === 'diamond');
   const goldSponsors = sponsors?.filter(s => s.tier === 'gold');
   const platinumSponsors = sponsors?.filter(s => s.tier === 'platinum');

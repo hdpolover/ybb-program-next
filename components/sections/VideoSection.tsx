@@ -68,6 +68,8 @@ const normalizeTabs = (tabs?: ApiVideoTab[]): NormalizedTab[] => {
 };
 
 export default function VideoSection({ title, subtitle, tabs }: ProgramHighlightVideosProps) {
+  if (!tabs || tabs.length === 0) return null;
+
   const normalizedTabs = normalizeTabs(tabs);
   const initialYear = normalizedTabs[0]?.year ?? new Date().getFullYear();
   const [year, setYear] = useState<number>(initialYear);
@@ -175,25 +177,6 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                   </button>
                 );
               })}
-              {/* Placeholder "coming soon" kalau videonya masih kurang dari 4 item */}
-              {Array.from({ length: Math.max(0, 4 - currentVideos.length) }).map((_, idx) => (
-                <div
-                  key={`placeholder-${idx}`}
-                  className={`${componentsTheme.videoSection.listCard} opacity-60`}
-                >
-                  <div className={componentsTheme.videoSection.thumbnailWrapper}>
-                    <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-                      Video coming soon
-                    </div>
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className={componentsTheme.videoSection.listTitle}>Coming soon</p>
-                    <p className={componentsTheme.videoSection.listMeta}>
-                      Slot video akan segera diisi.
-                    </p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

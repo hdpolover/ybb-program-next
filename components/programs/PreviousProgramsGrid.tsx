@@ -18,6 +18,7 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
 
   const title = previous.title || 'Previous Programs';
   const items = previous.items ?? [];
+  if (items.length === 0) return null;
 
   // Map API items to display shape
   const programs = items.map(item => ({
@@ -42,12 +43,6 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
         <p className={componentsTheme.programsPrevious.subtitle}>
           A look back at our previous program editions
         </p>
-
-        {total === 0 && (
-          <p className={componentsTheme.programsPrevious.subtitle}>
-            {DATA_NOT_ADDED}
-          </p>
-        )}
 
         {total === 1 && (
           <div className="mt-8 flex justify-center">

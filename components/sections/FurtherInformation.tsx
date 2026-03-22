@@ -35,6 +35,7 @@ export default function FurtherInformationSection({
   subtitle = 'The complete information regarding this program can be seen in the guidebook below.',
   guidebooks = DEFAULT_GUIDEBOOKS,
 }: FurtherInformationProps) {
+  if (!guidebooks || guidebooks.length === 0 || guidebooks.every(g => !g.href || g.href === '#')) return null;
   return (
     <section
       className={`${componentsTheme.furtherInfo.sectionWrapper} min-h-[760px] py-14 sm:min-h-0 sm:py-28`}

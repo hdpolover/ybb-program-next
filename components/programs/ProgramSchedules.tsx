@@ -46,6 +46,7 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
   const title = dates.title || 'Key dates and important deadlines';
   const subtitle = dates.subtitle || '';
   const items = dates.items ?? [];
+  if (items.length === 0) return null;
 
   return (
     <section className={componentsTheme.programsSchedules.sectionWrapper}>
@@ -77,8 +78,7 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
                 </tr>
               </thead>
               <tbody className={componentsTheme.programsSchedules.body}>
-                {items.length > 0 ? (
-                  items.map(item => {
+                {items.map(item => {
                     const visualStatus = mapStatus(item.status, item.is_active);
                     const descriptionLines = (item.description || DATA_NOT_ADDED).split(/\n+/);
                     return (
@@ -101,17 +101,7 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
                         </td>
                       </tr>
                     );
-                  })
-                ) : (
-                  <tr className={componentsTheme.programsSchedules.row}>
-                    <td
-                      className={componentsTheme.programsSchedules.cellDesc}
-                      colSpan={4}
-                    >
-                      {DATA_NOT_ADDED}
-                    </td>
-                  </tr>
-                )}
+                  })}
               </tbody>
             </table>
           </div>

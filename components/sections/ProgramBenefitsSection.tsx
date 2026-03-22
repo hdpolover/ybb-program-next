@@ -8,39 +8,16 @@ import type { ProgramBenefitsSection as ProgramBenefitsSectionType } from "@/typ
 
 const theme = componentsTheme.homeProgramBenefits;
 
-const DEFAULT_GROUPS = [
-  {
-    id: 'high_school',
-    title: 'Benefits for High School Students',
-    imageUrl: '/img/programoverview.png',
-    items: [
-      'Relevant to Indonesian National Curriculum',
-      'Relevance to the IB Curriculum',
-      'Support for the Cambridge Curriculum',
-      'Curated Certification by PUSPRENAS (Indonesia)',
-    ],
-  },
-  {
-    id: 'university_professional',
-    title: 'Global-Scale Benefits for University Students & Professionals',
-    imageUrl: '/img/benefits.png',
-    items: [
-      'Global Exposure & International Networking',
-      'Academic & Career Development',
-      'Recognized Credential',
-      'Global Mindset & Impact Leadership',
-    ],
-  },
-];
-
 interface Props {
   section?: ProgramBenefitsSectionType;
 }
 
 export default function ProgramBenefitsSection({ section }: Props) {
-  const eyebrow = section?.content.eyebrow ?? 'Program Benefits';
-  const title = section?.content.title ?? 'for Students, University Students, and Professional';
-  const groups = section?.content.groups ?? DEFAULT_GROUPS;
+  if (!section || !section.content.groups || section.content.groups.length === 0) return null;
+
+  const eyebrow = section.content.eyebrow ?? 'Program Benefits';
+  const title = section.content.title ?? 'for Students, University Students, and Professional';
+  const groups = section.content.groups;
 
   return (
     <section

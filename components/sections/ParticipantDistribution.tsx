@@ -37,6 +37,10 @@ export default function ParticipantDistribution({
   countryParticipants,
   legend,
 }: ParticipantDistributionProps) {
+  const hasLevels = countryLevels && Object.keys(countryLevels).length > 0;
+  const hasParticipants = countryParticipants && Object.keys(countryParticipants).length > 0;
+  if (!hasLevels && !hasParticipants) return null;
+
   const levels = countryLevels ?? {};
   const participants = countryParticipants ?? {};
   const legendCopy = legend ?? DEFAULT_LEGEND;

@@ -132,82 +132,79 @@ export default function RecognitionAwards({
   const items: AwardItem[] = normalizedApiItems.length > 0
     ? normalizedApiItems.map(mapApiToAwardItem)
     : [];
+
+  if (items.length === 0) return null;
+
   return (
     <section className={componentsTheme.awards.sectionWrapper}>
       <div className={componentsTheme.awards.container}>
         <SectionHeader title={title} />
         <p className={componentsTheme.awards.subtitle}>{subtitle}</p>
 
-        {items.length > 0 ? (
-          <div className={componentsTheme.awards.grid}>
-            {items.map(it => (
-              <div
-                key={it.id ?? it.title}
-                className={`${componentsTheme.awards.card} ${it.ring}`}
-              >
-                <div className={componentsTheme.awards.cardInner}>
-                  <div className={componentsTheme.awards.cardHeader}>
-                    <span className={`${componentsTheme.awards.iconCircleBase} ${it.accent}`}>
-                      {it.icon}
-                    </span>
-                    <h3 className={componentsTheme.awards.title}>{it.title}</h3>
-                  </div>
-                  {it.desc ? <p className={componentsTheme.awards.desc}>{it.desc}</p> : null}
+        <div className={componentsTheme.awards.grid}>
+          {items.map(it => (
+            <div
+              key={it.id ?? it.title}
+              className={`${componentsTheme.awards.card} ${it.ring}`}
+            >
+              <div className={componentsTheme.awards.cardInner}>
+                <div className={componentsTheme.awards.cardHeader}>
+                  <span className={`${componentsTheme.awards.iconCircleBase} ${it.accent}`}>
+                    {it.icon}
+                  </span>
+                  <h3 className={componentsTheme.awards.title}>{it.title}</h3>
                 </div>
-
-                {it.highlights.length > 1 ? (
-                  <ul className={componentsTheme.awards.highlightsList}>
-                    {it.highlights.map((h, idx) => (
-                      <li
-                        key={idx}
-                        className={`${componentsTheme.awards.highlightItemBase} ${
-                          idx !== it.highlights.length - 1
-                            ? componentsTheme.awards.highlightDivider
-                            : ''
-                        }`}
-                      >
-                        <span className={componentsTheme.awards.highlightLabel}>{h}</span>
-                        <span className={componentsTheme.awards.highlightBadge}>JYS</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className={componentsTheme.awards.highlightsList}>
-                    {(() => {
-                      const raw = it.highlights[0] || '';
-                      const match = raw.match(/(\d+)\s+(Winner|Winners|Place|Places)/i);
-                      const count = match ? parseInt(match[1], 10) : undefined;
-                      const unit = match ? match[2] : raw;
-                      return (
-                        <div className={componentsTheme.awards.singleHighlightBox}>
-                          <div>
-                            <div className={componentsTheme.awards.singleHighlightValue}>
-                              {count ?? raw}
-                            </div>
-                            {count ? (
-                              <div className={componentsTheme.awards.singleHighlightUnit}>{unit}</div>
-                            ) : null}
-                          </div>
-                          <div className="flex flex-wrap items-center justify-end gap-2">
-                            {it.chips?.map(c => (
-                              <span key={c} className={componentsTheme.awards.chip}>
-                                {c}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
+                {it.desc ? <p className={componentsTheme.awards.desc}>{it.desc}</p> : null}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 flex items-center justify-center text-sm text-slate-500">
-            Awards akan segera diumumkan.
-          </div>
-        )}
+
+              {it.highlights.length > 1 ? (
+                <ul className={componentsTheme.awards.highlightsList}>
+                  {it.highlights.map((h, idx) => (
+                    <li
+                      key={idx}
+                      className={`${componentsTheme.awards.highlightItemBase} ${
+                        idx !== it.highlights.length - 1
+                          ? componentsTheme.awards.highlightDivider
+                          : ''
+                      }`}
+                    >
+                      <span className={componentsTheme.awards.highlightLabel}>{h}</span>
+                      <span className={componentsTheme.awards.highlightBadge}>JYS</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className={componentsTheme.awards.highlightsList}>
+                  {(() => {
+                    const raw = it.highlights[0] || '';
+                    const match = raw.match(/(\d+)\s+(Winner|Winners|Place|Places)/i);
+                    const count = match ? parseInt(match[1], 10) : undefined;
+                    const unit = match ? match[2] : raw;
+                    return (
+                      <div className={componentsTheme.awards.singleHighlightBox}>
+                        <div>
+                          <div className={componentsTheme.awards.singleHighlightValue}>
+                            {count ?? raw}
+                          </div>
+                          {count ? (
+                            <div className={componentsTheme.awards.singleHighlightUnit}>{unit}</div>
+                          ) : null}
+                        </div>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          {it.chips?.map(c => (
+                            <span key={c} className={componentsTheme.awards.chip}>
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

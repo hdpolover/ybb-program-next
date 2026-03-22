@@ -28,6 +28,7 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
   const title = activities.title || 'Program Activities';
   const subtitle = activities.subtitle || '';
   const items = activities.items ?? [];
+  if (items.length === 0) return null;
 
   return (
     <section className={componentsTheme.programsActivities.sectionWrapper}>
@@ -41,8 +42,7 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
         />
 
         <div className={componentsTheme.programsActivities.cardsGrid}>
-          {items.length > 0 ? (
-            items.map(item => {
+          {items.map(item => {
               const dateLabel = formatDate(item.date);
               const timeLabel = item.time_range || DATA_NOT_ADDED;
               const durationLabel = item.duration
@@ -106,33 +106,7 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
                   </div>
                 </article>
               );
-            })
-          ) : (
-            <article className={componentsTheme.programsActivities.card}>
-              <div className={componentsTheme.programsActivities.metaRow}>
-                <div className={componentsTheme.programsActivities.metaItem}>
-                  <Calendar className={componentsTheme.programsActivities.metaIcon} />
-                  <span>{DATA_NOT_ADDED}</span>
-                </div>
-                <div className={componentsTheme.programsActivities.metaItem}>
-                  <Clock3 className={componentsTheme.programsActivities.metaIcon} />
-                  <span>{DATA_NOT_ADDED}</span>
-                </div>
-                <div className={componentsTheme.programsActivities.metaItem}>
-                  <Hourglass className={componentsTheme.programsActivities.metaIcon} />
-                  <span>{DATA_NOT_ADDED}</span>
-                </div>
-              </div>
-              <div className={componentsTheme.programsActivities.titleWrapper}>
-                <h3 className={componentsTheme.programsActivities.title}>
-                  {DATA_NOT_ADDED}
-                </h3>
-                <p className={componentsTheme.programsActivities.description}>
-                  {DATA_NOT_ADDED}
-                </p>
-              </div>
-            </article>
-          )}
+          })}
         </div>
 
         <p className={componentsTheme.programsActivities.note}>

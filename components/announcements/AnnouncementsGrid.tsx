@@ -4,8 +4,6 @@ import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { DATA_NOT_ADDED } from '@/lib/constants/ui';
-
 export type AnnouncementCategory =
   | 'awards'
   | 'scholarship'
@@ -35,6 +33,8 @@ export default function AnnouncementsGrid({
   subtitle?: string;
   showControls?: boolean;
 }) {
+  if (!items || items.length === 0) return null;
+
   const showControls = arguments[0]?.showControls ?? true;
   // search & filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,12 +121,7 @@ export default function AnnouncementsGrid({
         ) : null}
 
         {/* grid berita — komponen ini reusable biar gampang dipakai di halaman lain */}
-        {items.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-6 text-center text-sm font-medium text-slate-600">
-            {DATA_NOT_ADDED}
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-2 lg:grid-cols-3">
             {visibleItems.map(n => {
               const Wrapper: React.ElementType = n.href ? 'a' : 'article';
               return (
@@ -180,7 +175,6 @@ export default function AnnouncementsGrid({
               );
             })}
           </div>
-        )}
 
         {visible < filteredItems.length && (
           <div className="mt-8 flex justify-center">
