@@ -23,7 +23,25 @@ type MainFAQSectionProps = {
 };
 
 export default function MainFAQSection({ title, subtitle, items }: MainFAQSectionProps) {
-  if (!items || items.length === 0) return null;
+  if (!items || items.length === 0) {
+    return (
+      <section className="relative w-full py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <SectionHeader eyebrow="FAQ" title={title || 'Frequently Asked Questions'} />
+          {subtitle ? <p className={componentsTheme.faq.subtitle}>{subtitle}</p> : null}
+          <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-16 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+              <Search className="h-6 w-6 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-700">No FAQs available yet</h3>
+            <p className="mt-1.5 max-w-sm text-sm text-slate-500">
+              Frequently asked questions will appear here once they are added. If you have a question, feel free to contact our support team.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const [activeTab, setActiveTab] = useState(0);
   const [openIdx, setOpenIdx] = useState<number | null>(0);
