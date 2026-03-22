@@ -9,14 +9,15 @@ type AboutProgramProps = {
   about?: string;
   vision?: string;
   mission?: string;
+  images?: { url: string; caption?: string }[];
 };
 
-export default function AboutProgram({ about, vision, mission }: AboutProgramProps) {
+export default function AboutProgram({ about, vision, mission, images }: AboutProgramProps) {
   const [activeTab, setActiveTab] = useState<'about' | 'vision'>('about');
 
-  const imageMain = '/img/jysprogram.png';
-  const imageSecondary = '/img/jysprogram1.jpg';
-  const imageThird = '/img/programoverview.png';
+  const imageMain = images?.[0]?.url ?? '/img/jysprogram.png';
+  const imageSecondary = images?.[1]?.url ?? '/img/jysprogram1.jpg';
+  const imageThird = images?.[2]?.url ?? '/img/programoverview.png';
 
   const isHtmlContent = (value?: string) => {
     if (!value) return false;

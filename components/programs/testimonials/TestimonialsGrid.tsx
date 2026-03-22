@@ -8,7 +8,7 @@ import { componentsTheme } from '@/lib/theme/components';
 
 // Grid testimonial lengkap dengan data dan kartu — dipisah biar rapi
 
-type Testimonial = {
+export type Testimonial = {
   name: string;
   country: string;
   year: string;
@@ -42,7 +42,7 @@ const countryCodeMap: Record<string, string> = {
   India: 'IN',
 };
 
-const data: Testimonial[] = [
+const defaultData: Testimonial[] = [
   {
     name: 'Mayana',
     country: 'Indonesia',
@@ -206,7 +206,12 @@ function TestimonialCard({ t }: { t: Testimonial }) {
   );
 }
 
-export default function TestimonialsGrid() {
+type TestimonialsGridProps = {
+  testimonials?: Testimonial[];
+};
+
+export default function TestimonialsGrid({ testimonials }: TestimonialsGridProps) {
+  const data = testimonials && testimonials.length > 0 ? testimonials : defaultData;
   return (
     <section className={componentsTheme.programsTestimonialsGrid.sectionWrapper}>
       <div className={componentsTheme.programsTestimonialsGrid.container}>

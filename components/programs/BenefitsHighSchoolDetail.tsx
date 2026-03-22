@@ -5,7 +5,11 @@ import { componentsTheme } from '@/lib/theme/components';
 
 const theme = componentsTheme.programsBenefitsDetail;
 
-export default function BenefitsHighSchoolDetail() {
+type BenefitsHighSchoolDetailProps = {
+  imageUrl?: string;
+};
+
+export default function BenefitsHighSchoolDetail({ imageUrl }: BenefitsHighSchoolDetailProps) {
   return (
     <section className={theme.sectionWrapper}>
       <div className={theme.container}>
@@ -104,7 +108,7 @@ export default function BenefitsHighSchoolDetail() {
           <aside className={theme.asideCard}>
             <div className={theme.asideImageWrapper}>
               <Image
-                src="/img/benefits.png"
+                src={imageUrl ?? '/img/benefits.png'}
                 alt="Global-scale benefits for university students and professionals"
                 fill
                 className={theme.asideImage}

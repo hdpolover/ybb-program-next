@@ -25,6 +25,7 @@ function useCountdown(target: Date) {
 
 type CurrentProgramProps = {
   overview?: ProgramOverviewSection['content'];
+  coverImage?: string;
 };
 
 function formatDateRange(start?: string | null, end?: string | null): string {
@@ -57,7 +58,7 @@ function formatDateRange(start?: string | null, end?: string | null): string {
   return DATA_NOT_ADDED;
 }
 
-export default function CurrentProgram({ overview }: CurrentProgramProps) {
+export default function CurrentProgram({ overview, coverImage }: CurrentProgramProps) {
   if (!overview) return null;
 
   const description = overview.description || DATA_NOT_ADDED;
@@ -136,7 +137,7 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
               <div className={componentsTheme.programsCurrent.coverWrapper}>
                 <div className="relative w-full aspect-square overflow-hidden rounded-2xl">
                   <Image
-                    src="/img/jys26posters.png"
+                    src={coverImage ?? '/img/jys26posters.png'}
                     alt="Japan Youth Summit 2026 cover"
                     fill
                     sizes="(min-width:1024px) 260px, (min-width:640px) 50vw, 100vw"

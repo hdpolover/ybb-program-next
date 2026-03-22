@@ -7,6 +7,7 @@ import HeroSection from '@/components/ui/HeroSection';
 type AnnouncementHeroItem = {
   title: string;
   excerpt: string;
+  bgImage?: string;
 };
 
 type AnnouncementsHeroProps = {
@@ -35,7 +36,7 @@ export default function AnnouncementsHero({ items }: AnnouncementsHeroProps) {
     items && items.length > 0
       ? items.slice(0, 3).map((item, i) => ({
           id: `slide-${i + 1}`,
-          bgImage: SLIDE_BG_IMAGES[i % SLIDE_BG_IMAGES.length],
+          bgImage: item.bgImage ?? SLIDE_BG_IMAGES[i % SLIDE_BG_IMAGES.length],
           title: item.title || 'Announcements',
           subtitle: item.excerpt || 'Latest updates, deadlines, and official notices from YBB & JYS.',
         }))

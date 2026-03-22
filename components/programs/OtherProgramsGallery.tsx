@@ -3,11 +3,13 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
 // Foto-foto program lain (biar ga lorem, pake aset yang ada di /public/img)
-const items: {
+export type ProgramGalleryItem = {
   title: string;
   photos: string[]; // 4 gambar per kartu
   href?: string;
-}[] = [
+};
+
+const defaultItems: ProgramGalleryItem[] = [
   {
     title: 'Middle East Youth Summit 2026',
     photos: ['/img/galeri1.png', '/img/galeri2.png', '/img/galeri3.png', '/img/galeri4.png'],
@@ -35,7 +37,12 @@ const items: {
   },
 ];
 
-export default function OtherProgramsGallery() {
+type OtherProgramsGalleryProps = {
+  programs?: ProgramGalleryItem[];
+};
+
+export default function OtherProgramsGallery({ programs }: OtherProgramsGalleryProps) {
+  const items = programs && programs.length > 0 ? programs : defaultItems;
   return (
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
       <div className="mx-auto max-w-7xl">
