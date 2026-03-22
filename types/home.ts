@@ -17,7 +17,9 @@ export type HomeSectionType =
   | 'program_awards'
   | 'organization_credentials'
   | 'payment_info'
-  | 'supported_by';
+  | 'supported_by'
+  | 'participant_demographics'
+  | 'promo_cta';
 
 export type MainBannerSection = {
   type: 'main_banner';
@@ -252,6 +254,36 @@ export type PaymentInfoSection = {
   };
 };
 
+export type ParticipantDemographicsSection = {
+  type: 'participant_demographics';
+  content: {
+    eyebrow: string;
+    title: string;
+    country_levels: Record<string, 'high' | 'medium' | 'low' | 'none'>;
+    country_participants: Record<string, number>;
+    legend: {
+      high: string;
+      medium: string;
+      low: string;
+      none: string;
+    };
+  };
+};
+
+export type PromoCTASection = {
+  type: 'promo_cta';
+  content: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    primary_cta_label: string;
+    primary_cta_href: string;
+    video_url: string | null;
+    video_title: string | null;
+    video_description: string | null;
+  };
+};
+
 export type HomeSection =
 	| MainBannerSection
 	| RegistrationOverviewSection
@@ -269,7 +301,9 @@ export type HomeSection =
 	| ProgramAwardsSection
 	| OrganizationCredentialsSection
 	| PaymentInfoSection
-	| SupportedBySection;
+	| SupportedBySection
+	| ParticipantDemographicsSection
+	| PromoCTASection;
 
 export type ProgramHighlightsSection = {
   type: 'program_highlights';

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,6 +13,8 @@ import {
   CalendarClock,
   CreditCard,
   Printer,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import HistoryList, { type HistoryItem } from "@/components/dashboard/payments/HistoryList";
 import HistoryPanel from "@/components/dashboard/payments/HistoryPanel";
@@ -23,48 +26,102 @@ interface PaymentDetailSectionProps {
   paymentId: string;
 }
 
+interface InvoiceData {
+  id: string;
+  label: string;
+  category: string;
+  amount: number;
+  dueDate: string;
+  status: "paid" | "unpaid";
+  currency?: string;
+}
+
+interface HistoryEntry {
+  id: string;
+  method: string;
+  amount: number;
+  date: string;
+  time: string;
+  status: "cancelled" | "failed" | "processing" | "paid";
+  note: string;
+  code?: string;
+  paymentMethod?: string;
+  dateTime?: string;
+  accountName?: string;
+  amountLabel?: string;
+}
+
 export default function PaymentDetailSection({ paymentId }: PaymentDetailSectionProps) {
-  // Konten di-hardcode biar cepat, disesuaiin sama kasus realistis di Overview
-  const invoice = {
-    id: paymentId,
-    label: "Program Fee (Final)",
-    category: "Program Fee",
-    amount: 450,
-    dueDate: "Dec 05, 2025",
-    status: "unpaid" as const,
-  };
+  const [invoice, setInvoice] = useState<InvoiceData | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const currency = (v: number) => `$${v.toFixed(2)}`;
-  const overdue = false;
 
-  const history: Array<{
-    id: string;
-    method: string;
-    amount: number;
-    date: string;
-    time: string;
-    status: "cancelled" | "failed" | "processing" | "paid";
-    note: string;
-  }> = [
-    {
-      id: "h1",
-      method: "Virtual Account",
-      amount: 450,
-      date: "Nov 10, 2025",
-      time: "09:00 AM",
-      status: "processing",
-      note: "Invoice issued for Program Fee (Final). Payment link generated and sent to your email.",
-    },
-    {
-      id: "h2",
-      method: "Email Reminder",
-      amount: 450,
-      date: "Nov 25, 2025",
-      time: "08:15 AM",
-      status: "processing",
-      note: "Reminder sent. Please complete payment before Dec 05, 2025 to secure your seat.",
-    },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(`/api/portal/payments/${paymentId}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = (await response.json().catch(() => ({}))) as any;
+        if (!response.ok) {
+          throw new Error(json?.message || "Failed to load payment details");
+        }
+
+        if (!cancelled) {
+          setInvoice(json?.data?.invoice ?? null);
+          setHistory(json?.data?.history ?? []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load payment details");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [paymentId]);
+
+  if (loading) {
+    return (
+      <div className={paymentsTheme.sectionWrapper}>
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <span className="ml-2 text-sm text-slate-500">Loading payment details...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={paymentsTheme.sectionWrapper}>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-6 w-6 text-red-500" />
+          <p className="mt-2 text-sm text-red-600">{error}</p>
+          <Link href="/dashboard/payments" className="mt-4 text-sm text-primary underline">
+            Back to Payments
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!invoice) {
     return (
@@ -87,6 +144,8 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     );
   }
 
+  const overdue = false;
+
   const items: HistoryItem[] = history.map(h => ({
     id: h.id,
     title:
@@ -100,32 +159,20 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
         ? "Payment Update"
         : "Payment Created",
     method: h.method,
-    amountLabel: currency(h.amount),
+    amountLabel: h.amountLabel ?? currency(h.amount),
     date: h.date,
     time: h.time,
     badge: h.status === "cancelled" ? { label: "Cancelled", tone: "red" } : undefined,
     note: h.note,
-    // Detail buat modal — diisi spesifik buat contoh
-    details:
-      h.id === "h1"
-        ? {
-            code: "TR-17190-1759390503",
-            paymentMethod: "Vakif Bank",
-            dateTime: "October 02, 2025 02:35 PM",
-            accountName: "tretrt",
-            amountLabel: "$10.00",
-            source: "trtrt",
-            proofUrl: "/img/galeri1.png",
-          }
-        : {
-            code: "TR-88110-1759400111",
-            paymentMethod: h.method,
-            dateTime: `${h.date} ${h.time}`,
-            accountName: "Hilmi",
-            amountLabel: currency(h.amount),
-            source: "Dashboard",
-            proofUrl: "/img/galeri2.png",
-          },
+    details: {
+      code: h.code ?? `TR-${h.id}`,
+      paymentMethod: h.paymentMethod ?? h.method,
+      dateTime: h.dateTime ?? `${h.date} ${h.time}`,
+      accountName: h.accountName ?? "",
+      amountLabel: h.amountLabel ?? currency(h.amount),
+      source: "Dashboard",
+      proofUrl: undefined,
+    },
     status:
       h.status === "processing"
         ? "pending"

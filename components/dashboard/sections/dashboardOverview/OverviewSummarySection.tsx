@@ -2,10 +2,18 @@
 
 import { AlertTriangle, CheckCircle2, Clock4, Wallet2 } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
+import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
 export default function OverviewSummarySection() {
+  const { dashboardSummary } = useDashboardData();
+  const stats = dashboardSummary?.stats as Record<string, any> | undefined;
+
+  const applicationsCount = stats?.applicationsCount ?? 0;
+  const completedProgramsCount = stats?.completedProgramsCount ?? 0;
+  const certificatesCount = stats?.certificatesCount ?? 0;
+
   return (
     <div className={overviewTheme.summaryGrid}>
       <div className={`${overviewTheme.summaryCardBase} ${overviewTheme.summaryCompleteCard}`}>
@@ -14,12 +22,12 @@ export default function OverviewSummarySection() {
             <p
               className={`${overviewTheme.summaryEyebrowBase} ${overviewTheme.summaryEyebrowComplete}`}
             >
-              Complete Payments
+              Applications
             </p>
             <p
               className={`${overviewTheme.summaryValueBase} ${overviewTheme.summaryValueComplete}`}
             >
-              0
+              {applicationsCount}
             </p>
           </div>
           <div
@@ -36,12 +44,12 @@ export default function OverviewSummarySection() {
             <p
               className={`${overviewTheme.summaryEyebrowBase} ${overviewTheme.summaryEyebrowPending}`}
             >
-              Pending Payments
+              Completed Programs
             </p>
             <p
               className={`${overviewTheme.summaryValueBase} ${overviewTheme.summaryValuePending}`}
             >
-              0
+              {completedProgramsCount}
             </p>
           </div>
           <div
@@ -58,12 +66,12 @@ export default function OverviewSummarySection() {
             <p
               className={`${overviewTheme.summaryEyebrowBase} ${overviewTheme.summaryEyebrowOverdue}`}
             >
-              Overdue Payments
+              Certificates
             </p>
             <p
               className={`${overviewTheme.summaryValueBase} ${overviewTheme.summaryValueOverdue}`}
             >
-              0
+              {certificatesCount}
             </p>
           </div>
           <div
@@ -85,7 +93,7 @@ export default function OverviewSummarySection() {
             <p
               className={`${overviewTheme.summaryValueBase} ${overviewTheme.summaryValueTotal}`}
             >
-              $0
+              {stats?.totalRequired ?? "$0"}
             </p>
           </div>
           <div

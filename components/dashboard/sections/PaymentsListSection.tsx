@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -11,46 +14,123 @@ import {
   Search,
   Printer,
   Eye,
+  Loader2,
 } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
+import {
+  ACTIVE_PROGRAM_CHANGED_EVENT,
+  appendProgramId,
+  readActiveProgramId,
+} from "@/lib/dashboard/activeProgram";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
+interface PaymentItem {
+  id: string;
+  label: string;
+  status: "paid" | "unpaid";
+  period: string;
+  amount: string;
+  syncDate: string;
+}
+
+interface PaymentsSummary {
+  complete: number;
+  pending: number;
+  overdue: number;
+  totalRequired: string;
+}
+
 export default function PaymentsListSection() {
-  const mockPayments = [
-    {
-      id: "registration",
-      label: "Registration Fee Fully Funded Registration",
-      status: "paid" as const,
-      period: "Nov 15, 2025 - Jan 15, 2026",
-      amount: "$10.00",
-      syncDate: "10-10-2024, 12:10:00",
-    },
-    {
-      id: "program",
-      label: "Program Fee Fully Funded Registration",
-      status: "unpaid" as const,
-      period: "Nov 15, 2025 - Jan 15, 2026",
-      amount: "$10.00",
-      syncDate: "10-10-2024, 12:10:00",
-    },
-    {
-      id: "accommodation",
-      label: "Accommodation",
-      status: "paid" as const,
-      period: "Nov 15, 2025 - Jan 15, 2026",
-      amount: "$10.00",
-      syncDate: "10-10-2024, 12:10:00",
-    },
-    {
-      id: "hotel",
-      label: "Hotel Tickets",
-      status: "paid" as const,
-      period: "Nov 15, 2025 - Jan 15, 2026",
-      amount: "$10.00",
-      syncDate: "10-10-2024, 12:10:00",
-    },
-  ];
+  const [payments, setPayments] = useState<PaymentItem[]>([]);
+  const [summary, setSummary] = useState<PaymentsSummary>({
+    complete: 0,
+    pending: 0,
+    overdue: 0,
+    totalRequired: "$0",
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const programId = readActiveProgramId();
+        const url = appendProgramId("/api/portal/payments", programId);
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = (await response.json().catch(() => ({}))) as any;
+        if (!response.ok) {
+          throw new Error(json?.message || "Failed to load payments");
+        }
+
+        if (!cancelled) {
+          setPayments(json?.data?.items ?? []);
+          setSummary(
+            json?.data?.summary ?? {
+              complete: 0,
+              pending: 0,
+              overdue: 0,
+              totalRequired: "$0",
+            },
+          );
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load payments");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchPayments();
+
+    const handleProgramChange = () => {
+      fetchPayments();
+    };
+
+    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleProgramChange as EventListener);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleProgramChange as EventListener);
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <section className={paymentsTheme.sectionWrapper}>
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <span className="ml-2 text-sm text-slate-500">Loading payments...</span>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className={paymentsTheme.sectionWrapper}>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-6 w-6 text-red-500" />
+          <p className="mt-2 text-sm text-red-600">{error}</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={paymentsTheme.sectionWrapper}>
@@ -69,7 +149,7 @@ export default function PaymentsListSection() {
               <p
                 className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryCompleteValue}`}
               >
-                0
+                {summary.complete}
               </p>
             </div>
             <div
@@ -93,7 +173,7 @@ export default function PaymentsListSection() {
               <p
                 className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryPendingValue}`}
               >
-                0
+                {summary.pending}
               </p>
             </div>
             <div
@@ -117,7 +197,7 @@ export default function PaymentsListSection() {
               <p
                 className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryOverdueValue}`}
               >
-                0
+                {summary.overdue}
               </p>
             </div>
             <div
@@ -141,7 +221,7 @@ export default function PaymentsListSection() {
               <p
                 className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryTotalValue}`}
               >
-                $0
+                {summary.totalRequired}
               </p>
             </div>
             <div
@@ -258,7 +338,7 @@ export default function PaymentsListSection() {
               </tr>
             </thead>
             <tbody className={paymentsTheme.tableBody}>
-              {mockPayments.map(payment => {
+              {payments.map(payment => {
                 const isPaid = payment.status === "paid";
                 return (
                   <tr key={payment.id} className={paymentsTheme.tableRow}>
@@ -309,7 +389,9 @@ export default function PaymentsListSection() {
           </table>
         </div>
 
-        <p className={paymentsTheme.tableFooterText}>Showing 4 of 4 entries</p>
+        <p className={paymentsTheme.tableFooterText}>
+          Showing {payments.length} of {payments.length} entries
+        </p>
       </div>
     </section>
   );

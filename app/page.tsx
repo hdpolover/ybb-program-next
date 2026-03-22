@@ -20,6 +20,7 @@ import FAQ from '@/components/sections/FAQ';
 import GetInTouchSection from '@/components/sections/GetInTouchSection';
 import { getHomePageData } from '@/lib/api/home';
 import { headers } from 'next/headers';
+import PromoCTA from '@/components/sections/PromoCTA';
 import type {
   MainBannerSection,
   RegistrationOverviewSection,
@@ -38,6 +39,8 @@ import type {
   DelegateTestimonialsSection,
   OrganizationCredentialsSection,
   PaymentInfoSection,
+  ParticipantDemographicsSection,
+  PromoCTASection,
 } from '@/types/home';
 
 export const dynamic = 'force-dynamic';
@@ -111,6 +114,12 @@ export default async function Home() {
   const paymentInfoSection = homeData.sections.find(
     (section): section is PaymentInfoSection => section.type === 'payment_info'
   );
+  const participantDemographicsSection = homeData.sections.find(
+    (section): section is ParticipantDemographicsSection => section.type === 'participant_demographics'
+  );
+  const promoCTASection = homeData.sections.find(
+    (section): section is PromoCTASection => section.type === 'promo_cta'
+  );
 
   const objectivesImageGallery = programObjectivesSection
     ? programObjectivesSection.content.images.map(img => ({
@@ -181,7 +190,13 @@ export default async function Home() {
       <MomentsIn60Section section={programShortsSection} />
       <section className="h-20" />
       <GlobalProgramImpact section={programImpactSection} />
-      <ParticipantDistribution />
+      <ParticipantDistribution
+        eyebrow={participantDemographicsSection?.content.eyebrow}
+        title={participantDemographicsSection?.content.title}
+        countryLevels={participantDemographicsSection?.content.country_levels}
+        countryParticipants={participantDemographicsSection?.content.country_participants}
+        legend={participantDemographicsSection?.content.legend}
+      />
       <FurtherInformationSection guidebooks={furtherGuidebooks} />
       <WhatMakesUsSpecialSection section={programFeaturesSection} />
       <ProgramBenefitsSection section={programBenefitsSection} />
@@ -205,6 +220,18 @@ export default async function Home() {
         apiItems={programAwardsSection?.content.items}
       />
       <Recognition section={organizationCredentialsSection} />
+      {promoCTASection && (
+        <PromoCTA
+          eyebrow={promoCTASection.content.eyebrow}
+          title={promoCTASection.content.title}
+          subtitle={promoCTASection.content.subtitle}
+          primaryCtaLabel={promoCTASection.content.primary_cta_label}
+          primaryCtaHref={promoCTASection.content.primary_cta_href}
+          videoUrl={promoCTASection.content.video_url ?? undefined}
+          videoTitle={promoCTASection.content.video_title ?? undefined}
+          videoDescription={promoCTASection.content.video_description ?? undefined}
+        />
+      )}
       <GetInTouchSection />
       {/* <FAQ /> */}
     </main>

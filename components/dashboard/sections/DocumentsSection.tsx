@@ -1,9 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Download } from "lucide-react";
+import { Download, Loader2, AlertTriangle } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
+import {
+  ACTIVE_PROGRAM_CHANGED_EVENT,
+  appendProgramId,
+  readActiveProgramId,
+} from "@/lib/dashboard/activeProgram";
 
 const TABS = ["All", "Upload Required", "Can Generate", "Reference"] as const;
 type TabKey = (typeof TABS)[number];
@@ -11,6 +16,20 @@ type TabKey = (typeof TABS)[number];
 type SortField = "name" | "description" | "type" | "actions";
 type SortDirection = "asc" | "desc";
 type CertSortField = "id" | "award" | "assignment" | "status" | "action";
+
+interface ProgramDocument {
+  name: string;
+  description: string;
+  type: string;
+  category: "reference" | "upload_required" | "can_generate";
+}
+
+interface Certificate {
+  id: string;
+  award: string;
+  assignment: string;
+  status: "Approved" | "Ongoing" | string;
+}
 
 export default function DocumentsSection() {
   const [activeTab, setActiveTab] = useState<TabKey>("All");
@@ -20,45 +39,102 @@ export default function DocumentsSection() {
   const [certSortField, setCertSortField] = useState<CertSortField>("id");
   const [certSortDirection, setCertSortDirection] = useState<SortDirection>("asc");
 
-  // Mock data for program documents
-  const programDocuments = useMemo(
-    () =>
-      [
-        {
-          name: "Registration Fee Fully Funded Registration Guidebook",
-          description: "Detailed guidebook for the fully funded registration fee and payment process.",
-          type: "Registration Fee",
-          category: "reference" as const,
-        },
-        {
-          name: "Program Fee Fully Funded Registration Guidebook",
-          description: "Program fee fully funded registration and payment guideline.",
-          type: "Registration Fee",
-          category: "reference" as const,
-        },
-      ],
-    [],
-  );
+  const [programDocuments, setProgramDocuments] = useState<ProgramDocument[]>([]);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(true);
+  const [loadingCerts, setLoadingCerts] = useState(true);
+  const [errorDocs, setErrorDocs] = useState<string | null>(null);
+  const [errorCerts, setErrorCerts] = useState<string | null>(null);
 
-  // Mock data for certificates
-  const certificates = useMemo(
-    () =>
-      [
-        {
-          id: "KYS-2387279132",
-          award: "Fully Funded Awardee",
-          assignment: "Proposal Approved",
-          status: "Approved" as const,
-        },
-        {
-          id: "KYS-8239173232",
-          award: "Participation Award",
-          assignment: "International Youth Conference",
-          status: "Ongoing" as const,
-        },
-      ],
-    [],
-  );
+  // Fetch program documents
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchDocuments = async () => {
+      try {
+        setLoadingDocs(true);
+        setErrorDocs(null);
+
+        const programId = readActiveProgramId();
+        const url = appendProgramId("/api/portal/documents", programId);
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = (await response.json().catch(() => ({}))) as any;
+        if (!response.ok) {
+          throw new Error(json?.message || "Failed to load documents");
+        }
+
+        if (!cancelled) {
+          setProgramDocuments(json?.data?.items ?? []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setErrorDocs(err instanceof Error ? err.message : "Failed to load documents");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingDocs(false);
+        }
+      }
+    };
+
+    fetchDocuments();
+
+    const handleProgramChange = () => {
+      fetchDocuments();
+    };
+
+    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleProgramChange as EventListener);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleProgramChange as EventListener);
+    };
+  }, []);
+
+  // Fetch certificates
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setLoadingCerts(true);
+        setErrorCerts(null);
+
+        const response = await fetch("/api/portal/certificates", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = (await response.json().catch(() => ({}))) as any;
+        if (!response.ok) {
+          throw new Error(json?.message || "Failed to load certificates");
+        }
+
+        if (!cancelled) {
+          setCertificates(json?.data?.items ?? []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setErrorCerts(err instanceof Error ? err.message : "Failed to load certificates");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingCerts(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSortClick = (field: SortField) => {
     if (sortField === field) {
@@ -72,11 +148,11 @@ export default function DocumentsSection() {
   const filteredSortedDocuments = useMemo(() => {
     let items = programDocuments;
     if (activeTab === "Upload Required") {
-      items = [];
+      items = programDocuments.filter(d => d.category === "upload_required");
     } else if (activeTab === "Can Generate") {
-      items = [];
+      items = programDocuments.filter(d => d.category === "can_generate");
     } else if (activeTab === "Reference") {
-      items = programDocuments;
+      items = programDocuments.filter(d => d.category === "reference");
     }
 
     const sorted = [...items].sort((a, b) => {
@@ -219,7 +295,17 @@ export default function DocumentsSection() {
           </button>
         </div>
 
-        {filteredSortedDocuments.length === 0 ? (
+        {loadingDocs ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            <span className="ml-2 text-sm text-slate-500">Loading documents...</span>
+          </div>
+        ) : errorDocs ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <AlertTriangle className="h-5 w-5 text-red-500" />
+            <p className="mt-2 text-sm text-red-600">{errorDocs}</p>
+          </div>
+        ) : filteredSortedDocuments.length === 0 ? (
           <div className={componentsTheme.dashboardDocuments.emptyStateWrapper}>
             <div className={componentsTheme.dashboardDocuments.emptyStateImageWrapper}>
               <Image
@@ -354,7 +440,17 @@ export default function DocumentsSection() {
           </div>
 
           {/* Empty state / rows certificates */}
-          {filteredSortedCertificates.length === 0 ? (
+          {loadingCerts ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <span className="ml-2 text-sm text-slate-500">Loading certificates...</span>
+            </div>
+          ) : errorCerts ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <p className="mt-2 text-sm text-red-600">{errorCerts}</p>
+            </div>
+          ) : filteredSortedCertificates.length === 0 ? (
             <div className={componentsTheme.dashboardDocuments.emptyStateWrapper}>
               <div className={componentsTheme.dashboardDocuments.emptyStateImageWrapper}>
                 <Image

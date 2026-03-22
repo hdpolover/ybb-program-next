@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
 import {
   ArrowLeft,
   CalendarClock,
@@ -10,8 +10,11 @@ import {
   Info,
   ShieldCheck,
   CheckCircle2,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
+import { useSettings } from "@/components/providers/SettingsProvider";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -19,15 +22,61 @@ interface PaymentMakeSectionProps {
   paymentId: string;
 }
 
+interface InvoiceData {
+  id: string;
+  label: string;
+  category: string;
+  amount: number;
+  dueDate: string;
+  status: string;
+  currency?: string;
+}
+
 export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProps) {
-  const invoice = {
-    id: paymentId,
-    label: "Program Fee (Final)",
-    category: "Program Fee",
-    amountUsd: 450,
-    amountIdr: 450 * 16900,
-    dueDate: "Dec 05, 2025",
-  };
+  const { settings } = useSettings();
+  const rateToIdr = settings?.currency?.rate_to_idr ?? 16900;
+
+  const [invoice, setInvoice] = useState<InvoiceData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(`/api/portal/payments/${paymentId}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = (await response.json().catch(() => ({}))) as any;
+        if (!response.ok) {
+          throw new Error(json?.message || "Failed to load payment details");
+        }
+
+        if (!cancelled) {
+          setInvoice(json?.data?.invoice ?? null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load payment details");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [paymentId]);
 
   const [paymentType, setPaymentType] = useState<"gateway" | "manual">("gateway");
   const [manualMethod, setManualMethod] = useState<
@@ -41,10 +90,15 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const [manualProofUploaded, setManualProofUploaded] = useState(false);
   const [manualNotes, setManualNotes] = useState("");
 
+  const amountUsd = invoice?.amount ?? 0;
+  const amountIdr = amountUsd * rateToIdr;
+
   const currencyUsd = (v: number) => `$${v.toFixed(2)}`;
   const currencyIdr = (v: number) =>
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(v);
 
+  // NOTE: Bank methods are hardcoded as UI config for now.
+  // These could be moved to an API endpoint in the future (e.g. /api/portal/payment-methods).
   const bankMethods: {
     id: "bca" | "bni" | "bri" | "mandiri" | "paypal";
     label: string;
@@ -67,6 +121,33 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     manualPaymentDate.trim() !== "" &&
     manualProofUploaded;
   const isFormComplete = isGatewayComplete || isManualComplete;
+
+  if (loading) {
+    return (
+      <section className={paymentsTheme.sectionWrapper}>
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <span className="ml-2 text-sm text-slate-500">Loading payment details...</span>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || !invoice) {
+    return (
+      <section className={paymentsTheme.sectionWrapper}>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-6 w-6 text-red-500" />
+          <p className="mt-2 text-sm text-red-600">{error || "Payment not found"}</p>
+          <Link href="/dashboard/payments" className="mt-4 text-sm text-primary underline">
+            Back to Payments
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  const formattedRate = new Intl.NumberFormat("id-ID").format(rateToIdr);
 
   return (
     <section className={paymentsTheme.sectionWrapper}>
@@ -108,11 +189,11 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
               <p className={paymentsTheme.currencyInfoTitle}>Important currency information</p>
               <p className="text-xs">
                 Although the amount is displayed in USD, payments will be processed in IDR (Indonesian Rupiah).
-                The current conversion rate used is <span className="font-semibold">1 USD = 16,900 IDR</span>.
+                The current conversion rate used is <span className="font-semibold">1 USD = {formattedRate} IDR</span>.
               </p>
               <p className="text-xs">
-                <span className="font-semibold">Estimated total:</span> {currencyUsd(invoice.amountUsd)} 
-                (<span className="font-semibold">{currencyIdr(invoice.amountIdr)}</span>)
+                <span className="font-semibold">Estimated total:</span> {currencyUsd(amountUsd)}
+                (<span className="font-semibold">{currencyIdr(amountIdr)}</span>)
               </p>
             </div>
           </div>
@@ -194,7 +275,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     </div>
                     <div>
                       <p className={paymentsTheme.stepTextTitle}>
-                        Select “Credit/Debit Card” as the payment method
+                        Select "Credit/Debit Card" as the payment method
                       </p>
                       <p className={paymentsTheme.stepTextBody}>
                         The payment gateway will show several options such as:
