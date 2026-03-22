@@ -49,6 +49,11 @@ export type PortalSubmissionRequirement = {
   uploadedFile?: Record<string, unknown>;
 };
 
+export type PortalProgramOption = {
+  id: string;
+  name: string;
+};
+
 export type PortalSubmissionDetail = {
   applicationId: string;
   programId: string;
@@ -58,6 +63,12 @@ export type PortalSubmissionDetail = {
   sections: PortalSubmissionSection[];
   essays: PortalSubmissionEssay[];
   requirements: PortalSubmissionRequirement[];
+  programs?: PortalProgramOption[];
+  participantName?: string;
+  participantId?: string;
+  participantAccountId?: string;
+  participantLocation?: string;
+  participantAvatarUrl?: string;
 };
 
 export type PortalSubmissionProgressSection = {

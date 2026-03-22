@@ -16,6 +16,7 @@ import type {
   PortalSubmissionFieldOption,
   PortalSubmissionSection,
 } from "@/types/portal-submission";
+import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -155,6 +156,19 @@ export default function SubmissionReadSection() {
 
   return (
     <section className={submissionTheme.sectionWrapper}>
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: "Submissions", href: "/dashboard/submission" },
+          { label: "Registration Form" },
+        ]}
+      />
+
+      {/* Page Title */}
+      <h1 className="text-2xl font-bold text-slate-900">
+        Registration Form
+      </h1>
+
       <SubmissionReadProfileHeaderSection />
 
       {error ? (
@@ -183,16 +197,17 @@ export default function SubmissionReadSection() {
             </div>
           </div>
 
-          <div className={submissionTheme.tabsWrapper}>
+          {/* Tab Buttons - Pill shaped using theme */}
+          <div className="flex flex-wrap gap-2">
             {detail.sections.map(section => (
               <button
                 key={section.id}
                 type="button"
                 onClick={() => setActiveSectionId(section.id)}
-                className={`${submissionTheme.tabButtonBase} ${
+                className={`rounded-full border-2 px-8 py-2 text-base font-medium transition-colors ${
                   activeSection?.id === section.id
-                    ? submissionTheme.tabButtonActive
-                    : submissionTheme.tabButtonInactive
+                    ? "border-primary bg-primary text-white"
+                    : "border-primary bg-transparent text-primary hover:bg-primary/10"
                 }`}
               >
                 {section.title}

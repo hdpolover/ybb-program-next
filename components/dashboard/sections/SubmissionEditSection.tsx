@@ -16,6 +16,8 @@ import type {
   PortalSubmissionFieldOption,
   PortalSubmissionSection,
 } from "@/types/portal-submission";
+import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
+import UserProfileCard from "@/components/dashboard/ui/UserProfileCard";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -357,27 +359,31 @@ export default function SubmissionEditSection() {
 
       {!loading && detail ? (
         <>
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: "Submissions", href: "/dashboard/submission" },
+              { label: "Registration Form" },
+            ]}
+          />
+
+          {/* Page Title */}
+          <h1 className="text-2xl font-bold text-slate-900">
+            Registration Form
+          </h1>
+
+          {/* Stepper Card with Tabs */}
           <div className={submissionTheme.stepperCard}>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Submission Form</p>
-                <h2 className="mt-1 text-lg font-semibold text-slate-900">{detail.programName}</h2>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                <CheckCircle2 className="h-4 w-4" />
-                {detail.overallProgress}% completed
-              </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {detail.sections.map(section => (
+            <div className="flex flex-wrap gap-2">
+              {detail.sections.map((section) => (
                 <button
                   key={section.id}
                   type="button"
                   onClick={() => setActiveSectionId(section.id)}
-                  className={`${submissionTheme.tabButtonBase} ${
+                  className={`rounded-full border-2 px-8 py-2 text-base font-medium transition-colors ${
                     activeSection?.id === section.id
-                      ? submissionTheme.tabButtonActive
-                      : submissionTheme.tabButtonInactive
+                      ? "border-primary bg-primary text-white"
+                      : "border-primary bg-transparent text-primary hover:bg-primary/10"
                   }`}
                 >
                   {section.title}
@@ -455,6 +461,22 @@ export default function SubmissionEditSection() {
                     </div>
                   </div>
                 ) : null}
+
+                {/* User Profile Card */}
+                <div className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
+                  <UserProfileCard
+                    user={{
+                      name: detail.participantName || "Participant",
+                      accountId: detail.participantAccountId || detail.participantId || "N/A",
+                      location: detail.participantLocation || "Unknown Location",
+                      avatarUrl: detail.participantAvatarUrl,
+                    }}
+                    onEdit={() => {
+                      // Navigate to profile edit or open edit modal
+                      console.log("Edit profile clicked");
+                    }}
+                  />
+                </div>
 
                 <div className={submissionTheme.buttonRow}>
                   <button
