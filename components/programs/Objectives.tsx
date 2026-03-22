@@ -1,9 +1,25 @@
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { PROGRAMS_OBJECTIVES_COPY } from '@/data/programs/sections/objectives/programsObjectives';
 
-export default function Objectives() {
-  const { eyebrow, title, items } = PROGRAMS_OBJECTIVES_COPY;
+export type ObjectiveItem = {
+  n: string;
+  title: string;
+  desc: string;
+};
+
+export type ObjectivesProps = {
+  eyebrow?: string;
+  title?: string;
+  items?: ObjectiveItem[];
+};
+
+export default function Objectives({
+  eyebrow = 'Objectives',
+  title = 'Program Objectives',
+  items = [],
+}: ObjectivesProps) {
+  if (!items.length) return null;
+
   return (
     <section className="bg-[#eef5ff] px-6 py-12 sm:py-14 md:py-16 lg:px-8">
       <div className="mx-auto max-w-7xl">

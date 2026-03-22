@@ -3,10 +3,17 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Mail as MailIcon } from "lucide-react";
-import { FOOTER_COPY } from "@/data/footerCopy";
 import { componentsTheme } from "@/lib/theme/components";
 import { useSettings } from "@/components/providers/SettingsProvider";
 import type { SettingsData, SettingsFooterNavSection } from "@/types/settings";
+
+const FOOTER_DEFAULT_NAV = [
+  { label: 'Home', href: '/' },
+  { label: 'Programs', href: '/programs' },
+  { label: 'Partners & Sponsors', href: '/partners' },
+  { label: 'Announcements', href: '/announcements' },
+  { label: 'FAQ', href: '/faq' },
+];
 
 export default function Footer() {
   const { settings } = useSettings();
@@ -31,7 +38,7 @@ export default function Footer() {
     href: link.url,
   }));
 
-  const menuLinks: { label: string; href: string }[] = apiMenuLinks.length > 0 ? apiMenuLinks : FOOTER_COPY.nav;
+  const menuLinks: { label: string; href: string }[] = apiMenuLinks.length > 0 ? apiMenuLinks : FOOTER_DEFAULT_NAV;
 
   const legalLinks: { label: string; href: string }[] = (legalSection?.links ?? []).map(link => ({
     label: link.label,
@@ -54,11 +61,7 @@ export default function Footer() {
     apiSocials.push({ id: "telegram", label: "Telegram", href: brand.social_media.telegram });
   }
 
-  const fallbackSocials = FOOTER_COPY.socials.filter(s =>
-    ["instagram", "tiktok", "youtube", "telegram"].includes(s.id),
-  );
-
-  const socialLinks = (apiSocials.length > 0 ? apiSocials : fallbackSocials).map(s => ({
+  const socialLinks = apiSocials.map(s => ({
     id: s.id,
     label: s.label,
     href: s.href ?? "",
@@ -80,13 +83,13 @@ export default function Footer() {
                 unoptimized
               />
             </div>
-            <p className="mt-2 max-w-sm text-sm text-white/80">{brand?.description || FOOTER_COPY.description}</p>
+            <p className="mt-2 max-w-sm text-sm text-white/80">{brand?.description || ''}</p>
           </div>
 
           {/* Navigasi / Menu utama (Quick Links) */}
           <div>
             <h4 className="text-sm font-extrabold uppercase tracking-wider text-white">
-              {FOOTER_COPY.menuTitle}
+              Menu
             </h4>
             <ul className="mt-4 space-y-2 text-sm text-white/80">
               {menuLinks.map(item => (
@@ -102,17 +105,15 @@ export default function Footer() {
           {/* Contact / Socials with labels */}
           <div>
             <h4 className="text-sm font-extrabold uppercase tracking-wider text-white">
-              {FOOTER_COPY.contactTitle}
+              Contact Us
             </h4>
             <ul className="mt-4 space-y-3 text-sm text-white/85">
               {/* Email */}
               {(() => {
                 const emailHref = brand?.support_email
                   ? `mailto:${brand.support_email}`
-                  : FOOTER_COPY.socials.find(s => s.id === "email")?.href;
-                const emailLabel = brand?.support_email
-                  ? brand.support_email
-                  : FOOTER_COPY.socials.find(s => s.id === "email")?.label;
+                  : null;
+                const emailLabel = brand?.support_email ?? null;
 
                 return (
                   <li key="email" className="flex items-center gap-3">
@@ -133,7 +134,7 @@ export default function Footer() {
 
               {/* Location / address */}
               {(() => {
-                const address = brand?.address ?? FOOTER_COPY.socials.find(s => s.id === "location")?.label;
+                const address = brand?.address ?? null;
                 if (!address) return null;
                 return (
                   <li key="location" className="flex items-start gap-3">
@@ -209,23 +210,23 @@ export default function Footer() {
           {/* Newsletter / Subscribe */}
           <div>
             <h4 className="text-sm font-extrabold uppercase tracking-wider text-white">
-              {FOOTER_COPY.newsletterTitle}
+              Subscribe to Our Newsletter
             </h4>
             <p className="mt-4 text-sm text-white/80">
-              {FOOTER_COPY.newsletterBody}
+              Get updates about important dates, program announcements, and opportunities directly in your inbox.
             </p>
             <form className="mt-4">
               <div className="flex overflow-hidden rounded-xl ring-1 ring-white/30">
                 <input
                   type="email"
-                  placeholder={FOOTER_COPY.newsletterInputPlaceholder}
+                  placeholder="Enter your email"
                   className="w-full bg-white/95 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                 />
                 <button
                   type="button"
                   className={componentsTheme.footer.newsletterButton}
                 >
-                  {FOOTER_COPY.newsletterCtaLabel}
+                  Subscribe
                 </button>
               </div>
             </form>

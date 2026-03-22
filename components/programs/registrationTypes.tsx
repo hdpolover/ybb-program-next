@@ -11,12 +11,11 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
-import { PROGRAMS_REGISTRATION_COPY } from '@/data/programs/sections/registration-info/programsRegistrationInfo';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
 } from '@/types/programs';
-import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type RegistrationTypeProgramsProps = {
   pricingTiers?: RegistrationInfoPricingTier[];
@@ -38,6 +37,8 @@ export default function RegistrationTypePrograms({
   status,
   registrationDates,
 }: RegistrationTypeProgramsProps) {
+  if (!pricingTiers && !instructions) return null;
+
   const primaryType = pricingTiers?.[0];
   const secondaryType = pricingTiers?.[1];
 
@@ -76,6 +77,18 @@ export default function RegistrationTypePrograms({
 
   const infoInstructions: RegistrationInfoInstruction[] =
     instructions && instructions.length > 0 ? instructions : [];
+
+  const selfFundedRequirements = [
+    'Complete registration form and documentation',
+    'Submit required documents on time',
+    'Pay fees according to scheduled payment batches',
+  ];
+
+  const fullyFundedRequirements = [
+    'Complete registration form and documentation',
+    'Submit detailed essays and applications',
+    'Participate in interviews and evaluations',
+  ];
 
   const renderInstructionIcon = (icon: string) => {
     switch (icon) {
@@ -117,7 +130,7 @@ export default function RegistrationTypePrograms({
                         {primaryType?.name ?? 'Self Funded'}
                       </h3>
                       <p className={componentsTheme.applyRegistrationTypes.headerSubtitle}>
-                        {PROGRAMS_REGISTRATION_COPY.selfFundedSubtitle}
+                        Registration
                       </p>
                     </div>
                   </div>
@@ -138,23 +151,23 @@ export default function RegistrationTypePrograms({
                       : DATA_NOT_ADDED}
                   </span>
                   <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
-                    {PROGRAMS_REGISTRATION_COPY.feeLabel}
+                    Registration Fee
                   </span>
                 </div>
                 <div className={componentsTheme.applyRegistrationTypes.periodRow}>
                   <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
-                    {PROGRAMS_REGISTRATION_COPY.periodLabel}
+                    Registration Period:
                   </span>
                   <span>{registrationPeriodLabel}</span>
                 </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
                 <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>
-                  {PROGRAMS_REGISTRATION_COPY.requirementsTitle}
+                  Requirements
                 </p>
                 <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {PROGRAMS_REGISTRATION_COPY.selfFundedRequirements.map((label, idx) => (
+                  {selfFundedRequirements.map((label, idx) => (
                     <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
@@ -168,7 +181,7 @@ export default function RegistrationTypePrograms({
                   ))}
                 </ul>
                 <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
-                  {PROGRAMS_REGISTRATION_COPY.selfFundedBenefitTitle}
+                  Benefit
                 </p>
                 <ul className={componentsTheme.applyRegistrationTypes.list}>
                   {primaryBenefits.length > 0 ? (
@@ -206,7 +219,7 @@ export default function RegistrationTypePrograms({
                       componentsTheme.applyRegistrationTypes.ctaButton
                     } ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                   >
-                    {PROGRAMS_REGISTRATION_COPY.selfFundedCtaLabel}
+                    See Details
                   </a>
                 </div>
               </div>
@@ -225,7 +238,7 @@ export default function RegistrationTypePrograms({
                         {secondaryType?.name ?? 'Fully Funded'}
                       </h3>
                       <p className={componentsTheme.applyRegistrationTypes.headerSubtitle}>
-                        {PROGRAMS_REGISTRATION_COPY.fullyFundedSubtitle}
+                        Reimbursement System
                       </p>
                     </div>
                   </div>
@@ -246,7 +259,7 @@ export default function RegistrationTypePrograms({
                 <div className={componentsTheme.applyRegistrationTypes.periodRow}>
                   <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
-                    {PROGRAMS_REGISTRATION_COPY.periodLabel}
+                    Registration Period:
                   </span>
                   <span>{registrationPeriodLabel}</span>
                 </div>
@@ -254,7 +267,7 @@ export default function RegistrationTypePrograms({
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
                 <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
                 <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {PROGRAMS_REGISTRATION_COPY.fullyFundedRequirements.map((label, idx) => (
+                  {fullyFundedRequirements.map((label, idx) => (
                     <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
                       <span
                         className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
@@ -268,7 +281,7 @@ export default function RegistrationTypePrograms({
                   ))}
                 </ul>
                 <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
-                  {PROGRAMS_REGISTRATION_COPY.fullyFundedBenefitTitle}
+                  Benefit (If Selected)
                 </p>
                 <ul className={componentsTheme.applyRegistrationTypes.list}>
                   {secondaryBenefits.length > 0 ? (
@@ -305,7 +318,7 @@ export default function RegistrationTypePrograms({
                     aria-disabled
                     className={componentsTheme.applyRegistrationTypes.ctaButtonDisabled}
                   >
-                    {PROGRAMS_REGISTRATION_COPY.fullyFundedCtaLabel}
+                    See Details
                   </button>
                 </div>
               </div>
@@ -317,10 +330,10 @@ export default function RegistrationTypePrograms({
             <div className={componentsTheme.homeImportantPayment.infoSideCard}>
               <div>
                 <h3 className={componentsTheme.homeImportantPayment.infoTitle}>
-                  {PROGRAMS_REGISTRATION_COPY.infoSide.title}
+                  Registration Information
                 </h3>
                 <p className={componentsTheme.homeImportantPayment.infoIntro}>
-                  {PROGRAMS_REGISTRATION_COPY.infoSide.intro}
+                  Make sure you understand the key details about payments, selection, guarantees, and important deadlines before choosing your registration type. This overview is designed to help you make a well-informed decision.
                 </p>
 
                 <div className={componentsTheme.homeImportantPayment.infoPointsWrapper}>
@@ -352,7 +365,7 @@ export default function RegistrationTypePrograms({
               </div>
 
               <div className={componentsTheme.homeImportantPayment.infoFooter}>
-                {PROGRAMS_REGISTRATION_COPY.infoSide.footer}
+                For complete terms and conditions, please read the official guidebook and FAQ on the official program website and check regularly for the most recent updates from the organizing committee.
               </div>
             </div>
           </div>

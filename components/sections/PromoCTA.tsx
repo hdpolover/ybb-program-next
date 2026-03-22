@@ -1,9 +1,27 @@
-import { promoCtaContent } from '@/data/home/sections/promo-cta/promoCta';
 import { componentsTheme } from '@/lib/theme/components';
 import Image from 'next/image';
 
-export default function PromoCTA() {
-  const { eyebrow, title, subtitle, primaryCtaHref, primaryCtaLabel } = promoCtaContent;
+export type PromoCTAProps = {
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  primaryCtaLabel?: string;
+  primaryCtaHref?: string;
+  videoUrl?: string;
+  videoTitle?: string;
+  videoDescription?: string;
+};
+
+export default function PromoCTA({
+  eyebrow = 'Ready to Innovate?',
+  title = 'Ready to Innovate? Join Us Now!',
+  subtitle = 'Be part of a global community of young leaders and innovators who are creating real impact through international programs.',
+  primaryCtaLabel = 'Apply Now',
+  primaryCtaHref = '/apply',
+  videoUrl,
+  videoTitle,
+  videoDescription,
+}: PromoCTAProps) {
   return (
     <section className={componentsTheme.promoCta.sectionWrapper}>
       <div className="absolute inset-0 sm:hidden">
@@ -16,13 +34,11 @@ export default function PromoCTA() {
         />
       </div>
 
-      {/* Bentuk buat background */}
       <div className={componentsTheme.promoCta.glowLeft} />
       <div className={componentsTheme.promoCta.glowRight} />
       <div className={componentsTheme.promoCta.glowBottom} />
 
       <div className={componentsTheme.promoCta.container}>
-        {/* Isi konten sectionnya */}
         <div className={componentsTheme.promoCta.leftCol}>
           {eyebrow && (
             <p className={componentsTheme.promoCta.eyebrow}>
@@ -45,29 +61,35 @@ export default function PromoCTA() {
           </div>
         </div>
 
-        {/* Kanan: video panduan */}
-        <div className={componentsTheme.promoCta.rightCol}>
-          <div className={componentsTheme.promoCta.videoCard}>
-            <div className={componentsTheme.promoCta.videoFrameWrapper}>
-              <iframe
-                src="https://www.youtube.com/embed/tUR55Fi53rM?si=NEHbcyoMTTsFEVV4"
-                title="Japan Youth Summit 2025 Registration Guideline"
-                className="absolute inset-0 h-full w-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
-            <div className="mt-3">
-              <h3 className={componentsTheme.promoCta.videoTitle}>
-                Japan Youth Summit 2025 Registration Guideline
-              </h3>
-              <p className={componentsTheme.promoCta.videoDescription}>
-                Watch this short walkthrough to understand the step-by-step registration flow,
-                required documents, and key deadlines before you submit your application.
-              </p>
+        {videoUrl ? (
+          <div className={componentsTheme.promoCta.rightCol}>
+            <div className={componentsTheme.promoCta.videoCard}>
+              <div className={componentsTheme.promoCta.videoFrameWrapper}>
+                <iframe
+                  src={videoUrl}
+                  title={videoTitle || 'Program Video'}
+                  className="absolute inset-0 h-full w-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+              {(videoTitle || videoDescription) && (
+                <div className="mt-3">
+                  {videoTitle && (
+                    <h3 className={componentsTheme.promoCta.videoTitle}>
+                      {videoTitle}
+                    </h3>
+                  )}
+                  {videoDescription && (
+                    <p className={componentsTheme.promoCta.videoDescription}>
+                      {videoDescription}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </section>
   );

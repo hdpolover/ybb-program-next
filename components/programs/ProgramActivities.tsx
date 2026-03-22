@@ -1,15 +1,15 @@
 import { Calendar, Clock3, Hourglass, Check } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { PROGRAMS_ACTIVITIES_COPY } from '@/data/programs/sections/activities-info/programsActivitiesInfo';
 import type { ProgramActivitiesSection } from '@/types/programs';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type ProgramActivitiesProps = {
   activities?: ProgramActivitiesSection['content'];
 };
 
 function formatDate(date: string | null | undefined): string {
-  if (!date) return PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
+  if (!date) return DATA_NOT_ADDED;
 
   try {
     return new Date(date).toLocaleDateString('en-US', {
@@ -23,16 +23,18 @@ function formatDate(date: string | null | undefined): string {
 }
 
 export default function ProgramActivities({ activities }: ProgramActivitiesProps) {
-  const title = activities?.title || PROGRAMS_ACTIVITIES_COPY.headerTitle;
-  const subtitle = activities?.subtitle || PROGRAMS_ACTIVITIES_COPY.headerSubtitleFallback;
-  const items = activities?.items ?? [];
+  if (!activities) return null;
+
+  const title = activities.title || 'Program Activities';
+  const subtitle = activities.subtitle || '';
+  const items = activities.items ?? [];
 
   return (
     <section className={componentsTheme.programsActivities.sectionWrapper}>
       <div className={componentsTheme.programsActivities.overlay} />
       <div className={componentsTheme.programsActivities.container}>
         <SectionHeader
-          eyebrow={PROGRAMS_ACTIVITIES_COPY.headerEyebrow}
+          eyebrow="Program Rundown"
           title={title}
           subtitle={subtitle}
           align="center"
@@ -42,13 +44,13 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
           {items.length > 0 ? (
             items.map(item => {
               const dateLabel = formatDate(item.date);
-              const timeLabel = item.time_range || PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
+              const timeLabel = item.time_range || DATA_NOT_ADDED;
               const durationLabel = item.duration
                 ? `Duration: ${item.duration}`
-                : PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
+                : DATA_NOT_ADDED;
               const rawDay = item.day || '';
 
-              let displayTitle = item.title || PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
+              let displayTitle = item.title || DATA_NOT_ADDED;
               if (rawDay) {
                 const lowerDay = rawDay.toLowerCase();
                 const lowerTitle = displayTitle.toLowerCase();
@@ -99,7 +101,7 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
                       ))}
                     </div>
                     <p className={componentsTheme.programsActivities.description}>
-                      {item.description || PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
+                      {item.description || DATA_NOT_ADDED}
                     </p>
                   </div>
                 </article>
@@ -110,23 +112,23 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
               <div className={componentsTheme.programsActivities.metaRow}>
                 <div className={componentsTheme.programsActivities.metaItem}>
                   <Calendar className={componentsTheme.programsActivities.metaIcon} />
-                  <span>{PROGRAMS_ACTIVITIES_COPY.dataNotAdded}</span>
+                  <span>{DATA_NOT_ADDED}</span>
                 </div>
                 <div className={componentsTheme.programsActivities.metaItem}>
                   <Clock3 className={componentsTheme.programsActivities.metaIcon} />
-                  <span>{PROGRAMS_ACTIVITIES_COPY.dataNotAdded}</span>
+                  <span>{DATA_NOT_ADDED}</span>
                 </div>
                 <div className={componentsTheme.programsActivities.metaItem}>
                   <Hourglass className={componentsTheme.programsActivities.metaIcon} />
-                  <span>{PROGRAMS_ACTIVITIES_COPY.dataNotAdded}</span>
+                  <span>{DATA_NOT_ADDED}</span>
                 </div>
               </div>
               <div className={componentsTheme.programsActivities.titleWrapper}>
                 <h3 className={componentsTheme.programsActivities.title}>
-                  {PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
+                  {DATA_NOT_ADDED}
                 </h3>
                 <p className={componentsTheme.programsActivities.description}>
-                  {PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
+                  {DATA_NOT_ADDED}
                 </p>
               </div>
             </article>
@@ -135,9 +137,9 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
 
         <p className={componentsTheme.programsActivities.note}>
           <span className={componentsTheme.programsActivities.noteEmphasis}>
-            {PROGRAMS_ACTIVITIES_COPY.notePrefix}
+            Note:
           </span>{' '}
-          {PROGRAMS_ACTIVITIES_COPY.noteBody}
+          This rundown is an estimation only. The final schedule will be updated closer to the program date. Please check back regularly for the most accurate information.
         </p>
       </div>
     </section>

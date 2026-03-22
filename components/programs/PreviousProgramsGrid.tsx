@@ -7,15 +7,17 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { PreviousProgramsSection } from '@/types/programs';
-import { PROGRAMS_PREVIOUS_COPY } from '@/data/programs/sections/previous/programsPrevious';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type PreviousProgramsGridProps = {
   previous?: PreviousProgramsSection['content'];
 };
 
 export default function ProgramCarousel({ previous }: PreviousProgramsGridProps) {
-  const title = previous?.title || PROGRAMS_PREVIOUS_COPY.title;
-  const items = previous?.items ?? [];
+  if (!previous) return null;
+
+  const title = previous.title || 'Previous Programs';
+  const items = previous.items ?? [];
 
   // Map API items to display shape
   const programs = items.map(item => ({
@@ -36,14 +38,14 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
     <section className={componentsTheme.programsPrevious.sectionWrapper}>
       <div className={componentsTheme.programsPrevious.container}>
         {/* header section untuk previous programs */}
-        <SectionHeader eyebrow={PROGRAMS_PREVIOUS_COPY.eyebrow} title={title} />
+        <SectionHeader eyebrow="Previous Program" title={title} />
         <p className={componentsTheme.programsPrevious.subtitle}>
-          {PROGRAMS_PREVIOUS_COPY.subtitle}
+          A look back at our previous program editions
         </p>
 
         {total === 0 && (
           <p className={componentsTheme.programsPrevious.subtitle}>
-            {PROGRAMS_PREVIOUS_COPY.dataNotAdded}
+            {DATA_NOT_ADDED}
           </p>
         )}
 
@@ -61,20 +63,20 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
-                    {PROGRAMS_PREVIOUS_COPY.imageNotAdded}
+                    Image not added
                   </div>
                 )}
               </div>
 
               <div className={componentsTheme.programsPrevious.cardBody}>
                 <h3 className={componentsTheme.programsPrevious.cardTitle}>
-                  {programs[0].name || PROGRAMS_PREVIOUS_COPY.dataNotAdded}
+                  {programs[0].name || DATA_NOT_ADDED}
                 </h3>
                 <p className={componentsTheme.programsPrevious.cardDate}>
-                  {programs[0].year ? String(programs[0].year) : PROGRAMS_PREVIOUS_COPY.dataNotAdded}
+                  {programs[0].year ? String(programs[0].year) : DATA_NOT_ADDED}
                 </p>
                 <p className={componentsTheme.programsPrevious.cardDate}>
-                  {programs[0].location || PROGRAMS_PREVIOUS_COPY.dataNotAdded}
+                  {programs[0].location || DATA_NOT_ADDED}
                 </p>
 
                 <button
@@ -84,7 +86,7 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
                     'mt-5 flex w-full items-center justify-center text-sm',
                   )}
                 >
-                  {PROGRAMS_PREVIOUS_COPY.readMore}
+                  Read More
                 </button>
               </div>
             </div>
@@ -95,7 +97,7 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
           <div className={componentsTheme.programsPrevious.stageWrapper}>
             <button
               onClick={prev}
-              aria-label={PROGRAMS_PREVIOUS_COPY.ariaPrev}
+              aria-label="Previous program"
               className={clsx(
                 'absolute left-20 z-30 hidden sm:flex',
                 componentsTheme.programsPrevious.arrowButton,
@@ -105,7 +107,7 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
             </button>
             <button
               onClick={next}
-              aria-label={PROGRAMS_PREVIOUS_COPY.ariaNext}
+              aria-label="Next program"
               className={clsx(
                 'absolute right-20 z-30 hidden sm:flex',
                 componentsTheme.programsPrevious.arrowButton,
@@ -158,20 +160,20 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
-                            {PROGRAMS_PREVIOUS_COPY.imageNotAdded}
+                            Image not added
                           </div>
                         )}
                       </div>
 
                       <div className={componentsTheme.programsPrevious.cardBody}>
                         <h3 className={componentsTheme.programsPrevious.cardTitle}>
-                          {item.name || PROGRAMS_PREVIOUS_COPY.dataNotAdded}
+                          {item.name || DATA_NOT_ADDED}
                         </h3>
                         <p className={componentsTheme.programsPrevious.cardDate}>
-                          {item.year ? String(item.year) : PROGRAMS_PREVIOUS_COPY.dataNotAdded}
+                          {item.year ? String(item.year) : DATA_NOT_ADDED}
                         </p>
                         <p className={componentsTheme.programsPrevious.cardDate}>
-                          {item.location || PROGRAMS_PREVIOUS_COPY.dataNotAdded}
+                          {item.location || DATA_NOT_ADDED}
                         </p>
 
                         <button
@@ -181,7 +183,7 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
                             'mt-5 flex w-full items-center justify-center text-sm',
                           )}
                         >
-                          {PROGRAMS_PREVIOUS_COPY.readMore}
+                          Read More
                         </button>
                       </div>
                     </div>

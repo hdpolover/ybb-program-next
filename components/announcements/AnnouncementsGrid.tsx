@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 export type AnnouncementCategory =
   | 'awards'

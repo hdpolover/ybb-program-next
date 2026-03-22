@@ -3,7 +3,6 @@
 import { Users, Globe2, GraduationCap } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { IMPACT_DISTRIBUTION_COPY } from '@/data/home/sections/impact/impactDistribution';
 import type { ProgramImpactSection } from '@/types/home';
 
 interface Props {
@@ -11,9 +10,9 @@ interface Props {
 }
 
 export default function GlobalProgramImpact({ section }: Props) {
-  const eyebrow = section?.content.eyebrow ?? IMPACT_DISTRIBUTION_COPY.globalImpactEyebrow;
-  const title = section?.content.title ?? IMPACT_DISTRIBUTION_COPY.globalImpactTitle;
-  const stats = section?.content.stats ?? IMPACT_DISTRIBUTION_COPY.stats;
+  if (!section) return null;
+
+  const { eyebrow, title, stats } = section.content;
 
   return (
     <section className={componentsTheme.globalImpact.sectionWrapper}>

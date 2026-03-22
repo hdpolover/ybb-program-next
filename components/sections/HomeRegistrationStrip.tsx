@@ -2,7 +2,6 @@ import { MapPin, Calendar, Check, CreditCard } from 'lucide-react';
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { HOME_REGISTRATION_COPY } from '@/data/home/sections/registration/homeRegistration';
 
 type InstagramFeedItem = {
   id: string;
@@ -45,11 +44,11 @@ export default function HomeRegistrationStrip({
     <section className={componentsTheme.homeRegistration.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader
-          eyebrow={HOME_REGISTRATION_COPY.eyebrow}
-          title={HOME_REGISTRATION_COPY.title}
+          eyebrow="Registration Types"
+          title="Choose how you want to join"
         />
         <p className={componentsTheme.homeRegistration.introText}>
-          {HOME_REGISTRATION_COPY.introText}
+          Explore the available registration options and read the guidebook before you apply.
         </p>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.6fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.7fr)]">
@@ -77,7 +76,7 @@ export default function HomeRegistrationStrip({
                   </a>
                 ) : (
                   <div className="flex h-full items-center justify-center px-6 text-center text-sm text-slate-500">
-                    {HOME_REGISTRATION_COPY.instagramFallback}
+                    Instagram feed will appear here once available.
                   </div>
                 )}
               </div>
@@ -93,7 +92,7 @@ export default function HomeRegistrationStrip({
                       rel="noreferrer"
                       className={componentsTheme.homeRegistration.instagramLink}
                     >
-                      {HOME_REGISTRATION_COPY.instagramCtaLabel}
+                      View post on Instagram
                     </a>
                   </div>
                 )}
@@ -120,16 +119,16 @@ export default function HomeRegistrationStrip({
               ) : (
                 <>
                   <a
-                    href={HOME_REGISTRATION_COPY.guidebookFallbackPrimaryHref}
+                    href="#guidebook-en"
                     className={componentsTheme.homeRegistration.guidePrimary}
                   >
-                    {HOME_REGISTRATION_COPY.guidebookFallbackPrimaryLabel}
+                    Download Guidebook (EN)
                   </a>
                   <a
-                    href={HOME_REGISTRATION_COPY.guidebookFallbackSecondaryHref}
+                    href="#guidebook-id"
                     className={componentsTheme.homeRegistration.guideSecondary}
                   >
-                    {HOME_REGISTRATION_COPY.guidebookFallbackSecondaryLabel}
+                    Download Guidebook (ID)
                   </a>
                 </>
               )}

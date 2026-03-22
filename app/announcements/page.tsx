@@ -1,16 +1,13 @@
 import AnnouncementsGrid from '@/components/announcements/AnnouncementsGrid';
-import { announcementsData } from '@/data/announcements';
 import HeroSection from '@/components/ui/HeroSection';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
 import type { AnnouncementListSection, AnnouncementsHeroSection } from '@/types/announcements';
 
 export default async function AnnouncementsPage() {
   let announcementsPage: Awaited<ReturnType<typeof getAnnouncementsPageData>> | null = null;
-  let hasApi = false;
 
   try {
     announcementsPage = await getAnnouncementsPageData();
-    hasApi = true;
   } catch (e) {
     console.error('Failed to fetch announcements page data', e);
   }
@@ -23,19 +20,16 @@ export default async function AnnouncementsPage() {
     (section): section is AnnouncementListSection => section.type === 'announcement_list',
   );
 
-  const apiItems = announcementListSection?.data ?? [];
-  const items = hasApi
-    ? apiItems.map(item => ({
-        id: item.id,
-        image: item.image || '/img/announcementbackground.png',
-        title: item.title || announcementsPage?.title || 'Announcements',
-        excerpt: item.excerpt || '',
-        author: item.author || 'YBB',
-        date: item.date || '',
-        href: item.href || undefined,
-        category: (item.category as any) || undefined,
-      }))
-    : announcementsData;
+  const items = (announcementListSection?.data ?? []).map(item => ({
+    id: item.id,
+    image: item.image || '/img/announcementbackground.png',
+    title: item.title || announcementsPage?.title || 'Announcements',
+    excerpt: item.excerpt || '',
+    author: item.author || 'YBB',
+    date: item.date || '',
+    href: item.href || undefined,
+    category: (item.category as any) || undefined,
+  }));
 
   const awardAnnouncements = items.filter(item => item.category === 'awards');
 

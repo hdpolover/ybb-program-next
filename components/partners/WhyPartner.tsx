@@ -1,25 +1,72 @@
 import { Globe2, Sparkles, Megaphone, HeartHandshake } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { PARTNERS_WHY_CONTENT, type PartnersWhyIconKey } from '@/data/partnersWhy';
 
-const iconMap: Record<PartnersWhyIconKey, React.ComponentType<{ className?: string }>> = {
+type WhyPartnerIconKey = 'global_reach' | 'innovation_focus' | 'brand_visibility' | 'social_impact';
+
+type WhyPartnerItem = {
+  id: string;
+  icon: WhyPartnerIconKey;
+  title: string;
+  description: string;
+};
+
+type WhyPartnerProps = {
+  eyebrow?: string;
+  title?: string;
+  items?: WhyPartnerItem[];
+  ctaLabel?: string;
+};
+
+const iconMap: Record<WhyPartnerIconKey, React.ComponentType<{ className?: string }>> = {
   global_reach: Globe2,
   innovation_focus: Sparkles,
   brand_visibility: Megaphone,
   social_impact: HeartHandshake,
 };
 
+const DEFAULT_ITEMS: WhyPartnerItem[] = [
+  {
+    id: 'global-reach',
+    icon: 'global_reach',
+    title: 'Global Reach',
+    description: 'Connect with 4,000+ young leaders from 120+ countries',
+  },
+  {
+    id: 'innovation-focus',
+    icon: 'innovation_focus',
+    title: 'Innovation Focus',
+    description: 'Support cutting-edge projects and social impact initiatives',
+  },
+  {
+    id: 'brand-visibility',
+    icon: 'brand_visibility',
+    title: 'Brand Visibility',
+    description: 'Enhance your brand presence among future leaders',
+  },
+  {
+    id: 'social-impact',
+    icon: 'social_impact',
+    title: 'Social Impact',
+    description: 'Make a lasting difference in youth development worldwide',
+  },
+];
+
 // Section: Why Partner With Us? — dipisah biar rapi & reusable
-export default function WhyPartnerSection() {
+export default function WhyPartnerSection({
+  eyebrow = 'Why Partner With Us?',
+  title = 'Grow impact together with us',
+  items = DEFAULT_ITEMS,
+  ctaLabel = 'Join Our Network',
+}: WhyPartnerProps) {
   return (
     <section className={componentsTheme.partnersWhy.sectionWrapper}>
       <div className={componentsTheme.partnersWhy.container}>
-        <SectionHeader eyebrow={PARTNERS_WHY_CONTENT.eyebrow} title={PARTNERS_WHY_CONTENT.title} />
+        <SectionHeader eyebrow={eyebrow} title={title} />
 
         {/* Fitur utama: satu baris grid, berbasis JSON data */}
         <div className={componentsTheme.partnersWhy.grid}>
-          {PARTNERS_WHY_CONTENT.items.map(item => {
+          {items.map(item => {
             const Icon = iconMap[item.icon];
             return (
               <div key={item.id} className={componentsTheme.partnersWhy.featureCard}>
@@ -36,7 +83,7 @@ export default function WhyPartnerSection() {
         {/* CTA utama di bawah card */}
         <div className={componentsTheme.partnersWhy.ctaWrapper}>
           <button type="button" className={componentsTheme.partnersWhy.ctaButton}>
-            {PARTNERS_WHY_CONTENT.ctaLabel}
+            {ctaLabel}
           </button>
         </div>
       </div>

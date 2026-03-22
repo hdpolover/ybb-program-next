@@ -1,7 +1,6 @@
 import { AlertTriangle, CalendarCheck, Users2, BadgeCheck, RefreshCw } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { HOME_IMPORTANT_PAYMENT_CONTENT } from '@/data/home/sections/important-payment/homeImportantPayment';
 import type { PaymentInfoSection } from '@/types/home';
 
 function renderIcon(iconKey: string) {
@@ -24,7 +23,9 @@ interface Props {
 }
 
 export default function HomeImportantPayment({ section }: Props) {
-  const content = section?.content ?? HOME_IMPORTANT_PAYMENT_CONTENT;
+  if (!section) return null;
+
+  const content = section.content;
 
   return (
     <section className={componentsTheme.homeImportantPayment.sectionWrapper}>

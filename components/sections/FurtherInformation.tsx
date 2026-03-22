@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { DATA_NOT_ADDED } from '@/data/home/shared/constants';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 interface GuidebookLink {
   href: string;

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { CalendarDays, Clock, Info } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
-import { PROGRAMS_RUNDOWNS_COPY } from '@/data/programs/sections/rundowns/programsRundowns';
 
 export type RundownItem = {
   dateLabel: string; // e.g. Oct 12, 2025
@@ -16,10 +15,10 @@ export type RundownItem = {
 };
 
 export default function ProgramRundowns({
-  title = PROGRAMS_RUNDOWNS_COPY.title,
-  subtitle = PROGRAMS_RUNDOWNS_COPY.subtitle,
+  title = 'Program Rundowns',
+  subtitle = 'Detailed schedule of activities for this program',
   days,
-  note = PROGRAMS_RUNDOWNS_COPY.note,
+  note = 'Note: This rundown is an estimation only. The final schedule will be updated closer to the program date. Please check back regularly for the most accurate information.',
 }: {
   title?: string;
   subtitle?: string;
@@ -27,6 +26,8 @@ export default function ProgramRundowns({
   note?: string;
 }) {
   const [active, setActive] = useState(0);
+
+  if (!days || days.length === 0) return null;
 
   return (
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">

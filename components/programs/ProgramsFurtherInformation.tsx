@@ -2,8 +2,7 @@
 
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { PROGRAMS_FURTHER_INFO_DEFAULT } from '@/data/programs/sections/further-info/programsFurtherInfo';
-import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 interface GuidebookLink {
   href: string;
@@ -18,10 +17,21 @@ interface ProgramsFurtherInformationProps {
 }
 
 export default function ProgramsFurtherInformationSection({
-  title = PROGRAMS_FURTHER_INFO_DEFAULT.title,
-  subtitle = PROGRAMS_FURTHER_INFO_DEFAULT.subtitle,
-  guidebooks = PROGRAMS_FURTHER_INFO_DEFAULT.guidebooks,
+  title,
+  subtitle,
+  guidebooks,
 }: ProgramsFurtherInformationProps) {
+  if (!title && !subtitle && (!guidebooks || guidebooks.length === 0)) return null;
+
+  const displayTitle = title || 'Further Information';
+  const displaySubtitle = subtitle || 'The complete information regarding this program can be seen in the guidebook below.';
+  const displayGuidebooks = guidebooks && guidebooks.length > 0
+    ? guidebooks
+    : [
+        { href: '#', label: 'Read Guidebook (Eng)', locale: 'eng' as const },
+        { href: '#', label: 'Read Guidebook (Ind)', locale: 'ind' as const },
+      ];
+
   return (
     <section
       className={componentsTheme.furtherInfoPrograms.sectionWrapper}
@@ -36,11 +46,11 @@ export default function ProgramsFurtherInformationSection({
         <div className={componentsTheme.furtherInfoPrograms.innerGrid}>
           <div className={componentsTheme.furtherInfoPrograms.leftCol}>
             <div>
-              <SectionHeader eyebrow="Guidebook" title={title} align="left" />
-              <p className={componentsTheme.furtherInfoPrograms.description}>{subtitle}</p>
+              <SectionHeader eyebrow="Guidebook" title={displayTitle} align="left" />
+              <p className={componentsTheme.furtherInfoPrograms.description}>{displaySubtitle}</p>
 
               <div className={componentsTheme.furtherInfoPrograms.buttonsCol}>
-                {guidebooks.map(link =>
+                {displayGuidebooks.map(link =>
                   link.href && link.href !== '#' ? (
                     <a
                       key={link.label}

@@ -1,9 +1,36 @@
 "use client";
 
+import { Globe2, Users, Leaf, Sparkles, Target, Lightbulb } from 'lucide-react';
 import { componentsTheme } from "@/lib/theme/components";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { WHAT_MAKES_US_SPECIAL_CONTENT, resolveSpecialIcon, type SpecialIconKey } from "@/data/home/sections/what-makes-us-special/whatMakesUsSpecial";
 import type { ProgramFeaturesSection } from "@/types/home";
+
+type SpecialIconKey =
+  | 'global_impact'
+  | 'networks_partnerships'
+  | 'sustainable_alumni'
+  | 'innovative_programs'
+  | 'goal_oriented'
+  | 'holistic_development';
+
+function resolveSpecialIcon(iconKey: string) {
+  switch (iconKey) {
+    case 'global_impact':
+      return Globe2;
+    case 'networks_partnerships':
+      return Users;
+    case 'sustainable_alumni':
+      return Leaf;
+    case 'innovative_programs':
+      return Sparkles;
+    case 'goal_oriented':
+      return Target;
+    case 'holistic_development':
+      return Lightbulb;
+    default:
+      return Globe2;
+  }
+}
 
 const specialTheme = componentsTheme.homeWhatMakesSpecial;
 
@@ -12,23 +39,9 @@ interface Props {
 }
 
 export default function WhatMakesUsSpecialSection({ section }: Props) {
-  const eyebrow = section?.content.eyebrow ?? WHAT_MAKES_US_SPECIAL_CONTENT.eyebrow;
-  const title = section?.content.title ?? WHAT_MAKES_US_SPECIAL_CONTENT.title;
-  const subtitle = section?.content.subtitle ?? WHAT_MAKES_US_SPECIAL_CONTENT.subtitle;
-  const cards = section?.content.items ?? WHAT_MAKES_US_SPECIAL_CONTENT.cards;
+  if (!section) return null;
 
-  const toSpecialIconKey = (icon: string): SpecialIconKey => {
-    const validIcons: SpecialIconKey[] = [
-      "global_impact",
-      "networks_partnerships",
-      "sustainable_alumni",
-      "innovative_programs",
-      "goal_oriented",
-      "holistic_development",
-    ];
-
-    return validIcons.includes(icon as SpecialIconKey) ? (icon as SpecialIconKey) : "global_impact";
-  };
+  const { eyebrow, title, subtitle, items: cards } = section.content;
 
   return (
     <section className={specialTheme.sectionWrapper}>
@@ -42,7 +55,7 @@ export default function WhatMakesUsSpecialSection({ section }: Props) {
 
         <div className={specialTheme.grid}>
           {cards.map(card => {
-            const Icon = resolveSpecialIcon(toSpecialIconKey(card.icon));
+            const Icon = resolveSpecialIcon(card.icon);
             return (
               <article key={card.id} className={specialTheme.card}>
                 <div className={specialTheme.iconCircle}>

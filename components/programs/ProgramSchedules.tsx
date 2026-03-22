@@ -1,7 +1,7 @@
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramImportantDatesSection } from '@/types/programs';
-import { PROGRAMS_SCHEDULES_COPY } from '@/data/programs/sections/schedules-info/programsSchedulesInfo';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type VisualStatus = 'active' | 'upcoming' | 'closed';
 
@@ -18,7 +18,7 @@ function mapStatus(status?: string, isActive?: boolean): VisualStatus {
 }
 
 function StatusBadge({ visualStatus, label }: { visualStatus: VisualStatus; label?: string }) {
-  const text = label || PROGRAMS_SCHEDULES_COPY.dataNotAdded;
+  const text = label || DATA_NOT_ADDED;
   if (visualStatus === 'active') {
     return (
       <span className={componentsTheme.programsSchedules.statusActive}>
@@ -41,15 +41,17 @@ function StatusBadge({ visualStatus, label }: { visualStatus: VisualStatus; labe
 }
 
 export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
-  const title = dates?.title || PROGRAMS_SCHEDULES_COPY.headerTitle;
-  const subtitle = dates?.subtitle || PROGRAMS_SCHEDULES_COPY.headerSubtitleFallback;
-  const items = dates?.items ?? [];
+  if (!dates) return null;
+
+  const title = dates.title || 'Key dates and important deadlines';
+  const subtitle = dates.subtitle || '';
+  const items = dates.items ?? [];
 
   return (
     <section className={componentsTheme.programsSchedules.sectionWrapper}>
       <div className={componentsTheme.programsSchedules.container}>
         <SectionHeader
-          eyebrow={PROGRAMS_SCHEDULES_COPY.headerEyebrow}
+          eyebrow="Program Schedules"
           title={title}
           subtitle={subtitle}
           align="center"
@@ -61,16 +63,16 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
               <thead className={componentsTheme.programsSchedules.thead}>
                 <tr className={componentsTheme.programsSchedules.headerRow}>
                   <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
-                    {PROGRAMS_SCHEDULES_COPY.columnDateRange}
+                    Date Range
                   </th>
                   <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
-                    {PROGRAMS_SCHEDULES_COPY.columnStatus}
+                    Status
                   </th>
                   <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
-                    {PROGRAMS_SCHEDULES_COPY.columnName}
+                    Schedule Name
                   </th>
                   <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
-                    {PROGRAMS_SCHEDULES_COPY.columnDescription}
+                    Description
                   </th>
                 </tr>
               </thead>
@@ -78,17 +80,17 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
                 {items.length > 0 ? (
                   items.map(item => {
                     const visualStatus = mapStatus(item.status, item.is_active);
-                    const descriptionLines = (item.description || PROGRAMS_SCHEDULES_COPY.dataNotAdded).split(/\n+/);
+                    const descriptionLines = (item.description || DATA_NOT_ADDED).split(/\n+/);
                     return (
                       <tr key={item.name} className={componentsTheme.programsSchedules.row}>
                         <td className={componentsTheme.programsSchedules.cellDate}>
-                          {item.date_display || PROGRAMS_SCHEDULES_COPY.dataNotAdded}
+                          {item.date_display || DATA_NOT_ADDED}
                         </td>
                         <td className={componentsTheme.programsSchedules.cellStatus}>
                           <StatusBadge visualStatus={visualStatus} label={item.status} />
                         </td>
                         <td className={componentsTheme.programsSchedules.cellName}>
-                          {item.name || PROGRAMS_SCHEDULES_COPY.dataNotAdded}
+                          {item.name || DATA_NOT_ADDED}
                         </td>
                         <td className={componentsTheme.programsSchedules.cellDesc}>
                           {descriptionLines.map(line => (
@@ -106,7 +108,7 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
                       className={componentsTheme.programsSchedules.cellDesc}
                       colSpan={4}
                     >
-                      {PROGRAMS_SCHEDULES_COPY.dataNotAdded}
+                      {DATA_NOT_ADDED}
                     </td>
                   </tr>
                 )}
@@ -117,9 +119,9 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
 
         <p className={componentsTheme.programsSchedules.note}>
           <span className={componentsTheme.programsSchedules.noteEmphasis}>
-            {PROGRAMS_SCHEDULES_COPY.notePrefix}
+            Important:
           </span>{' '}
-          {PROGRAMS_SCHEDULES_COPY.noteBody}
+          All dates and deadlines are subject to change. Please check this page regularly for the most up-to-date information.
         </p>
       </div>
     </section>

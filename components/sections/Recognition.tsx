@@ -16,12 +16,8 @@ import {
   Users,
 } from 'lucide-react';
 import type { OrganizationCredentialsSection } from '@/types/home';
-import {
-  recognitionContent,
-  type RecognitionProofItem,
-} from '@/data/home/sections/recognition/recognition';
 
-const resolveProofIcon = (key: RecognitionProofItem['iconKey'] | string): JSX.Element => {
+const resolveProofIcon = (key: string): JSX.Element => {
   switch (key) {
     case 'ministry':
       return <Building2 className="h-5 w-5" />;
@@ -51,10 +47,9 @@ interface Props {
 }
 
 export default function Recognition({ section }: Props) {
-  const title = section?.content.title ?? recognitionContent.title;
-  const subtitle = section?.content.subtitle ?? recognitionContent.subtitle;
-  const proofs = section?.content.proofs ?? recognitionContent.proofs;
-  const trademark = section?.content.trademark ?? recognitionContent.haki;
+  if (!section) return null;
+
+  const { title, subtitle, proofs, trademark } = section.content;
   return (
     <section className={componentsTheme.recognition.sectionWrapper}>
       <div className={componentsTheme.recognition.container}>

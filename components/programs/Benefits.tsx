@@ -1,19 +1,37 @@
 import { Globe2, Lightbulb, Handshake, Users, GraduationCap, Landmark } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { PROGRAMS_BENEFITS_COPY } from '@/data/programs/sections/benefits/programsBenefits';
 
-export default function Benefits() {
-  const { eyebrow, title, items } = PROGRAMS_BENEFITS_COPY;
+export type BenefitIconKey = 'globe' | 'leader' | 'handshake' | 'network' | 'academic' | 'culture';
 
-  const iconEls: Record<(typeof items)[number]['icon'], JSX.Element> = {
-    globe: <Globe2 className="h-5 w-5" />,
-    leader: <Lightbulb className="h-5 w-5" />,
-    handshake: <Handshake className="h-5 w-5" />,
-    network: <Users className="h-5 w-5" />,
-    academic: <GraduationCap className="h-5 w-5" />,
-    culture: <Landmark className="h-5 w-5" />,
-  };
+export type BenefitItem = {
+  key: string;
+  icon: BenefitIconKey;
+  title: string;
+  desc: string;
+};
+
+export type BenefitsProps = {
+  eyebrow?: string;
+  title?: string;
+  items?: BenefitItem[];
+};
+
+const iconEls: Record<BenefitIconKey, JSX.Element> = {
+  globe: <Globe2 className="h-5 w-5" />,
+  leader: <Lightbulb className="h-5 w-5" />,
+  handshake: <Handshake className="h-5 w-5" />,
+  network: <Users className="h-5 w-5" />,
+  academic: <GraduationCap className="h-5 w-5" />,
+  culture: <Landmark className="h-5 w-5" />,
+};
+
+export default function Benefits({
+  eyebrow = 'Benefits',
+  title = 'What You Will Gain',
+  items = [],
+}: BenefitsProps) {
+  if (!items.length) return null;
 
   return (
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
@@ -27,7 +45,7 @@ export default function Benefits() {
             >
               <div className="flex items-start gap-3">
                 <span className={componentsTheme.programsBenefits.iconCircle}>
-                  {iconEls[it.icon]}
+                  {iconEls[it.icon] ?? <Globe2 className="h-5 w-5" />}
                 </span>
                 <div>
                   <h3 className="text-lg font-extrabold text-blue-900">{it.title}</h3>

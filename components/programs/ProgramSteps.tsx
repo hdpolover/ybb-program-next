@@ -2,7 +2,7 @@ import { CheckCircle2, CreditCard, Mail, Users, CalendarDays, Flag, Star } from 
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramJourneySection } from '@/types/programs';
-import { PROGRAMS_STEPS_COPY } from '@/data/programs/sections/steps/programsSteps';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type ProgramStepsProps = {
   journey?: ProgramJourneySection['content'];
@@ -51,15 +51,17 @@ function inferStepIcon(title: string): StepIconType {
 }
 
 export default function ProgramSteps({ journey }: ProgramStepsProps) {
-  const title = journey?.title || PROGRAMS_STEPS_COPY.title;
-  const subtitle = journey?.subtitle || PROGRAMS_STEPS_COPY.subtitleFallback;
-  const items = journey?.items ?? [];
+  if (!journey) return null;
+
+  const title = journey.title || 'What steps will you go through in this program?';
+  const subtitle = journey.subtitle || '';
+  const items = journey.items ?? [];
 
   return (
     <section className={componentsTheme.programsSteps.sectionWrapper}>
       <div className={componentsTheme.programsSteps.container}>
         <SectionHeader
-          eyebrow={PROGRAMS_STEPS_COPY.eyebrow}
+          eyebrow="Program Journey"
           title={title}
           subtitle={subtitle}
           align="center"
@@ -77,10 +79,10 @@ export default function ProgramSteps({ journey }: ProgramStepsProps) {
               items.map((item, index) => {
                 const iconType = inferStepIcon(item.title || '');
                 const stepNumber = item.step_number || '';
-                const descriptionLines = (item.description || PROGRAMS_STEPS_COPY.dataNotAdded).split(
+                const descriptionLines = (item.description || DATA_NOT_ADDED).split(
                   /\n+/,
                 );
-                const dateDisplay = item.date_display || PROGRAMS_STEPS_COPY.dataNotAdded;
+                const dateDisplay = item.date_display || DATA_NOT_ADDED;
 
                 return (
                   <div
@@ -126,7 +128,7 @@ export default function ProgramSteps({ journey }: ProgramStepsProps) {
                 </div>
                 <div className={componentsTheme.programsSteps.stepCard}>
                   <h3 className={componentsTheme.programsSteps.stepTitle}>
-                    {PROGRAMS_STEPS_COPY.dataNotAdded}
+                    {DATA_NOT_ADDED}
                   </h3>
                 </div>
               </div>

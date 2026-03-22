@@ -5,7 +5,6 @@ import { PhoneCall, Mail, Instagram, MapPin } from 'lucide-react';
 
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { contactItems, contactSectionContent } from '@/data/contact';
 import { useSettings } from '@/components/providers/SettingsProvider';
 
 export type ContactItem = {
@@ -23,36 +22,15 @@ export type GetInTouchProps = {
 };
 
 export default function GetInTouchSection({
-  title = contactSectionContent.subtitle,
-  eyebrow = contactSectionContent.title,
+  title = 'Get in touch with our team!',
+  eyebrow = 'Contact',
   items,
 }: GetInTouchProps) {
   const { settings } = useSettings();
   const brand = settings?.brand ?? null;
 
-  const resolvedItems: ContactItem[] = items ?? contactItems.map(item => {
-    if (item.id === 'chat') {
-      const phone = brand?.contact_whatsapp || brand?.contact_phone || item.subtitle;
-      const href = brand?.contact_whatsapp
-        ? `https://wa.me/${brand.contact_whatsapp.replace(/\D/g, '')}`
-        : (brand?.contact_phone ? `tel:${brand.contact_phone}` : item.href);
-      return { id: item.id, title: item.title, subtitle: phone, href, icon: <PhoneCall className="h-4 w-4" /> };
-    }
-    if (item.id === 'email') {
-      const email = brand?.support_email || item.subtitle;
-      return { id: item.id, title: item.title, subtitle: email, href: `mailto:${email}`, icon: <Mail className="h-4 w-4" /> };
-    }
-    if (item.id === 'instagram') {
-      const handle = brand?.social_media?.instagram
-        ? brand.social_media.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\/?/, '').replace(/^@/, '')
-        : item.subtitle;
-      const href = brand?.social_media?.instagram || `https://instagram.com/${handle}`;
-      return { id: item.id, title: item.title, subtitle: `@${handle}`, href, icon: <Instagram className="h-4 w-4" /> };
-    }
-    // address
-    const address = brand?.address || item.subtitle;
-    return { id: item.id, title: item.title, subtitle: address, href: item.href, icon: <MapPin className="h-4 w-4" /> };
-  });
+  const resolvedItems: ContactItem[] = items ?? buildContactItems(brand);
+
   return (
     <section className={componentsTheme.getInTouch.sectionWrapper}>
       <div
@@ -79,10 +57,10 @@ export default function GetInTouchSection({
 
         <div className="relative z-10">
         <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)] items-center gap-8">
-          {/* Kiri: gambar ilustrasi */}
+          {/* Left: illustration image */}
           <div className={componentsTheme.getInTouch.imageWrapper}></div>
 
-          {/* Kanan: judul, deskripsi, dan daftar contact items */}
+          {/* Right: title, description, and contact items */}
           <div>
             <SectionHeader eyebrow={eyebrow} title={title} align="left" />
             <div className={componentsTheme.getInTouch.list}>
@@ -111,4 +89,38 @@ export default function GetInTouchSection({
       </div>
     </section>
   );
+}
+
+function buildContactItems(brand: NonNullable<ReturnType<typeof useSettings>>['settings'] extends infer S ? S extends { brand: infer B } ? B : null : null): ContactItem[] {
+  const items: ContactItem[] = [];
+
+  // WhatsApp / Phone
+  const phone = brand?.contact_whatsapp || brand?.contact_phone;
+  if (phone) {
+    const href = brand?.contact_whatsapp
+      ? `https://wa.me/${brand.contact_whatsapp.replace(/\D/g, '')}`
+      : `tel:${phone}`;
+    items.push({ id: 'chat', title: 'Chat to Customer Support', subtitle: phone, href, icon: <PhoneCall className="h-4 w-4" /> });
+  }
+
+  // Email
+  const email = brand?.support_email;
+  if (email) {
+    items.push({ id: 'email', title: 'Email to Customer Support', subtitle: email, href: `mailto:${email}`, icon: <Mail className="h-4 w-4" /> });
+  }
+
+  // Instagram
+  const igUrl = brand?.social_media?.instagram;
+  if (igUrl) {
+    const handle = igUrl.replace(/^https?:\/\/(www\.)?instagram\.com\/?/, '').replace(/^@/, '').replace(/\/$/, '');
+    items.push({ id: 'instagram', title: 'Visit Us', subtitle: `@${handle}`, href: igUrl, icon: <Instagram className="h-4 w-4" /> });
+  }
+
+  // Address
+  const address = brand?.address;
+  if (address) {
+    items.push({ id: 'address', title: 'Address', subtitle: address, icon: <MapPin className="h-4 w-4" /> });
+  }
+
+  return items;
 }

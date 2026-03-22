@@ -13,7 +13,6 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
 import { getProgramsPageData } from '@/lib/api/programs';
-import { PROGRAMS_FALLBACK_HERO } from '@/data/programs/sections/overview/programsOverview';
 import type {
   ProgramActivitiesSection,
   ProgramJourneySection,
@@ -66,11 +65,11 @@ export default async function ProgramOverviewPage() {
   );
 
   const heroTitle =
-    heroSection?.type === 'hero' ? heroSection.content.title : PROGRAMS_FALLBACK_HERO.title;
+    heroSection?.type === 'hero' ? heroSection.content.title : 'Istanbul Youth Summit Programs';
   const heroSubtitle =
     heroSection?.type === 'hero'
       ? heroSection.content.subtitle
-      : PROGRAMS_FALLBACK_HERO.subtitle;
+      : 'Discover our international youth programs and summits.';
   const heroBgImage =
     heroSection?.type === 'hero' && heroSection.content.bg_image
       ? heroSection.content.bg_image

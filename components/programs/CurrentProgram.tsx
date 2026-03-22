@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { CalendarDays, Calendar, MapPin, Square } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { PROGRAMS_CURRENT_COPY } from '@/data/programs/sections/current/programsCurrent';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 import type { ProgramOverviewSection } from '@/types/programs';
 
 function useCountdown(target: Date) {
@@ -28,7 +28,7 @@ type CurrentProgramProps = {
 };
 
 function formatDateRange(start?: string | null, end?: string | null): string {
-  if (!start && !end) return PROGRAMS_CURRENT_COPY.dataNotAdded;
+  if (!start && !end) return DATA_NOT_ADDED;
 
   try {
     const startDate = start ? new Date(start) : null;
@@ -54,17 +54,19 @@ function formatDateRange(start?: string | null, end?: string | null): string {
     if (end) return end;
   }
 
-  return PROGRAMS_CURRENT_COPY.dataNotAdded;
+  return DATA_NOT_ADDED;
 }
 
 export default function CurrentProgram({ overview }: CurrentProgramProps) {
-  const description = overview?.description || PROGRAMS_CURRENT_COPY.dataNotAdded;
-  const theme = overview?.theme || PROGRAMS_CURRENT_COPY.dataNotAdded;
-  const subthemes = overview?.subthemes && overview.subthemes.length > 0 ? overview.subthemes : null;
-  const location = overview?.location || PROGRAMS_CURRENT_COPY.dataNotAdded;
-  const duration = overview?.duration || PROGRAMS_CURRENT_COPY.dataNotAdded;
-  const eventDates = formatDateRange(overview?.start_date ?? null, overview?.end_date ?? null);
-  const guidebooksRaw = overview?.guidebooks && overview.guidebooks.length > 0 ? overview.guidebooks : null;
+  if (!overview) return null;
+
+  const description = overview.description || DATA_NOT_ADDED;
+  const theme = overview.theme || DATA_NOT_ADDED;
+  const subthemes = overview.subthemes && overview.subthemes.length > 0 ? overview.subthemes : null;
+  const location = overview.location || DATA_NOT_ADDED;
+  const duration = overview.duration || DATA_NOT_ADDED;
+  const eventDates = formatDateRange(overview.start_date ?? null, overview.end_date ?? null);
+  const guidebooksRaw = overview.guidebooks && overview.guidebooks.length > 0 ? overview.guidebooks : null;
   const guidebooks = guidebooksRaw ? guidebooksRaw.slice(-2) : null;
 
   const isHtmlContent = (value?: string | null) => {
@@ -80,8 +82,8 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
           {/* Kiri: deskripsi panjang + theme */}
           <div className={componentsTheme.programsCurrent.leftCol}>
             <SectionHeader
-              eyebrow={PROGRAMS_CURRENT_COPY.eyebrow}
-              title={overview?.program_name || PROGRAMS_CURRENT_COPY.title}
+              eyebrow="Active Program"
+              title={overview.program_name || 'Active Program'}
               align="left"
             />
             {isHtmlContent(description) ? (
@@ -119,7 +121,7 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                     ))
                   ) : (
                     <div className={componentsTheme.programsCurrent.subthemeCard}>
-                      {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                      {DATA_NOT_ADDED}
                     </div>
                   )}
                 </div>
@@ -150,7 +152,7 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                   <MapPin className={componentsTheme.programsCurrent.infoIcon} />
                   <div>
                     <p className={componentsTheme.programsCurrent.infoLabel}>
-                      {PROGRAMS_CURRENT_COPY.labels.location}
+                      Location
                     </p>
                     <p className={componentsTheme.programsCurrent.infoValue}>{location}</p>
                   </div>
@@ -161,7 +163,7 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                     <CalendarDays className={componentsTheme.programsCurrent.infoIcon} />
                     <div>
                       <p className={componentsTheme.programsCurrent.infoLabel}>
-                        {PROGRAMS_CURRENT_COPY.labels.duration}
+                        Duration
                       </p>
                       <p className={componentsTheme.programsCurrent.infoValue}>{duration}</p>
                     </div>
@@ -170,10 +172,10 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                     <Square className={componentsTheme.programsCurrent.infoIcon} />
                     <div>
                       <p className={componentsTheme.programsCurrent.infoLabel}>
-                        {PROGRAMS_CURRENT_COPY.labels.format}
+                        Program Format
                       </p>
                       <p className={componentsTheme.programsCurrent.infoValue}>
-                        {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                        {DATA_NOT_ADDED}
                       </p>
                     </div>
                   </div>
@@ -183,7 +185,7 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                   <Calendar className={componentsTheme.programsCurrent.infoIcon} />
                   <div>
                     <p className={componentsTheme.programsCurrent.infoLabel}>
-                      {PROGRAMS_CURRENT_COPY.labels.dates}
+                      Event Dates
                     </p>
                     <p className={componentsTheme.programsCurrent.infoValue}>{eventDates}</p>
                   </div>
@@ -204,10 +206,10 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                     >
                       <span>
                         {(() => {
-                          if (!guide.label) return PROGRAMS_CURRENT_COPY.guidebookFallbackLabel;
+                          if (!guide.label) return 'Read Guidebook';
                           const base = guide.label.split('(')[0].trim();
                           return (
-                            base || guide.label || PROGRAMS_CURRENT_COPY.guidebookFallbackLabel
+                            base || guide.label || 'Read Guidebook'
                           );
                         })()}
                       </span>
@@ -219,13 +221,13 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                       aria-disabled="true"
                       className={`${componentsTheme.homeRegistration.guidePrimary} pointer-events-none flex w-full cursor-not-allowed items-center justify-center gap-2 text-sm opacity-60`}
                     >
-                      {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                      {DATA_NOT_ADDED}
                     </span>
                     <span
                       aria-disabled="true"
                       className={`${componentsTheme.homeRegistration.guideSecondary} pointer-events-none flex w-full cursor-not-allowed items-center justify-center gap-2 text-sm opacity-60`}
                     >
-                      {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                      {DATA_NOT_ADDED}
                     </span>
                   </>
                 )}

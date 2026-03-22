@@ -42,7 +42,7 @@ export type ProgramDetail = {
   timeline: { id: string; title: string; description: string | null; date: string; endDate: string | null; order: number }[];
   schedules: { id: string; day: string; activity: string; description: string | null; location: string | null; startTime: string | null; endTime: string | null; order: number }[];
   requirements: { id: string; name: string; description: string | null; type: string; isRequired: boolean }[];
-  speakers: { id: string; name: string; title: string | null; organization: string | null; photoUrl: string | null; bio: string | null }[];
+  speakers: { id: string; name: string; title: string | null; organization: string | null; photoUrl: string | null; bio: string | null; email?: string | null; linkedinUrl?: string | null; twitterUrl?: string | null }[];
   formFields: { id: string; section: string; label: string; name: string; type: string; isRequired: boolean; order: number }[];
   participationCategories: { id: string; name: string; description: string | null; benefits: string | null; eligibility: string | null; order: number }[];
   resources: { id: string; title: string; description: string | null; fileUrl: string | null; type: string; isPublic: boolean }[];
@@ -59,4 +59,15 @@ export async function getProgramDetail(slug: string): Promise<ProgramDetail | nu
   } catch {
     return null;
   }
+}
+
+export type ProgramSpeaker = ProgramDetail['speakers'][number];
+
+/**
+ * Fetch speakers from a program by its slug.
+ * Returns the speakers array or an empty array on failure.
+ */
+export async function getProgramSpeakers(programSlug: string): Promise<ProgramSpeaker[]> {
+  const detail = await getProgramDetail(programSlug);
+  return detail?.speakers ?? [];
 }

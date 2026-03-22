@@ -1,16 +1,32 @@
 import { Goal, Eye, Check } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { PROGRAMS_MISSION_VISION_COPY } from '@/data/programs/sections/mission-vision/programsMissionVision';
 
-export default function MissionVision() {
-  const { header, missionTitle, missions, visionTitle, vision } = PROGRAMS_MISSION_VISION_COPY;
+export type MissionVisionProps = {
+  eyebrow?: string;
+  title?: string;
+  missionTitle?: string;
+  missions?: string[];
+  visionTitle?: string;
+  vision?: string;
+};
+
+export default function MissionVision({
+  eyebrow = 'Our Purpose',
+  title = 'Mission & Vision',
+  missionTitle = 'Our Mission',
+  missions = [],
+  visionTitle = 'Our Vision',
+  vision = '',
+}: MissionVisionProps) {
+  if (!missions.length && !vision) return null;
+
   return (
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeader eyebrow={header.eyebrow} title={header.title} />
+        <SectionHeader eyebrow={eyebrow} title={title} />
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Misi */}
+          {/* Mission */}
           <div className="rounded-2xl bg-[url('/img/bgourprogram.png')] bg-cover bg-center shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 sm:p-8">
             <div className="flex items-center gap-3">
               <span className={componentsTheme.programsMissionVision.missionIconMain}>
@@ -30,7 +46,7 @@ export default function MissionVision() {
             </ul>
           </div>
 
-          {/* Visi */}
+          {/* Vision */}
           <div className="rounded-2xl bg-[url('/img/bgprogramoverview.png')] bg-cover bg-center p-6 text-white shadow-[0_10px_40px_rgba(2,6,23,0.12)] ring-1 ring-white/20 sm:p-8">
             <div className="flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-white/20 text-white">

@@ -2,35 +2,34 @@ import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { PROGRAMS_ADDITIONAL_COPY } from '@/data/programs/sections/additional-programs/programsAdditional';
 import type { OtherProgramsSection } from '@/types/programs';
-import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type AdditionalProgramsProps = {
   otherPrograms?: OtherProgramsSection['content'];
 };
 
 export default function AdditionalPrograms({ otherPrograms }: AdditionalProgramsProps) {
-  const { headerTitle, subtitle, items } = PROGRAMS_ADDITIONAL_COPY;
+  if (!otherPrograms) return null;
 
-  const apiItems = otherPrograms?.items ?? [];
-  const hasApiItems = apiItems.length > 0;
+  const apiItems = otherPrograms.items ?? [];
+  if (apiItems.length === 0) return null;
 
-  const sectionTitle = otherPrograms?.title || headerTitle;
-  const cards = hasApiItems
-    ? apiItems.map(item => ({
-        title: item.brand_name || item.name,
-        href: `/programs/${item.slug}`,
-        cover: item.thumbnail || '/img/programsbackground.png',
-        logo: item.brand_logo || '/img/jyslogosolo.png',
-        dates: item.start_date ? new Date(item.start_date).getFullYear().toString() : DATA_NOT_ADDED,
-      }))
-    : items;
+  const sectionTitle = otherPrograms.title || 'Our Additional Programs';
+
+  const cards = apiItems.map(item => ({
+    title: item.brand_name || item.name,
+    href: `/programs/${item.slug}`,
+    cover: item.thumbnail || '/img/programsbackground.png',
+    logo: item.brand_logo || '/img/jyslogosolo.png',
+    dates: item.start_date ? new Date(item.start_date).getFullYear().toString() : DATA_NOT_ADDED,
+  }));
+
   return (
     <section className={componentsTheme.programsAdditional.sectionWrapper}>
       <div className={componentsTheme.programsAdditional.container}>
         <SectionHeader title={sectionTitle} />
-        <p className={componentsTheme.programsAdditional.subtitle}>{subtitle}</p>
+        <p className={componentsTheme.programsAdditional.subtitle}>Explore more programs you can join soon</p>
         <div className={componentsTheme.programsAdditional.cardsWrapper}>
           {cards.map(it => (
             <a

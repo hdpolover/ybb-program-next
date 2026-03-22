@@ -2,10 +2,21 @@
 
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { IMPACT_DISTRIBUTION_COPY } from '@/data/home/sections/impact/impactDistribution';
 
-export default function TopParticipantCountries() {
-  const all = Object.entries(IMPACT_DISTRIBUTION_COPY.countryParticipants).map(([name, count]) => ({
+export type TopParticipantCountriesProps = {
+  countryParticipants?: Record<string, number>;
+  eyebrow?: string;
+  title?: string;
+};
+
+export default function TopParticipantCountries({
+  countryParticipants,
+  eyebrow = 'Top Countries',
+  title = 'Top 10 Participant Countries',
+}: TopParticipantCountriesProps) {
+  if (!countryParticipants || Object.keys(countryParticipants).length === 0) return null;
+
+  const all = Object.entries(countryParticipants).map(([name, count]) => ({
     name,
     count: Number(count),
   }));
@@ -24,8 +35,8 @@ export default function TopParticipantCountries() {
     <section className={componentsTheme.participantDistribution.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader
-          eyebrow="Top Countries"
-          title="Top 10 Participant Countries"
+          eyebrow={eyebrow}
+          title={title}
           align="center"
         />
 

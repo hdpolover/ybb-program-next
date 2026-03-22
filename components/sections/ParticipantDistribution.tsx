@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { IMPACT_DISTRIBUTION_COPY, CountryLevel } from '@/data/home/sections/impact/impactDistribution';
-
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
 type WorldGeo = {
@@ -15,18 +13,44 @@ type WorldGeo = {
   };
 };
 
-export type Level = CountryLevel;
+export type Level = 'high' | 'medium' | 'low' | 'none';
 
-function getFillForCountry(nameKey: string): string {
-  const level = (IMPACT_DISTRIBUTION_COPY.countryLevels[nameKey] ?? 'none') as Level;
-  const colors = componentsTheme.participantDistribution.mapColors;
-  if (level === 'high') return colors.high;
-  if (level === 'medium') return colors.medium;
-  if (level === 'low') return colors.low;
-  return colors.none;
-}
+export type ParticipantDistributionProps = {
+  eyebrow?: string;
+  title?: string;
+  countryLevels?: Record<string, Level>;
+  countryParticipants?: Record<string, number>;
+  legend?: { high: string; medium: string; low: string; none: string };
+};
 
-export default function ParticipantDistribution() {
+const DEFAULT_LEGEND = {
+  high: 'High participation',
+  medium: 'Medium participation',
+  low: 'Low participation',
+  none: 'No participants',
+};
+
+export default function ParticipantDistribution({
+  eyebrow = 'Participant Geography',
+  title = 'Participant Distribution by Country',
+  countryLevels,
+  countryParticipants,
+  legend,
+}: ParticipantDistributionProps) {
+  const levels = countryLevels ?? {};
+  const participants = countryParticipants ?? {};
+  const legendCopy = legend ?? DEFAULT_LEGEND;
+  const headerEyebrow = eyebrow;
+  const headerTitle = title;
+
+  function getFillForCountry(nameKey: string): string {
+    const level = (levels[nameKey] ?? 'none') as Level;
+    const colors = componentsTheme.participantDistribution.mapColors;
+    if (level === 'high') return colors.high;
+    if (level === 'medium') return colors.medium;
+    if (level === 'low') return colors.low;
+    return colors.none;
+  }
   const [selectedCountry, setSelectedCountry] = useState<{
     name: string;
     level: Level;
@@ -42,7 +66,7 @@ export default function ParticipantDistribution() {
     : '';
 
   // Hitung Top 10 negara berdasarkan jumlah peserta (masih mock), buat ditampilin di bawah map
-  const all = Object.entries(IMPACT_DISTRIBUTION_COPY.countryParticipants).map(([name, count]) => ({
+  const all = Object.entries(participants).map(([name, count]) => ({
     name,
     count: Number(count),
   }));
@@ -61,8 +85,8 @@ export default function ParticipantDistribution() {
     <section className={componentsTheme.participantDistribution.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader
-          eyebrow={IMPACT_DISTRIBUTION_COPY.participantHeader.eyebrow}
-          title={IMPACT_DISTRIBUTION_COPY.participantHeader.title}
+          eyebrow={headerEyebrow}
+          title={headerTitle}
           align="center"
         />
 
@@ -89,12 +113,12 @@ export default function ParticipantDistribution() {
                           stroke={componentsTheme.participantDistribution.mapStroke}
                           strokeWidth={0.4}
                           onClick={() => {
-                            const level = (IMPACT_DISTRIBUTION_COPY.countryLevels[name] ?? 'none') as Level;
-                            const participants = IMPACT_DISTRIBUTION_COPY.countryParticipants[name] ?? 0;
+                            const level = (levels[name] ?? 'none') as Level;
+                            const count = participants[name] ?? 0;
                             setSelectedCountry({
                               name,
                               level,
-                              participants,
+                              participants: count,
                             });
                           }}
                           style={{
@@ -125,25 +149,25 @@ export default function ParticipantDistribution() {
               <span
                 className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotHigh}`}
               />
-              <span>{IMPACT_DISTRIBUTION_COPY.legend.high}</span>
+              <span>{legendCopy.high}</span>
             </div>
             <div className={componentsTheme.participantDistribution.legendItem}>
               <span
                 className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotMedium}`}
               />
-              <span>{IMPACT_DISTRIBUTION_COPY.legend.medium}</span>
+              <span>{legendCopy.medium}</span>
             </div>
             <div className={componentsTheme.participantDistribution.legendItem}>
               <span
                 className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotLow}`}
               />
-              <span>{IMPACT_DISTRIBUTION_COPY.legend.low}</span>
+              <span>{legendCopy.low}</span>
             </div>
             <div className={componentsTheme.participantDistribution.legendItem}>
               <span
                 className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotNone}`}
               />
-              <span>{IMPACT_DISTRIBUTION_COPY.legend.none}</span>
+              <span>{legendCopy.none}</span>
             </div>
           </div>
         </div>
