@@ -17,7 +17,6 @@ import type {
   PortalSubmissionSection,
 } from "@/types/portal-submission";
 import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
-import UserProfileCard from "@/components/dashboard/ui/UserProfileCard";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -363,7 +362,8 @@ export default function SubmissionEditSection() {
           <Breadcrumb
             items={[
               { label: "Submissions", href: "/dashboard/submission" },
-              { label: "Registration Form" },
+              { label: "Registration Form", href: "/dashboard/submission" },
+              { label: "Edit Form" },
             ]}
           />
 
@@ -372,23 +372,59 @@ export default function SubmissionEditSection() {
             Registration Form
           </h1>
 
-          {/* Stepper Card with Tabs */}
+          {/* Stepper */}
           <div className={submissionTheme.stepperCard}>
-            <div className="flex flex-wrap gap-2">
-              {detail.sections.map((section) => (
-                <button
-                  key={section.id}
-                  type="button"
-                  onClick={() => setActiveSectionId(section.id)}
-                  className={`rounded-full border-2 px-8 py-2 text-base font-medium transition-colors ${
-                    activeSection?.id === section.id
-                      ? "border-primary bg-primary text-white"
-                      : "border-primary bg-transparent text-primary hover:bg-primary/10"
-                  }`}
-                >
-                  {section.title}
-                </button>
-              ))}
+            <div className={submissionTheme.stepperRow}>
+              {detail.sections.map((section, index) => {
+                const isDone = index < activeSectionIndex;
+                const isActive = index === activeSectionIndex;
+                const isLast = index === detail.sections.length - 1;
+
+                const circleClass = isDone
+                  ? submissionTheme.stepperCircleDone
+                  : isActive
+                    ? submissionTheme.stepperCircleActive
+                    : submissionTheme.stepperCircleIdle;
+
+                const statusClass = isDone
+                  ? submissionTheme.stepperStatusDone
+                  : isActive
+                    ? submissionTheme.stepperStatusActive
+                    : submissionTheme.stepperStatusIdle;
+
+                const statusLabel = isDone ? "Done" : isActive ? "In Progress" : "Not yet";
+
+                const connectorBarClass = isDone
+                  ? submissionTheme.stepperConnectorDone
+                  : isActive
+                    ? submissionTheme.stepperConnectorActive
+                    : submissionTheme.stepperConnectorIdle;
+
+                return (
+                  <div key={section.id} className={submissionTheme.stepperPillRow}>
+                    <button
+                      type="button"
+                      className={submissionTheme.stepperButtonBase}
+                      onClick={() => setActiveSectionId(section.id)}
+                    >
+                      <div className={`${submissionTheme.stepperCircle} ${circleClass}`}>
+                        {isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+                      </div>
+                      <div className={submissionTheme.stepperTextWrapper}>
+                        <p className={submissionTheme.stepperStepTitle}>{section.title}</p>
+                        <span className={`${submissionTheme.stepperStatusPill} ${statusClass}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+                    </button>
+                    {!isLast && (
+                      <div className={submissionTheme.stepperConnectorWrapper}>
+                        <div className={`${submissionTheme.stepperConnectorBar} ${connectorBarClass}`} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -462,23 +498,7 @@ export default function SubmissionEditSection() {
                   </div>
                 ) : null}
 
-                {/* User Profile Card */}
-                <div className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
-                  <UserProfileCard
-                    user={{
-                      name: detail.participantName || "Participant",
-                      accountId: detail.participantAccountId || detail.participantId || "N/A",
-                      location: detail.participantLocation || "Unknown Location",
-                      avatarUrl: detail.participantAvatarUrl,
-                    }}
-                    onEdit={() => {
-                      // Navigate to profile edit or open edit modal
-                      console.log("Edit profile clicked");
-                    }}
-                  />
-                </div>
-
-                <div className={submissionTheme.buttonRow}>
+                <div className="flex items-center justify-between gap-3">
                   <button
                     type="button"
                     className={submissionTheme.secondaryButton}
@@ -487,22 +507,24 @@ export default function SubmissionEditSection() {
                   >
                     Previous
                   </button>
-                  <button
-                    type="button"
-                    className={submissionTheme.secondaryButton}
-                    onClick={() => goToAdjacentSection(1)}
-                    disabled={!detail.sections[activeSectionIndex + 1]}
-                  >
-                    Next
-                  </button>
-                  <button
-                    type="button"
-                    className={submissionTheme.primaryButton}
-                    onClick={saveActiveSection}
-                    disabled={savingSectionId === activeSection.id}
-                  >
-                    {savingSectionId === activeSection.id ? "Saving..." : "Save Section"}
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      className={submissionTheme.primaryButton}
+                      onClick={saveActiveSection}
+                      disabled={savingSectionId === activeSection.id}
+                    >
+                      {savingSectionId === activeSection.id ? "Saving..." : "Save Section"}
+                    </button>
+                    <button
+                      type="button"
+                      className={submissionTheme.secondaryButton}
+                      onClick={() => goToAdjacentSection(1)}
+                      disabled={!detail.sections[activeSectionIndex + 1]}
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

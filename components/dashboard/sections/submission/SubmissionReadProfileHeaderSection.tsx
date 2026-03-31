@@ -16,7 +16,7 @@ export default function SubmissionReadProfileHeaderSection() {
     onboarding?.displayName?.trim() ||
     onboarding?.fullName?.trim() ||
     "Participant";
-  const profileImageUrl = participantProfile?.profilePictureUrl?.trim() || "/img/photoprofile.png";
+  const profileImageUrl = participantProfile?.profilePictureUrl?.trim() || null;
   const accountId = me?.userId || "-";
 
   const originParts = [onboarding?.originCity, onboarding?.originState].filter(Boolean).join(", ");
@@ -29,14 +29,20 @@ export default function SubmissionReadProfileHeaderSection() {
         <div className={submissionTheme.profileLeft}>
           <div className={submissionTheme.profileAvatarWrapper}>
             <div className={submissionTheme.profileAvatarInner}>
-              <Image
-                src={profileImageUrl}
-                alt={`${displayName} profile photo`}
-                fill
-                className={submissionTheme.profileAvatarImage}
-                sizes="80px"
-                unoptimized
-              />
+              {profileImageUrl ? (
+                <Image
+                  src={profileImageUrl}
+                  alt={`${displayName} profile photo`}
+                  fill
+                  className={submissionTheme.profileAvatarImage}
+                  sizes="80px"
+                  unoptimized
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-3xl font-bold text-white">
+                  {displayName.charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
             <button
               type="button"

@@ -226,7 +226,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <section className="flex-1 px-6 py-6 lg:px-8">
             <div className="mx-auto max-w-6xl space-y-4">
               {/* Header halaman (disembunyiin kalau lagi di halaman payments atau saat sedang mencari) */}
-              {!pathname?.startsWith('/dashboard/payments') && searchQuery.trim().length < 2 && (
+              {!pathname?.startsWith('/dashboard/payments') && !pathname?.startsWith('/dashboard/submission') && searchQuery.trim().length < 2 && (
                 <div className="space-y-1">
                   <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
                     {pageTitle}

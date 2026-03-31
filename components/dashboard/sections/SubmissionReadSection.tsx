@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, FileText, Info } from "lucide-react";
+import { AlertCircle, FileText, Info, Pencil } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { componentsTheme } from "@/lib/theme/components";
 import SubmissionReadProfileHeaderSection from "./submission/SubmissionReadProfileHeaderSection";
 import {
@@ -165,9 +166,16 @@ export default function SubmissionReadSection() {
       />
 
       {/* Page Title */}
-      <h1 className="text-2xl font-bold text-slate-900">
-        Registration Form
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-slate-900">Registration Form</h1>
+        <Link
+          href="/dashboard/submission/edit"
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+        >
+          <Pencil className="h-4 w-4" />
+          Fill Form
+        </Link>
+      </div>
 
       <SubmissionReadProfileHeaderSection />
 

@@ -193,14 +193,20 @@ export default function Sidebar({
         <div className={layoutTheme.profileSectionWrapper}>
           <div className={layoutTheme.profileRow}>
             <div className={layoutTheme.profileAvatarWrapper}>
-              <Image
-                src={profileImageUrl || "/img/photoprofile.png"}
-                alt={profileName ? `${profileName} profile photo` : "Dashboard profile"}
-                fill
-                className={layoutTheme.profileAvatarImage}
-                sizes="36px"
-                unoptimized
-              />
+              {profileImageUrl ? (
+                <Image
+                  src={profileImageUrl}
+                  alt={profileName ? `${profileName} profile photo` : "Dashboard profile"}
+                  fill
+                  className={layoutTheme.profileAvatarImage}
+                  sizes="36px"
+                  unoptimized
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-sm font-bold text-primary">
+                  {(profileName || profileEmail || "P").charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
             <div>
               <div className={layoutTheme.profileName}>{profileEmail || 'Participant'}</div>
