@@ -1,6 +1,6 @@
 export default function LoginLoading() {
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[40%_60%]">
+    <div className="fixed inset-0 grid grid-cols-1 overflow-hidden lg:grid-cols-[40%_60%]">
       {/* Left panel skeleton */}
       <div className="relative hidden lg:flex items-center justify-center bg-slate-50 p-6">
         <div className="relative h-[calc(100vh-3rem)] w-full overflow-hidden rounded-[32px] bg-slate-200 animate-pulse" />

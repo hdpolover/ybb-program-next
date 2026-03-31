@@ -458,7 +458,7 @@ export default function OnboardingPage() {
       <div className={onboardingTheme.layoutGrid}>
         <div className={onboardingTheme.leftCol}>
           <div className={onboardingTheme.leftCenter}>
-            <div className="w-full max-w-lg flex flex-col flex-1">
+            <div className="w-full max-w-lg flex flex-col">
               <div className={`${onboardingTheme.logoWrapper} flex items-center gap-3`}>
                 <Image
                   src={brandLogo}
@@ -769,7 +769,7 @@ export default function OnboardingPage() {
                 ) : null}
               </form>
 
-              <div className="mt-8 rounded-xl bg-blue-50/60 border border-blue-100/60 p-3.5">
+              <div className="mt-6 rounded-xl bg-blue-50/60 border border-blue-100/60 p-3.5">
                 <div className="flex items-start gap-2.5">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400 shrink-0 mt-0.5">
                     <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
