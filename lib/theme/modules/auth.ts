@@ -24,7 +24,7 @@ export const authTheme = {
     heroTextContainer: 'absolute inset-x-0 bottom-0 px-8 pb-20 pt-32 text-white',
     heroLogo: 'h-8 w-auto brightness-0 invert',
     heroLogoWrapper: 'space-y-3',
-    formPanelOuter: 'flex items-start justify-center w-full min-h-screen px-6 py-16 lg:px-16 lg:py-24',
+    formPanelOuter: 'flex items-center justify-center w-full h-full px-6 py-12 lg:px-16 lg:py-16',
     formPanelInner: 'w-full max-w-[480px]',
     formHeading: 'text-xl font-bold tracking-tight text-slate-900',
     formSubheading: 'mt-1.5 text-sm text-slate-500 mb-2',

@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
+import { Button } from '@/components/ui';
 
 // Section: Partnership Opportunities — gaya Program Highlights
 export default function PartnershipOpportunitiesSection() {
@@ -45,12 +46,13 @@ export default function PartnershipOpportunitiesSection() {
               ))}
             </ul>
             <div className={componentsTheme.partnersOpportunities.cardFooter}>
-              <a
+              <Button
                 href="/apply/ambassador-program"
-                className={componentsTheme.partnersOpportunities.communityCta}
+                className="w-full"
+                variant="primary"
               >
                 Choose Plan
-              </a>
+              </Button>
             </div>
           </div>
 
@@ -114,12 +116,13 @@ export default function PartnershipOpportunitiesSection() {
               ))}
             </ul>
             <div className={componentsTheme.partnersOpportunities.cardFooter}>
-              <a
+              <Button
                 href="/partners/affiliate-program"
-                className={componentsTheme.partnersOpportunities.silverCta}
+                className="w-full"
+                variant="primary"
               >
                 Choose Plan
-              </a>
+              </Button>
             </div>
           </div>
 
@@ -161,12 +164,13 @@ export default function PartnershipOpportunitiesSection() {
               ))}
             </ul>
             <div className={componentsTheme.partnersOpportunities.cardFooter}>
-              <a
+              <Button
                 href="/apply/community-institution"
-                className={componentsTheme.partnersOpportunities.goldCta}
+                className="w-full"
+                variant="primary"
               >
                 Choose Plan
-              </a>
+              </Button>
             </div>
           </div>
         </div>

@@ -270,13 +270,27 @@ export default function LoginPage() {
   const privacyHref = findLegalHref('privacy');
 
   return (
-    <section className={`min-h-screen w-full ${componentsTheme.login.pageBackground}`}>
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[40%_60%]">
+    <section className={`fixed inset-0 overflow-hidden ${componentsTheme.login.pageBackground}`}>
+      <div className="grid h-full grid-cols-1 overflow-hidden lg:grid-cols-[40%_60%]">
         {/* Panel Gambar (selalu di kiri, dalam card dengan background full) */}
         <div
           className="relative hidden lg:flex items-center justify-center bg-slate-50 p-10"
         >
           <div className="relative h-[calc(100vh-5rem)] w-full overflow-hidden rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+            {/* Mobile logo - visible only on small screens */}
+            <div className="absolute left-6 top-6 z-10 lg:hidden">
+              <a href="/" className="inline-block">
+                <Image
+                  src={settings?.brand?.logo_url?.trim() || "/img/jysfooters.png"}
+                  alt={settings?.brand?.name?.trim() || "Japan Youth Summit"}
+                  width={100}
+                  height={34}
+                  className="h-8 w-auto"
+                  priority
+                  unoptimized
+                />
+              </a>
+            </div>
             <Image
               src={loginImageSrc}
               alt="Japan Youth Summit Highlight"
