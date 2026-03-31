@@ -2,13 +2,20 @@ import type { ProgramsPageData } from '@/types/programs';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 
-const BRAND_URL = normalizeBrandUrl(getEnvBrandDomain());
+const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain());
 
-export async function getProgramsPageData(): Promise<ProgramsPageData> {
+function resolveBrand(host: string): string {
+  return host && host !== 'localhost' && !host.startsWith('127.0.0.1')
+    ? normalizeBrandUrl(host)
+    : DEFAULT_BRAND_URL;
+}
+
+export async function getProgramsPageData(host: string): Promise<ProgramsPageData> {
+  const brandUrl = resolveBrand(host);
   return apiGetWithEnvelope<ProgramsPageData>('/v1/landing/programs', {
-    query: { url: BRAND_URL },
+    query: { url: brandUrl },
     headers: {
-      'x-brand-domain': BRAND_URL,
+      'x-brand-domain': brandUrl,
     },
   });
 }
@@ -49,11 +56,12 @@ export type ProgramDetail = {
   announcements: { id: string; title: string; content: string; isActive: boolean }[];
 };
 
-export async function getProgramDetail(slug: string): Promise<ProgramDetail | null> {
+export async function getProgramDetail(slug: string, host: string = ''): Promise<ProgramDetail | null> {
+  const brandUrl = resolveBrand(host);
   try {
     return await apiGetWithEnvelope<ProgramDetail>(`/v1/programs/${slug}`, {
       headers: {
-        'x-brand-domain': BRAND_URL,
+        'x-brand-domain': brandUrl,
       },
     });
   } catch {
@@ -63,11 +71,7 @@ export async function getProgramDetail(slug: string): Promise<ProgramDetail | nu
 
 export type ProgramSpeaker = ProgramDetail['speakers'][number];
 
-/**
- * Fetch speakers from a program by its slug.
- * Returns the speakers array or an empty array on failure.
- */
-export async function getProgramSpeakers(programSlug: string): Promise<ProgramSpeaker[]> {
-  const detail = await getProgramDetail(programSlug);
+export async function getProgramSpeakers(programSlug: string, host: string = ''): Promise<ProgramSpeaker[]> {
+  const detail = await getProgramDetail(programSlug, host);
   return detail?.speakers ?? [];
 }

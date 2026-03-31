@@ -1,15 +1,17 @@
 import HeroSection from '@/components/ui/HeroSection';
 import MainFAQSection from '@/components/faq/MainFAQSection';
 import { getFaqsPageData } from '@/lib/api/faqs';
+import { headers } from 'next/headers';
 import type { CtaSupportSection, FaqListSection, FaqsHeroSection } from '@/types/faqs';
 import { SetPromoCTA } from '@/components/sections/PromoCTAContext';
 import { componentsTheme } from '@/lib/theme/components';
 
 export default async function FaqPage() {
+  const host = (await headers()).get('host') || '';
   let faqsPage: Awaited<ReturnType<typeof getFaqsPageData>> | null = null;
 
   try {
-    faqsPage = await getFaqsPageData();
+    faqsPage = await getFaqsPageData(host);
   } catch (e) {
     console.error('Failed to fetch faqs page data', e);
   }

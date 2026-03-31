@@ -8,6 +8,7 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { getProgramDetail } from '@/lib/api/programs';
+import { headers } from 'next/headers';
 
 function formatDateRange(start: string | null, end: string | null): string {
   if (!start) return 'TBA';
@@ -36,7 +37,8 @@ function parseBullets(text: string | null): string[] {
 
 export default async function ProgramDetailPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
-  const program = await getProgramDetail(slug);
+  const host = (await headers()).get('host') || '';
+  const program = await getProgramDetail(slug, host);
 
   if (!program) notFound();
 

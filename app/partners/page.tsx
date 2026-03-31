@@ -9,12 +9,14 @@ import RequireNowSection from '@/components/partners/RequireNow';
 import PartnershipJourneySection from '@/components/partners/PartnershipJourney';
 import PartnerFAQSection from '@/components/partners/PartnerFAQ';
 import { getPartnersPageData } from '@/lib/api/partners';
+import { headers } from 'next/headers';
 import type { CtaBecomePartnerSection, PartnersGridSection, SponsorsGridSection } from '@/types/partners';
 import { SetPromoCTA } from '@/components/sections/PromoCTAContext';
 import { componentsTheme } from '@/lib/theme/components';
 
 export default async function PartnersSponsorsPage() {
-  const partnersPage = await getPartnersPageData();
+  const host = (await headers()).get('host') || '';
+  const partnersPage = await getPartnersPageData(host);
 
   const heroSection = partnersPage.sections.find(section => section.type === 'hero');
   const sponsorsGridSection = partnersPage.sections.find(

@@ -2,6 +2,7 @@ import HeroSection from '@/components/ui/HeroSection';
 import Image from 'next/image';
 import FeaturedSpeakers from '@/components/programs/FeaturedSpeakers';
 import { getProgramSpeakers, type ProgramSpeaker } from '@/lib/api/programs';
+import { headers } from 'next/headers';
 import { getSettings } from '@/lib/api/settings';
 
 function toSlug(name: string): string {
@@ -11,6 +12,7 @@ function toSlug(name: string): string {
 export default async function SpeakerDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug: raw } = await params;
   const slug = decodeURIComponent(raw || '').toLowerCase();
+  const host = (await headers()).get('host') || '';
 
   // Fetch speakers from the active program via API
   let speakers: ProgramSpeaker[] = [];
@@ -18,7 +20,7 @@ export default async function SpeakerDetailPage({ params }: { params: Promise<{ 
     const settings = await getSettings();
     const programSlug = settings.active_program?.slug;
     if (programSlug) {
-      speakers = await getProgramSpeakers(programSlug);
+      speakers = await getProgramSpeakers(programSlug, host);
     }
   } catch (e) {
     console.error('Failed to fetch speakers', e);

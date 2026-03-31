@@ -13,6 +13,7 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
 import { getProgramsPageData } from '@/lib/api/programs';
+import { headers } from 'next/headers';
 import type {
   ProgramActivitiesSection,
   ProgramJourneySection,
@@ -25,7 +26,8 @@ import type {
 } from '@/types/programs';
 
 export default async function ProgramOverviewPage() {
-  const programsPage = await getProgramsPageData();
+  const host = (await headers()).get('host') || '';
+  const programsPage = await getProgramsPageData(host);
 
   const heroSection = programsPage.sections.find(
     section => section.type === 'hero',

@@ -1,13 +1,15 @@
 import AnnouncementsGrid from '@/components/announcements/AnnouncementsGrid';
 import HeroSection from '@/components/ui/HeroSection';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
+import { headers } from 'next/headers';
 import type { AnnouncementListSection, AnnouncementsHeroSection } from '@/types/announcements';
 
 export default async function AnnouncementsPage() {
+  const host = (await headers()).get('host') || '';
   let announcementsPage: Awaited<ReturnType<typeof getAnnouncementsPageData>> | null = null;
 
   try {
-    announcementsPage = await getAnnouncementsPageData();
+    announcementsPage = await getAnnouncementsPageData(host);
   } catch (e) {
     console.error('Failed to fetch announcements page data', e);
   }
