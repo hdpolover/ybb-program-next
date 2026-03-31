@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type ApiVideo = {
   id: string;
@@ -68,6 +68,8 @@ const normalizeTabs = (tabs?: ApiVideoTab[]): NormalizedTab[] => {
 };
 
 export default function VideoSection({ title, subtitle, tabs }: ProgramHighlightVideosProps) {
+  if (!tabs || tabs.length === 0) return null;
+
   const normalizedTabs = normalizeTabs(tabs);
   const initialYear = normalizedTabs[0]?.year ?? new Date().getFullYear();
   const [year, setYear] = useState<number>(initialYear);
@@ -84,18 +86,18 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
   };
 
   return (
-    <section className={jysSectionTheme.videoSection.sectionWrapper}>
-      <div className={jysSectionTheme.videoSection.card}>
+    <section className={componentsTheme.videoSection.sectionWrapper}>
+      <div className={componentsTheme.videoSection.card}>
         <SectionHeader
           eyebrow="Program Highlights Video"
           title={title ?? 'Experience Our Program in Action'}
         />
-        <p className={jysSectionTheme.videoSection.subtitle}>
+        <p className={componentsTheme.videoSection.subtitle}>
           {subtitle ??
             'Watch the journey of Japan Youth Summit delegates – from keynote sessions and cultural experiences to collaboration and real impact projects in Japan.'}
         </p>
 
-        <div className={jysSectionTheme.videoSection.inner}>
+        <div className={componentsTheme.videoSection.inner}>
           {/* Kiri: video utama */}
           <div className="space-y-3">
             <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-900/10">
@@ -103,7 +105,7 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                 <iframe
                   src={currentVideo.embedUrl}
                   title={currentVideo.title}
-                  className={jysSectionTheme.videoSection.mainIframe}
+                  className={componentsTheme.videoSection.mainIframe}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                 />
@@ -122,13 +124,13 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                   {currentVideo ? currentVideo.description : 'Stay tuned, video will be added soon.'}
                 </p>
               </div>
-              <span className={`${jysSectionTheme.videoSection.badge} shrink-0`}>JYS Program {year}</span>
+              <span className={`${componentsTheme.videoSection.badge} shrink-0`}>JYS Program {year}</span>
             </div>
           </div>
 
           {/* Kanan: daftar playlist */}
           <div>
-            <div className={jysSectionTheme.videoSection.yearTabsWrapper}>
+            <div className={componentsTheme.videoSection.yearTabsWrapper}>
               {normalizedTabs.map(tab => (
                 <button
                   key={tab.year}
@@ -137,8 +139,8 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                     setYear(tab.year);
                     setCurrentIndex(0);
                   }}
-                  className={`${jysSectionTheme.videoSection.yearTab} ${
-                    year === tab.year ? jysSectionTheme.videoSection.yearTabActive : ''
+                  className={`${componentsTheme.videoSection.yearTab} ${
+                    year === tab.year ? componentsTheme.videoSection.yearTabActive : ''
                   }`}
                 >
                   {tab.year}
@@ -146,7 +148,7 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
               ))}
             </div>
 
-            <div className={jysSectionTheme.videoSection.listWrapper}>
+            <div className={componentsTheme.videoSection.listWrapper}>
               {currentVideos.map((video, index) => {
                 const isActive = index === currentIndex;
                 return (
@@ -154,46 +156,27 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                     key={video.id}
                     type="button"
                     onClick={() => setCurrentIndex(index)}
-                    className={`${jysSectionTheme.videoSection.listCard} ${
-                      isActive ? jysSectionTheme.videoSection.listCardActive : ''
+                    className={`${componentsTheme.videoSection.listCard} ${
+                      isActive ? componentsTheme.videoSection.listCardActive : ''
                     }`}
                   >
-                    <div className={jysSectionTheme.videoSection.thumbnailWrapper}>
+                    <div className={componentsTheme.videoSection.thumbnailWrapper}>
                       <iframe
                         src={`${video.embedUrl}&mute=1`}
                         title={video.title}
-                        className={jysSectionTheme.videoSection.mainIframe}
+                        className={componentsTheme.videoSection.mainIframe}
                         aria-hidden="true"
                       />
                     </div>
                     <div className="flex-1 text-left">
-                      <p className={jysSectionTheme.videoSection.listTitle}>
+                      <p className={componentsTheme.videoSection.listTitle}>
                         {truncateTitle(video.title)}
                       </p>
-                      <p className={jysSectionTheme.videoSection.listMeta}>{video.description}</p>
+                      <p className={componentsTheme.videoSection.listMeta}>{video.description}</p>
                     </div>
                   </button>
                 );
               })}
-              {/* Placeholder "coming soon" kalau videonya masih kurang dari 4 item */}
-              {Array.from({ length: Math.max(0, 4 - currentVideos.length) }).map((_, idx) => (
-                <div
-                  key={`placeholder-${idx}`}
-                  className={`${jysSectionTheme.videoSection.listCard} opacity-60`}
-                >
-                  <div className={jysSectionTheme.videoSection.thumbnailWrapper}>
-                    <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-                      Video coming soon
-                    </div>
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className={jysSectionTheme.videoSection.listTitle}>Coming soon</p>
-                    <p className={jysSectionTheme.videoSection.listMeta}>
-                      Slot video akan segera diisi.
-                    </p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

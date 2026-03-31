@@ -3,7 +3,7 @@ export default function StatusBadge({ type }: { type: 'fully_funded' | 'self_fun
   const styles: Record<string, string> = {
     fully_funded: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
     self_funded: 'bg-amber-50 text-amber-700 ring-amber-200',
-    partial: 'bg-blue-50 text-blue-700 ring-blue-200',
+    partial: 'bg-primary/5 text-primary ring-primary/30',
   };
   const label: Record<string, string> = {
     fully_funded: 'Fully Funded',

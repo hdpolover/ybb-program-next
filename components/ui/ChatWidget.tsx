@@ -2,7 +2,7 @@
 
 import { Bot, Send, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type ChatMessage = {
   id: string;
@@ -15,7 +15,7 @@ function uid(): string {
 }
 
 export default function ChatWidget() {
-  const theme = jysSectionTheme.chatWidget;
+  const theme = componentsTheme.chatWidget;
 
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');

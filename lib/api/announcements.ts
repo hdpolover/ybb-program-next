@@ -1,14 +1,8 @@
 import type { AnnouncementsPageData } from '@/types/announcements';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
+import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
-
-const BRAND_URL =
-  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
+const BRAND_URL = normalizeBrandUrl(getEnvBrandDomain());
 
 export async function getAnnouncementsPageData(): Promise<AnnouncementsPageData> {
   return apiGetWithEnvelope<AnnouncementsPageData>('/v1/landing/announcements', {

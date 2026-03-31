@@ -1,9 +1,8 @@
 "use client";
 
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { PROGRAMS_FURTHER_INFO_DEFAULT } from '@/data/programs/sections/further-info/programsFurtherInfo';
-import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
+import { componentsTheme } from '@/lib/theme/components';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 interface GuidebookLink {
   href: string;
@@ -18,13 +17,24 @@ interface ProgramsFurtherInformationProps {
 }
 
 export default function ProgramsFurtherInformationSection({
-  title = PROGRAMS_FURTHER_INFO_DEFAULT.title,
-  subtitle = PROGRAMS_FURTHER_INFO_DEFAULT.subtitle,
-  guidebooks = PROGRAMS_FURTHER_INFO_DEFAULT.guidebooks,
+  title,
+  subtitle,
+  guidebooks,
 }: ProgramsFurtherInformationProps) {
+  if (!title && !subtitle && (!guidebooks || guidebooks.length === 0)) return null;
+
+  const displayTitle = title || 'Further Information';
+  const displaySubtitle = subtitle || 'The complete information regarding this program can be seen in the guidebook below.';
+  const displayGuidebooks = guidebooks && guidebooks.length > 0
+    ? guidebooks
+    : [
+        { href: '#', label: 'Read Guidebook (Eng)', locale: 'eng' as const },
+        { href: '#', label: 'Read Guidebook (Ind)', locale: 'ind' as const },
+      ];
+
   return (
     <section
-      className={jysSectionTheme.furtherInfoPrograms.sectionWrapper}
+      className={componentsTheme.furtherInfoPrograms.sectionWrapper}
       style={{
         backgroundImage: "url('/img/halfback1.png')",
         backgroundSize: 'cover',
@@ -32,23 +42,23 @@ export default function ProgramsFurtherInformationSection({
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className={jysSectionTheme.furtherInfoPrograms.card}>
-        <div className={jysSectionTheme.furtherInfoPrograms.innerGrid}>
-          <div className={jysSectionTheme.furtherInfoPrograms.leftCol}>
+      <div className={componentsTheme.furtherInfoPrograms.card}>
+        <div className={componentsTheme.furtherInfoPrograms.innerGrid}>
+          <div className={componentsTheme.furtherInfoPrograms.leftCol}>
             <div>
-              <SectionHeader eyebrow="Guidebook" title={title} align="left" />
-              <p className={jysSectionTheme.furtherInfoPrograms.description}>{subtitle}</p>
+              <SectionHeader eyebrow="Guidebook" title={displayTitle} align="left" />
+              <p className={componentsTheme.furtherInfoPrograms.description}>{displaySubtitle}</p>
 
-              <div className={jysSectionTheme.furtherInfoPrograms.buttonsCol}>
-                {guidebooks.map(link =>
+              <div className={componentsTheme.furtherInfoPrograms.buttonsCol}>
+                {displayGuidebooks.map(link =>
                   link.href && link.href !== '#' ? (
                     <a
                       key={link.label}
                       href={link.href}
-                      className={`${jysSectionTheme.furtherInfoPrograms.guideButtonBase} ${
+                      className={`${componentsTheme.furtherInfoPrograms.guideButtonBase} ${
                         link.locale === 'eng'
-                          ? jysSectionTheme.homeRegistration.guidePrimary
-                          : jysSectionTheme.homeRegistration.guideSecondary
+                          ? componentsTheme.homeRegistration.guidePrimary
+                          : componentsTheme.homeRegistration.guideSecondary
                       }`}
                       target="_blank"
                       rel="noreferrer"
@@ -59,10 +69,10 @@ export default function ProgramsFurtherInformationSection({
                     <span
                       key={`${link.label}-disabled`}
                       aria-disabled="true"
-                      className={`${jysSectionTheme.furtherInfoPrograms.guideButtonBase} ${
+                      className={`${componentsTheme.furtherInfoPrograms.guideButtonBase} ${
                         link.locale === 'eng'
-                          ? jysSectionTheme.homeRegistration.guidePrimary
-                          : jysSectionTheme.homeRegistration.guideSecondary
+                          ? componentsTheme.homeRegistration.guidePrimary
+                          : componentsTheme.homeRegistration.guideSecondary
                       } pointer-events-none flex cursor-not-allowed items-center justify-center opacity-60`}
                     >
                       {DATA_NOT_ADDED}
@@ -73,8 +83,8 @@ export default function ProgramsFurtherInformationSection({
             </div>
           </div>
 
-          <div className={jysSectionTheme.furtherInfoPrograms.rightCol}>
-            <div className={jysSectionTheme.furtherInfoPrograms.mockupWrapper}></div>
+          <div className={componentsTheme.furtherInfoPrograms.rightCol}>
+            <div className={componentsTheme.furtherInfoPrograms.mockupWrapper}></div>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ import {
   type PortalDashboardSummary,
 } from '@/components/dashboard/DashboardDataContext';
 import NotificationsPopover from '@/components/dashboard/layout/NotificationsPopover';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type DashboardSearchItem = {
   id: string;
@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const searchTheme = jysSectionTheme.dashboardSearch;
+  const searchTheme = componentsTheme.dashboardSearch;
   const [me, setMe] = useState<AuthMeData | null>(null);
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
   const [participantProfile, setParticipantProfile] = useState<ParticipantMeData | null>(null);
@@ -173,14 +173,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     onboarding?.displayName?.trim() ||
     onboarding?.fullName?.trim() ||
     'Participant';
-  const greetingText = dashboardSummary?.greeting?.trim() || null;
-
   // shell grid: sidebar kiri + konten kanan
   return (
     <main className="relative h-screen overflow-hidden bg-white">
       <div className="flex h-screen">
         {/* Sidebar nempel di kiri */}
-        <Sidebar profileEmail={me?.email ?? ''} />
+        <Sidebar
+          profileEmail={me?.email ?? ''}
+          profileImageUrl={participantProfile?.profilePictureUrl}
+          profileName={greetingName}
+        />
 
         {/* Kolom kanan: navbar atas + konten */}
         <DashboardDataProvider
@@ -224,7 +226,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <section className="flex-1 px-6 py-6 lg:px-8">
             <div className="mx-auto max-w-6xl space-y-4">
               {/* Header halaman (disembunyiin kalau lagi di halaman payments atau saat sedang mencari) */}
-              {!pathname?.startsWith('/dashboard/payments') && searchQuery.trim().length < 2 && (
+              {!pathname?.startsWith('/dashboard/payments') && !pathname?.startsWith('/dashboard/submission') && searchQuery.trim().length < 2 && (
                 <div className="space-y-1">
                   <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
                     {pageTitle}
@@ -235,7 +237,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Greeting cuma nongol di halaman utama dashboard overview, dan disembunyikan saat sedang mencari */}
               {pathname === '/dashboard' && searchQuery.trim().length < 2 && (
-                <GreetingWithClock name={greetingText || greetingName} />
+                <GreetingWithClock name={greetingName} />
               )}
 
               {/* Hasil smart search dashboard */}
@@ -263,7 +265,7 @@ function DashboardSearchResults({
 }: {
   query: string;
   items: DashboardSearchItem[];
-  theme: (typeof jysSectionTheme)['dashboardSearch'];
+  theme: (typeof componentsTheme)['dashboardSearch'];
 }) {
   const normalized = query.trim();
 

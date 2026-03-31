@@ -1,43 +1,43 @@
 import { Users, Globe2, Smile, Award } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 // Section angka-angka impact di halaman Testimonials
 export default function TestimonialsImpact() {
   return (
-    <section className={jysSectionTheme.programsTestimonialsImpact.sectionWrapper}>
-      <div className={jysSectionTheme.programsTestimonialsImpact.container}>
+    <section className={componentsTheme.programsTestimonialsImpact.sectionWrapper}>
+      <div className={componentsTheme.programsTestimonialsImpact.container}>
         <SectionHeader eyebrow="Our Impact" title="Join Our Growing Community" />
-        <div className={jysSectionTheme.programsTestimonialsImpact.grid}>
-          <div className={jysSectionTheme.programsTestimonialsImpact.card}>
-            <div className={jysSectionTheme.programsTestimonialsImpact.iconCircle}>
-              <Users className={jysSectionTheme.programsTestimonialsImpact.icon} />
+        <div className={componentsTheme.programsTestimonialsImpact.grid}>
+          <div className={componentsTheme.programsTestimonialsImpact.card}>
+            <div className={componentsTheme.programsTestimonialsImpact.iconCircle}>
+              <Users className={componentsTheme.programsTestimonialsImpact.icon} />
             </div>
-            <p className={jysSectionTheme.programsTestimonialsImpact.value}>4,000+</p>
-            <p className={jysSectionTheme.programsTestimonialsImpact.label}>Alumni Worldwide</p>
+            <p className={componentsTheme.programsTestimonialsImpact.value}>4,000+</p>
+            <p className={componentsTheme.programsTestimonialsImpact.label}>Alumni Worldwide</p>
           </div>
-          <div className={jysSectionTheme.programsTestimonialsImpact.card}>
-            <div className={jysSectionTheme.programsTestimonialsImpact.iconCircle}>
-              <Globe2 className={jysSectionTheme.programsTestimonialsImpact.icon} />
+          <div className={componentsTheme.programsTestimonialsImpact.card}>
+            <div className={componentsTheme.programsTestimonialsImpact.iconCircle}>
+              <Globe2 className={componentsTheme.programsTestimonialsImpact.icon} />
             </div>
-            <p className={jysSectionTheme.programsTestimonialsImpact.value}>120+</p>
-            <p className={jysSectionTheme.programsTestimonialsImpact.label}>
+            <p className={componentsTheme.programsTestimonialsImpact.value}>120+</p>
+            <p className={componentsTheme.programsTestimonialsImpact.label}>
               Countries Represented
             </p>
           </div>
-          <div className={jysSectionTheme.programsTestimonialsImpact.card}>
-            <div className={jysSectionTheme.programsTestimonialsImpact.iconCircle}>
-              <Smile className={jysSectionTheme.programsTestimonialsImpact.icon} />
+          <div className={componentsTheme.programsTestimonialsImpact.card}>
+            <div className={componentsTheme.programsTestimonialsImpact.iconCircle}>
+              <Smile className={componentsTheme.programsTestimonialsImpact.icon} />
             </div>
-            <p className={jysSectionTheme.programsTestimonialsImpact.value}>95%</p>
-            <p className={jysSectionTheme.programsTestimonialsImpact.label}>Satisfaction Rate</p>
+            <p className={componentsTheme.programsTestimonialsImpact.value}>95%</p>
+            <p className={componentsTheme.programsTestimonialsImpact.label}>Satisfaction Rate</p>
           </div>
-          <div className={jysSectionTheme.programsTestimonialsImpact.card}>
-            <div className={jysSectionTheme.programsTestimonialsImpact.iconCircle}>
-              <Award className={jysSectionTheme.programsTestimonialsImpact.icon} />
+          <div className={componentsTheme.programsTestimonialsImpact.card}>
+            <div className={componentsTheme.programsTestimonialsImpact.iconCircle}>
+              <Award className={componentsTheme.programsTestimonialsImpact.icon} />
             </div>
-            <p className={jysSectionTheme.programsTestimonialsImpact.value}>500+</p>
-            <p className={jysSectionTheme.programsTestimonialsImpact.label}>Social Projects</p>
+            <p className={componentsTheme.programsTestimonialsImpact.value}>500+</p>
+            <p className={componentsTheme.programsTestimonialsImpact.label}>Social Projects</p>
           </div>
         </div>
       </div>

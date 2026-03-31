@@ -1,5 +1,5 @@
 import { HeroImage } from '@/components/common/OptimizedImage';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type HeroProps = {
   imageUrl?: string;
@@ -14,22 +14,22 @@ export default function Hero({ imageUrl, title, subtitle }: HeroProps) {
   const alt = title || 'Japan Youth Summit';
 
   return (
-    <section className={jysSectionTheme.heroHome.sectionWrapper}>
-      <div className={jysSectionTheme.heroHome.mobileWrapper}>
+    <section className={componentsTheme.heroHome.sectionWrapper}>
+      <div className={componentsTheme.heroHome.mobileWrapper}>
         <HeroImage
           src={src}
           alt={alt}
           width={1920}
           height={600}
-          className={jysSectionTheme.heroHome.mobileImage}
+          className={componentsTheme.heroHome.mobileImage}
         />
       </div>
       <div
-        className={jysSectionTheme.heroHome.desktopWrapper}
+        className={componentsTheme.heroHome.desktopWrapper}
         style={{ backgroundImage: `url('${src}')` }}
       >
-        <div className={jysSectionTheme.heroHome.desktopOverlay} />
-        <div className={jysSectionTheme.heroHome.desktopInner}></div>
+        <div className={componentsTheme.heroHome.desktopOverlay} />
+        <div className={componentsTheme.heroHome.desktopInner}></div>
       </div>
     </section>
   );

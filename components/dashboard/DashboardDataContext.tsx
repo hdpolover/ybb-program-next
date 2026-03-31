@@ -63,6 +63,7 @@ export type ParticipantMeData = {
   profileCompletionPercentage?: number;
   displayName?: string;
   fullName?: string;
+  profilePictureUrl?: string;
 };
 
 type DashboardDataContextValue = {

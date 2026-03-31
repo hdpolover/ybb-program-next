@@ -11,7 +11,7 @@ import PartnerFAQSection from '@/components/partners/PartnerFAQ';
 import { getPartnersPageData } from '@/lib/api/partners';
 import type { CtaBecomePartnerSection, PartnersGridSection, SponsorsGridSection } from '@/types/partners';
 import { SetPromoCTA } from '@/components/sections/PromoCTAContext';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 export default async function PartnersSponsorsPage() {
   const partnersPage = await getPartnersPageData();
@@ -50,30 +50,30 @@ export default async function PartnersSponsorsPage() {
 
       {ctaBecomePartnerSection?.content.text && ctaBecomePartnerSection?.content.link ? (
         <SetPromoCTA>
-          <section className={jysSectionTheme.promoCta.sectionWrapper}>
-            <div className={jysSectionTheme.promoCta.glowLeft} />
-            <div className={jysSectionTheme.promoCta.glowRight} />
-            <div className={jysSectionTheme.promoCta.glowBottom} />
+          <section className={componentsTheme.promoCta.sectionWrapper}>
+            <div className={componentsTheme.promoCta.glowLeft} />
+            <div className={componentsTheme.promoCta.glowRight} />
+            <div className={componentsTheme.promoCta.glowBottom} />
 
-            <div className={jysSectionTheme.promoCta.container}>
-              <div className={jysSectionTheme.promoCta.leftCol}>
-                <p className={jysSectionTheme.promoCta.eyebrow}>Ready to Innovate?</p>
-                <h2 className={jysSectionTheme.promoCta.title}>
+            <div className={componentsTheme.promoCta.container}>
+              <div className={componentsTheme.promoCta.leftCol}>
+                <p className={componentsTheme.promoCta.eyebrow}>Ready to Innovate?</p>
+                <h2 className={componentsTheme.promoCta.title}>
                   {ctaBecomePartnerSection.content.text}
                 </h2>
-                <div className={jysSectionTheme.promoCta.actionsRow}>
+                <div className={componentsTheme.promoCta.actionsRow}>
                   <a
                     href={ctaBecomePartnerSection.content.link}
-                    className={jysSectionTheme.promoCta.primaryButton}
+                    className={componentsTheme.promoCta.primaryButton}
                   >
                     Apply Now
                   </a>
                 </div>
               </div>
 
-              <div className={jysSectionTheme.promoCta.rightCol}>
-                <div className={jysSectionTheme.promoCta.videoCard}>
-                  <div className={jysSectionTheme.promoCta.videoFrameWrapper}>
+              <div className={componentsTheme.promoCta.rightCol}>
+                <div className={componentsTheme.promoCta.videoCard}>
+                  <div className={componentsTheme.promoCta.videoFrameWrapper}>
                     <iframe
                       src="https://www.youtube.com/embed/tUR55Fi53rM?si=NEHbcyoMTTsFEVV4"
                       title="Japan Youth Summit 2025 Registration Guideline"
@@ -83,10 +83,10 @@ export default async function PartnersSponsorsPage() {
                     />
                   </div>
                   <div className="mt-3">
-                    <h3 className={jysSectionTheme.promoCta.videoTitle}>
+                    <h3 className={componentsTheme.promoCta.videoTitle}>
                       Japan Youth Summit 2025 Registration Guideline
                     </h3>
-                    <p className={jysSectionTheme.promoCta.videoDescription}>
+                    <p className={componentsTheme.promoCta.videoDescription}>
                       Watch this short walkthrough to understand the step-by-step registration flow,
                       required documents, and key deadlines before you submit your application.
                     </p>

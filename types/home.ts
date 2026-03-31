@@ -8,9 +8,18 @@ export type HomeSectionType =
   | 'program_objectives'
   | 'program_gallery'
   | 'program_highlight_videos'
+  | 'program_shorts'
+  | 'program_impact'
+  | 'program_features'
+  | 'program_benefits'
   | 'alumni_stories'
+  | 'delegate_testimonials'
   | 'program_awards'
-  | 'supported_by';
+  | 'organization_credentials'
+  | 'payment_info'
+  | 'supported_by'
+  | 'participant_demographics'
+  | 'promo_cta';
 
 export type MainBannerSection = {
   type: 'main_banner';
@@ -158,6 +167,123 @@ export type ProgramHighlightVideosSection = {
 	};
 };
 
+export type ProgramShortsSection = {
+  type: 'program_shorts';
+  content: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    items: { id: string; title: string | null; embed_url: string | null }[];
+  };
+};
+
+export type ProgramImpactSection = {
+  type: 'program_impact';
+  content: {
+    eyebrow: string;
+    title: string;
+    stats: { id: string; label: string; value: string; icon: 'participants' | 'countries' | 'alumni' }[];
+  };
+};
+
+export type ProgramFeaturesSection = {
+  type: 'program_features';
+  content: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    items: { id: string; icon: string; title: string; description: string }[];
+  };
+};
+
+export type ProgramBenefitsSection = {
+  type: 'program_benefits';
+  content: {
+    eyebrow: string;
+    title: string;
+    groups: { id: string; title: string; imageUrl: string; items: string[] }[];
+  };
+};
+
+export type DelegateTestimonialsSection = {
+  type: 'delegate_testimonials';
+  content: {
+    items: {
+      id: string;
+      name: string;
+      role: string;
+      quote: string;
+      country: string;
+      photo: string;
+      year: number;
+    }[];
+  };
+};
+
+export type OrganizationCredentialsSection = {
+  type: 'organization_credentials';
+  content: {
+    title: string;
+    subtitle: string;
+    proofs: {
+      iconKey: string;
+      title: string;
+      subtitle: string;
+      bullets?: string[];
+    }[];
+    trademark: {
+      href: string;
+      brand: string;
+      regNo: string;
+      status: string;
+      classText: string;
+      owner: string;
+      logoUrl: string;
+    } | null;
+  };
+};
+
+export type PaymentInfoSection = {
+  type: 'payment_info';
+  content: {
+    eyebrow: string;
+    title: string;
+    introText: string;
+    items: { id: string; icon: string; title: string; body: string }[];
+    note: string;
+  };
+};
+
+export type ParticipantDemographicsSection = {
+  type: 'participant_demographics';
+  content: {
+    eyebrow: string;
+    title: string;
+    country_levels: Record<string, 'high' | 'medium' | 'low' | 'none'>;
+    country_participants: Record<string, number>;
+    legend: {
+      high: string;
+      medium: string;
+      low: string;
+      none: string;
+    };
+  };
+};
+
+export type PromoCTASection = {
+  type: 'promo_cta';
+  content: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    primary_cta_label: string;
+    primary_cta_href: string;
+    video_url: string | null;
+    video_title: string | null;
+    video_description: string | null;
+  };
+};
+
 export type HomeSection =
 	| MainBannerSection
 	| RegistrationOverviewSection
@@ -166,9 +292,18 @@ export type HomeSection =
 	| ProgramObjectivesSection
 	| ProgramGallerySection
 	| ProgramHighlightVideosSection
+	| ProgramShortsSection
+	| ProgramImpactSection
+	| ProgramFeaturesSection
+	| ProgramBenefitsSection
 	| AlumniStoriesSection
+	| DelegateTestimonialsSection
 	| ProgramAwardsSection
-	| SupportedBySection;
+	| OrganizationCredentialsSection
+	| PaymentInfoSection
+	| SupportedBySection
+	| ParticipantDemographicsSection
+	| PromoCTASection;
 
 export type ProgramHighlightsSection = {
   type: 'program_highlights';

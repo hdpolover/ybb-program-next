@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Search as SearchIcon, Menu, X } from 'lucide-react';
-import { getSettings } from '@/lib/api/settings';
+import { useSettings } from '@/components/providers/SettingsProvider';
 import type { SettingsData } from '@/types/settings';
 
 const navItems: string[] = ['Home', 'Programs', 'Partners & Sponsors', 'Announcements', 'FAQ'];
@@ -16,7 +16,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [pinned, setPinned] = useState(false);
-  const [settings, setSettings] = useState<SettingsData | null>(null);
+  const { settings } = useSettings();
   const pathname = usePathname();
 
   const lastScrollYRef = useRef(0);
@@ -127,22 +127,9 @@ export function Navbar() {
     };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await getSettings();
-        if (!cancelled) setSettings(data);
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
-  const logoSrc = settings?.brand?.logo_url?.trim() || '/img/jysfix.png';
+
+  const logoSrc = settings?.brand?.logo_color_url?.trim() || settings?.brand?.logo_url?.trim() || '/img/jysfix.png';
 
   const submitSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -159,19 +146,20 @@ export function Navbar() {
         className={`${'w-full border-b border-gray-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60'} ${scrolled ? 'shadow-sm' : ''}`}
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="flex h-20 items-center justify-between md:h-24">
-            <div className="flex items-center">
+          <div className="flex h-20 items-center justify-between gap-4 md:h-24">
+            <div className="flex shrink-0 items-center">
               <Image
                 src={logoSrc}
                 alt="Logo"
                 width={420}
                 height={420}
                 className="h-9 w-auto sm:h-11 md:h-12 lg:h-14"
-                priority
+                unoptimized
+
               />
             </div>
 
-            <div className="hidden items-center space-x-10 md:flex">
+            <div className="hidden items-center gap-5 lg:gap-7 xl:gap-10 md:flex">
               {navItems.map(item => {
                 const href = hrefFor(item);
                 const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
@@ -182,8 +170,8 @@ export function Navbar() {
                     aria-current={isActive ? 'page' : undefined}
                     className={
                       isActive
-                        ? 'text-lg font-semibold text-[var(--brand-accent)] transition-colors'
-                        : 'text-lg font-semibold text-gray-600 transition-colors hover:text-[var(--brand-accent)]'
+                        ? 'text-base font-semibold text-[var(--brand-accent)] transition-colors lg:text-lg'
+                        : 'text-base font-semibold text-gray-600 transition-colors hover:text-[var(--brand-accent)] lg:text-lg'
                     }
                   >
                     {item}
@@ -192,9 +180,9 @@ export function Navbar() {
               })}
             </div>
 
-            <div className="flex items-center space-x-3 md:space-x-5">
+            <div className="flex shrink-0 items-center space-x-3 md:space-x-5">
               <button
-                className="text-gray-600 transition-colors hover:text-gray-800"
+                className="rounded-md p-2 text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-800"
                 aria-label="Search"
                 onClick={() => setSearchOpen(true)}
               >
@@ -203,7 +191,7 @@ export function Navbar() {
 
               <a
                 href="/login"
-                className="hidden items-center justify-center rounded-lg bg-[var(--brand-accent)] px-5 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 md:inline-flex"
+                className="hidden min-h-11 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 md:inline-flex"
               >
                 REGISTER NOW
               </a>
@@ -246,7 +234,7 @@ export function Navbar() {
                 <div className="my-3 h-px w-full bg-gray-200" />
                 <a
                   href="/login"
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand-accent)] px-4 py-3 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90"
+                  className="mt-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
                   REGISTER NOW

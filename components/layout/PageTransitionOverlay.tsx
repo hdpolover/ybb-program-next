@@ -59,7 +59,7 @@ export default function PageTransitionOverlay() {
   if (!isActive) return null;
 
   return (
-    <div className="pointer-events-auto fixed inset-0 z-[9999] flex items-center justify-center bg-pink-600/80 backdrop-blur-sm transition-opacity">
+    <div className="pointer-events-auto fixed inset-0 z-[9999] flex items-center justify-center bg-primary/80 backdrop-blur-sm transition-opacity">
       <div className="flex flex-col items-center gap-3 text-center text-white">
         <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/40 border-t-white" />
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/90">Loading page</p>

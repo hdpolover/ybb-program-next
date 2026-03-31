@@ -3,93 +3,13 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
-
+import { componentsTheme } from '@/lib/theme/components';
 type FAQItem = { q: string; a: string };
 
 type FAQGroup = {
   label: string;
   faqs: FAQItem[];
 };
-
-const MAIN_FAQ_GROUPS: FAQGroup[] = [
-  {
-    label: 'About JYS Program',
-    faqs: [
-      {
-        q: 'What is the Japan Youth Summit (JYS)?',
-        a: 'Japan Youth Summit (JYS) is an international youth program that brings together young leaders to discuss global issues, join capacity-building sessions, and experience cultural exchange in Japan.',
-      },
-      {
-        q: 'Who can apply for the JYS program?',
-        a: 'JYS is open to youth, students, and young professionals typically between 15 - 25 years old who are passionate about leadership, SDGs, and cross-cultural collaboration. Eligibility details may vary slightly by edition.',
-      },
-      {
-        q: 'What are the main activities during the program?',
-        a: 'Participants will join plenary sessions, panel discussions, cultural exchange activities, group projects, networking events, and city or campus visits depending on the final agenda.',
-      },
-      {
-        q: 'Is the program conducted fully in Japan or hybrid/online?',
-        a: 'The core activities are held on-site in Japan. However, some briefings, pre-departure orientations, or follow-up sessions may be conducted online.',
-      },
-      {
-        q: 'Will I receive a certificate after the program?',
-        a: 'Yes. Participants who complete the full program will receive an official certificate of participation issued by the organizing committee.',
-      },
-    ],
-  },
-  {
-    label: 'Registration',
-    faqs: [
-      {
-        q: 'How do I register for the JYS program?',
-        a: 'You can register by filling in the official application form on our website. Make sure to complete all required fields and upload any requested documents before the deadline.',
-      },
-      {
-        q: 'What documents are usually required for registration?',
-        a: 'Commonly required documents include a CV or resume, a short motivation statement, a scanned ID or passport, and sometimes proof of student status or recommendation letters.',
-      },
-      {
-        q: 'Can I edit my application after submitting it?',
-        a: 'Minor updates may be possible before the deadline. Please contact the organizing team if you need to correct important information in your submitted application.',
-      },
-      {
-        q: 'How will I know if I am accepted?',
-        a: 'Notifications will be sent via email to the address you used during registration. Please check your inbox and spam folder regularly after the application period closes.',
-      },
-      {
-        q: 'Is there a selection process or is it first come, first served?',
-        a: 'Most JYS intakes are selective. Applications are reviewed based on motivation, relevance, and diversity considerations, not only on a first-come, first-served basis.',
-      },
-    ],
-  },
-  {
-    label: 'Payments',
-    faqs: [
-      {
-        q: 'What does the program fee cover?',
-        a: 'The program fee generally covers accommodation, most meals during official activities, local transportation related to the program, learning materials, and entrance to scheduled venues. Flights and personal expenses are usually not included.',
-      },
-      {
-        q: 'How can I pay the program fee?',
-        a: 'Payment can typically be made via bank transfer or other official payment channels listed in your acceptance email. Detailed instructions and deadlines will be provided once you are accepted.',
-      },
-      {
-        q: 'Are there any scholarships or financial aid options?',
-        a: 'Depending on the edition, there may be fully-funded or partially-funded opportunities. Please check the program information page or announcements for the latest details on available scholarships.',
-      },
-      {
-        q: 'Can I pay the fee in installments?',
-        a: 'In some cases, installment plans are available within specific timelines. Please refer to the payment guidelines in your acceptance email or contact the finance team.',
-      },
-      {
-        q: 'What is the refund policy if I can no longer attend?',
-        a: 'Refund policies vary by edition, but generally, fees are partially refundable only within certain periods due to advance bookings and commitments. Full details will be stated in the terms and conditions.',
-      },
-    ],
-  },
-];
 
 type MainFAQSectionProps = {
   title?: string;
@@ -103,14 +23,31 @@ type MainFAQSectionProps = {
 };
 
 export default function MainFAQSection({ title, subtitle, items }: MainFAQSectionProps) {
+  if (!items || items.length === 0) {
+    return (
+      <section className="relative w-full py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <SectionHeader eyebrow="FAQ" title={title || 'Frequently Asked Questions'} />
+          {subtitle ? <p className={componentsTheme.faq.subtitle}>{subtitle}</p> : null}
+          <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-16 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+              <Search className="h-6 w-6 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-700">No FAQs available yet</h3>
+            <p className="mt-1.5 max-w-sm text-sm text-slate-500">
+              Frequently asked questions will appear here once they are added. If you have a question, feel free to contact our support team.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   const [activeTab, setActiveTab] = useState(0);
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   const [query, setQuery] = useState('');
 
   const apiGroups = useMemo((): FAQGroup[] => {
-    if (!items) return [];
-    if (items.length === 0) return [];
-
     const byCategory = new Map<string, FAQItem[]>();
     for (const it of items) {
       const category = (it.category || 'general').trim() || 'general';
@@ -122,7 +59,7 @@ export default function MainFAQSection({ title, subtitle, items }: MainFAQSectio
     return Array.from(byCategory.entries()).map(([label, faqs]) => ({ label, faqs }));
   }, [items]);
 
-  const groups = apiGroups.length > 0 ? apiGroups : MAIN_FAQ_GROUPS;
+  const groups = apiGroups.length > 0 ? apiGroups : [];
   const activeGroup = groups[activeTab] ?? groups[0];
 
   const filteredFaqs = useMemo(() => {
@@ -135,18 +72,18 @@ export default function MainFAQSection({ title, subtitle, items }: MainFAQSectio
   }, [activeGroup, query]);
 
   return (
-    <section className={jysSectionTheme.faq.sectionWrapper}>
-      <div className={jysSectionTheme.faq.container}>
+    <section className={componentsTheme.faq.sectionWrapper}>
+      <div className={componentsTheme.faq.container}>
         <SectionHeader eyebrow="FAQ" title={title ?? 'Frequently Asked Questions'} />
-        <p className={jysSectionTheme.faq.subtitle}>
+        <p className={componentsTheme.faq.subtitle}>
           {subtitle ??
             'Browse common questions about the Japan Youth Summit (JYS) program, registration process, and payment information.'}
         </p>
 
         {/* Search bar */}
-        <div className={jysSectionTheme.faq.searchWrapper}>
-          <div className={jysSectionTheme.faq.searchInner}>
-            <Search className={jysSectionTheme.faq.searchIcon} />
+        <div className={componentsTheme.faq.searchWrapper}>
+          <div className={componentsTheme.faq.searchInner}>
+            <Search className={componentsTheme.faq.searchIcon} />
             <input
               type="text"
               value={query}
@@ -155,15 +92,15 @@ export default function MainFAQSection({ title, subtitle, items }: MainFAQSectio
                 setOpenIdx(0);
               }}
               placeholder="Search for programs, registration, payment, etc."
-              className={jysSectionTheme.faq.searchInput}
+              className={componentsTheme.faq.searchInput}
             />
           </div>
         </div>
 
-        <div className={jysSectionTheme.faq.layoutGrid}>
+        <div className={componentsTheme.faq.layoutGrid}>
           {/* Left: Tabs */}
-          <div className={jysSectionTheme.faq.tabsCard}>
-            <nav className={jysSectionTheme.faq.tabsNav}>
+          <div className={componentsTheme.faq.tabsCard}>
+            <nav className={componentsTheme.faq.tabsNav}>
               {groups.map((group, index) => {
                 const isActive = index === activeTab;
                 return (
@@ -174,21 +111,21 @@ export default function MainFAQSection({ title, subtitle, items }: MainFAQSectio
                       setActiveTab(index);
                       setOpenIdx(0);
                     }}
-                    className={`${jysSectionTheme.faq.tabButtonBase} ${
+                    className={`${componentsTheme.faq.tabButtonBase} ${
                       isActive
-                        ? jysSectionTheme.faq.tabButtonActive
-                        : jysSectionTheme.faq.tabButtonInactive
+                        ? componentsTheme.faq.tabButtonActive
+                        : componentsTheme.faq.tabButtonInactive
                     }`}
                     aria-current={isActive}
                   >
                     {isActive ? (
                       <span
-                        className={jysSectionTheme.faq.tabIndicatorActive}
+                        className={componentsTheme.faq.tabIndicatorActive}
                         aria-hidden="true"
                       />
                     ) : (
                       <span
-                        className={jysSectionTheme.faq.tabIndicatorIdle}
+                        className={componentsTheme.faq.tabIndicatorIdle}
                         aria-hidden="true"
                       />
                     )}
@@ -200,13 +137,9 @@ export default function MainFAQSection({ title, subtitle, items }: MainFAQSectio
           </div>
 
           {/* Right: FAQ list */}
-          <div className={jysSectionTheme.faq.faqListWrapper}>
-            {items && items.length === 0 ? (
-              <div className={jysSectionTheme.faq.emptyCard}>{DATA_NOT_ADDED}</div>
-            ) : null}
-
+          <div className={componentsTheme.faq.faqListWrapper}>
             {filteredFaqs.length === 0 ? (
-              <div className={jysSectionTheme.faq.emptyCard}>
+              <div className={componentsTheme.faq.emptyCard}>
                 No questions match your search. Try a different keyword or category.
               </div>
             ) : null}
@@ -214,22 +147,22 @@ export default function MainFAQSection({ title, subtitle, items }: MainFAQSectio
             {filteredFaqs.map((item, idx) => {
               const isOpen = openIdx === idx;
               return (
-                <div key={item.q} className={jysSectionTheme.faq.faqItemCard}>
+                <div key={item.q} className={componentsTheme.faq.faqItemCard}>
                   <button
                     type="button"
                     onClick={() => setOpenIdx(isOpen ? null : idx)}
-                    className={jysSectionTheme.faq.faqItemHeader}
+                    className={componentsTheme.faq.faqItemHeader}
                     aria-expanded={isOpen}
                   >
-                    <span className={jysSectionTheme.faq.faqQuestion}>{item.q}</span>
-                    <span className={jysSectionTheme.faq.toggleIcon}>
+                    <span className={componentsTheme.faq.faqQuestion}>{item.q}</span>
+                    <span className={componentsTheme.faq.toggleIcon}>
                       <ChevronDown
                         className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                       />
                     </span>
                   </button>
                   {isOpen ? (
-                    <div className={jysSectionTheme.faq.faqAnswer}>{item.a}</div>
+                    <div className={componentsTheme.faq.faqAnswer}>{item.a}</div>
                   ) : null}
                 </div>
               );

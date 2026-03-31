@@ -1,5 +1,5 @@
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 const steps = [
   {
@@ -30,16 +30,16 @@ const steps = [
 
 export default function PartnershipJourneySection() {
   return (
-    <section className={jysSectionTheme.partnersJourney.sectionWrapper}>
-      <div className={jysSectionTheme.partnersJourney.container}>
+    <section className={componentsTheme.partnersJourney.sectionWrapper}>
+      <div className={componentsTheme.partnersJourney.container}>
         <SectionHeader eyebrow="How It Works" title="Start Your Partnership Journey with us!" />
 
-        <div className={jysSectionTheme.partnersJourney.grid}>
+        <div className={componentsTheme.partnersJourney.grid}>
           {steps.map(step => (
-            <div key={step.number} className={jysSectionTheme.partnersJourney.card}>
-              <span className={jysSectionTheme.partnersJourney.number}>{step.number}</span>
-              <h3 className={jysSectionTheme.partnersJourney.title}>{step.title}</h3>
-              <p className={jysSectionTheme.partnersJourney.description}>{step.description}</p>
+            <div key={step.number} className={componentsTheme.partnersJourney.card}>
+              <span className={componentsTheme.partnersJourney.number}>{step.number}</span>
+              <h3 className={componentsTheme.partnersJourney.title}>{step.title}</h3>
+              <p className={componentsTheme.partnersJourney.description}>{step.description}</p>
             </div>
           ))}
         </div>

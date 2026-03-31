@@ -3,30 +3,37 @@
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { getSettings } from '@/lib/api/settings';
+import { componentsTheme } from '@/lib/theme/components';
+import { useSettings } from '@/components/providers/SettingsProvider';
+// import { useSettings } from '@/components/providers/SettingsProvider';
+// import { getSettings } from '@/lib/api/settings';
 import type { SettingsData, SettingsFooterNavSection } from '@/types/settings';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
-const LOGIN_IMAGES = [
+// Fallback images if API fails
+const FALLBACK_IMAGES = [
   '/img/galeri2.png',
   '/img/programhighlight1.jpg',
   '/img/programoverview.png',
   '/img/jysprogram1.jpg',
   '/img/galeri3.png',
-  '/img/benefits.png',
 ];
 
 export default function LoginPage() {
   const router = useRouter();
+  const { settings } = useSettings();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showSignupConfirm, setShowSignupConfirm] = useState(false);
   const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [agree, setAgree] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
-  const [settings, setSettings] = useState<SettingsData | null>(null);
-  const [oauthLoading, setOauthLoading] = useState<string>('');
+  const [loginImages, setLoginImages] = useState<string[]>(FALLBACK_IMAGES);
+    const [oauthLoading, setOauthLoading] = useState<string>('');
   const [oauthError, setOauthError] = useState<string>('');
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string>('');
@@ -234,62 +241,17 @@ export default function LoginPage() {
     }
   };
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const data = await getSettings();
-        if (!cancelled) {
-          setSettings(data);
-        }
-      } catch {
-        // kalau API-nya error, link legal bakal fallback ke '#'
-      }
-    })();
-
-    (async () => {
-      try {
-        const res = await fetch('/api/auth/providers', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const json = (await res.json()) as {
-          statusCode: number;
-          message: string;
-          data: Array<{ id: string; name: string; displayName: string; isOAuth: boolean; buttonColor?: string }>;
-        };
-
-        if (!cancelled && res.ok && json.statusCode === 200 && Array.isArray(json.data)) {
-          setAuthProviders(json.data);
-          const ids: Record<string, string> = {};
-          json.data.forEach(p => {
-            if (p.isOAuth && p.id && p.name) ids[p.name] = p.id;
-          });
-          setOauthProviderIds(ids);
-        }
-      } catch {
-        // ignore, will show error on click
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  
 
   useEffect(() => {
-    if (LOGIN_IMAGES.length <= 1) return;
+    if (loginImages.length <= 1) return;
     const id = setInterval(() => {
-      setImageIndex(prev => (prev + 1) % LOGIN_IMAGES.length);
+      setImageIndex(prev => (prev + 1) % loginImages.length);
     }, 7000);
     return () => clearInterval(id);
-  }, []);
+  }, [loginImages]);
 
-  const loginImageSrc = LOGIN_IMAGES[imageIndex] ?? LOGIN_IMAGES[0];
+  const loginImageSrc = loginImages[imageIndex] ?? loginImages[0];
 
   const footerNav: SettingsFooterNavSection[] | null = settings?.footer_navigation ?? null;
   const legalSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'legal');
@@ -308,60 +270,71 @@ export default function LoginPage() {
   const privacyHref = findLegalHref('privacy');
 
   return (
-    <section className={`min-h-screen w-full ${jysSectionTheme.login.pageBackground}`}>
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+    <section className={`fixed inset-0 overflow-hidden ${componentsTheme.login.pageBackground}`}>
+      <div className="grid h-full grid-cols-1 overflow-hidden lg:grid-cols-[40%_60%]">
         {/* Panel Gambar (selalu di kiri, dalam card dengan background full) */}
         <div
-          className={`relative hidden items-center justify-center ${jysSectionTheme.login.imagePanelBackground} lg:flex`}
+          className="relative hidden lg:flex items-center justify-center bg-slate-50 p-10"
         >
-          <div className="relative h-[680px] w-full max-w-xl overflow-hidden rounded-3xl shadow-[0_18px_45px_rgba(15,23,42,0.35)] ring-1 ring-pink-300/80">
+          <div className="relative h-[calc(100vh-5rem)] w-full overflow-hidden rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+            {/* Mobile logo - visible only on small screens */}
+            <div className="absolute left-6 top-6 z-10 lg:hidden">
+              <a href="/" className="inline-block">
+                <Image
+                  src={settings?.brand?.logo_url?.trim() || "/img/jysfooters.png"}
+                  alt={settings?.brand?.name?.trim() || "Japan Youth Summit"}
+                  width={100}
+                  height={34}
+                  className="h-8 w-auto"
+                  priority
+                  unoptimized
+                />
+              </a>
+            </div>
             <Image
               src={loginImageSrc}
               alt="Japan Youth Summit Highlight"
               fill
               priority
               className="object-cover"
-              sizes="(min-width: 1024px) 32rem, 0px"
+              sizes="(min-width: 1024px) 45vw, 0px"
             />
-            <div className={jysSectionTheme.login.heroOverlay} />
+            <div className={componentsTheme.login.heroOverlay} />
 
-            <div className={jysSectionTheme.login.heroTextContainer}>
-              <div className={jysSectionTheme.login.heroLogoWrapper}>
-                <Image
-                  src="/img/jysfooters.png"
-                  alt="Japan Youth Summit"
-                  width={120}
-                  height={40}
-                  className={jysSectionTheme.login.heroLogo}
-                />
-                <div className="space-y-3">
-                  <p className={jysSectionTheme.login.heroEyebrow}>
-                    Japan Youth Summit 2026
-                  </p>
-                  <h2 className={jysSectionTheme.login.heroTitle}>
-                    Raise your hand,
+            <div className={componentsTheme.login.heroTextContainer}>
+              <div className={componentsTheme.login.heroLogoWrapper}>
+                <a href="/" className="inline-block">
+                  <Image
+                    src={settings?.brand?.logo_url?.trim() || "/img/jysfooters.png"}
+                    alt={settings?.brand?.name?.trim() || "Japan Youth Summit"}
+                    width={120}
+                    height={40}
+                    className={componentsTheme.login.heroLogo}
+                    priority
+                    unoptimized
+                  />
+                </a>
+                <div className="space-y-2 mt-4">
+                  <h2 className={componentsTheme.login.heroTitle}>
+                    Raise Your Hand,
                     <br />
-                    Be the future leaders.
+                    Be the Future Leaders
                   </h2>
-                  <p className={jysSectionTheme.login.heroDescription}>
-                    Join our global youth community and access your dashboard to manage your
-                    application and participation.
-                  </p>
                 </div>
               </div>
             </div>
 
             {/* Slide indicator (non-interactive) */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-              <div className={jysSectionTheme.login.slideIndicatorWrapper}>
-                {LOGIN_IMAGES.map((_, i) => (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+              <div className={componentsTheme.login.slideIndicatorWrapper}>
+                {loginImages.map((_, i) => (
                   <span
                     key={i}
                     aria-hidden="true"
                     className={
                       i === imageIndex
-                        ? jysSectionTheme.login.slideDotActive
-                        : jysSectionTheme.login.slideDotInactive
+                        ? componentsTheme.login.slideDotActive
+                        : componentsTheme.login.slideDotInactive
                     }
                   />
                 ))}
@@ -371,122 +344,135 @@ export default function LoginPage() {
         </div>
 
         {/* Panel Form (selalu di kanan) */}
-        <div className={jysSectionTheme.login.formPanelOuter}>
-          <div className={jysSectionTheme.login.formPanelInner}>
+        <div className={componentsTheme.login.formPanelOuter}>
+          <div className={componentsTheme.login.formPanelInner}>
             <div>
-              <h1 className={jysSectionTheme.login.formHeading}>
+              <h1 className={componentsTheme.login.formHeading}>
                 {mode === 'login' ? 'Welcome back!' : 'Create your account'}
               </h1>
             </div>
-            <p className={jysSectionTheme.login.formSubheading}>
+            <p className={componentsTheme.login.formSubheading}>
               {mode === 'login'
-                ? 'Sign in to continue and manage your application.'
+                ? 'Sign in to continue.'
                 : 'Fill in your details below to start your journey.'}
             </p>
 
-            <form onSubmit={onSubmit} className="mt-6 space-y-4">
+            <form onSubmit={onSubmit} className="space-y-4">
               {mode === 'login' ? (
                 <>
-                  <div className={jysSectionTheme.login.card}>
+                  <div className={componentsTheme.login.card}>
                     <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>
+                      <label className={componentsTheme.login.fieldLabel}>
                         Email
                       </label>
-                      <input
-                        name="email"
-                        value={loginForm.email}
-                        onChange={onChangeLogin}
-                        type="email"
-                        required
-                        className={jysSectionTheme.login.input}
-                        placeholder="you@example.com"
-                      />
+                      <div className={componentsTheme.login.inputWrapper}>
+                        <Mail className={componentsTheme.login.inputIcon} />
+                        <input
+                          name="email"
+                          value={loginForm.email}
+                          onChange={onChangeLogin}
+                          type="email"
+                          required
+                          className={componentsTheme.login.input}
+                          placeholder="you@example.com"
+                        />
+                      </div>
                     </div>
                     <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>
+                      <label className={componentsTheme.login.fieldLabel}>
                         Password
                       </label>
-                      <input
-                        name="password"
-                        value={loginForm.password}
-                        onChange={onChangeLogin}
-                        type="password"
-                        required
-                        className={jysSectionTheme.login.input}
-                        placeholder="••••••••"
-                      />
+                      <div className={componentsTheme.login.inputWrapper}>
+                        <Lock className={componentsTheme.login.inputIcon} />
+                        <input
+                          name="password"
+                          value={loginForm.password}
+                          onChange={onChangeLogin}
+                          type={showPassword ? "text" : "password"}
+                          required
+                          className={`${componentsTheme.login.input} ${componentsTheme.login.inputPassword}`}
+                          placeholder="••••••••"
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPassword(!showPassword)} 
+                          className={componentsTheme.login.inputEyeBtn}
+                        >
+                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
                     </div>
-                    <div className={jysSectionTheme.login.checkboxRow}>
+                    <div className={componentsTheme.login.checkboxRow}>
                       <label className="inline-flex items-center gap-2">
                         <input
                           type="checkbox"
-                          className={jysSectionTheme.login.checkbox}
+                          className={componentsTheme.login.checkbox}
                           checked={keepSignedIn}
                           onChange={e => setKeepSignedIn(e.target.checked)}
                         />
                         Keep me signed in
                       </label>
-                      <a href="#" className={jysSectionTheme.login.forgotPasswordLink}>
+                      <a href="#" className={componentsTheme.login.forgotPasswordLink}>
                         Forgot Password?
                       </a>
                     </div>
                     {localError ? (
-                      <p className="mt-3 text-xs font-medium text-pink-600">{localError}</p>
+                      <p className="mt-3 text-xs font-medium text-primary">{localError}</p>
                     ) : null}
-                    <div className="pt-2 space-y-3">
+                    <div className="pt-2">
                       <button
                         type="submit"
-                        className={jysSectionTheme.login.primaryButton}
+                        className={componentsTheme.login.primaryButton}
                         disabled={localLoading}
                       >
                         {localLoading ? 'Signing in...' : 'Login'}
                       </button>
-
-                      <div className={jysSectionTheme.login.dividerRow}>
-                        <span className={jysSectionTheme.login.dividerLine} aria-hidden="true" />
-                        <span>OR</span>
-                        <span className={jysSectionTheme.login.dividerLine} aria-hidden="true" />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setMode('signup')}
-                        className={jysSectionTheme.login.secondaryButton}
-                      >
-                        Sign up for free
-                      </button>
                     </div>
+
+                    <div className={componentsTheme.login.dividerRow}>
+                      <span className={componentsTheme.login.dividerLine} aria-hidden="true" />
+                      <span>OR</span>
+                      <span className={componentsTheme.login.dividerLine} aria-hidden="true" />
+                    </div>
+
+                    <button
+                      type="button"
+                      className={componentsTheme.login.googleButton}
+                      onClick={() => onOAuthLogin('google')}
+                      disabled={oauthLoading.length > 0}
+                    >
+                      <Image
+                        src="/img/signwithgoogle.png"
+                        alt="Sign in with Google"
+                        width={20}
+                        height={20}
+                        className={componentsTheme.login.googleButtonIcon}
+                      />
+                      {oauthLoading === 'google' ? 'Signing in...' : 'Continue with Google'}
+                    </button>
+
                     {oauthError ? (
-                      <p className="mt-3 text-xs font-medium text-pink-600">{oauthError}</p>
+                      <p className="mt-3 text-xs font-medium text-primary">{oauthError}</p>
                     ) : null}
                   </div>
 
-                  <div className={jysSectionTheme.login.socialSection}>
-                    <div className={jysSectionTheme.login.socialGrid}>
-                      <button
-                        type="button"
-                        className={`${jysSectionTheme.login.googleButton} sm:col-span-2`}
-                        onClick={() => onOAuthLogin('google')}
-                        disabled={oauthLoading.length > 0}
-                      >
-                        <Image
-                          src="/img/signwithgoogle.png"
-                          alt="Sign in with Google"
-                          width={20}
-                          height={20}
-                          className={jysSectionTheme.login.googleButtonIcon}
-                        />
-                        {oauthLoading === 'google' ? 'Signing in...' : 'Login with Google'}
-                      </button>
-                    </div>
-                  </div>
+                  <p className={componentsTheme.login.helperText}>
+                    New here?{' '}
+                    <button
+                      type="button"
+                      onClick={() => setMode('signup')}
+                      className={componentsTheme.login.switchModeLink}
+                    >
+                      Create new account
+                    </button>
+                  </p>
 
-                  <p className={jysSectionTheme.login.helperText}>
+                  <p className={componentsTheme.login.helperText}>
                     Part of our program ambassadors?{' '}
                     <button
                       type="button"
                       onClick={() => setMode('login')}
-                      className={jysSectionTheme.login.switchModeLink}
+                      className={componentsTheme.login.switchModeLink}
                     >
                       Sign in here
                     </button>
@@ -494,118 +480,131 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <div className={jysSectionTheme.login.card}>
+                  <div className={componentsTheme.login.card}>
                     <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>
+                      <label className={componentsTheme.login.fieldLabel}>
                         Email
                       </label>
-                      <input
-                        name="email"
-                        value={signupForm.email}
-                        onChange={onChangeSignup}
-                        type="email"
-                        required
-                        className={jysSectionTheme.login.input}
-                        placeholder="hilmi123@example.com"
-                      />
+                      <div className={componentsTheme.login.inputWrapper}>
+                        <Mail className={componentsTheme.login.inputIcon} />
+                        <input
+                          name="email"
+                          value={signupForm.email}
+                          onChange={onChangeSignup}
+                          type="email"
+                          required
+                          className={componentsTheme.login.input}
+                          placeholder="hilmi123@example.com"
+                        />
+                      </div>
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
-                        <label className={jysSectionTheme.login.fieldLabel}>
+                        <label className={componentsTheme.login.fieldLabel}>
                           Password
                         </label>
-                        <input
-                          name="password"
-                          value={signupForm.password}
-                          onChange={onChangeSignup}
-                          type="password"
-                          required
-                          className={jysSectionTheme.login.input}
-                          placeholder="••••••••"
-                        />
+                        <div className={componentsTheme.login.inputWrapper}>
+                          <Lock className={componentsTheme.login.inputIcon} />
+                          <input
+                            name="password"
+                            value={signupForm.password}
+                            onChange={onChangeSignup}
+                            type={showSignupPassword ? "text" : "password"}
+                            required
+                            className={`${componentsTheme.login.input} ${componentsTheme.login.inputPassword}`}
+                            placeholder="••••••••"
+                            minLength={6}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => setShowSignupPassword(!showSignupPassword)} 
+                            className={componentsTheme.login.inputEyeBtn}
+                          >
+                            {showSignupPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
                       </div>
                       <div>
-                        <label className={jysSectionTheme.login.fieldLabel}>
+                        <label className={componentsTheme.login.fieldLabel}>
                           Confirm Password
                         </label>
-                        <input
-                          name="confirmPassword"
-                          value={signupForm.confirmPassword}
-                          onChange={onChangeSignup}
-                          type="password"
-                          required
-                          className={jysSectionTheme.login.input}
-                          placeholder="••••••••"
-                        />
+                        <div className={componentsTheme.login.inputWrapper}>
+                          <Lock className={componentsTheme.login.inputIcon} />
+                          <input
+                            name="confirmPassword"
+                            value={signupForm.confirmPassword}
+                            onChange={onChangeSignup}
+                            type={showSignupConfirm ? "text" : "password"}
+                            required
+                            className={`${componentsTheme.login.input} ${componentsTheme.login.inputPassword}`}
+                            placeholder="••••••••"
+                            minLength={6}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => setShowSignupConfirm(!showSignupConfirm)} 
+                            className={componentsTheme.login.inputEyeBtn}
+                          >
+                            {showSignupConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <label className={jysSectionTheme.login.termsLabel}>
+                    <label className={componentsTheme.login.termsLabel}>
                       <input
                         type="checkbox"
-                        className={jysSectionTheme.login.checkbox}
+                        className={componentsTheme.login.checkbox}
                         checked={agree}
                         onChange={e => setAgree(e.target.checked)}
                         required
                       />
                       I agree to the{' '}
-                      <a href={termsHref} className={jysSectionTheme.login.termsLink}>
+                      <a href={termsHref} className={componentsTheme.login.termsLink}>
                         Terms of Service
                       </a>
                       and{' '}
-                      <a href={privacyHref} className={jysSectionTheme.login.termsLink}>
+                      <a href={privacyHref} className={componentsTheme.login.termsLink}>
                         Privacy Policy
                       </a>
                     </label>
                     {registerError ? (
                       <p className="text-sm text-red-200">{registerError}</p>
                     ) : null}
-                    <div className="pt-2 space-y-3">
-                      <button type="submit" className={jysSectionTheme.login.primaryButton} disabled={registerLoading}>
+                    <div className="pt-2">
+                      <button type="submit" className={componentsTheme.login.primaryButton} disabled={registerLoading}>
                         {registerLoading ? 'Creating account...' : 'Create Account'}
                       </button>
-
-                      <div className={jysSectionTheme.login.dividerRow}>
-                        <span className={jysSectionTheme.login.dividerLine} aria-hidden="true" />
-                        <span>OR</span>
-                        <span className={jysSectionTheme.login.dividerLine} aria-hidden="true" />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setMode('login')}
-                        className={jysSectionTheme.login.secondaryButton}
-                      >
-                        Back to Login
-                      </button>
                     </div>
+
+                    <div className={componentsTheme.login.dividerRow}>
+                      <span className={componentsTheme.login.dividerLine} aria-hidden="true" />
+                      <span>OR</span>
+                      <span className={componentsTheme.login.dividerLine} aria-hidden="true" />
+                    </div>
+
+                    <button
+                      type="button"
+                      className={componentsTheme.login.googleButton}
+                      onClick={() => onOAuthLogin('google')}
+                      disabled={oauthLoading.length > 0}
+                    >
+                      <Image
+                        src="/img/signwithgoogle.png"
+                        alt="Sign in with Google"
+                        width={20}
+                        height={20}
+                        className={componentsTheme.login.googleButtonIcon}
+                      />
+                      {oauthLoading === 'google' ? 'Signing in...' : 'Continue with Google'}
+                    </button>
                   </div>
 
-                  <div className={jysSectionTheme.login.socialSection}>
-                    <div className={jysSectionTheme.login.socialGrid}>
-                      <button
-                        type="button"
-                        className={`${jysSectionTheme.login.googleButton} sm:col-span-2`}
-                        onClick={() => onOAuthLogin('google')}
-                        disabled={oauthLoading.length > 0}
-                      >
-                        <Image
-                          src="/img/signwithgoogle.png"
-                          alt="Sign in with Google"
-                          width={20}
-                          height={20}
-                          className={jysSectionTheme.login.googleButtonIcon}
-                        />
-                        {oauthLoading === 'google' ? 'Signing in...' : 'Sign up with Google'}
-                      </button>
-                    </div>
-                  </div>
-
-                  <p className={jysSectionTheme.login.helperText}>
+                  <p className={componentsTheme.login.helperText}>
                     Already have an account?{' '}
                     <button
                       type="button"
                       onClick={() => setMode('login')}
-                      className={jysSectionTheme.login.switchModeLink}
+                      className={componentsTheme.login.switchModeLink}
                     >
                       Sign in here
                     </button>

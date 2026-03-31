@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Hourglass, Users } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type Countdown = {
   days: number;
@@ -34,73 +34,73 @@ export default function EarlyBidCTA() {
     return () => clearInterval(id);
   }, [targetDate]);
   return (
-    <section className={jysSectionTheme.applyEarlyBidCta.sectionWrapper}>
+    <section className={componentsTheme.applyEarlyBidCta.sectionWrapper}>
       {/* Shape buat background */}
-      <div className={jysSectionTheme.applyEarlyBidCta.blurTop} />
-      <div className={jysSectionTheme.applyEarlyBidCta.blurMiddle} />
-      <div className={jysSectionTheme.applyEarlyBidCta.blurBottom} />
+      <div className={componentsTheme.applyEarlyBidCta.blurTop} />
+      <div className={componentsTheme.applyEarlyBidCta.blurMiddle} />
+      <div className={componentsTheme.applyEarlyBidCta.blurBottom} />
 
-      <div className={jysSectionTheme.applyEarlyBidCta.container}>
+      <div className={componentsTheme.applyEarlyBidCta.container}>
         {/* Isi konten sectionnya */}
-        <div className={jysSectionTheme.applyEarlyBidCta.leftCol}>
-          <h2 className={jysSectionTheme.applyEarlyBidCta.title}>Early Bird Deadline</h2>
-          <p className={jysSectionTheme.applyEarlyBidCta.subtitle}>
+        <div className={componentsTheme.applyEarlyBidCta.leftCol}>
+          <h2 className={componentsTheme.applyEarlyBidCta.title}>Early Bird Deadline</h2>
+          <p className={componentsTheme.applyEarlyBidCta.subtitle}>
             Limited! Only Until 27 January 2025
           </p>
 
-          <div className={jysSectionTheme.applyEarlyBidCta.statsRow}>
-            <div className={jysSectionTheme.applyEarlyBidCta.statGroup}>
-              <div className={jysSectionTheme.applyEarlyBidCta.statIconCircle}>
-                <Users className={jysSectionTheme.applyEarlyBidCta.statIcon} />
+          <div className={componentsTheme.applyEarlyBidCta.statsRow}>
+            <div className={componentsTheme.applyEarlyBidCta.statGroup}>
+              <div className={componentsTheme.applyEarlyBidCta.statIconCircle}>
+                <Users className={componentsTheme.applyEarlyBidCta.statIcon} />
               </div>
               <div>
-                <p className={jysSectionTheme.applyEarlyBidCta.statValue}>187</p>
-                <p className={jysSectionTheme.applyEarlyBidCta.statLabel}>Registrants</p>
+                <p className={componentsTheme.applyEarlyBidCta.statValue}>187</p>
+                <p className={componentsTheme.applyEarlyBidCta.statLabel}>Registrants</p>
               </div>
             </div>
 
-            <div className={jysSectionTheme.applyEarlyBidCta.statsDivider} />
+            <div className={componentsTheme.applyEarlyBidCta.statsDivider} />
 
-            <div className={jysSectionTheme.applyEarlyBidCta.statGroup}>
-              <div className={jysSectionTheme.applyEarlyBidCta.statIconCircle}>
-                <Hourglass className={jysSectionTheme.applyEarlyBidCta.statIcon} />
+            <div className={componentsTheme.applyEarlyBidCta.statGroup}>
+              <div className={componentsTheme.applyEarlyBidCta.statIconCircle}>
+                <Hourglass className={componentsTheme.applyEarlyBidCta.statIcon} />
               </div>
               <div>
-                <p className={jysSectionTheme.applyEarlyBidCta.statValue}>23</p>
-                <p className={jysSectionTheme.applyEarlyBidCta.statLabel}>Seats Left Available</p>
+                <p className={componentsTheme.applyEarlyBidCta.statValue}>23</p>
+                <p className={componentsTheme.applyEarlyBidCta.statLabel}>Seats Left Available</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right side: countdown timer */}
-        <div className={jysSectionTheme.applyEarlyBidCta.rightCol}>
-          <div className={jysSectionTheme.applyEarlyBidCta.countdownCard}>
+        <div className={componentsTheme.applyEarlyBidCta.rightCol}>
+          <div className={componentsTheme.applyEarlyBidCta.countdownCard}>
             <div className="text-center">
-              <p className={jysSectionTheme.applyEarlyBidCta.countdownEyebrow}>
+              <p className={componentsTheme.applyEarlyBidCta.countdownEyebrow}>
                 Early Bird Countdown
               </p>
             </div>
 
-            <div className={jysSectionTheme.applyEarlyBidCta.countdownGrid}>
+            <div className={componentsTheme.applyEarlyBidCta.countdownGrid}>
               {[
                 { label: 'Days', value: timeLeft.days },
                 { label: 'Hours', value: timeLeft.hours },
                 { label: 'Minutes', value: timeLeft.minutes },
                 { label: 'Seconds', value: timeLeft.seconds },
               ].map(item => (
-                <div key={item.label} className={jysSectionTheme.applyEarlyBidCta.countdownItem}>
-                  <span className={jysSectionTheme.applyEarlyBidCta.countdownValue}>
+                <div key={item.label} className={componentsTheme.applyEarlyBidCta.countdownItem}>
+                  <span className={componentsTheme.applyEarlyBidCta.countdownValue}>
                     {String(item.value).padStart(2, '0')}
                   </span>
-                  <span className={jysSectionTheme.applyEarlyBidCta.countdownLabel}>
+                  <span className={componentsTheme.applyEarlyBidCta.countdownLabel}>
                     {item.label}
                   </span>
                 </div>
               ))}
             </div>
 
-            <p className={jysSectionTheme.applyEarlyBidCta.note}>
+            <p className={componentsTheme.applyEarlyBidCta.note}>
               Once the timer hits zero, early bird benefits and priority consideration may no longer
               be available.
             </p>

@@ -1,23 +1,6 @@
 import { NextResponse } from 'next/server';
+import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
-const DEFAULT_PROVIDER_ID = '8b4646ec-1e17-4815-bcca-703418b9db9f';
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
-
-const DEFAULT_BRAND_DOMAIN =
-  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
-  'istanbulyouthsummit.com';
-
-function resolveBrandDomainFromRequest(request: Request): string {
-  const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
-  const hostname = hostnameRaw.split(':')[0];
-  if (!hostname) return DEFAULT_BRAND_DOMAIN;
-  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_DOMAIN;
-  return normalizeBrandUrl(hostname);
-}
 
 type FirebaseLoginBody = {
   idToken: string;
@@ -46,9 +29,7 @@ type ProvidersResponse = {
 
 export async function POST(request: Request) {
   try {
-    const fallbackProviderId = process.env.YBB_FIREBASE_GOOGLE_PROVIDER_ID || DEFAULT_PROVIDER_ID;
     const brandDomain = resolveBrandDomainFromRequest(request);
-
     const body = (await request.json()) as FirebaseLoginBody;
 
     if (!body?.idToken) {
@@ -58,28 +39,28 @@ export async function POST(request: Request) {
       );
     }
 
-    let providerId = (body.providerId || '').trim();
-    if (!providerId) {
-      try {
-        const providersRes = await fetch(new URL('/v1/auth/providers', 'https://staging-api.ybbhub.com').toString(), {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'x-brand-domain': brandDomain,
-          },
-          cache: 'no-store',
-        });
-        const providersJson = (await providersRes.json().catch(() => ({}))) as ProvidersResponse;
-        const providers = Array.isArray(providersJson.data) ? providersJson.data : [];
-        const google = providers.find(p => p?.isOAuth && p?.name === 'google');
-        if (google?.id) providerId = google.id;
-      } catch {
-        // ignore
-      }
-    }
-    if (!providerId) providerId = fallbackProviderId;
+    const baseCandidate = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
+    const apiBaseUrl = baseCandidate.replace(/\/v1\/?$/, '');
+    const url = new URL('/v1/auth/firebase-login', apiBaseUrl);
 
-    const url = new URL('/v1/auth/firebase-login', 'https://staging-api.ybbhub.com');
+    const ctxRes = await fetch(new URL('/api/auth/context', request.url).toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const ctxJson = (await ctxRes.json().catch(() => ({}))) as {
+      data?: {
+        brandId?: string;
+        programId?: string;
+        programSlug?: string | null;
+      } | null;
+    };
+
+    const brandId = ctxJson?.data?.brandId || undefined;
+    const programId = ctxJson?.data?.programId || undefined;
+    const programSlug = ctxJson?.data?.programSlug || undefined;
 
     const res = await fetch(url.toString(), {
       method: 'POST',
@@ -89,7 +70,10 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         idToken: body.idToken,
-        providerId,
+        providerId: body.providerId, // Now optional
+        ...(brandId ? { brandId } : {}),
+        ...(programId ? { programId } : {}),
+        ...(programSlug ? { programSlug } : {}),
         ...(body.referralCode ? { referralCode: body.referralCode } : {}),
       }),
     });
@@ -131,7 +115,7 @@ export async function POST(request: Request) {
       data: {
         isNewUser,
         ...(typeof isOnboardingCompleted === 'boolean' ? { isOnboardingCompleted } : {}),
-        ...(process.env.NODE_ENV !== 'production' ? { providerIdUsed: providerId } : {}),
+        ...(process.env.NODE_ENV !== 'production' ? { providerIdUsed: body.providerId } : {}),
       },
     });
 

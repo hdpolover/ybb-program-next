@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import Script from 'next/script';
 import { getHomePageData } from '@/lib/api/home';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
+import { SettingsProvider } from '@/components/providers/SettingsProvider';
 import './globals.css';
 import ClientNavbarGate from '@/components/layout/ClientNavbarGate';
 import ClientFooterGate from '@/components/layout/ClientFooterGate';
@@ -12,6 +13,7 @@ import ClientCTAGate from '@/components/layout/ClientCTAGate';
 import BackToTop from '@/components/ui/BackToTop';
 import DevtoolsGuard from '@/components/layout/DevtoolsGuard';
 import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
+import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -58,6 +60,8 @@ function pickForeground(hex: string): string {
   // Threshold tuned to keep readable text on bright accents
   return relativeLuminance(hex) > 0.6 ? '#020617' : '#ffffff';
 }
+
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -113,34 +117,52 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
   const host = headersList.get('host') || 'youthacademicforum.com';
+  const appVersion = process.env.NEXT_PUBLIC_APP_BUILD_ID || 'development';
   let programSlug = 'jys'; // Default/fallback
 
   let brandAccent: string | null = null;
+  let settingsData = null;
 
-  try {
-    const settings = await getSettingsForBrandDomain(host);
-    brandAccent = normalizeHex(settings?.brand?.primary_color);
-  } catch {
-    // ignore
+  // Fetch both in parallel for faster loading
+  const [settingsResult, homeDataResult] = await Promise.allSettled([
+    getSettingsForBrandDomain(host),
+    getHomePageData(host),
+  ]);
+
+  if (settingsResult.status === 'fulfilled') {
+    settingsData = settingsResult.value;
+    const rawColor = settingsResult.value?.brand?.primary_color;
+    brandAccent = normalizeHex(rawColor);
+  } else {
+    console.error('[Layout] Failed to load settings:', settingsResult.reason);
   }
 
-  try {
-    const data = await getHomePageData(host);
-    if (data.slug) {
-      programSlug = data.slug;
-    }
-  } catch (e) {
-    console.error('Failed to fetch program data for layout', e);
+  // Fallback to env variable or default if API returns null
+  if (!brandAccent) {
+    brandAccent = normalizeHex(process.env.NEXT_PUBLIC_DEFAULT_BRAND_COLOR) || '#1c57b3';
+    console.log('[Layout] Using fallback theme:', brandAccent);
+  } else {
+    console.log('[Layout] Theme loaded from API:', brandAccent);
+  }
+
+  if (homeDataResult.status === 'fulfilled' && homeDataResult.value.slug) {
+    programSlug = homeDataResult.value.slug;
+  } else if (homeDataResult.status === 'rejected') {
+    console.error('[Layout] Failed to fetch program data:', homeDataResult.reason);
   }
 
   const accent = brandAccent;
   const themeStyle =
     accent
       ? ({
+          ['--brand-primary' as never]: accent,
+          ['--brand-primary-foreground' as never]: pickForeground(accent),
           ['--brand-accent' as never]: accent,
           ['--brand-accent-soft' as never]: mixWithWhite(accent, 0.85),
           ['--brand-accent-foreground' as never]: pickForeground(accent),
           ['--brand-border' as never]: accent,
+          ['--color-primary' as never]: accent,
+          ['--color-primary-foreground' as never]: pickForeground(accent),
           ['--color-accent' as never]: accent,
           ['--color-accent-foreground' as never]: pickForeground(accent),
         } as React.CSSProperties)
@@ -149,20 +171,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={plusJakarta.className} data-program={programSlug} style={themeStyle}>
-        <PromoCTAProvider>
-          <DevtoolsGuard />
-          <ClientNavbarGate />
-          {children}
-          <ClientCTAGate />
-          <BackToTop />
-          <ClientChatWidgetGate />
-          <ClientFooterGate />
-        </PromoCTAProvider>
+        <AppVersionWatcher currentVersion={appVersion} />
+        <SettingsProvider initialSettings={settingsData}>
+          <PromoCTAProvider>
+            <DevtoolsGuard />
+            <ClientNavbarGate />
+            {children}
+            <ClientCTAGate />
+            <BackToTop />
+            <ClientChatWidgetGate />
+            <ClientFooterGate />
+          </PromoCTAProvider>
+        </SettingsProvider>
 
         <Script
           src="https://aksamu.com/chat-widget.js"
           data-bot-id="4a9ea369-4638-413f-92d4-9c4600f7c6be"
-          data-primary-color="#16a34a"
+          data-primary-color={accent || "#16a34a"}
           defer
         />
       </body>

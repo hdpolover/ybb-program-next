@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type AlumniStoryItem = {
 	id: string;
@@ -41,6 +41,8 @@ export default function AlumniStoriesSection({
 	subtitle,
 	items,
 }: AlumniStoriesProps) {
+	if (!items || items.length === 0) return null;
+
 	const [startIndex, setStartIndex] = useState(0);
 	const [pageSize, setPageSize] = useState(REELS_PAGE_SIZE);
 	const [loaded, setLoaded] = useState<Record<string, boolean>>({});
@@ -105,23 +107,23 @@ export default function AlumniStoriesSection({
 	};
 
 	return (
-		<section className={jysSectionTheme.alumniStories.sectionWrapper}>
-			<div className={jysSectionTheme.alumniStories.card}>
+		<section className={componentsTheme.alumniStories.sectionWrapper}>
+			<div className={componentsTheme.alumniStories.card}>
 				<SectionHeader
 					eyebrow="Alumni Stories"
 					title={title ?? 'What our Alumni says...'}
 					subtitle={subtitle ?? 'More alumni moments'}
 				/>
 
-				<div className={jysSectionTheme.alumniStories.layoutGrid}>
+				<div className={componentsTheme.alumniStories.layoutGrid}>
 					{/* Left: main video */}
 					<div>
-						<div className={jysSectionTheme.alumniStories.mainVideoWrapper}>
+						<div className={componentsTheme.alumniStories.mainVideoWrapper}>
 							{activeItem && activeItem.type === 'video' && toEmbedUrl(activeItem.video_url) ? (
 								<iframe
 									src={toEmbedUrl(activeItem.video_url) ?? ''}
 									title={activeItem.testimonial || activeItem.name}
-									className={jysSectionTheme.alumniStories.mainIframe}
+									className={componentsTheme.alumniStories.mainIframe}
 									loading="lazy"
 									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 									allowFullScreen
@@ -161,7 +163,7 @@ export default function AlumniStoriesSection({
 					{/* Right: reels-style thumbnails from API items */}
 					<div>
 						<div className="mb-2 flex items-center justify-between gap-3">
-							<p className={jysSectionTheme.alumniStories.reelsTitle}>
+							<p className={componentsTheme.alumniStories.reelsTitle}>
 								{subtitle ?? 'MORE ALUMNI MOMENTS'}
 							</p>
 							<div className="inline-flex items-center gap-2 text-xs">
@@ -184,7 +186,7 @@ export default function AlumniStoriesSection({
 							</div>
 						</div>
 
-						<div className={jysSectionTheme.alumniStories.reelsGrid}>
+						<div className={componentsTheme.alumniStories.reelsGrid}>
 							{visibleReels.map(item => {
 								const isActive = activeItem?.id === item.id;
 								const thumbLoaded = loaded[item.id];
@@ -194,21 +196,21 @@ export default function AlumniStoriesSection({
 										key={item.id}
 										type="button"
 										onClick={() => setActiveId(item.id)}
-										className={jysSectionTheme.alumniStories.reelItem}
+										className={componentsTheme.alumniStories.reelItem}
 									>
 										{!thumbLoaded && (
-											<div className={jysSectionTheme.alumniStories.reelSkeleton} />
+											<div className={componentsTheme.alumniStories.reelSkeleton} />
 										)}
 										{item.type === 'video' && item.thumbnail_url ? (
 											// pakai thumbnail YouTube sebagai background via img tag
 											<img
 												src={item.thumbnail_url}
 												alt={item.testimonial || item.name}
-												className={jysSectionTheme.alumniStories.reelVideo}
+												className={componentsTheme.alumniStories.reelVideo}
 												onLoad={() => markLoaded(item.id)}
 											/>
 										) : (
-											<div className={jysSectionTheme.alumniStories.reelVideo}>
+											<div className={componentsTheme.alumniStories.reelVideo}>
 												<div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
 													Video coming soon
 												</div>
@@ -235,32 +237,7 @@ export default function AlumniStoriesSection({
 									</button>
 								);
 							})}
-							{visibleReels.length === 0 && (
-								<div className="flex min-h-[150px] items-center justify-center text-sm text-slate-500">
-									Video coming soon
-								</div>
-							)}
-							{Array.from({ length: Math.max(0, safePageSize - visibleReels.length) }).map(
-								(_, idx) => (
-									<div
-										key={`alumni-placeholder-${idx}`}
-										className={`${jysSectionTheme.alumniStories.reelItem} opacity-60`}
-									>
-										<div className={jysSectionTheme.alumniStories.reelVideo}>
-											<div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-												Video coming soon
-											</div>
-										</div>
-										<div className="mt-2 text-left">
-											<p className="text-xs font-semibold text-slate-900">Coming soon</p>
-											<p className="text-[11px] text-slate-500">
-												This video slot will be filled soon.
-											</p>
-										</div>
-									</div>
-								)
-							)}
-						</div>
+												</div>
 					</div>
 				</div>
 			</div>

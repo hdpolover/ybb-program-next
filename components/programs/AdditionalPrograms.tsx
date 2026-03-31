@@ -1,70 +1,69 @@
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { PROGRAMS_ADDITIONAL_COPY } from '@/data/programs/sections/additional-programs/programsAdditional';
+import { componentsTheme } from '@/lib/theme/components';
 import type { OtherProgramsSection } from '@/types/programs';
-import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type AdditionalProgramsProps = {
   otherPrograms?: OtherProgramsSection['content'];
 };
 
 export default function AdditionalPrograms({ otherPrograms }: AdditionalProgramsProps) {
-  const { headerTitle, subtitle, items } = PROGRAMS_ADDITIONAL_COPY;
+  if (!otherPrograms) return null;
 
-  const apiItems = otherPrograms?.items ?? [];
-  const hasApiItems = apiItems.length > 0;
+  const apiItems = otherPrograms.items ?? [];
+  if (apiItems.length === 0) return null;
 
-  const sectionTitle = otherPrograms?.title || headerTitle;
-  const cards = hasApiItems
-    ? apiItems.map(item => ({
-        title: item.brand_name || item.name,
-        href: `/programs/${item.slug}`,
-        cover: item.thumbnail || '/img/programsbackground.png',
-        logo: item.brand_logo || '/img/jyslogosolo.png',
-        dates: item.start_date ? new Date(item.start_date).getFullYear().toString() : DATA_NOT_ADDED,
-      }))
-    : items;
+  const sectionTitle = otherPrograms.title || 'Our Additional Programs';
+
+  const cards = apiItems.map(item => ({
+    title: item.brand_name || item.name,
+    href: `/programs/${item.slug}`,
+    cover: item.thumbnail || '/img/programsbackground.png',
+    logo: item.brand_logo || '/img/jyslogosolo.png',
+    dates: item.start_date ? new Date(item.start_date).getFullYear().toString() : DATA_NOT_ADDED,
+  }));
+
   return (
-    <section className={jysSectionTheme.programsAdditional.sectionWrapper}>
-      <div className={jysSectionTheme.programsAdditional.container}>
+    <section className={componentsTheme.programsAdditional.sectionWrapper}>
+      <div className={componentsTheme.programsAdditional.container}>
         <SectionHeader title={sectionTitle} />
-        <p className={jysSectionTheme.programsAdditional.subtitle}>{subtitle}</p>
-        <div className={jysSectionTheme.programsAdditional.cardsWrapper}>
+        <p className={componentsTheme.programsAdditional.subtitle}>Explore more programs you can join soon</p>
+        <div className={componentsTheme.programsAdditional.cardsWrapper}>
           {cards.map(it => (
             <a
               key={it.title}
               href={it.href || '#'}
-              className={jysSectionTheme.programsAdditional.card}
+              className={componentsTheme.programsAdditional.card}
             >
-              <div className={jysSectionTheme.programsAdditional.coverWrapper}>
+              <div className={componentsTheme.programsAdditional.coverWrapper}>
                 <Image
                   src={it.cover}
                   alt={`${it.title} Cover`}
                   fill
                   sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-                  className={jysSectionTheme.programsAdditional.coverImage}
+                  className={componentsTheme.programsAdditional.coverImage}
                 />
-                <div className={jysSectionTheme.programsAdditional.logoBadgesWrapper}>
-                  <div className={jysSectionTheme.programsAdditional.logoCircle}>
+                <div className={componentsTheme.programsAdditional.logoBadgesWrapper}>
+                  <div className={componentsTheme.programsAdditional.logoCircle}>
                     <Image
                       src={it.logo}
                       alt={`${it.title} Logo`}
                       fill
                       sizes="32px"
-                      className={jysSectionTheme.programsAdditional.logoImage}
+                      className={componentsTheme.programsAdditional.logoImage}
                     />
                   </div>
                 </div>
               </div>
-              <div className={jysSectionTheme.programsAdditional.cardMetaRow}>
+              <div className={componentsTheme.programsAdditional.cardMetaRow}>
                 <div>
-                  <h4 className={jysSectionTheme.programsAdditional.cardTitle}>{it.title}</h4>
-                  <p className={jysSectionTheme.programsAdditional.datesText}>{it.dates}</p>
+                  <h4 className={componentsTheme.programsAdditional.cardTitle}>{it.title}</h4>
+                  <p className={componentsTheme.programsAdditional.datesText}>{it.dates}</p>
                 </div>
-                <span className={jysSectionTheme.programsAdditional.arrowCircle}>
-                  <ArrowRight className={jysSectionTheme.programsAdditional.arrowIcon} />
+                <span className={componentsTheme.programsAdditional.arrowCircle}>
+                  <ArrowRight className={componentsTheme.programsAdditional.arrowIcon} />
                 </span>
               </div>
             </a>

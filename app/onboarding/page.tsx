@@ -1,41 +1,25 @@
 'use client';
 
+import { OnboardingForm, StepKey, steps, LOGIN_IMAGES, PROGRAM_SOURCES } from "./types";
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import type { CountryMetadata } from '@/types/metadata';
 import type { CityMetadata, StateMetadata } from '@/types/metadata';
 import { getCities, getCountries, getGenders, getKnowledgeSources, getStates } from '@/lib/api/metadata';
-import { getSettings } from '@/lib/api/settings';
+import { useSettings } from '@/components/providers/SettingsProvider';
 import StyledSelect from '@/components/ui/StyledSelect';
+import { FormField } from '@/components/ui/FormField';
+import { User, Users, MapPin, Globe, Building, Gift, Map as MapIcon } from 'lucide-react';
 
-type OnboardingForm = {
-  fullName: string;
-  country: string;
-  state: string;
-  city: string;
-  birthDate: string;
-  programSource: string;
-  gender: string;
-  referralCode: string;
-};
-
-const LOGIN_IMAGES = ['/img/OnboardingJYS.png'];
-
-const steps = ['Basic Info', 'Location', 'Age', 'Program Info'] as const;
-
-type StepKey = (typeof steps)[number];
-
-const PROGRAM_SOURCES = [
-  'Program Source not Added',
-];
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { settings } = useSettings();
 
-  const submissionTheme = jysSectionTheme.dashboardSubmission;
-  const onboardingTheme = jysSectionTheme.onboarding;
+  const submissionTheme = componentsTheme.dashboardSubmission;
+  const onboardingTheme = componentsTheme.onboarding;
 
   const [imageIndex, setImageIndex] = useState(0);
 
@@ -48,7 +32,9 @@ export default function OnboardingPage() {
   const [statesLoading, setStatesLoading] = useState(false);
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [knowledgeSources, setKnowledgeSources] = useState<string[]>([]);
-  const [brandName, setBrandName] = useState('Japan Youth Summit');
+  const brandLogo = settings?.brand?.logo_url?.trim() || '/img/jysfix.png';
+  // if user is authenticated and has programs, we could override this, but let's just use settings first
+  const [brandName, setBrandName] = useState(settings?.active_program?.name?.trim() || settings?.brand?.name?.trim() || 'Japan Youth Summit');
 
   const statesCacheRef = useRef<Map<string, StateMetadata[]>>(new Map());
   const citiesCacheRef = useRef<Map<string, CityMetadata[]>>(new Map());
@@ -72,12 +58,6 @@ export default function OnboardingPage() {
     gender: '',
     referralCode: '',
   });
-
-  const [birthPickerOpen, setBirthPickerOpen] = useState(false);
-  const [birthPickerMonth, setBirthPickerMonth] = useState(() => new Date().getMonth());
-  const [birthPickerYear, setBirthPickerYear] = useState(() => new Date().getFullYear() - 18);
-  const [birthPickerMode, setBirthPickerMode] = useState<'day' | 'month' | 'year'>('day');
-  const [birthPickerYearPageStart, setBirthPickerYearPageStart] = useState(() => (new Date().getFullYear() - 18) - 12);
 
   useEffect(() => {
     let cancelled = false;
@@ -117,9 +97,22 @@ export default function OnboardingPage() {
 
     (async () => {
       try {
-        const data = await getSettings();
-        const nextName = data?.brand?.name?.trim();
-        if (!cancelled && nextName) setBrandName(nextName);
+        let nextName = settings?.active_program?.name?.trim() || settings?.brand?.name?.trim();
+        try {
+          const homeRes = await fetch('/api/auth/me');
+          if (homeRes.ok) {
+            const homeJson = await homeRes.json();
+            if (homeJson?.data?.registeredPrograms?.length > 0) {
+              nextName = homeJson.data.registeredPrograms[0].programName.trim();
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        }
+
+        if (!cancelled) {
+          if (nextName) setBrandName(nextName);
+        }
       } catch {
         // ignore
       }
@@ -178,10 +171,21 @@ export default function OnboardingPage() {
     }));
   }, [countryOptions]);
 
+
+
+  const yearSelectOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const options = [];
+    for (let i = currentYear; i >= 1950; i--) {
+      options.push({ value: i.toString(), label: i.toString() });
+    }
+    return options;
+  }, []);
+
   const genderSelectOptions = useMemo(() => {
     return genderOptions.map(g => ({
       value: g,
-      label: g,
+      label: g.charAt(0).toUpperCase() + g.slice(1).toLowerCase(),
     }));
   }, [genderOptions]);
 
@@ -422,129 +426,51 @@ export default function OnboardingPage() {
   const stepMeta = useMemo(() => {
     if (activeStep === 'Basic Info') {
       return {
-        line: "Let’s get to know you. This will only take a minute.",
+        line: "Let's get to know you. This will only take a minute.",
         title: 'What should we call you?',
         description: 'Enter your full name and select your gender.',
       };
     }
     if (activeStep === 'Location') {
       return {
-        line: 'Tell us where you live.',
-        title: 'Where are you from?',
+        line: 'Let us know your current location.',
+        title: 'Where are you currently located?',
         description: 'Select your country, state/region, and city.',
       };
     }
     if (activeStep === 'Age') {
       return {
-        line: 'Just a quick one.',
-        title: 'How old are you?',
-        description: 'Select your age range.',
+        line: 'Just a quick validation.',
+        title: 'What year were you born?',
+        description: 'Select your birth year from the dropdown.',
       };
     }
     return {
       line: 'One last thing.',
       title: 'How did you hear about this program?',
-      description: 'Choose one option below.',
+      description: 'Choose an option below.',
     };
   }, [activeStep]);
 
-  const birthPickerMeta = useMemo(() => {
-    const monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    const firstDayOfMonth = new Date(birthPickerYear, birthPickerMonth, 1);
-    const startWeekday = firstDayOfMonth.getDay();
-    const daysInMonth = new Date(birthPickerYear, birthPickerMonth + 1, 0).getDate();
-
-    const monthLabel = `${monthNames[birthPickerMonth]} ${birthPickerYear}`;
-    const monthName = monthNames[birthPickerMonth];
-    const yearLabel = String(birthPickerYear);
-
-    const cells: Array<{ day: number | null; iso: string | null }> = [];
-    for (let i = 0; i < startWeekday; i += 1) {
-      cells.push({ day: null, iso: null });
-    }
-    for (let d = 1; d <= daysInMonth; d += 1) {
-      const iso = `${birthPickerYear}-${String(birthPickerMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      cells.push({ day: d, iso });
-    }
-    while (cells.length % 7 !== 0) {
-      cells.push({ day: null, iso: null });
-    }
-
-    return { monthLabel, monthName, yearLabel, cells, monthNames };
-  }, [birthPickerMonth, birthPickerYear]);
-
-  const birthDateDisplay = useMemo(() => {
-    if (!form.birthDate) return '';
-    const [y, m, d] = form.birthDate.split('-');
-    if (!y || !m || !d) return form.birthDate;
-    return `${d}/${m}/${y}`;
-  }, [form.birthDate]);
-
-  const goBirthPickerPrev = () => {
-    setBirthPickerMonth(prev => {
-      if (prev === 0) {
-        setBirthPickerYear(y => y - 1);
-        return 11;
-      }
-      return prev - 1;
-    });
-  };
-
-  const goBirthPickerNext = () => {
-    setBirthPickerMonth(prev => {
-      if (prev === 11) {
-        setBirthPickerYear(y => y + 1);
-        return 0;
-      }
-      return prev + 1;
-    });
-  };
-
-  const birthPickerYearOptions = useMemo(() => {
-    const start = birthPickerYearPageStart;
-    return Array.from({ length: 24 }, (_, i) => start + i);
-  }, [birthPickerYearPageStart]);
-
-  const goBirthPickerYearPrevPage = () => {
-    setBirthPickerYearPageStart(y => y - 24);
-  };
-
-  const goBirthPickerYearNextPage = () => {
-    setBirthPickerYearPageStart(y => y + 24);
-  };
 
   return (
-    <section className={`min-h-screen w-full ${jysSectionTheme.login.pageBackground}`}>
+    <section className={`min-h-screen w-full ${componentsTheme.login.pageBackground}`}>
       <div className={onboardingTheme.layoutGrid}>
         <div className={onboardingTheme.leftCol}>
-          <p className={onboardingTheme.copyrightText}>
-            Copyright © {new Date().getFullYear()} {brandName}
-          </p>
           <div className={onboardingTheme.leftCenter}>
-            <div className={jysSectionTheme.login.formPanelInner}>
-              <div className={onboardingTheme.logoWrapper}>
+            <div className="w-full max-w-lg flex flex-col">
+              <div className={`${onboardingTheme.logoWrapper} flex items-center gap-3`}>
                 <Image
-                  src="/img/jysfix.png"
-                  alt="Japan Youth Summit"
+                  src={brandLogo}
+                  alt={brandName}
                   width={250}
                   height={250}
                   className={onboardingTheme.logoImage}
                   priority
                 />
+                <span className="font-bold text-lg text-[var(--brand-primary)] tracking-tight">
+                  {brandName}
+                </span>
               </div>
 
               <div className={onboardingTheme.progressGrid}>
@@ -589,317 +515,183 @@ export default function OnboardingPage() {
               <form onSubmit={onSubmit} className={onboardingTheme.form}>
                 {activeStep === 'Basic Info' ? (
                   <>
-                    <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Full name</label>
-                      <input
-                        name="fullName"
-                        value={form.fullName}
-                        onChange={onChange}
-                        type="text"
-                        required
-                        className={jysSectionTheme.login.input}
-                        placeholder="Your full name"
-                      />
-                      {bioShowErrors && form.fullName.trim().length === 0 ? (
-                        <p className={onboardingTheme.fieldError}>Required</p>
-                      ) : null}
-                    </div>
+                    <FormField
+                      label="Full name"
+                      icon={User}
+                      required
+                      error={bioShowErrors && form.fullName.trim().length === 0}
+                    >
+                      {(errClass) => (
+                        <input
+                          name="fullName"
+                          value={form.fullName}
+                          onChange={onChange}
+                          type="text"
+                          required
+                          className={`${componentsTheme.login.input} ${errClass}`}
+                          placeholder="Your full name"
+                        />
+                      )}
+                    </FormField>
 
-                    <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Gender</label>
-                      <StyledSelect
-                        value={form.gender}
-                        onChange={value => setForm(prev => ({ ...prev, gender: value }))}
-                        options={genderSelectOptions}
-                        placeholder="Select gender"
-                        className={jysSectionTheme.login.input}
-                        searchable
-                      />
-                      {bioShowErrors && form.gender.trim().length === 0 ? (
-                        <p className={onboardingTheme.fieldError}>Required</p>
-                      ) : null}
-                    </div>
+                    <FormField
+                      label="Gender"
+                      icon={Users}
+                      required
+                      error={bioShowErrors && form.gender.trim().length === 0}
+                    >
+                      {(errClass) => (
+                        <StyledSelect
+                          value={form.gender}
+                          onChange={value => setForm(prev => ({ ...prev, gender: value }))}
+                          options={genderSelectOptions}
+                          placeholder="Select gender"
+                          className={`${componentsTheme.login.input} ${errClass}`}
+                          searchable
+                        />
+                      )}
+                    </FormField>
                   </>
                 ) : null}
 
                 {activeStep === 'Location' ? (
                   <>
-                    <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Country of origin</label>
-                      <StyledSelect
-                        value={form.country}
-                        onChange={value =>
-                          setForm(prev => ({
-                            ...prev,
-                            country: value,
-                            state: '',
-                            city: '',
-                          }))
-                        }
-                        options={countrySelectOptions}
-                        placeholder="Select country"
-                        className={jysSectionTheme.login.input}
-                        searchable
-                      />
-                      {domShowErrors && form.country.trim().length === 0 ? (
-                        <p className={onboardingTheme.fieldError}>Required</p>
-                      ) : null}
-                    </div>
+                    <FormField
+                      label="Country"
+                      icon={Globe}
+                      required={true}
+                      error={domShowErrors && form.country.trim().length === 0 ? "Required" : ""}
+                    >
+                      {(errorClass) => (
+                        <StyledSelect
+                          value={form.country}
+                          onChange={value =>
+                            setForm(prev => ({
+                              ...prev,
+                              country: value,
+                              state: '',
+                              city: '',
+                            }))
+                          }
+                          options={countrySelectOptions}
+                          placeholder="Select country"
+                          className={`${componentsTheme.login.input} ${errorClass}`}
+                          searchable
+                        />
+                      )}
+                    </FormField>
 
                     <div className={onboardingTheme.locationGrid}>
-                      <div>
-                        <label className={jysSectionTheme.login.fieldLabel}>State/Region</label>
-                        {selectedCountry?.isoCode && !statesFailed ? (
-                          <StyledSelect
-                            value={form.state}
-                            onChange={value =>
-                              setForm(prev => ({ ...prev, state: value, city: '' }))
-                            }
-                            options={stateSelectOptions}
-                            placeholder={statesLoading ? 'Loading state/region...' : 'Select state/region'}
-                            className={jysSectionTheme.login.input}
-                            searchable
-                            disabled={!selectedCountry?.isoCode || statesLoading}
-                          />
-                        ) : (
-                          <input
-                            name="state"
-                            value={form.state}
-                            onChange={onChange}
-                            type="text"
-                            required
-                            className={jysSectionTheme.login.input}
-                            placeholder="State/Region"
-                          />
-                        )}
-                        {domShowErrors && form.state.trim().length === 0 ? (
-                          <p className={onboardingTheme.fieldError}>Required</p>
-                        ) : null}
-                        {selectedCountry?.isoCode && statesFailed ? (
-                          <p className={onboardingTheme.fieldError}>
-                            Could not load states. You can type manually.
-                          </p>
-                        ) : null}
-                      </div>
-
-                      <div>
-                        <label className={jysSectionTheme.login.fieldLabel}>City</label>
-                        {selectedCountry?.isoCode && form.state && !citiesFailed ? (
-                          <StyledSelect
-                            value={form.city}
-                            onChange={value => setForm(prev => ({ ...prev, city: value }))}
-                            options={citySelectOptions}
-                            placeholder={citiesLoading ? 'Loading city...' : 'Select city'}
-                            className={jysSectionTheme.login.input}
-                            searchable
-                            disabled={!form.state || citiesLoading}
-                          />
-                        ) : (
-                          <input
-                            name="city"
-                            value={form.city}
-                            onChange={onChange}
-                            type="text"
-                            required
-                            className={jysSectionTheme.login.input}
-                            placeholder="City"
-                          />
-                        )}
-                        {domShowErrors && form.city.trim().length === 0 ? (
-                          <p className={onboardingTheme.fieldError}>Required</p>
-                        ) : null}
-                        {selectedCountry?.isoCode && citiesFailed ? (
-                          <p className={onboardingTheme.fieldError}>
-                            Could not load cities. You can type manually.
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                  </>
-                ) : null}
-
-                {activeStep === 'Age' ? (
-                  <>
-                    <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Birth date</label>
-
-                      <div className="relative">
-                        <button
-                          type="button"
-                          className={`${jysSectionTheme.login.input} flex items-center justify-between`}
-                          onClick={() => setBirthPickerOpen(v => !v)}
-                        >
-                          <span className={birthDateDisplay ? 'text-slate-900' : 'text-slate-400'}>
-                            {birthDateDisplay || 'Select date'}
-                          </span>
-                          <span className="text-slate-400">▾</span>
-                        </button>
-
-                        {birthPickerOpen ? (
-                          <div className="absolute bottom-full left-0 z-20 mb-2 w-full rounded-2xl border border-slate-200 bg-white p-3 shadow-lg">
-                            <div className="flex items-center justify-between">
-                              <button
-                                type="button"
-                                className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                                onClick={birthPickerMode === 'day' ? goBirthPickerPrev : birthPickerMode === 'year' ? goBirthPickerYearPrevPage : () => setBirthPickerYear(y => y - 1)}
-                              >
-                                Prev
-                              </button>
-
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-                                  onClick={() => setBirthPickerMode(m => (m === 'month' ? 'day' : 'month'))}
-                                >
-                                  {birthPickerMeta.monthName}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-                                  onClick={() => {
-                                    setBirthPickerMode(m => (m === 'year' ? 'day' : 'year'));
-                                    setBirthPickerYearPageStart(birthPickerYear - 12);
-                                  }}
-                                >
-                                  {birthPickerMeta.yearLabel}
-                                </button>
-                              </div>
-
-                              <button
-                                type="button"
-                                className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                                onClick={birthPickerMode === 'day' ? goBirthPickerNext : birthPickerMode === 'year' ? goBirthPickerYearNextPage : () => setBirthPickerYear(y => y + 1)}
-                              >
-                                Next
-                              </button>
-                            </div>
-
-                            {birthPickerMode === 'day' ? (
-                              <>
-                                <div className="mt-3 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-500">
-                                  <div>Su</div>
-                                  <div>Mo</div>
-                                  <div>Tu</div>
-                                  <div>We</div>
-                                  <div>Th</div>
-                                  <div>Fr</div>
-                                  <div>Sa</div>
-                                </div>
-
-                                <div className="mt-2 grid grid-cols-7 gap-1">
-                                  {birthPickerMeta.cells.map((cell, idx) => {
-                                    const selected = cell.iso && cell.iso === form.birthDate;
-                                    const isEmpty = !cell.day || !cell.iso;
-                                    return (
-                                      <button
-                                        key={idx}
-                                        type="button"
-                                        disabled={isEmpty}
-                                        onClick={() => {
-                                          const iso = cell.iso;
-                                          if (!iso) return;
-                                          setForm(prev => ({ ...prev, birthDate: iso }));
-                                          setBirthPickerOpen(false);
-                                        }}
-                                        className={
-                                          isEmpty
-                                            ? 'h-9 rounded-lg'
-                                            : `h-9 rounded-lg text-sm font-semibold ${
-                                                selected
-                                                  ? 'bg-slate-900 text-white'
-                                                  : 'text-slate-700 hover:bg-slate-50'
-                                              }`
-                                        }
-                                      >
-                                        {cell.day ?? ''}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </>
-                            ) : birthPickerMode === 'month' ? (
-                              <div className="mt-3 grid grid-cols-3 gap-2">
-                                {birthPickerMeta.monthNames.map((name, idx) => {
-                                  const selected = idx === birthPickerMonth;
-                                  return (
-                                    <button
-                                      key={name}
-                                      type="button"
-                                      onClick={() => {
-                                        setBirthPickerMonth(idx);
-                                        setBirthPickerMode('day');
-                                      }}
-                                      className={`rounded-xl px-3 py-2 text-sm font-semibold ${
-                                        selected ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-50'
-                                      }`}
-                                    >
-                                      {name}
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                      <FormField
+                        label="State/Region"
+                        icon={MapIcon}
+                        required={true}
+                        error={domShowErrors && form.state.trim().length === 0 ? "Required" : (selectedCountry?.isoCode && statesFailed ? "Could not load states. You can type manually." : "")}
+                      >
+                       {(errorClass) => (
+                          <>
+                            {selectedCountry?.isoCode && !statesFailed ? (
+                              <StyledSelect
+                                value={form.state}
+                                onChange={value =>
+                                  setForm(prev => ({ ...prev, state: value, city: '' }))
+                                }
+                                options={stateSelectOptions}
+                                placeholder={statesLoading ? 'Loading state/region...' : 'Select state/region'}
+                                className={`${componentsTheme.login.input} ${errorClass}`}
+                                searchable
+                                disabled={!selectedCountry?.isoCode || statesLoading}
+                              />
                             ) : (
-                              <div className="mt-3">
-                                <div className="grid grid-cols-4 gap-2">
-                                  {birthPickerYearOptions.map(y => {
-                                    const selected = y === birthPickerYear;
-                                    return (
-                                      <button
-                                        key={y}
-                                        type="button"
-                                        onClick={() => {
-                                          setBirthPickerYear(y);
-                                          setBirthPickerMode('day');
-                                        }}
-                                        className={`rounded-xl px-3 py-2 text-sm font-semibold ${
-                                          selected ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-50'
-                                        }`}
-                                      >
-                                        {y}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
+                              <input
+                                name="state"
+                                value={form.state}
+                                onChange={onChange}
+                                type="text"
+                                required
+                                className={`${componentsTheme.login.input} ${errorClass}`}
+                                placeholder="State/Region"
+                              />
                             )}
+                          </>
+                       )}
+                      </FormField>
 
-                            <div className="mt-3 flex justify-end">
-                              <button
-                                type="button"
-                                className="rounded-lg px-3 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                                onClick={() => {
-                                  setBirthPickerOpen(false);
-                                  setBirthPickerMode('day');
-                                }}
-                              >
-                                Close
-                              </button>
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-
-                      {ageShowErrors && form.birthDate.trim().length === 0 ? (
-                        <p className={onboardingTheme.fieldError}>Required</p>
-                      ) : null}
+                        <FormField
+                        label="City"
+                        icon={Building}
+                        required={true}
+                        error={domShowErrors && form.city.trim().length === 0 ? "Required" : (selectedCountry?.isoCode && citiesFailed ? "Could not load cities. You can type manually." : "")}
+                      >
+                       {(errorClass) => (
+                          <>
+                            {selectedCountry?.isoCode && form.state && !citiesFailed ? (
+                              <StyledSelect
+                                value={form.city}
+                                onChange={value => setForm(prev => ({ ...prev, city: value }))}
+                                options={citySelectOptions}
+                                placeholder={citiesLoading ? 'Loading city...' : 'Select city'}
+                                className={`${componentsTheme.login.input} ${errorClass}`}
+                                searchable
+                                disabled={!form.state || citiesLoading}
+                              />
+                            ) : (
+                              <input
+                                name="city"
+                                value={form.city}
+                                onChange={onChange}
+                                type="text"
+                                required
+                                className={`${componentsTheme.login.input} ${errorClass}`}
+                                placeholder="City"
+                              />
+                            )}
+                          </>
+                       )}
+                      </FormField>
                     </div>
                   </>
                 ) : null}
 
-                {activeStep === 'Program Info' ? (
+                {activeStep === "Age" ? (
                   <>
-                    <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>How did you hear about this program?</label>
+                    <FormField
+                        label="Year of birth"
+                        icon={Gift}
+                        required={true}
+                        error={ageShowErrors && form.birthDate.trim().length === 0 ? "Required" : ""}
+                      >
+                       {(errorClass) => (
+                         <StyledSelect
+                           value={form.birthDate}
+                           onChange={value => setForm(prev => ({ ...prev, birthDate: value }))}
+                           options={yearSelectOptions}
+                           placeholder="Select year"
+                           className={`${componentsTheme.login.input} ${errorClass}`}
+                           searchable
+                         />
+                       )}
+                    </FormField>
+                  </>
+                ) : null}
+
+                {activeStep === "Program Info" ? (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <p className={componentsTheme.login.fieldLabel}>
+                        PROGRAM SOURCE <span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
+                      </p>
+                      
                       <div className={onboardingTheme.programSourceGrid}>
                         {displayedProgramSourceOptions.map(opt => {
                           const selected = form.programSource === opt.value;
+                          const errClass = infoShowErrors && form.programSource.trim().length === 0 ? "!border-red-500 focus:!ring-red-500/20" : "";
                           return (
                             <button
                               key={opt.value}
                               type="button"
                               onClick={() => setForm(prev => ({ ...prev, programSource: opt.value }))}
-                              className={`${onboardingTheme.optionButtonBase} ${
+                              className={`${onboardingTheme.optionButtonBase} ${errClass} ${
                                 selected
                                   ? onboardingTheme.optionButtonSelected
                                   : onboardingTheme.optionButtonUnselected
@@ -912,61 +704,85 @@ export default function OnboardingPage() {
                       </div>
 
                       {programSourceOptions.length > 6 ? (
-                        <button
-                          type="button"
-                          className={onboardingTheme.seeAllButton}
-                          onClick={() => setProgramSourceModalOpen(true)}
-                        >
-                          See all
-                        </button>
+                        <div className="flex justify-start">
+                          <button
+                            type="button"
+                            className={onboardingTheme.seeAllButton}
+                            onClick={() => setProgramSourceModalOpen(true)}
+                          >
+                            See all
+                          </button>
+                        </div>
                       ) : null}
 
-                      {infoShowErrors && form.programSource.trim().length === 0 ? (
-                        <p className={onboardingTheme.fieldError}>Required</p>
-                      ) : null}
+                      {infoShowErrors && form.programSource.trim().length === 0 && (
+                        <p style={{ marginTop: "6px", fontSize: "12px", color: "#ef4444", display: "flex", alignItems: "center", fontWeight: 500 }}>
+                          Required
+                        </p>
+                      )}
                     </div>
 
-                    <div>
-                      <label className={jysSectionTheme.login.fieldLabel}>Referral Code (optional)</label>
+                    <FormField
+                      label="Referral Code"
+                      icon={User}
+                      required={false}
+                    >
+                      {(errorClass) => (
                       <input
                         name="referralCode"
                         value={form.referralCode}
                         onChange={onChange}
                         type="text"
-                        className={jysSectionTheme.login.input}
+                        className={`${componentsTheme.login.input} ${errorClass}`}
                         placeholder="ABC-123"
                       />
-                    </div>
+                      )}
+                    </FormField>
                   </>
                 ) : null}
 
                 <div className={onboardingTheme.buttonGroup}>
+                  {activeStep !== 'Basic Info' ? (
+                    <button type="button" className={componentsTheme.login.secondaryButton} onClick={goBack}>
+                      Back
+                    </button>
+                  ) : null}
+
                   {activeStep === 'Program Info' ? (
                     <button
                       type="button"
-                      className={jysSectionTheme.login.primaryButton}
+                      className={componentsTheme.login.primaryButton}
                       onClick={onContinue}
                       disabled={submitLoading}
                     >
                       {submitLoading ? 'Saving...' : 'Continue'}
                     </button>
                   ) : (
-                    <button type="button" className={jysSectionTheme.login.primaryButton} onClick={goNext}>
+                    <button type="button" className={componentsTheme.login.primaryButton} onClick={goNext}>
                       Next
                     </button>
                   )}
-
-                  {activeStep !== 'Basic Info' ? (
-                    <button type="button" className={jysSectionTheme.login.secondaryButton} onClick={goBack}>
-                      Back
-                    </button>
-                  ) : null}
                 </div>
 
                 {submitError ? (
                   <p className={onboardingTheme.fieldError}>{submitError}</p>
                 ) : null}
               </form>
+
+              <div className="mt-6 rounded-xl bg-blue-50/60 border border-blue-100/60 p-3.5">
+                <div className="flex items-start gap-2.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400 shrink-0 mt-0.5">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  <p className="text-xs leading-relaxed text-slate-500">
+                    You can always update these details later from your profile settings.
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-center text-xs text-slate-400">
+                Copyright &copy; {new Date().getFullYear()} {brandName}
+              </p>
             </div>
           </div>
         </div>
@@ -1020,18 +836,16 @@ export default function OnboardingPage() {
           </div>
         ) : null}
 
-        <div className={`${onboardingTheme.imagePanel} ${jysSectionTheme.login.imagePanelBackground}`}>
-          <div className="relative h-full">
-            <Image
-              src={loginImageSrc}
-              alt="Japan Youth Summit"
-              width={3024}
-              height={1828}
-              priority
-              className="h-full w-auto object-contain"
-            />
-            <div className={jysSectionTheme.login.heroOverlay} />
-          </div>
+        <div className={`${onboardingTheme.imagePanel} ${componentsTheme.login.imagePanelBackground}`}>
+          <Image
+            src={loginImageSrc}
+            alt={brandName}
+            fill
+            priority
+            sizes="45vw"
+            className="object-cover"
+          />
+          <div className={componentsTheme.login.heroOverlay} />
         </div>
       </div>
     </section>

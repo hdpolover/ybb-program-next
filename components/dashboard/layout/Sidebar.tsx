@@ -13,18 +13,24 @@ import {
 import { dashboardNav } from '@/lib/dashboard/nav';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
+import { useSettings } from "@/components/providers/SettingsProvider";
 
-const layoutTheme = jysSectionTheme.dashboardLayout;
+const layoutTheme = componentsTheme.dashboardLayout;
 
 // Sidebar kiri buat navigasi dashboard — simple dan konsisten sama tema
 export default function Sidebar({
   profileEmail,
+  profileImageUrl,
+  profileName,
 }: {
   profileEmail?: string;
+  profileImageUrl?: string;
+  profileName?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { settings } = useSettings();
   // Pas SSR dibuat ketutup dulu biar ga bentrok hidrasi, ntar dibuka pas komponen udah kepasang
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [mounted, setMounted] = useState(false);
@@ -80,7 +86,20 @@ export default function Sidebar({
       {/* Logo header */}
       <div className={layoutTheme.sidebarLogoRow}>
         <div className={layoutTheme.sidebarLogoImageWrapper}>
-          <Image src="/img/jysfooters.png" alt="Japan Youth Summit" fill className="object-contain" />
+          
+          {settings?.brand?.logo_url ? (
+            <Image
+              src={settings.brand.logo_url}
+              alt={settings?.brand?.name || "Logo"}
+              fill
+              className="object-contain object-left"
+              priority
+              unoptimized
+            />
+          ) : (
+            <span className="text-white font-bold text-xl">{settings?.brand?.name || "Dashboard"}</span>
+          )}
+
         </div>
       </div>
 
@@ -174,13 +193,20 @@ export default function Sidebar({
         <div className={layoutTheme.profileSectionWrapper}>
           <div className={layoutTheme.profileRow}>
             <div className={layoutTheme.profileAvatarWrapper}>
-              <Image
-                src="/img/photoprofile.png"
-                alt="Dashboard profile"
-                fill
-                className={layoutTheme.profileAvatarImage}
-                sizes="36px"
-              />
+              {profileImageUrl ? (
+                <Image
+                  src={profileImageUrl}
+                  alt={profileName ? `${profileName} profile photo` : "Dashboard profile"}
+                  fill
+                  className={layoutTheme.profileAvatarImage}
+                  sizes="36px"
+                  unoptimized
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-sm font-bold text-primary">
+                  {(profileName || profileEmail || "P").charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
             <div>
               <div className={layoutTheme.profileName}>{profileEmail || 'Participant'}</div>

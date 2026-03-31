@@ -1,6 +1,6 @@
 import SectionHeader from '@/components/ui/SectionHeader';
 import { HeartPulse, GraduationCap, Briefcase, Leaf, Scale } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 export default function ProgramThemeSection() {
   const items = [
@@ -46,14 +46,14 @@ export default function ProgramThemeSection() {
         <SectionHeader eyebrow="Program Theme" title="Subthemes we focus on" />
         <div className="grid gap-6 lg:grid-cols-2">
           {items.map(t => (
-            <div key={t.title} className={jysSectionTheme.insightsTheme.card}>
-              <span aria-hidden className={jysSectionTheme.insightsTheme.leftAccent} />
+            <div key={t.title} className={componentsTheme.insightsTheme.card}>
+              <span aria-hidden className={componentsTheme.insightsTheme.leftAccent} />
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className={jysSectionTheme.insightsTheme.tagChip}>{t.tag}</span>
-                  <span className={jysSectionTheme.insightsTheme.iconCircle}>{t.icon}</span>
+                  <span className={componentsTheme.insightsTheme.tagChip}>{t.tag}</span>
+                  <span className={componentsTheme.insightsTheme.iconCircle}>{t.icon}</span>
                 </div>
-                <span className={jysSectionTheme.insightsTheme.sdgCircle}>{t.sdg}</span>
+                <span className={componentsTheme.insightsTheme.sdgCircle}>{t.sdg}</span>
               </div>
               <h3 className="text-base font-extrabold text-blue-900 sm:text-lg">{t.title}</h3>
               <p className="mt-1 text-sm leading-6 text-slate-700">{t.desc}</p>

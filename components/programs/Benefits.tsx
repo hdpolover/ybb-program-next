@@ -1,19 +1,37 @@
 import { Globe2, Lightbulb, Handshake, Users, GraduationCap, Landmark } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { PROGRAMS_BENEFITS_COPY } from '@/data/programs/sections/benefits/programsBenefits';
+import { componentsTheme } from '@/lib/theme/components';
 
-export default function Benefits() {
-  const { eyebrow, title, items } = PROGRAMS_BENEFITS_COPY;
+export type BenefitIconKey = 'globe' | 'leader' | 'handshake' | 'network' | 'academic' | 'culture';
 
-  const iconEls: Record<(typeof items)[number]['icon'], JSX.Element> = {
-    globe: <Globe2 className="h-5 w-5" />,
-    leader: <Lightbulb className="h-5 w-5" />,
-    handshake: <Handshake className="h-5 w-5" />,
-    network: <Users className="h-5 w-5" />,
-    academic: <GraduationCap className="h-5 w-5" />,
-    culture: <Landmark className="h-5 w-5" />,
-  };
+export type BenefitItem = {
+  key: string;
+  icon: BenefitIconKey;
+  title: string;
+  desc: string;
+};
+
+export type BenefitsProps = {
+  eyebrow?: string;
+  title?: string;
+  items?: BenefitItem[];
+};
+
+const iconEls: Record<BenefitIconKey, JSX.Element> = {
+  globe: <Globe2 className="h-5 w-5" />,
+  leader: <Lightbulb className="h-5 w-5" />,
+  handshake: <Handshake className="h-5 w-5" />,
+  network: <Users className="h-5 w-5" />,
+  academic: <GraduationCap className="h-5 w-5" />,
+  culture: <Landmark className="h-5 w-5" />,
+};
+
+export default function Benefits({
+  eyebrow = 'Benefits',
+  title = 'What You Will Gain',
+  items = [],
+}: BenefitsProps) {
+  if (!items.length) return null;
 
   return (
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
@@ -26,8 +44,8 @@ export default function Benefits() {
               className="group rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]"
             >
               <div className="flex items-start gap-3">
-                <span className={jysSectionTheme.programsBenefits.iconCircle}>
-                  {iconEls[it.icon]}
+                <span className={componentsTheme.programsBenefits.iconCircle}>
+                  {iconEls[it.icon] ?? <Globe2 className="h-5 w-5" />}
                 </span>
                 <div>
                   <h3 className="text-lg font-extrabold text-blue-900">{it.title}</h3>

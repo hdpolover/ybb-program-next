@@ -1,23 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
-
-const DEFAULT_BRAND_URL =
-  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
-  'istanbulyouthsummit.com';
-
-function resolveBrandDomainFromRequest(request: Request): string {
-  const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
-  const hostname = hostnameRaw.split(':')[0];
-  if (!hostname) return DEFAULT_BRAND_URL;
-  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_URL;
-  return normalizeBrandUrl(hostname);
-}
+import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
 export async function GET(request: Request) {
   try {
@@ -29,8 +12,13 @@ export async function GET(request: Request) {
     }
 
     const brandDomain = resolveBrandDomainFromRequest(request);
+    const requestUrl = new URL(request.url);
+    const programId = requestUrl.searchParams.get('programId');
 
-    const apiUrl = new URL('/v1/portal/submissions', 'https://staging-api.ybbhub.com');
+    const apiUrl = new URL('/v1/portal/submissions', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
+    if (programId) {
+      apiUrl.searchParams.set('programId', programId);
+    }
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {

@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 type Props = {
   onClose: () => void;
@@ -24,7 +24,7 @@ export default function SubmissionEditSubmitModalSection({ onClose }: Props) {
             <input
               type="checkbox"
               defaultChecked
-              className="h-4 w-4 rounded border-slate-300 text-pink-600 focus:ring-pink-500"
+              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/100"
             />
             <span>
               If not selected as fully funded, I agree to continue as a self-funded participant with a non-refundable
@@ -36,7 +36,7 @@ export default function SubmissionEditSubmitModalSection({ onClose }: Props) {
             <input
               type="checkbox"
               defaultChecked
-              className="h-4 w-4 rounded border-slate-300 text-pink-600 focus:ring-pink-500"
+              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/100"
             />
             <span>
               I understand that this program is for educational purposes only and does not guarantee visa approval,

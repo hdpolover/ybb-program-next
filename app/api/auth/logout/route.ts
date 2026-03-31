@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { getEnvBrandDomain } from '@/lib/server/envContext';
 
-const BRAND_DOMAIN = process.env.YBB_BRAND_DOMAIN || 'https://istanyouthsummit.com';
+const BRAND_DOMAIN = getEnvBrandDomain();
 
 type LogoutResponse = {
   statusCode?: number;
@@ -15,7 +16,7 @@ export async function POST() {
     const accessToken = cookieStore.get('accessToken')?.value;
 
     if (accessToken) {
-      const apiUrl = new URL('/v1/auth/logout', 'https://staging-api.ybbhub.com');
+      const apiUrl = new URL('/v1/auth/logout', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
       const res = await fetch(apiUrl.toString(), {
         method: 'POST',
         headers: {
