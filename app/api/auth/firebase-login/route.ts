@@ -29,8 +29,12 @@ type ProvidersResponse = {
 
 export async function POST(request: Request) {
   try {
+    console.log('[firebase-login] Starting...');
     const brandDomain = resolveBrandDomainFromRequest(request);
+    console.log('[firebase-login] brandDomain:', brandDomain);
+    
     const body = (await request.json()) as FirebaseLoginBody;
+    console.log('[firebase-login] Has idToken:', !!body?.idToken, 'Has providerId:', !!body?.providerId);
 
     if (!body?.idToken) {
       return NextResponse.json(
@@ -42,26 +46,35 @@ export async function POST(request: Request) {
     const baseCandidate = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
     const apiBaseUrl = baseCandidate.replace(/\/v1\/?$/, '');
     const url = new URL('/v1/auth/firebase-login', apiBaseUrl);
+    console.log('[firebase-login] API URL:', url.toString());
 
-    const ctxRes = await fetch(new URL('/api/auth/context', request.url).toString(), {
+    const contextUrl = new URL('/api/auth/context', request.url).toString();
+    console.log('[firebase-login] Fetching auth context:', contextUrl);
+    const ctxRes = await fetch(contextUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
+    console.log('[firebase-login] Auth context status:', ctxRes.status);
 
-    const ctxJson = (await ctxRes.json().catch(() => ({}))) as {
+    const ctxJson = (await ctxRes.json().catch((e) => {
+      console.error('[firebase-login] Failed to parse auth context:', e);
+      return {};
+    })) as {
       data?: {
         brandId?: string;
         programId?: string;
         programSlug?: string | null;
       } | null;
     };
+    console.log('[firebase-login] Auth context data:', ctxJson?.data);
 
     const brandId = ctxJson?.data?.brandId || undefined;
     const programId = ctxJson?.data?.programId || undefined;
     const programSlug = ctxJson?.data?.programSlug || undefined;
 
+    console.log('[firebase-login] Calling backend with brandId:', brandId, 'programId:', programId);
     const res = await fetch(url.toString(), {
       method: 'POST',
       headers: {
@@ -78,7 +91,9 @@ export async function POST(request: Request) {
       }),
     });
 
+    console.log('[firebase-login] Backend status:', res.status);
     const json = (await res.json()) as FirebaseLoginResponse;
+    console.log('[firebase-login] Backend response:', json);
 
     if (!res.ok || (json.statusCode !== 200 && json.statusCode !== 201)) {
       return NextResponse.json(
