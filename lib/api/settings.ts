@@ -9,7 +9,7 @@ import {
   SETTINGS_LS_TTL_MS,
 } from '@/lib/constants/cache';
 
-const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain());
+const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
 // Server-side cached fetch — shared by layout SSR and /api/settings route handler.
 // unstable_cache keys by function arguments, so each brandDomain gets its own cache entry.

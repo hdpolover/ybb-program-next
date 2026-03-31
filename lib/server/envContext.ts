@@ -10,18 +10,19 @@ export function normalizeBrandUrl(input: string): string {
 
 /**
  * Returns the configured environment domain (from NEXT_PUBLIC_BRAND_DOMAIN)
- * Will throw an error if the environment variable is not set since we are enforcing no-hardcoded-fallbacks policy.
+ * For multi-brand deployments, this is optional - the domain will be resolved from request headers.
  */
-export function getEnvBrandDomain(): string {
+export function getEnvBrandDomain(): string | null {
   const envDomain = process.env.NEXT_PUBLIC_BRAND_DOMAIN || process.env.YBB_BRAND_DOMAIN;
   if (!envDomain) {
-    throw new Error("Missing NEXT_PUBLIC_BRAND_DOMAIN or YBB_BRAND_DOMAIN in the environment variables.");
+    return null;
   }
   return normalizeBrandUrl(envDomain);
 }
 
 /**
  * Resolves the brand domain either from the request headers or the default env.
+ * For multi-brand deployments, extracts domain from request headers.
  */
 export async function resolveBrandDomain(): Promise<string> {
   const h = await headers();
@@ -31,7 +32,8 @@ export async function resolveBrandDomain(): Promise<string> {
   const defaultDomain = getEnvBrandDomain();
 
   if (!hostname || hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-    return defaultDomain;
+    // For localhost, use default domain if available, otherwise fallback
+    return defaultDomain || 'localhost';
   }
 
   return normalizeBrandUrl(hostname);
@@ -39,6 +41,7 @@ export async function resolveBrandDomain(): Promise<string> {
 
 /**
  * Resolves the brand domain from a standard Web Request object
+ * For multi-brand deployments, extracts domain from request headers.
  */
 export function resolveBrandDomainFromRequest(request: Request): string {
   const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
@@ -47,7 +50,8 @@ export function resolveBrandDomainFromRequest(request: Request): string {
   const defaultDomain = getEnvBrandDomain();
 
   if (!hostname || hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-    return defaultDomain;
+    // For localhost, use default domain if available, otherwise fallback
+    return defaultDomain || 'localhost';
   }
 
   return normalizeBrandUrl(hostname);

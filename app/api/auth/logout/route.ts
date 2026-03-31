@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getEnvBrandDomain } from '@/lib/server/envContext';
 
-const BRAND_DOMAIN = getEnvBrandDomain();
+const BRAND_DOMAIN = getEnvBrandDomain() ?? '';
 
 type LogoutResponse = {
   statusCode?: number;

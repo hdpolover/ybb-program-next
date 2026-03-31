@@ -136,6 +136,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[firebase-login] Error:', message, error);
     return NextResponse.json(
       {
         statusCode: 500,

@@ -11,7 +11,7 @@ function buildBrandUrlVariants(normalizedUrl: string): string[] {
   return Array.from(new Set(variants.filter(Boolean)));
 }
 
-const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain());
+const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
 let homeRateLimitUntil = 0;
 

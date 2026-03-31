@@ -2,7 +2,7 @@ import type { ProgramsPageData } from '@/types/programs';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 
-const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain());
+const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
 function resolveBrand(host: string): string {
   return host && host !== 'localhost' && !host.startsWith('127.0.0.1')
