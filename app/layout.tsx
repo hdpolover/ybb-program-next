@@ -11,7 +11,6 @@ import ClientFooterGate from '@/components/layout/ClientFooterGate';
 import { PromoCTAProvider } from '@/components/sections/PromoCTAContext';
 import ClientCTAGate from '@/components/layout/ClientCTAGate';
 import BackToTop from '@/components/ui/BackToTop';
-import DevtoolsGuard from '@/components/layout/DevtoolsGuard';
 import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
 import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 
@@ -174,8 +173,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AppVersionWatcher currentVersion={appVersion} />
         <SettingsProvider initialSettings={settingsData}>
           <PromoCTAProvider>
-            <DevtoolsGuard />
-            <ClientNavbarGate />
+<ClientNavbarGate />
             {children}
             <ClientCTAGate />
             <BackToTop />
