@@ -3,13 +3,26 @@ import type { NextRequest } from 'next/server';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
 
-const BRAND_URL = (() => {
+// Get default brand URL from env (optional for multi-brand)
+const getDefaultBrandUrl = (): string | null => {
   const raw = process.env.NEXT_PUBLIC_BRAND_DOMAIN || process.env.YBB_BRAND_DOMAIN;
-  if (!raw) throw new Error('Missing NEXT_PUBLIC_BRAND_DOMAIN or YBB_BRAND_DOMAIN environment variable.');
+  if (!raw) return null;
   return raw.trim().replace(/\/+$/, '').replace(/^https?:\/\//, '');
-})();
+};
 
-async function isMaintenanceModeEnabled(): Promise<boolean> {
+// Resolve brand URL from request (for multi-brand support)
+const resolveBrandUrl = (request: NextRequest): string => {
+  const hostname = request.headers.get('host') || '';
+  const cleanHostname = hostname.split(':')[0]; // Remove port
+  
+  if (!cleanHostname || cleanHostname.startsWith('localhost') || cleanHostname.startsWith('127.0.0.1')) {
+    return getDefaultBrandUrl() || 'localhost';
+  }
+  
+  return cleanHostname;
+};
+
+async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
   try {
     const url = new URL('/v1/landing/settings', API_BASE_URL);
 
@@ -17,7 +30,7 @@ async function isMaintenanceModeEnabled(): Promise<boolean> {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'x-brand-domain': BRAND_URL,
+        'x-brand-domain': brandUrl,
       },
     });
 
@@ -40,6 +53,9 @@ async function isMaintenanceModeEnabled(): Promise<boolean> {
 }
 
 export async function proxy(request: NextRequest) {
+  // Resolve brand URL dynamically from request (multi-brand support)
+  const brandUrl = resolveBrandUrl(request);
+  
   // Get the hostname from the request headers
   const hostname = request.headers.get('host') || '';
   
@@ -61,7 +77,7 @@ export async function proxy(request: NextRequest) {
     pathname === '/favicon.ico';
 
   if (!isExemptRoute) {
-    const maintenanceEnabled = await isMaintenanceModeEnabled();
+    const maintenanceEnabled = await isMaintenanceModeEnabled(brandUrl);
     if (maintenanceEnabled) {
       const url = request.nextUrl.clone();
       url.pathname = '/maintenance';

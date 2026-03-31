@@ -6,9 +6,16 @@ RUN npm ci --only=production --legacy-peer-deps
 
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Copy package files
 COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
+
+# Copy source code
 COPY . .
+
+# Force cache bust if needed - change this timestamp to force fresh build
+# CACHE_BUST=20250401-001
 
 # Build-time variables
 ARG APP_BUILD_ID
