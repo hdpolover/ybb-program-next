@@ -11,3 +11,7 @@ export const dashboardNav: NavItem[] = [
   { label: 'Payments', href: '/dashboard/payments' },
   { label: 'Document', href: '/dashboard/documents' },
 ];
+
+export const ambassadorNav: NavItem[] = [
+  { label: 'Overview', href: '/dashboard/ambassador' },
+];

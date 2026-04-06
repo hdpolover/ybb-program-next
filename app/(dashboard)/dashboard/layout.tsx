@@ -13,8 +13,11 @@ import {
   type ParticipantMeData,
   type ParticipantOnboardingData,
   type PortalDashboardSummary,
+  type AmbassadorData,
 } from '@/components/dashboard/DashboardDataContext';
+import { DashboardModeProvider } from '@/components/dashboard/DashboardModeContext';
 import NotificationsPopover from '@/components/dashboard/layout/NotificationsPopover';
+import UserMenuPopover from '@/components/dashboard/layout/UserMenuPopover';
 import { componentsTheme } from '@/lib/theme/components';
 
 type DashboardSearchItem = {
@@ -55,6 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
   const [participantProfile, setParticipantProfile] = useState<ParticipantMeData | null>(null);
   const [dashboardSummary, setDashboardSummary] = useState<PortalDashboardSummary | null>(null);
+  const [ambassadorData, setAmbassadorData] = useState<AmbassadorData | null>(null);
 
   let sectionLabel: string | null = null;
   let subLabel: string | null = null;
@@ -157,6 +161,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         } catch {
           // ignore
         }
+
+        try {
+          const ambassadorRes = await fetch('/api/participants/ambassador', {
+            method: 'GET',
+            cache: 'no-store',
+          });
+
+          if (!cancelled && ambassadorRes.ok) {
+            const ambassadorJson = (await ambassadorRes.json().catch(() => ({}))) as any;
+            const ambassador = (ambassadorJson?.data ?? null) as AmbassadorData | null;
+            if (ambassador?.isActive) {
+              setAmbassadorData(ambassador);
+            }
+          }
+        } catch {
+          // ignore
+        }
       } catch {
         // ignore
       }
@@ -175,6 +196,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     'Participant';
   // shell grid: sidebar kiri + konten kanan
   return (
+    <DashboardModeProvider>
     <main className="relative h-screen overflow-hidden bg-white">
       <div className="flex h-screen">
         {/* Sidebar nempel di kiri */}
@@ -190,6 +212,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           me={me}
           onboarding={onboarding}
           participantProfile={participantProfile}
+          ambassadorData={ambassadorData}
         >
           <div className="flex h-screen flex-1 flex-col overflow-y-auto">
           {/* Navbar dashboard */}
@@ -213,11 +236,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
 
-            {/* Program selector di kanan */}
+            {/* Program selector + user menu di kanan */}
             <div className="flex flex-1 justify-end">
               <div className="flex items-center gap-3">
                 <NotificationsPopover />
                 <ProgramSelector programs={me?.registeredPrograms ?? []} />
+                <UserMenuPopover
+                  profileName={greetingName}
+                  profileEmail={me?.email}
+                  profileImageUrl={participantProfile?.profilePictureUrl}
+                  isAmbassador={!!ambassadorData?.isActive}
+                />
               </div>
             </div>
           </header>
@@ -255,6 +284,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </DashboardDataProvider>
       </div>
     </main>
+    </DashboardModeProvider>
   );
 }
 

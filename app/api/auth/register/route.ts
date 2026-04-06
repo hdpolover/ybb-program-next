@@ -40,6 +40,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Resolve referral code: explicit body value takes priority, then fall back to cookie
+    const cookieHeader = request.headers.get('cookie') ?? '';
+    const cookieReferralCode = cookieHeader
+      .split(';')
+      .map((c) => c.trim())
+      .find((c) => c.startsWith('ybb_referral_code='))
+      ?.split('=')[1] ?? null;
+    const resolvedReferralCode = body.referralCode || cookieReferralCode || null;
+
     let ctxBrandId = '';
     let ctxProgramId = '';
     let ctxProviderId = '';
@@ -113,7 +122,7 @@ export async function POST(request: Request) {
         providerUserId: body.email,
         programId,
         programSlug,
-        ...(body.referralCode ? { referralCode: body.referralCode } : {}),
+        ...(resolvedReferralCode ? { referralCode: resolvedReferralCode } : {}),
         ...(body.applicationCategory ? { applicationCategory: body.applicationCategory } : {}),
       }),
     });

@@ -9,12 +9,14 @@ import {
   Settings,
   Upload,
   UserCircle2,
+  Users,
 } from 'lucide-react';
-import { dashboardNav } from '@/lib/dashboard/nav';
+import { dashboardNav, ambassadorNav } from '@/lib/dashboard/nav';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { componentsTheme } from "@/lib/theme/components";
 import { useSettings } from "@/components/providers/SettingsProvider";
+import { useDashboardMode } from "@/components/dashboard/DashboardModeContext";
 
 const layoutTheme = componentsTheme.dashboardLayout;
 
@@ -31,6 +33,8 @@ export default function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { settings } = useSettings();
+  const { mode } = useDashboardMode();
+  const activeNav = mode === 'ambassador' ? ambassadorNav : dashboardNav;
   // Pas SSR dibuat ketutup dulu biar ga bentrok hidrasi, ntar dibuka pas komponen udah kepasang
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [mounted, setMounted] = useState(false);
@@ -46,6 +50,9 @@ export default function Sidebar({
     dashboardNav.forEach(it => {
       if (it.children && pathname.startsWith(it.href)) next[it.href] = true;
     });
+    ambassadorNav.forEach(it => {
+      if (it.children && pathname.startsWith(it.href)) next[it.href] = true;
+    });
     setOpen(next);
     setMounted(true);
   }, [pathname]);
@@ -59,6 +66,7 @@ export default function Sidebar({
 
   const renderIcon = (href: string) => {
     if (href === "/dashboard") return <LayoutDashboard className="h-4 w-4" />;
+    if (href.startsWith("/dashboard/ambassador")) return <Users className="h-4 w-4" />;
     if (href.startsWith("/dashboard/submission")) return <Upload className="h-4 w-4" />;
     if (href.startsWith("/dashboard/documents")) return <FolderClosed className="h-4 w-4" />;
     if (href.startsWith("/dashboard/payments")) return <CreditCard className="h-4 w-4" />;
@@ -105,7 +113,7 @@ export default function Sidebar({
 
       <div className={layoutTheme.sidebarMainColumn}>
         <nav className={layoutTheme.sidebarNavWrapper}>
-          {dashboardNav.map(item => {
+          {activeNav.map(item => {
           const active =
             pathname === item.href ||
             (item.href !== '/dashboard' && pathname.startsWith(item.href));

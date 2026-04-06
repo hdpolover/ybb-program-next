@@ -79,6 +79,15 @@ export async function POST(request: Request) {
     const programId = ctxJson?.data?.programId || undefined;
     const programSlug = ctxJson?.data?.programSlug || undefined;
 
+    // Resolve referral code: explicit body value takes priority, then fall back to cookie
+    const cookieHeader = request.headers.get('cookie') ?? '';
+    const cookieReferralCode = cookieHeader
+      .split(';')
+      .map((c) => c.trim())
+      .find((c) => c.startsWith('ybb_referral_code='))
+      ?.split('=')[1] ?? null;
+    const resolvedReferralCode = body.referralCode || cookieReferralCode || null;
+
     console.log('[firebase-login] Calling backend with brandId:', brandId, 'programId:', programId);
     const res = await fetch(url.toString(), {
       method: 'POST',
@@ -92,7 +101,7 @@ export async function POST(request: Request) {
         ...(brandId ? { brandId } : {}),
         ...(programId ? { programId } : {}),
         ...(programSlug ? { programSlug } : {}),
-        ...(body.referralCode ? { referralCode: body.referralCode } : {}),
+        ...(resolvedReferralCode ? { referralCode: resolvedReferralCode } : {}),
       }),
     });
 

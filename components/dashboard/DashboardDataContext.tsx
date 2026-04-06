@@ -66,11 +66,22 @@ export type ParticipantMeData = {
   profilePictureUrl?: string;
 };
 
+export type AmbassadorData = {
+  id: string;
+  referralCode: string;
+  shareLink: string;
+  totalReferrals: number;
+  successfulReferrals: number;
+  isActive: boolean;
+  programName: string;
+};
+
 type DashboardDataContextValue = {
   dashboardSummary: PortalDashboardSummary | null;
   me: AuthMeData | null;
   onboarding: ParticipantOnboardingData | null;
   participantProfile: ParticipantMeData | null;
+  ambassadorData: AmbassadorData | null;
 };
 
 const DashboardDataContext = createContext<DashboardDataContextValue>({
@@ -78,6 +89,7 @@ const DashboardDataContext = createContext<DashboardDataContextValue>({
   me: null,
   onboarding: null,
   participantProfile: null,
+  ambassadorData: null,
 });
 
 export function DashboardDataProvider({
@@ -85,16 +97,18 @@ export function DashboardDataProvider({
   me,
   onboarding,
   participantProfile,
+  ambassadorData,
   children,
 }: {
   dashboardSummary: PortalDashboardSummary | null;
   me: AuthMeData | null;
   onboarding: ParticipantOnboardingData | null;
   participantProfile: ParticipantMeData | null;
+  ambassadorData: AmbassadorData | null;
   children: React.ReactNode;
 }) {
   return (
-    <DashboardDataContext.Provider value={{ dashboardSummary, me, onboarding, participantProfile }}>
+    <DashboardDataContext.Provider value={{ dashboardSummary, me, onboarding, participantProfile, ambassadorData }}>
       {children}
     </DashboardDataContext.Provider>
   );
