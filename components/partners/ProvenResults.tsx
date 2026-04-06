@@ -3,7 +3,16 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
 // Section: Proven Results — impact angka + logo sponsor
-export default function ProvenResultsSection() {
+export default function ProvenResultsSection({
+  impactValue,
+  impactLabel,
+}: {
+  impactValue?: string;
+  impactLabel?: string;
+}) {
+  const displayValue = impactValue ?? '630,000+';
+  const displayLabel = impactLabel ?? 'people directly impacted by funded initiatives';
+
   return (
     <section className={componentsTheme.partnersProven.sectionWrapper}>
       <div className={componentsTheme.partnersProven.container}>
@@ -15,9 +24,9 @@ export default function ProvenResultsSection() {
         <div className={componentsTheme.partnersProven.layout}>
           {/* Left: impact text */}
           <div className={componentsTheme.partnersProven.impactCol}>
-            <p className={componentsTheme.partnersProven.impactValue}>630,000+</p>
+            <p className={componentsTheme.partnersProven.impactValue}>{displayValue}</p>
             <p className={componentsTheme.partnersProven.impactLabel}>
-              people directly impacted by funded initiatives
+              {displayLabel}
             </p>
           </div>
 

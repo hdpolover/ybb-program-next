@@ -3,8 +3,19 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { Button } from '@/components/ui';
 
+type AffiliateCommission = {
+  fullyFundedPct?: number;
+  selfFundedPct?: number;
+};
+
 // Section: Partnership Opportunities — gaya Program Highlights
-export default function PartnershipOpportunitiesSection() {
+export default function PartnershipOpportunitiesSection({
+  affiliateCommission,
+}: {
+  affiliateCommission?: AffiliateCommission;
+}) {
+  const fullyFundedPct = affiliateCommission?.fullyFundedPct ?? 20;
+  const selfFundedPct = affiliateCommission?.selfFundedPct ?? 5;
   return (
     <section className={componentsTheme.partnersOpportunities.sectionWrapper}>
       <div className={componentsTheme.partnersOpportunities.container}>
@@ -69,7 +80,7 @@ export default function PartnershipOpportunitiesSection() {
                 Fully-funded Affiliate
               </li>
               {[
-                'Earn 20% commission per successful registration',
+                `Earn ${fullyFundedPct}% commission per successful registration`,
                 'Commission applies to registration fee',
                 'Performance-based partnership',
               ].map((label, idx, arr) => (
@@ -94,7 +105,7 @@ export default function PartnershipOpportunitiesSection() {
                 Self-Funded Affiliate
               </li>
               {[
-                'Earn 5% commission from program fees',
+                `Earn ${selfFundedPct}% commission from program fees`,
                 'No minimum referrals required',
                 'Flexible and results-driven',
               ].map((label, idx, arr) => (

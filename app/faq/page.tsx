@@ -74,28 +74,35 @@ export default async function FaqPage() {
                 </div>
               </div>
 
+              {ctaSupportSection.content.video_url ? (
               <div className={componentsTheme.promoCta.rightCol}>
                 <div className={componentsTheme.promoCta.videoCard}>
                   <div className={componentsTheme.promoCta.videoFrameWrapper}>
                     <iframe
-                      src="https://www.youtube.com/embed/tUR55Fi53rM?si=NEHbcyoMTTsFEVV4"
-                      title="Japan Youth Summit 2025 Registration Guideline"
+                      src={ctaSupportSection.content.video_url}
+                      title={ctaSupportSection.content.video_title ?? 'Program Video'}
                       className="absolute inset-0 h-full w-full border-0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
                     />
                   </div>
+                  {(ctaSupportSection.content.video_title || ctaSupportSection.content.video_description) && (
                   <div className="mt-3">
-                    <h3 className={componentsTheme.promoCta.videoTitle}>
-                      Japan Youth Summit 2025 Registration Guideline
-                    </h3>
-                    <p className={componentsTheme.promoCta.videoDescription}>
-                      Watch this short walkthrough to understand the step-by-step registration flow,
-                      required documents, and key deadlines before you submit your application.
-                    </p>
+                    {ctaSupportSection.content.video_title && (
+                      <h3 className={componentsTheme.promoCta.videoTitle}>
+                        {ctaSupportSection.content.video_title}
+                      </h3>
+                    )}
+                    {ctaSupportSection.content.video_description && (
+                      <p className={componentsTheme.promoCta.videoDescription}>
+                        {ctaSupportSection.content.video_description}
+                      </p>
+                    )}
                   </div>
+                  )}
                 </div>
               </div>
+              ) : null}
             </div>
           </section>
         </SetPromoCTA>

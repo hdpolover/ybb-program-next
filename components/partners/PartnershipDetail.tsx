@@ -1,6 +1,17 @@
 import { Check } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 
+type SponsorshipTiers = {
+  silver?: string | null;
+  gold?: string | null;
+  diamond?: string | null;
+};
+
+type AffiliateCommission = {
+  fully_funded_pct?: number;
+  self_funded_pct?: number;
+};
+
 const PACKAGES: Record<
   string,
   {
@@ -50,14 +61,8 @@ const PACKAGES: Record<
     title: 'Affiliate Program',
     bestFor: 'Best for: Individuals promoting YBB programs.',
     price: 'Commission-based',
-    bullets: [
-      'Fully-funded Affiliate: Earn 20% commission per successful registration',
-      'Commission applies to registration fee',
-      'Performance-based partnership',
-      'Self-funded Affiliate: Earn 5% commission from program fees',
-      'No minimum referrals required',
-      'Flexible and results-driven',
-    ],
+    // bullets rendered dynamically from affiliateCommission prop in the JSX — this array is unused
+    bullets: [],
   },
   'diamond-partner': {
     title: 'Diamond Partner',
@@ -78,8 +83,29 @@ function getPackage(slug: string) {
   return PACKAGES[slug] ?? PACKAGES['community-partner'];
 }
 
-export default function PartnershipDetailSection({ slug }: { slug: string }) {
+export default function PartnershipDetailSection({
+  slug,
+  sponsorshipTiers,
+  affiliateCommission,
+}: {
+  slug: string;
+  sponsorshipTiers?: SponsorshipTiers | null;
+  affiliateCommission?: AffiliateCommission | null;
+}) {
   const pkg = getPackage(slug);
+
+  // Override prices from API when available
+  const resolvedPrice =
+    slug === 'silver-partner' && sponsorshipTiers?.silver
+      ? sponsorshipTiers.silver
+      : slug === 'gold-partner' && sponsorshipTiers?.gold
+        ? sponsorshipTiers.gold
+        : slug === 'diamond-partner' && sponsorshipTiers?.diamond
+          ? sponsorshipTiers.diamond
+          : pkg.price;
+
+  const fullyFundedPct = affiliateCommission?.fully_funded_pct ?? 20;
+  const selfFundedPct = affiliateCommission?.self_funded_pct ?? 5;
 
    const gradientVariant =
     slug === 'community-partner'
@@ -99,7 +125,7 @@ export default function PartnershipDetailSection({ slug }: { slug: string }) {
               <h2 className={componentsTheme.partnersDetail.title}>{pkg.title}</h2>
               <p className={componentsTheme.partnersDetail.bestForLabel}>{pkg.bestFor}</p>
             </div>
-            <div className={componentsTheme.partnersDetail.priceText}>{pkg.price}</div>
+            <div className={componentsTheme.partnersDetail.priceText}>{resolvedPrice}</div>
           </div>
 
           <div className={componentsTheme.partnersDetail.bodyGrid}>
@@ -107,7 +133,7 @@ export default function PartnershipDetailSection({ slug }: { slug: string }) {
               <>
                 <div className="pb-1 text-sm font-extrabold text-blue-900">Fully-funded Affiliate</div>
                 {[
-                  'Earn 20% commission per successful registration',
+                  `Earn ${fullyFundedPct}% commission per successful registration`,
                   'Commission applies to registration fee',
                   'Performance-based partnership',
                 ].map(item => (
@@ -121,7 +147,7 @@ export default function PartnershipDetailSection({ slug }: { slug: string }) {
                   Self-Funded Affiliate
                 </div>
                 {[
-                  'Earn 5% commission from program fees',
+                  `Earn ${selfFundedPct}% commission from program fees`,
                   'No minimum referrals required',
                   'Flexible and results-driven',
                 ].map(item => (

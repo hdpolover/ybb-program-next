@@ -58,6 +58,7 @@ export type RegistrationInfoPricingTier = {
   price: string;
   currency: string;
   benefits: string[];
+  requirements?: string[];
   fee_type: 'full_fee' | 'registration_fee' | string;
   target?: 'self_funded' | 'fully_funded' | string;
   allowed_categories?: Array<'self_funded' | 'fully_funded' | string>;

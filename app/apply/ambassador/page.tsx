@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users, Phone, Building, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
+import { useSettings } from '@/components/providers/SettingsProvider';
 
 interface FormState {
   fullName: string;
@@ -14,6 +15,7 @@ const PROGRAM_ID = process.env.NEXT_PUBLIC_PROGRAM_ID || '';
 
 export default function ApplyAmbassadorPage() {
   const router = useRouter();
+  const { settings } = useSettings();
   const [form, setForm] = useState<FormState>({ fullName: '', phoneNumber: '', institution: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function ApplyAmbassadorPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: form.fullName.trim(),
-          programId: PROGRAM_ID,
+          programId: settings?.active_program?.id || PROGRAM_ID,
           phoneNumber: form.phoneNumber.trim() || undefined,
           institution: form.institution.trim() || undefined,
         }),

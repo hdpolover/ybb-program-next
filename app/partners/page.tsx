@@ -73,35 +73,51 @@ export default async function PartnersSponsorsPage() {
                 </div>
               </div>
 
+              {ctaBecomePartnerSection.content.video_url ? (
               <div className={componentsTheme.promoCta.rightCol}>
                 <div className={componentsTheme.promoCta.videoCard}>
                   <div className={componentsTheme.promoCta.videoFrameWrapper}>
                     <iframe
-                      src="https://www.youtube.com/embed/tUR55Fi53rM?si=NEHbcyoMTTsFEVV4"
-                      title="Japan Youth Summit 2025 Registration Guideline"
+                      src={ctaBecomePartnerSection.content.video_url}
+                      title={ctaBecomePartnerSection.content.video_title ?? 'Program Video'}
                       className="absolute inset-0 h-full w-full border-0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
                     />
                   </div>
+                  {(ctaBecomePartnerSection.content.video_title || ctaBecomePartnerSection.content.video_description) && (
                   <div className="mt-3">
-                    <h3 className={componentsTheme.promoCta.videoTitle}>
-                      Japan Youth Summit 2025 Registration Guideline
-                    </h3>
-                    <p className={componentsTheme.promoCta.videoDescription}>
-                      Watch this short walkthrough to understand the step-by-step registration flow,
-                      required documents, and key deadlines before you submit your application.
-                    </p>
+                    {ctaBecomePartnerSection.content.video_title && (
+                      <h3 className={componentsTheme.promoCta.videoTitle}>
+                        {ctaBecomePartnerSection.content.video_title}
+                      </h3>
+                    )}
+                    {ctaBecomePartnerSection.content.video_description && (
+                      <p className={componentsTheme.promoCta.videoDescription}>
+                        {ctaBecomePartnerSection.content.video_description}
+                      </p>
+                    )}
                   </div>
+                  )}
                 </div>
               </div>
+              ) : null}
             </div>
           </section>
         </SetPromoCTA>
       ) : null}
 
       <WhyPartnerSection />
-      <PartnershipOpportunitiesSection />
+      <PartnershipOpportunitiesSection
+        affiliateCommission={
+          ctaBecomePartnerSection?.content.affiliate_commission
+            ? {
+                fullyFundedPct: ctaBecomePartnerSection.content.affiliate_commission.fully_funded_pct,
+                selfFundedPct: ctaBecomePartnerSection.content.affiliate_commission.self_funded_pct,
+              }
+            : undefined
+        }
+      />
       <CommunityPartnersSection partners={partnersGridSection?.data} />
       <SponsorTiersSection sponsors={sponsorsGridSection?.data} />
       <ProvenResultsSection />

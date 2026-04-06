@@ -78,17 +78,21 @@ export default function RegistrationTypePrograms({
   const infoInstructions: RegistrationInfoInstruction[] =
     instructions && instructions.length > 0 ? instructions : [];
 
-  const selfFundedRequirements = [
-    'Complete registration form and documentation',
-    'Submit required documents on time',
-    'Pay fees according to scheduled payment batches',
-  ];
+  const selfFundedRequirements = primaryType?.requirements?.length
+    ? primaryType.requirements
+    : [
+        'Complete registration form and documentation',
+        'Submit required documents on time',
+        'Pay fees according to scheduled payment batches',
+      ];
 
-  const fullyFundedRequirements = [
-    'Complete registration form and documentation',
-    'Submit detailed essays and applications',
-    'Participate in interviews and evaluations',
-  ];
+  const fullyFundedRequirements = secondaryType?.requirements?.length
+    ? secondaryType.requirements
+    : [
+        'Complete registration form and documentation',
+        'Submit detailed essays and applications',
+        'Participate in interviews and evaluations',
+      ];
 
   const renderInstructionIcon = (icon: string) => {
     switch (icon) {
