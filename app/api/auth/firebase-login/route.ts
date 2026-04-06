@@ -48,7 +48,12 @@ export async function POST(request: Request) {
     const url = new URL('/v1/auth/firebase-login', apiBaseUrl);
     console.log('[firebase-login] API URL:', url.toString());
 
-    const contextUrl = new URL('/api/auth/context', request.url).toString();
+    const contextUrl = new URL(
+      '/api/auth/context',
+      // Server-side self-fetch must use localhost — the container cannot reach
+      // its own public domain. Use the internal port Next.js listens on (default 3000).
+      process.env.NEXT_INTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`,
+    ).toString();
     console.log('[firebase-login] Fetching auth context:', contextUrl);
     const ctxRes = await fetch(contextUrl, {
       method: 'GET',

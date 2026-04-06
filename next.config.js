@@ -94,6 +94,17 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Allow Firebase signInWithPopup to poll window.closed on the login page.
+        // COOP: same-origin (set by some hosts/proxies) breaks the opener reference.
+        source: '/login',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups',
+          },
+        ],
+      },
+      {
         source: '/:all*(svg|jpg|jpeg|png|gif|webp|avif|ico|woff|woff2)',
         headers: [
           {
