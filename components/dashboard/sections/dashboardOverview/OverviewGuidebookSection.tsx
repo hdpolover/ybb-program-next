@@ -7,11 +7,10 @@ const overviewTheme = jysSectionTheme.dashboardOverview;
 export default function OverviewGuidebookSection() {
   return (
     <aside
-      className={overviewTheme.guideAside}
+      className={`${overviewTheme.guideAside} sm:bg-[url('/img/bgguidebookdashboard.png')] sm:bg-cover sm:bg-bottom`}
       style={{
-        backgroundImage: "url('/img/bgguidebookdashboard.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center bottom',
+        backgroundColor: '#facde7',
+        backgroundImage: 'none',
       }}
     >
       <div className={overviewTheme.guideInner}>

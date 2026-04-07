@@ -12,6 +12,7 @@ import { getPartnersPageData } from '@/lib/api/partners';
 import type { CtaBecomePartnerSection, PartnersGridSection, SponsorsGridSection } from '@/types/partners';
 import { SetPromoCTA } from '@/components/sections/PromoCTAContext';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
+import Image from 'next/image';
 
 export default async function PartnersSponsorsPage() {
   const partnersPage = await getPartnersPageData();
@@ -51,6 +52,15 @@ export default async function PartnersSponsorsPage() {
       {ctaBecomePartnerSection?.content.text && ctaBecomePartnerSection?.content.link ? (
         <SetPromoCTA>
           <section className={jysSectionTheme.promoCta.sectionWrapper}>
+            <div className="absolute inset-0 sm:hidden">
+              <Image
+                src="/img/bgshorts60.jpg"
+                alt=""
+                fill
+                priority
+                className="object-cover object-center"
+              />
+            </div>
             <div className={jysSectionTheme.promoCta.glowLeft} />
             <div className={jysSectionTheme.promoCta.glowRight} />
             <div className={jysSectionTheme.promoCta.glowBottom} />

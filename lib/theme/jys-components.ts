@@ -210,7 +210,7 @@ export const jysSectionTheme = {
   partnersWhy: {
     sectionWrapper: 'px-6 py-14 sm:py-16 md:py-20 lg:px-8',
     container: 'mx-auto max-w-7xl',
-    grid: 'mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4',
+    grid: 'mt-10 grid grid-cols-2 gap-6 sm:grid-cols-2 lg:grid-cols-4',
     featureCard:
       'flex h-full flex-col gap-2 rounded-2xl bg-white p-5 text-left shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     featureIconCircle:
@@ -275,9 +275,9 @@ export const jysSectionTheme = {
     subtitle: 'mx-auto -mt-6 mb-2 max-w-2xl text-center text-sm text-slate-600 sm:mb-0 sm:text-base',
     layout:
       'mt-10 grid items-center gap-10 md:grid-cols-[minmax(0,0.35fr)_minmax(0,1fr)]',
-    impactCol: 'space-y-3 text-blue-950',
+    impactCol: 'space-y-3 text-center text-blue-950 md:text-left',
     impactValue: 'text-3xl md:text-4xl font-extrabold tracking-tight text-blue-950',
-    impactLabel: 'text-sm md:text-base text-slate-700 max-w-xs',
+    impactLabel: 'mx-auto max-w-xs text-sm text-slate-700 md:mx-0 md:text-base',
     card:
       'rounded-2xl bg-white/90 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     cardHeader: 'mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between',
@@ -682,17 +682,29 @@ export const jysSectionTheme = {
     container: 'mx-auto max-w-7xl',
     subtitle: '-mt-6 mb-8 text-center text-sm text-pink-600 sm:text-base',
     cardsWrapper: 'flex flex-wrap justify-center gap-6',
+    sliderWrapper: 'mx-auto flex w-full max-w-[1000px] flex-col items-center justify-center',
+    navRow: 'mt-5 flex items-center justify-center gap-3',
+    navButton:
+      'relative z-30 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-800 shadow-sm transition hover:bg-gray-50 disabled:opacity-40',
+    navIcon: 'h-5 w-5',
+    carouselStage: 'relative h-[360px] w-[720px] overflow-visible [perspective:1200px]',
+    carouselCardBase:
+      'absolute left-1/2 top-0 w-[360px] -translate-x-1/2 rounded-2xl bg-white shadow-md transition-all duration-500 ease-in-out will-change-transform transform-gpu',
+    carouselCardActive: '[transform:translate3d(-50%,0,0)_scale(1)_rotateY(0deg)] opacity-100 z-30',
+    carouselCardPrev: '[transform:translate3d(calc(-50%_-_420px),0,0)_scale(0.9)_rotateY(-6deg)] opacity-70 z-20 pointer-events-none',
+    carouselCardNext: '[transform:translate3d(calc(-50%_+_420px),0,0)_scale(0.9)_rotateY(6deg)] opacity-70 z-20 pointer-events-none',
+    carouselCardHidden: 'opacity-0 pointer-events-none',
     card: 'group w-[320px] overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200 transition hover:shadow-md sm:w-[360px]',
-    coverWrapper: 'relative aspect-[16/9] overflow-hidden',
-    coverImage: 'object-cover transition group-hover:scale-105',
+    coverWrapper: 'relative aspect-[16/9] overflow-hidden rounded-t-2xl',
+    coverImage: 'object-cover',
     logoBadgesWrapper: 'absolute left-3 top-3 flex items-center gap-2',
     logoCircle: 'relative h-8 w-8 overflow-hidden rounded-full ring-1 ring-white/60',
     logoImage: 'bg-white object-contain',
     cardMetaRow: 'flex items-start justify-between gap-3 p-5',
     datesText: 'mt-1 text-sm text-gray-600',
-    cardTitle: 'text-base font-extrabold text-gray-900 group-hover:text-pink-700 sm:text-lg',
+    cardTitle: 'text-base font-bold text-gray-900',
     arrowCircle:
-      'mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-pink-200 bg-pink-50 text-pink-600 transition group-hover:bg-pink-600 group-hover:text-white',
+      'mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-pink-200 bg-pink-50 text-pink-600',
     arrowIcon: 'h-4 w-4',
   },
   programsMissionVision: {
@@ -1315,22 +1327,26 @@ export const jysSectionTheme = {
     faqAnswer: 'text-sm leading-6 text-slate-700',
   },
   furtherInfoPrograms: {
-    sectionWrapper: 'relative w-full py-20 sm:py-28',
-    card: 'mx-auto flex max-w-7xl items-center px-6 sm:px-10 lg:px-16',
+    sectionWrapper: 'relative w-full overflow-hidden py-20 sm:py-28',
+    mobileBgWrapper: 'pointer-events-none absolute inset-0 z-0 sm:hidden',
+    mobileBgImage: 'object-cover object-center',
+    desktopBgWrapper: 'pointer-events-none absolute inset-0 z-0 hidden sm:block',
+    desktopBgImage: 'object-cover object-center',
+    card: 'relative z-10 mx-auto flex max-w-7xl items-center px-6 sm:px-10 lg:px-16',
     innerGrid:
       'grid w-full items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)] lg:gap-12',
     leftCol:
-      'order-2 flex w-full max-w-xl flex-col justify-center space-y-4 text-blue-950 lg:order-1 lg:pr-6',
+      'order-2 flex w-full max-w-xl flex-col items-center justify-center space-y-4 text-center text-blue-950 sm:items-start sm:text-left lg:order-1 lg:pr-6',
     description: 'mt-3 max-w-md text-sm leading-relaxed text-blue-950/90 sm:text-base lg:text-lg',
-    buttonsCol: 'mt-4 flex flex-col items-start gap-3',
+    buttonsCol: 'mt-4 flex flex-col items-center gap-3 sm:items-start',
     guideButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold shadow-sm transition',
     guideButtonPrimary: 'border-pink-500/80 bg-white/95 text-pink-700 hover:bg-white',
     guideButtonSecondary: 'border-blue-500/70 bg-blue-50/90 text-blue-800 hover:bg-blue-100',
     flagCircle: 'inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full',
-    rightCol: 'order-1 relative flex w-full justify-center lg:order-2',
+    rightCol: 'order-1 relative hidden w-full justify-center sm:flex lg:order-2',
     mockupWrapper:
-      'relative h-80 w-full max-w-xs -mt-6 sm:h-96 sm:max-w-sm lg:h-[420px] lg:max-w-md lg:-mt-10 drop-shadow-[0_26px_70px_rgba(15,23,42,0.65)]',
+      'relative hidden h-80 w-full max-w-xs -mt-6 drop-shadow-[0_26px_70px_rgba(15,23,42,0.65)] sm:block sm:h-96 sm:max-w-sm lg:h-[420px] lg:max-w-md lg:-mt-10',
   },
   applyEarlyBidCta: {
     sectionWrapper:
@@ -1371,7 +1387,7 @@ export const jysSectionTheme = {
   },
   dashboardLayout: {
     sidebarWrapper:
-      'sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-slate-200 bg-[#e53b8c] px-3 py-6',
+      'flex h-full w-[260px] shrink-0 flex-col border-r border-slate-200 bg-[#e53b8c] px-3 py-6 md:sticky md:top-0',
     sidebarLogoRow: 'mb-5 flex justify-start',
     sidebarLogoImageWrapper: 'relative h-14 w-32',
     sidebarMainColumn: 'flex flex-1 flex-col justify-between gap-4',
@@ -1698,7 +1714,7 @@ export const jysSectionTheme = {
     sectionWrapper: 'space-y-6',
 
     // top summary
-    summaryGrid: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4',
+    summaryGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4',
     summaryCardBase: 'flex flex-col justify-between rounded-2xl p-4 text-sm shadow-sm',
     summaryCompleteCard: 'border border-emerald-100 bg-emerald-50/60',
     summaryPendingCard: 'border border-amber-100 bg-amber-50/70',
@@ -1824,7 +1840,7 @@ export const jysSectionTheme = {
     progressStepTitle: 'text-sm font-semibold text-slate-900',
     progressStepBody: 'text-xs leading-relaxed text-slate-600',
     progressStatusChipBase:
-      'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1',
+      'inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 sm:px-2.5 sm:text-[11px]',
     progressStatusChipDone:
       'bg-emerald-50 text-emerald-700 ring-emerald-200',
     progressStatusChipWaiting:
@@ -1890,7 +1906,7 @@ export const jysSectionTheme = {
       'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
     notificationLeftRow: 'flex items-start gap-3',
     notificationIconCircle:
-      'mt-0.5 flex h-10 w-10 items-center justify-center rounded-full bg-white text-amber-600 shadow-sm ring-2 ring-amber-200',
+      'mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white text-amber-600 shadow-sm ring-2 ring-amber-200',
     notificationTextWrapper: 'space-y-1',
     notificationTitleRow:
       'flex flex-wrap items-baseline gap-2',

@@ -29,6 +29,7 @@ export async function getSettings(): Promise<SettingsData> {
   if (typeof window !== 'undefined') {
     const res = await fetch('/api/settings', {
       method: 'GET',
+      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
       },

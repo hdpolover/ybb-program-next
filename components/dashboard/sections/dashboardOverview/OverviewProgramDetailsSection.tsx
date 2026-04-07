@@ -90,6 +90,31 @@ export const PROGRESS_STEPS: ProgressStep[] = [
   },
 ];
 
+export function getClampedProgressPercentage({
+  progress,
+  currentStep,
+  fallbackProgressPercentage,
+}: {
+  progress: unknown;
+  currentStep: unknown;
+  fallbackProgressPercentage: number;
+}) {
+  const hasCurrentStep = typeof currentStep === "string" && currentStep.trim().length > 0;
+
+  if (typeof progress !== "number" || Number.isNaN(progress)) {
+    return fallbackProgressPercentage;
+  }
+
+  const rounded = Math.round(progress);
+  const clamped = Math.min(100, Math.max(0, rounded));
+
+  if (clamped === 0 && hasCurrentStep) {
+    return fallbackProgressPercentage;
+  }
+
+  return clamped;
+}
+
 interface OverviewProgramDetailsSectionProps {
   showSeeDetailsButton?: boolean;
 }
@@ -121,10 +146,12 @@ export default function OverviewProgramDetailsSection({
   const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
 
   const progressPercentage = useMemo(() => {
-    const pct = activeApplication?.progress;
-    if (typeof pct !== "number" || Number.isNaN(pct)) return fallbackProgressPercentage;
-    return Math.min(100, Math.max(0, Math.round(pct)));
-  }, [activeApplication?.progress, fallbackProgressPercentage]);
+    return getClampedProgressPercentage({
+      progress: activeApplication?.progress,
+      currentStep: activeApplication?.currentStep,
+      fallbackProgressPercentage,
+    });
+  }, [activeApplication?.currentStep, activeApplication?.progress, fallbackProgressPercentage]);
 
   const currentTitle = activeApplication?.currentStep?.trim() || currentStep.title;
 

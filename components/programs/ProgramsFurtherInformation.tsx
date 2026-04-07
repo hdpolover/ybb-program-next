@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { jysSectionTheme } from '@/lib/theme/jys-components';
 import { PROGRAMS_FURTHER_INFO_DEFAULT } from '@/data/programs/sections/further-info/programsFurtherInfo';
@@ -23,20 +24,36 @@ export default function ProgramsFurtherInformationSection({
   guidebooks = PROGRAMS_FURTHER_INFO_DEFAULT.guidebooks,
 }: ProgramsFurtherInformationProps) {
   return (
-    <section
-      className={jysSectionTheme.furtherInfoPrograms.sectionWrapper}
-      style={{
-        backgroundImage: "url('/img/halfback1.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <section className={jysSectionTheme.furtherInfoPrograms.sectionWrapper}>
+      <div className={jysSectionTheme.furtherInfoPrograms.mobileBgWrapper}>
+        <Image
+          src="/img/bgshorts60.jpg"
+          alt=""
+          fill
+          priority
+          className={jysSectionTheme.furtherInfoPrograms.mobileBgImage}
+        />
+      </div>
+      <div className={jysSectionTheme.furtherInfoPrograms.desktopBgWrapper}>
+        <Image
+          src="/img/halfback1.png"
+          alt=""
+          fill
+          priority
+          className={jysSectionTheme.furtherInfoPrograms.desktopBgImage}
+        />
+      </div>
+
       <div className={jysSectionTheme.furtherInfoPrograms.card}>
         <div className={jysSectionTheme.furtherInfoPrograms.innerGrid}>
           <div className={jysSectionTheme.furtherInfoPrograms.leftCol}>
             <div>
-              <SectionHeader eyebrow="Guidebook" title={title} align="left" />
+              <div className="sm:hidden">
+                <SectionHeader eyebrow="Guidebook" title={title} align="center" />
+              </div>
+              <div className="hidden sm:block">
+                <SectionHeader eyebrow="Guidebook" title={title} align="left" />
+              </div>
               <p className={jysSectionTheme.furtherInfoPrograms.description}>{subtitle}</p>
 
               <div className={jysSectionTheme.furtherInfoPrograms.buttonsCol}>

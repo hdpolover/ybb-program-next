@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import type { SettingsData } from '@/types/settings';
 import { apiGet } from '@/lib/api/httpClient';
 
+export const dynamic = 'force-dynamic';
+
 function normalizeBrandUrl(input: string): string {
   const trimmed = (input || '').trim().replace(/\/+$/, '');
   if (!trimmed) return '';
@@ -38,7 +40,11 @@ export async function GET() {
       },
     );
 
-    return NextResponse.json(json);
+    return NextResponse.json(json, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
 
@@ -63,6 +69,13 @@ export async function GET() {
       },
     };
 
-    return NextResponse.json({ statusCode: 200, message, data: fallback });
+    return NextResponse.json(
+      { statusCode: 200, message, data: fallback },
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      },
+    );
   }
 }

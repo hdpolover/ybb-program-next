@@ -162,7 +162,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Script
           src="https://aksamu.com/chat-widget.js"
           data-bot-id="4a9ea369-4638-413f-92d4-9c4600f7c6be"
-          data-primary-color="#16a34a"
+          data-primary-color="var(--brand-accent, #db2777)"
+          data-button-shape="circle"
           defer
         />
       </body>

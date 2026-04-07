@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image';
-import { FileText, Search, SearchX } from 'lucide-react';
+import { FileText, Menu, Search, SearchX, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '@/components/dashboard/layout/Sidebar';
@@ -51,6 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const searchTheme = jysSectionTheme.dashboardSearch;
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [me, setMe] = useState<AuthMeData | null>(null);
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
   const [participantProfile, setParticipantProfile] = useState<ParticipantMeData | null>(null);
@@ -167,6 +168,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, [router]);
 
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [pathname]);
+
   const greetingName =
     participantProfile?.displayName?.trim() ||
     participantProfile?.fullName?.trim() ||
@@ -180,7 +185,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <main className="relative h-screen overflow-hidden bg-white">
       <div className="flex h-screen">
         {/* Sidebar nempel di kiri */}
-        <Sidebar profileEmail={me?.email ?? ''} />
+        <div className="hidden md:block">
+          <Sidebar profileEmail={me?.email ?? ''} />
+        </div>
+
+        {mobileSidebarOpen ? (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <button
+              type="button"
+              aria-label="Close sidebar"
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setMobileSidebarOpen(false)}
+            />
+
+            <div className="absolute left-0 top-0 h-full w-[280px] bg-[#e53b8c] shadow-2xl flex flex-col">
+              <div className="flex items-center justify-end px-3 pt-3 pb-2">
+                <button
+                  type="button"
+                  aria-label="Close"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white/90 ring-1 ring-white/20"
+                  onClick={() => setMobileSidebarOpen(false)}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <Sidebar profileEmail={me?.email ?? ''} />
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {/* Kolom kanan: navbar atas + konten */}
         <DashboardDataProvider
@@ -191,9 +225,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         >
           <div className="flex h-screen flex-1 flex-col overflow-y-auto">
           {/* Navbar dashboard */}
-          <header className="sticky top-0 z-10 flex items-center gap-6 border-b border-slate-100 bg-white px-6 py-4 lg:px-8">
-            {/* Spacer kiri (bisa dipakai untuk breadcrumb nanti) */}
-            <div className="hidden flex-1 md:block" />
+          <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-slate-100 bg-white px-4 py-4 sm:px-6 lg:px-8">
+            <div className="flex flex-1 items-center gap-3">
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-700 ring-1 ring-slate-200 md:hidden"
+                aria-label="Open sidebar"
+                onClick={() => setMobileSidebarOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+
+              {/* Spacer kiri (bisa dipakai untuk breadcrumb nanti) */}
+              <div className="hidden flex-1 md:block" />
+            </div>
 
             {/* Search bar di tengah */}
             <div className="flex flex-[2] justify-center">
