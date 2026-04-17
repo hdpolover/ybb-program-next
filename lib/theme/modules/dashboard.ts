@@ -138,11 +138,11 @@ export const dashboardTheme = {
     agreementCard:
       'space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700 shadow-sm',
     agreementTitle: 'mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500',
-    agreementRowPink:
+    agreementRowBrand:
       'flex items-center gap-3 rounded-md bg-primary/10 px-3 py-2 text-xs text-slate-700 ring-1 ring-primary/20',
     agreementRowIndigo:
       'flex items-center gap-3 rounded-md bg-primary/5 px-3 py-2 text-xs text-slate-700 ring-1 ring-primary/20',
-    agreementCheckboxPink: 'h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/100',
+    agreementCheckboxBrand: 'h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/100',
     agreementCheckboxIndigo:
       'h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary',
     agreementRowInner: 'flex items-center gap-2',

@@ -55,7 +55,7 @@ export default function FullyFundedOverviewSection() {
                   <div className={componentsTheme.applyOverview.descriptionBlock}>
                     <h3 className={componentsTheme.applyOverview.sectionHeading}>Description</h3>
                     <p>
-                      Japan Youth Summit (JYS) 2026 is an international youth forum that brings
+                      This program is an international youth forum that brings
                       together passionate young leaders to discuss, design, and drive collaborative
                       solutions for a more sustainable and inclusive future in Asia and beyond.
                     </p>
@@ -135,8 +135,8 @@ export default function FullyFundedOverviewSection() {
               {/* Gambar cover */}
               <div className={componentsTheme.applyOverview.coverWrapper}>
                 <Image
-                  src="/img/jys26posters.png"
-                  alt="Japan Youth Summit 2026 cover"
+                  src="/img/program-cover.png"
+                  alt="Program cover"
                   width={260}
                   height={360}
                   className={componentsTheme.applyOverview.coverImage}

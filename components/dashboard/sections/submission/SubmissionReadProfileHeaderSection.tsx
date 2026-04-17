@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { PencilLine } from "lucide-react";
+import { Eye, EyeOff, PencilLine } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { componentsTheme } from "@/lib/theme/components";
 
@@ -9,6 +10,7 @@ const submissionTheme = componentsTheme.dashboardSubmission;
 
 export default function SubmissionReadProfileHeaderSection() {
   const { me, onboarding, participantProfile } = useDashboardData();
+  const [showAccountId, setShowAccountId] = useState(false);
 
   const displayName =
     participantProfile?.displayName?.trim() ||
@@ -18,6 +20,12 @@ export default function SubmissionReadProfileHeaderSection() {
     "Participant";
   const profileImageUrl = participantProfile?.profilePictureUrl?.trim() || null;
   const accountId = me?.userId || "-";
+  const maskedAccountId = useMemo(() => {
+    if (!accountId || accountId === "-") return "-";
+    const raw = String(accountId);
+    if (raw.length <= 6) return "•".repeat(raw.length);
+    return `${"•".repeat(Math.max(0, raw.length - 4))}${raw.slice(-4)}`;
+  }, [accountId]);
 
   const originParts = [onboarding?.originCity, onboarding?.originState].filter(Boolean).join(", ");
   const origin = [originParts, onboarding?.originCountry].filter(Boolean).join("\n");
@@ -57,7 +65,21 @@ export default function SubmissionReadProfileHeaderSection() {
             <p className={submissionTheme.profileRole}>Participant Account</p>
             <p className={submissionTheme.profileMeta}>
               <span className={submissionTheme.profileMetaLabel}>Account ID:</span>{" "}
-              {accountId}
+              <span className="inline-flex items-center gap-2">
+                <span className="font-mono">
+                  {showAccountId ? accountId : maskedAccountId}
+                </span>
+                {accountId !== "-" && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAccountId(v => !v)}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                    aria-label={showAccountId ? "Hide account id" : "Show account id"}
+                  >
+                    {showAccountId ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                )}
+              </span>
             </p>
           </div>
         </div>

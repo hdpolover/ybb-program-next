@@ -566,10 +566,10 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
           {/* Agreement section */}
           <div className={paymentsTheme.agreementCard}>
             <p className={paymentsTheme.agreementTitle}>Before you continue</p>
-            <label className={paymentsTheme.agreementRowPink}>
+            <label className={paymentsTheme.agreementRowBrand}>
               <input
                 type="checkbox"
-                className={paymentsTheme.agreementCheckboxPink}
+                className={paymentsTheme.agreementCheckboxBrand}
                 checked={agreeFunding}
                 onChange={(e) => setAgreeFunding(e.target.checked)}
               />

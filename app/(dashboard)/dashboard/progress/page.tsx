@@ -7,14 +7,31 @@ import { componentsTheme } from "@/lib/theme/components";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
-function getCurrentStep(steps: ProgressStep[]) {
-  const waitingIndex = steps.findIndex(step => step.status === "waiting");
-  if (waitingIndex !== -1) return { step: steps[waitingIndex], index: waitingIndex };
+function normalizeStepTitle(value: string) {
+  return value.trim().toLowerCase();
+}
 
-  const doneIndex = steps.findLastIndex(step => step.status === "done");
-  if (doneIndex !== -1) return { step: steps[doneIndex], index: doneIndex };
+function getCurrentStepIndex({
+  steps,
+  currentStepTitle,
+  progressPercentage,
+}: {
+  steps: ProgressStep[];
+  currentStepTitle: string | null;
+  progressPercentage: number;
+}) {
+  if (currentStepTitle?.trim()) {
+    const normalized = normalizeStepTitle(currentStepTitle);
+    const matchedIndex = steps.findIndex(step => normalizeStepTitle(step.title) === normalized);
+    if (matchedIndex !== -1) return matchedIndex;
+  }
 
-  return { step: steps[0], index: 0 };
+  const totalSteps = steps.length;
+  if (totalSteps <= 0) return 0;
+
+  const ratio = Math.min(1, Math.max(0, progressPercentage / 100));
+  const idx = Math.max(0, Math.min(totalSteps - 1, Math.ceil(ratio * totalSteps) - 1));
+  return idx;
 }
 
 export default function DashboardProgressPage() {
@@ -23,7 +40,7 @@ export default function DashboardProgressPage() {
   const { submissionProgress, currentStepIndex, loading, error } = usePortalSubmissionProgress();
   const progressSteps = buildProgressSteps(submissionProgress?.sections);
 
-  const { step: currentStep, index: fallbackCurrentIndex } = getCurrentStep(progressSteps);
+  const fallbackCurrentIndex = getCurrentStepIndex({ steps: progressSteps, currentStepTitle: null, progressPercentage: 0 });
   const currentIndex = currentStepIndex >= 0 ? Math.min(currentStepIndex, Math.max(0, progressSteps.length - 1)) : fallbackCurrentIndex;
   const totalSteps = progressSteps.length;
   const completedCount = progressSteps.filter(step => step.status === "done").length;
@@ -37,7 +54,7 @@ export default function DashboardProgressPage() {
       ? Math.min(100, Math.max(0, Math.round(activeApplication.progress)))
       : fallbackProgressPercentage;
 
-  const resolvedCurrentStep = progressSteps[currentIndex] ?? currentStep;
+  const resolvedCurrentStep = progressSteps[currentIndex];
   const currentStepTitle = resolvedCurrentStep?.title || activeApplication?.currentStep?.trim() || "Application Progress";
 
   return (
@@ -52,7 +69,7 @@ export default function DashboardProgressPage() {
         <div className={overviewTheme.progressDetailCurrentChip}>
           <span className={overviewTheme.progressDetailCurrentLabel}>Current step</span>
           <span className={overviewTheme.progressDetailCurrentValue}>
-            Step {currentIndex + 1} of {totalSteps}: {currentStepTitle}
+            {progressPercentage}% · Step {currentIndex + 1} of {totalSteps}: {currentStepTitle}
           </span>
         </div>
       </div>
@@ -86,7 +103,7 @@ export default function DashboardProgressPage() {
                     style={{ left: `${progressPercentage}%` }}
                   >
                     <span className={overviewTheme.progressStepChip}>
-                      Step {currentIndex + 1}/{totalSteps}
+                      {progressPercentage}%
                     </span>
                   </div>
                 </div>
@@ -104,7 +121,7 @@ export default function DashboardProgressPage() {
             <div className={overviewTheme.progressStepsCol}>
               {progressSteps.map((step, idx) => {
                 const isCurrent = idx === currentIndex;
-                const isDone = step.status === "done";
+                const isDone = idx < currentIndex;
 
                 const indexCircleCls = isDone
                   ? overviewTheme.progressStepIndexDone
@@ -138,7 +155,7 @@ export default function DashboardProgressPage() {
                     </div>
 
                     <div className={overviewTheme.progressStepContent}>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
                         <h2 className={overviewTheme.progressStepTitle}>{step.title}</h2>
                         <span
                           className={`${overviewTheme.progressStatusChipBase} ${statusChipCls}`}

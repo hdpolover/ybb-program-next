@@ -15,8 +15,8 @@ type AboutProgramProps = {
 export default function AboutProgram({ about, vision, mission, images }: AboutProgramProps) {
   const [activeTab, setActiveTab] = useState<'about' | 'vision'>('about');
 
-  const imageMain = images?.[0]?.url ?? '/img/jysprogram.png';
-  const imageSecondary = images?.[1]?.url ?? '/img/jysprogram1.jpg';
+  const imageMain = images?.[0]?.url ?? '/img/program-overview-1.png';
+  const imageSecondary = images?.[1]?.url ?? '/img/program-overview-2.png';
   const imageThird = images?.[2]?.url ?? '/img/programoverview.png';
 
   const isHtmlContent = (value?: string) => {

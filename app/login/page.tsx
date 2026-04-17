@@ -17,7 +17,7 @@ const FALLBACK_IMAGES = [
   '/img/galeri2.png',
   '/img/programhighlight1.jpg',
   '/img/programoverview.png',
-  '/img/jysprogram1.jpg',
+  '/img/program-overview-2.png',
   '/img/galeri3.png',
 ];
 
@@ -281,8 +281,8 @@ export default function LoginPage() {
             <div className="absolute left-6 top-6 z-10 lg:hidden">
               <a href="/" className="inline-block">
                 <Image
-                  src={settings?.brand?.logo_url?.trim() || "/img/jysfooters.png"}
-                  alt={settings?.brand?.name?.trim() || "Japan Youth Summit"}
+                  src={settings?.brand?.logo_url?.trim() || "/img/ybb-logo.png"}
+                  alt={settings?.brand?.name?.trim() || "Youth Break the Boundaries"}
                   width={100}
                   height={34}
                   className="h-8 w-auto"
@@ -305,8 +305,8 @@ export default function LoginPage() {
               <div className={componentsTheme.login.heroLogoWrapper}>
                 <a href="/" className="inline-block">
                   <Image
-                    src={settings?.brand?.logo_url?.trim() || "/img/jysfooters.png"}
-                    alt={settings?.brand?.name?.trim() || "Japan Youth Summit"}
+                    src={settings?.brand?.logo_url?.trim() || "/img/ybb-logo.png"}
+                    alt={settings?.brand?.name?.trim() || "Youth Break the Boundaries"}
                     width={120}
                     height={40}
                     className={componentsTheme.login.heroLogo}

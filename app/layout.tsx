@@ -81,9 +81,9 @@ export async function generateMetadata(): Promise<Metadata> {
       authors: [{ name: 'YBB Team' }],
       creator: 'YBB Team',
       icons: {
-        icon: '/img/jyslogosolo.png', // This might need to be dynamic too
-        shortcut: '/img/jyslogosolo.png',
-        apple: '/img/jyslogosolo.png',
+        icon: '/img/ybb-logo.png',
+        shortcut: '/img/ybb-logo.png',
+        apple: '/img/ybb-logo.png',
       },
       openGraph: {
         type: 'website',
@@ -117,7 +117,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const headersList = await headers();
   const host = headersList.get('host') || 'youthacademicforum.com';
   const appVersion = process.env.NEXT_PUBLIC_APP_BUILD_ID || 'development';
-  let programSlug = 'jys'; // Default/fallback
+  let programSlug = 'ybb'; // Default/fallback
 
   let brandAccent: string | null = null;
   let settingsData = null;

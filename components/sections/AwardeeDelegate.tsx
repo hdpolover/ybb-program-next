@@ -123,9 +123,9 @@ const mapApiToAwardItem = (api: ApiAwardItem): AwardItem => {
 };
 
 export default function RecognitionAwards({
-  title = 'Awards at Japan Youth Summit',
+  title = 'Awards at Youth Summit',
   subtitle =
-    'At JYS, we recognize students who go above and beyond — those who lead, collaborate, and inspire.',
+    'We recognize students who go above and beyond — those who lead, collaborate, and inspire.',
   apiItems,
 }: RecognitionAwardsProps) {
   const normalizedApiItems = dedupeApiItems(apiItems);
@@ -169,7 +169,7 @@ export default function RecognitionAwards({
                       }`}
                     >
                       <span className={componentsTheme.awards.highlightLabel}>{h}</span>
-                      <span className={componentsTheme.awards.highlightBadge}>JYS</span>
+                      <span className={componentsTheme.awards.highlightBadge}>Award</span>
                     </li>
                   ))}
                 </ul>

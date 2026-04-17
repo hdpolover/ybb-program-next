@@ -346,7 +346,7 @@ export default function SubmissionEditMiscSection({
                           ambassadorReferralCode: e.target.value,
                         })
                       }
-                      placeholder="e.g. YBBJYS-AMB01"
+                      placeholder="e.g. YBB-AMB01"
                     />
                   </InputWrapper>
                 </div>

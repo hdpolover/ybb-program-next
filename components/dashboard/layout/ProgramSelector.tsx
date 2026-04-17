@@ -45,7 +45,7 @@ export default function ProgramSelector({
       programName: p.programName,
       year: p.year,
       label: buildProgramLabel(p.programName, p.year),
-      logo: settings?.brand?.logo_url || "/img/jysfix.png",
+      logo: settings?.brand?.logo_url || "/img/ybb-logo.png",
     }));
 
   useEffect(() => {
@@ -101,7 +101,7 @@ export default function ProgramSelector({
     ? buildProgramLabel(settings.active_program.name, settings.active_program.year)
     : (settings?.brand?.name ? buildProgramLabel(settings.brand.name) : 'Participant');
   const displayedLabel = active?.label ?? defaultLabel;
-  const displayedLogo = active?.logo ?? settings?.brand?.logo_url ?? '/img/jysfix.png';
+  const displayedLogo = active?.logo ?? settings?.brand?.logo_url ?? '/img/ybb-logo.png';
 
   return (
     <div ref={ref} className="relative inline-block text-xs font-semibold tracking-wide">

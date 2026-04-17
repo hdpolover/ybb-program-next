@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { PhoneCall, Mail, Instagram, MapPin } from 'lucide-react';
 
-import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { useSettings } from '@/components/providers/SettingsProvider';
 
@@ -36,23 +35,12 @@ export default function GetInTouchSection({
       <div
         className={`${componentsTheme.getInTouch.card} relative`}
       >
+        {/* Dynamic background with centered effect */}
+        <div className="absolute inset-0 bg-[var(--brand-accent)] opacity-10 sm:opacity-5" />
+        <div className="absolute inset-x-0 top-1/2 h-[200%] w-full -translate-y-1/2 bg-[var(--brand-accent)] opacity-20 sm:opacity-10" />
+        
         <div className="absolute inset-0 sm:hidden">
-          <Image
-            src="/img/touchwithusmobile.png"
-            alt=""
-            fill
-            priority
-            className="object-cover object-left"
-          />
-        </div>
-        <div className="absolute inset-0 hidden sm:block">
-          <Image
-            src={componentsTheme.getInTouch.cardBackground}
-            alt=""
-            fill
-            priority
-            className="object-cover object-center"
-          />
+          <div className="absolute inset-0 bg-[var(--brand-accent)] opacity-30" />
         </div>
 
         <div className="relative z-10">
@@ -62,7 +50,14 @@ export default function GetInTouchSection({
 
           {/* Right: title, description, and contact items */}
           <div>
-            <SectionHeader eyebrow={eyebrow} title={title} align="left" />
+            <div className="mb-8 text-left">
+              {eyebrow ? (
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{eyebrow}</p>
+              ) : null}
+              <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                {title}
+              </h2>
+            </div>
             <div className={componentsTheme.getInTouch.list}>
               {resolvedItems.map(item => {
                 const Wrapper: React.ElementType = item.href ? 'a' : 'div';

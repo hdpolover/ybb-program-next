@@ -194,7 +194,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             <div className={componentsTheme.programDetail.applicationCard}>
               <div className={componentsTheme.programDetail.applicationImageWrapper}>
                 <Image
-                  src={program.thumbnailUrl ?? '/img/coverjysbrosur.png'}
+                  src={program.thumbnailUrl ?? '/img/program-brochure.png'}
                   alt={programTitle}
                   fill
                   sizes="(min-width:1024px) 50vw, 100vw"

@@ -1,4 +1,4 @@
-export const LOGIN_IMAGES = ['/img/OnboardingJYS.png'];
+export const LOGIN_IMAGES = ['/img/onboarding.png'];
 
 export const steps = ['Basic Info', 'Location', 'Age', 'Program Info'] as const;
 

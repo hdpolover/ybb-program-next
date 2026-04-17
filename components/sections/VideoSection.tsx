@@ -124,7 +124,7 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                   {currentVideo ? currentVideo.description : 'Stay tuned, video will be added soon.'}
                 </p>
               </div>
-              <span className={`${componentsTheme.videoSection.badge} shrink-0`}>JYS Program {year}</span>
+              <span className={`${componentsTheme.videoSection.badge} shrink-0`}>Program {year}</span>
             </div>
           </div>
 

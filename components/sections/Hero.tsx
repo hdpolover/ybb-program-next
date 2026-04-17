@@ -9,9 +9,9 @@ type HeroProps = {
 };
 
 export default function Hero({ imageUrl, title, subtitle }: HeroProps) {
-  const fallbackImage = '/img/bannerjys.png';
+  const fallbackImage = '/img/banner-default.png';
   const src = imageUrl && imageUrl.length > 0 ? imageUrl : fallbackImage;
-  const alt = title || 'Japan Youth Summit';
+  const alt = title || 'Youth Summit';
 
   return (
     <section className={componentsTheme.heroHome.sectionWrapper}>

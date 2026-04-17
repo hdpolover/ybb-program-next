@@ -37,6 +37,13 @@ export async function GET() {
       },
     };
 
-    return NextResponse.json({ statusCode: 200, message, data: fallback });
+    return NextResponse.json(
+      { statusCode: 200, message, data: fallback },
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      },
+    );
   }
 }

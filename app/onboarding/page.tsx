@@ -32,9 +32,9 @@ export default function OnboardingPage() {
   const [statesLoading, setStatesLoading] = useState(false);
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [knowledgeSources, setKnowledgeSources] = useState<string[]>([]);
-  const brandLogo = settings?.brand?.logo_url?.trim() || '/img/jysfix.png';
+  const brandLogo = settings?.brand?.logo_url?.trim() || '/img/ybb-logo.png';
   // if user is authenticated and has programs, we could override this, but let's just use settings first
-  const [brandName, setBrandName] = useState(settings?.active_program?.name?.trim() || settings?.brand?.name?.trim() || 'Japan Youth Summit');
+  const [brandName, setBrandName] = useState(settings?.active_program?.name?.trim() || settings?.brand?.name?.trim() || 'Youth Break the Boundaries');
 
   const statesCacheRef = useRef<Map<string, StateMetadata[]>>(new Map());
   const citiesCacheRef = useRef<Map<string, CityMetadata[]>>(new Map());

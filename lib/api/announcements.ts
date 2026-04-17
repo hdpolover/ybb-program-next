@@ -5,7 +5,7 @@ import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
 function resolveBrand(host: string): string {
-  return host && host !== 'localhost' && !host.startsWith('127.0.0.1')
+  return host && !host.startsWith('localhost') && !host.startsWith('127.0.0.1')
     ? normalizeBrandUrl(host)
     : DEFAULT_BRAND_URL;
 }

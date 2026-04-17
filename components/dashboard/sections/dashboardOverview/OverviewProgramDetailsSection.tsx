@@ -48,6 +48,31 @@ export function buildProgressSteps(
   }));
 }
 
+export function getClampedProgressPercentage({
+  progress,
+  currentStep,
+  fallbackProgressPercentage,
+}: {
+  progress: unknown;
+  currentStep: unknown;
+  fallbackProgressPercentage: number;
+}) {
+  const hasCurrentStep = typeof currentStep === "string" && currentStep.trim().length > 0;
+
+  if (typeof progress !== "number" || Number.isNaN(progress)) {
+    return fallbackProgressPercentage;
+  }
+
+  const rounded = Math.round(progress);
+  const clamped = Math.min(100, Math.max(0, rounded));
+
+  if (clamped === 0 && hasCurrentStep) {
+    return fallbackProgressPercentage;
+  }
+
+  return clamped;
+}
+
 interface OverviewProgramDetailsSectionProps {
   showSeeDetailsButton?: boolean;
 }

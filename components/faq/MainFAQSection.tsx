@@ -77,7 +77,7 @@ export default function MainFAQSection({ title, subtitle, items }: MainFAQSectio
         <SectionHeader eyebrow="FAQ" title={title ?? 'Frequently Asked Questions'} />
         <p className={componentsTheme.faq.subtitle}>
           {subtitle ??
-            'Browse common questions about the Japan Youth Summit (JYS) program, registration process, and payment information.'}
+            'Browse common questions about the program, registration process, and payment information.'}
         </p>
 
         {/* Search bar */}

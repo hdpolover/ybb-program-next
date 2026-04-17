@@ -27,7 +27,7 @@ const DEFAULT_SLIDES = [
     id: 'slide-1',
     bgImage: SLIDE_BG_IMAGES[0],
     title: 'Announcements',
-    subtitle: 'Latest updates, deadlines, and official notices from YBB & JYS.',
+    subtitle: 'Latest updates, deadlines, and official notices from YBB.',
   },
 ];
 
@@ -38,7 +38,7 @@ export default function AnnouncementsHero({ items }: AnnouncementsHeroProps) {
           id: `slide-${i + 1}`,
           bgImage: item.bgImage ?? SLIDE_BG_IMAGES[i % SLIDE_BG_IMAGES.length],
           title: item.title || 'Announcements',
-          subtitle: item.excerpt || 'Latest updates, deadlines, and official notices from YBB & JYS.',
+          subtitle: item.excerpt || 'Latest updates, deadlines, and official notices from YBB.',
         }))
       : DEFAULT_SLIDES;
 

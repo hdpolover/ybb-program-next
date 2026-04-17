@@ -20,14 +20,14 @@
   --color-background: #ffffff;
   --color-foreground: #020617;
 
-  /* Brand-scoped tokens (default JYS, sinkron dengan BRAND_THEMES.jys) */
-  --brand-accent: #ec4899;
-  --brand-accent-soft: #fce7f3;
+  /* Brand-scoped tokens (default, akan di-override oleh API/settings per domain) */
+  --brand-accent: #1c57b3;
+  --brand-accent-soft: #dbeafe;
   --brand-accent-foreground: #ffffff;
   --brand-primary: #020617;
   --brand-primary-foreground: #ffffff;
   --brand-text: #0f172a;
-  --brand-border: #fb7185;
+  --brand-border: var(--brand-accent);
 
   /* Shorthand tokens yang dipakai utilitas Tailwind berbasis CSS vars */
   --color-primary: var(--brand-primary);
@@ -42,14 +42,14 @@ body {
 }
 
 body[data-program='jys'] {
-  /* Explicit supaya gampang dibaca & di-sync sama BRAND_THEMES.jys */
-  --brand-accent: #ec4899;
-  --brand-accent-soft: #fce7f3;
-  --brand-accent-foreground: #ffffff;
-  --brand-primary: #020617;
-  --brand-primary-foreground: #ffffff;
-  --brand-text: #0f172a;
-  --brand-border: #fb7185;
+  /* Warna akan di-set oleh API/settings per domain */
+  --brand-accent: var(--brand-accent);
+  --brand-accent-soft: var(--brand-accent-soft);
+  --brand-accent-foreground: var(--brand-accent-foreground);
+  --brand-primary: var(--brand-primary);
+  --brand-primary-foreground: var(--brand-primary-foreground);
+  --brand-text: var(--brand-text);
+  --brand-border: var(--brand-border);
 }
 
 body[data-program='iys'] {

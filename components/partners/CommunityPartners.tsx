@@ -29,7 +29,7 @@ export default function CommunityPartnersSection({ partners }: CommunityPartners
               className={componentsTheme.partnersCommunity.card}
             >
               <Image
-                src={p.logo || '/img/jyslogosolo.png'}
+                src={p.logo || '/img/ybb-logo.png'}
                 alt={`${p.name} logo`}
                 width={48}
                 height={48}
@@ -38,7 +38,7 @@ export default function CommunityPartnersSection({ partners }: CommunityPartners
               />
               <div>
                 <p className={componentsTheme.partnersCommunity.orgName}>{p.name}</p>
-                <span className={componentsTheme.partnersCommunity.pinkChip}>
+                <span className={componentsTheme.partnersCommunity.brandChip}>
                   {p.tier ? p.tier.replace(/_/g, ' ') : DATA_NOT_ADDED}
                 </span>
               </div>

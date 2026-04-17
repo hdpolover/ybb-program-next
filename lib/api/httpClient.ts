@@ -43,6 +43,8 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
 
   const res = await fetch(url.toString(), {
     method: 'GET',
+    cache: options.cache ?? 'no-store',
+    next: options.next,
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers ?? {}),

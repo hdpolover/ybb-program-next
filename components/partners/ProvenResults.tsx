@@ -96,8 +96,8 @@ export default function ProvenResultsSection({
                 className={componentsTheme.partnersProven.logoCard}
               >
                 <Image
-                  src="/img/jyslogosolo.png"
-                  alt="Youth Beyond Borders Network"
+                  src="/img/ybb-logo.png"
+                  alt="Youth Break the Boundaries"
                   width={96}
                   height={48}
                   sizes="96px"

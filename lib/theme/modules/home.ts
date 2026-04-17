@@ -291,7 +291,7 @@ export const homeTheme = {
   },
   promoCta: {
     sectionWrapper:
-      "relative w-full overflow-hidden bg-[url('/img/ctabekground.png')] bg-cover bg-center bg-no-repeat py-12 text-[#172554] sm:py-16 lg:py-20",
+      "relative w-full overflow-hidden bg-[var(--brand-accent)] bg-cover bg-center bg-no-repeat py-12 text-white sm:py-16 lg:py-20",
     glowLeft:
       'pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl',
     glowRight:
@@ -301,11 +301,11 @@ export const homeTheme = {
     container:
       'relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-6 lg:grid-cols-2 lg:gap-10 lg:px-8',
     leftCol: 'relative z-10',
-    eyebrow: 'text-sm font-semibold uppercase tracking-[0.18em] text-white-200',
-    title: 'text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl',
-    subtitle: 'text-white-200 mt-4 max-w-xl',
+    eyebrow: 'text-sm font-semibold uppercase tracking-[0.18em] text-white/80',
+    title: 'text-3xl font-extrabold leading-tight text-white sm:text-4xl lg:text-5xl',
+    subtitle: 'text-white/80 mt-4 max-w-xl',
     primaryButton:
-      'hover:bg-accent/90 inline-flex items-center justify-center rounded-md bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2',
+      'hover:bg-white/90 inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-[var(--brand-accent)] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2',
     actionsRow: 'mt-6 flex flex-wrap gap-3',
     rightCol: 'relative z-10 flex flex-col',
     videoCard:

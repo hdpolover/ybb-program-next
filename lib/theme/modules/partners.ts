@@ -159,7 +159,7 @@ export const partnersTheme = {
     card: 'group w-[340px] sm:w-[360px] flex items-start gap-4 rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-primary/40',
     logoImg: 'h-12 w-12 rounded bg-white object-contain p-1.5 ring-1 ring-slate-200',
     orgName: 'font-extrabold text-slate-900',
-    pinkChip:
+    brandChip:
       'mt-1 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary ring-1 ring-primary/30',
     academicChip:
       'mt-1 inline-block rounded-full bg-primary/5 px-2.5 py-0.5 text-xs font-semibold text-primary ring-1 ring-primary/30',

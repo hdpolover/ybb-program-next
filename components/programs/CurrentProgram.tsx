@@ -138,7 +138,7 @@ export default function CurrentProgram({ overview, coverImage }: CurrentProgramP
                 <div className="relative w-full aspect-square overflow-hidden rounded-2xl">
                   <Image
                     src={coverImage ?? '/img/jys26posters.png'}
-                    alt="Japan Youth Summit 2026 cover"
+                    alt="Program cover"
                     fill
                     sizes="(min-width:1024px) 260px, (min-width:640px) 50vw, 100vw"
                     className={`${componentsTheme.programsCurrent.coverImage} object-cover`}

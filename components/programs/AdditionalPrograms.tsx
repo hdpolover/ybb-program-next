@@ -1,5 +1,7 @@
+ 'use client';
+
 import Image from 'next/image';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { OtherProgramsSection } from '@/types/programs';
@@ -21,7 +23,7 @@ export default function AdditionalPrograms({ otherPrograms }: AdditionalPrograms
     title: item.brand_name || item.name,
     href: `/programs/${item.slug}`,
     cover: item.thumbnail || '/img/programsbackground.png',
-    logo: item.brand_logo || '/img/jyslogosolo.png',
+    logo: item.brand_logo || '/img/ybb-logo.png',
     dates: item.start_date ? new Date(item.start_date).getFullYear().toString() : DATA_NOT_ADDED,
   }));
 

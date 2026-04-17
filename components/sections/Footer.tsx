@@ -83,7 +83,10 @@ export default function Footer() {
                 unoptimized
               />
             </div>
-            <p className="mt-2 max-w-sm text-sm text-white/80">{brand?.description || ''}</p>
+            <div 
+              className="mt-2 max-w-sm text-sm text-white/80 prose prose-invert prose-sm"
+              dangerouslySetInnerHTML={{ __html: brand?.description || '' }}
+            />
           </div>
 
           {/* Navigasi / Menu utama (Quick Links) */}
