@@ -137,7 +137,7 @@ export default function CurrentProgram({ overview, coverImage }: CurrentProgramP
               <div className={componentsTheme.programsCurrent.coverWrapper}>
                 <div className="relative w-full aspect-square overflow-hidden rounded-2xl">
                   <Image
-                    src={coverImage ?? '/img/program-cover.png'}
+                    src={coverImage ?? '/img/jys26posters.png'}
                     alt="Program cover"
                     fill
                     sizes="(min-width:1024px) 260px, (min-width:640px) 50vw, 100vw"
