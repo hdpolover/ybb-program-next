@@ -117,7 +117,10 @@ Create a `.env.local` file in the root directory:
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=/api
+APP_BUILD_ID=development
 ```
+
+For production and Dokploy deployments, set `APP_BUILD_ID` to a unique value per release, such as a commit SHA, release tag, or CI build number. This is what the app uses to detect that a newer web version is live and trigger a full refresh.
 
 ## 📚 Tech Stack
 

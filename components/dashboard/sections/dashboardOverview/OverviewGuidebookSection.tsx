@@ -1,19 +1,32 @@
 "use client";
 
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 
-const overviewTheme = jysSectionTheme.dashboardOverview;
+const overviewTheme = componentsTheme.dashboardOverview;
 
-export default function OverviewGuidebookSection() {
+interface OverviewGuidebookSectionProps {
+  /** URL for the English guidebook PDF. Defaults to "#guidebook-en". */
+  guidebookEnUrl?: string;
+  /** URL for the Indonesian guidebook PDF. Defaults to "#guidebook-id". */
+  guidebookIdUrl?: string;
+}
+
+export default function OverviewGuidebookSection({
+  guidebookEnUrl = "#guidebook-en",
+  guidebookIdUrl = "#guidebook-id",
+}: OverviewGuidebookSectionProps) {
   return (
     <aside
-      className={`${overviewTheme.guideAside} sm:bg-[url('/img/bgguidebookdashboard.png')] sm:bg-cover sm:bg-bottom`}
-      style={{
-        backgroundColor: '#facde7',
-        backgroundImage: 'none',
-      }}
+      className={overviewTheme.guideAside}
+
     >
+
+
+            {/* Decorative gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary)]/10 via-transparent to-[var(--brand-primary)]/5 pointer-events-none" />
       <div className={overviewTheme.guideInner}>
+
+
         <div className={overviewTheme.guideHeaderWrapper}>
           <p className={overviewTheme.guideEyebrow}>More Information?</p>
           <h2 className={overviewTheme.guideTitle}>Check this Guidebook!</h2>
@@ -23,7 +36,7 @@ export default function OverviewGuidebookSection() {
         </div>
 
         <div className={overviewTheme.guideLinksWrapper}>
-          <a href="#guidebook-en" className={overviewTheme.guideLink}>
+          <a href={guidebookEnUrl} className={overviewTheme.guideLink}>
             <span className={overviewTheme.guideLeftLinkInner}>
               <span className={overviewTheme.guideBadgeCircle}>
                 <span className={overviewTheme.guideBadgeText}>GB</span>
@@ -32,7 +45,7 @@ export default function OverviewGuidebookSection() {
             </span>
             <span className={overviewTheme.guideFileType}>PDF</span>
           </a>
-          <a href="#guidebook-id" className={overviewTheme.guideLink}>
+          <a href={guidebookIdUrl} className={overviewTheme.guideLink}>
             <span className={overviewTheme.guideLeftLinkInner}>
               <span className={overviewTheme.guideBadgeCircle}>
                 <span className={overviewTheme.guideBadgeText}>ID</span>

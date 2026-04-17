@@ -1,20 +1,21 @@
 import type { AnnouncementsPageData } from '@/types/announcements';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
+import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
+const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
+
+function resolveBrand(host: string): string {
+  return host && !host.startsWith('localhost') && !host.startsWith('127.0.0.1')
+    ? normalizeBrandUrl(host)
+    : DEFAULT_BRAND_URL;
 }
 
-const BRAND_URL =
-  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
-
-export async function getAnnouncementsPageData(): Promise<AnnouncementsPageData> {
+export async function getAnnouncementsPageData(host: string): Promise<AnnouncementsPageData> {
+  const brandUrl = resolveBrand(host);
   return apiGetWithEnvelope<AnnouncementsPageData>('/v1/landing/announcements', {
-    query: { url: BRAND_URL },
+    query: { url: brandUrl },
     headers: {
-      'x-brand-domain': BRAND_URL,
+      'x-brand-domain': brandUrl,
     },
   });
 }

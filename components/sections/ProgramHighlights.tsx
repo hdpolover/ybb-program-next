@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { Check } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type HighlightImage = {
   url: string;
@@ -37,7 +37,7 @@ export default function ProgramHighlights({
   const items = highlightItems && highlightItems.length > 0 ? highlightItems : defaultObjectivePoints;
 
   return (
-    <section className={jysSectionTheme.programHighlights.sectionWrapper}>
+    <section className={componentsTheme.programHighlights.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader eyebrow="Program Objective" title={title} />
 
@@ -48,7 +48,7 @@ export default function ProgramHighlights({
               <div className="grid h-full grid-cols-2 gap-4">
                 {/* Gambar besar kiri */}
                 <div
-                  className={`${jysSectionTheme.programHighlights.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                  className={`${componentsTheme.programHighlights.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
                 >
                   {largeImage ? (
                     <Image
@@ -71,7 +71,7 @@ export default function ProgramHighlights({
 
                 {/* Dua gambar kecil kanan */}
                 <div
-                  className={`${jysSectionTheme.programHighlights.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                  className={`${componentsTheme.programHighlights.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
                 >
                   {smallImage1 ? (
                     <Image
@@ -92,7 +92,7 @@ export default function ProgramHighlights({
                   )}
                 </div>
                 <div
-                  className={`${jysSectionTheme.programHighlights.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
+                  className={`${componentsTheme.programHighlights.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
                 >
                   {smallImage2 ? (
                     <Image
@@ -117,8 +117,8 @@ export default function ProgramHighlights({
           </div>
 
           {/* Right: Program Objective points */}
-          <div className={jysSectionTheme.programHighlights.rightWrapper}>
-            <p className={jysSectionTheme.programHighlights.objectiveIntro}>
+          <div className={componentsTheme.programHighlights.rightWrapper}>
+            <p className={componentsTheme.programHighlights.objectiveIntro}>
               The Japan Youth Summit program is carefully designed to shape delegates into impactful
               young leaders. Through a mix of forums, competitions, and collaborative projects,
               participants are guided to grow in character, skills, and global perspective.
@@ -127,10 +127,10 @@ export default function ProgramHighlights({
             <ul className="mt-5 space-y-3">
               {items.map(point => (
                 <li key={point} className="flex items-start gap-3">
-                  <span className={jysSectionTheme.programHighlights.checkIcon}>
+                  <span className={componentsTheme.programHighlights.checkIcon}>
                     <Check className="h-4 w-4" />
                   </span>
-                  <span className={jysSectionTheme.programHighlights.objectivePointText}>
+                  <span className={componentsTheme.programHighlights.objectivePointText}>
                     {point}
                   </span>
                 </li>

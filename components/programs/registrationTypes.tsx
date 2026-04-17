@@ -10,13 +10,12 @@ import {
   ClipboardCheck,
   BarChart3,
 } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { PROGRAMS_REGISTRATION_COPY } from '@/data/programs/sections/registration-info/programsRegistrationInfo';
+import { componentsTheme } from '@/lib/theme/components';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
 } from '@/types/programs';
-import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type RegistrationTypeProgramsProps = {
   pricingTiers?: RegistrationInfoPricingTier[];
@@ -38,6 +37,8 @@ export default function RegistrationTypePrograms({
   status,
   registrationDates,
 }: RegistrationTypeProgramsProps) {
+  if (!pricingTiers && !instructions) return null;
+
   const primaryType = pricingTiers?.[0];
   const secondaryType = pricingTiers?.[1];
 
@@ -77,6 +78,22 @@ export default function RegistrationTypePrograms({
   const infoInstructions: RegistrationInfoInstruction[] =
     instructions && instructions.length > 0 ? instructions : [];
 
+  const selfFundedRequirements = primaryType?.requirements?.length
+    ? primaryType.requirements
+    : [
+        'Complete registration form and documentation',
+        'Submit required documents on time',
+        'Pay fees according to scheduled payment batches',
+      ];
+
+  const fullyFundedRequirements = secondaryType?.requirements?.length
+    ? secondaryType.requirements
+    : [
+        'Complete registration form and documentation',
+        'Submit detailed essays and applications',
+        'Participate in interviews and evaluations',
+      ];
+
   const renderInstructionIcon = (icon: string) => {
     switch (icon) {
       case 'calendar':
@@ -93,219 +110,219 @@ export default function RegistrationTypePrograms({
   };
 
   return (
-    <section className={jysSectionTheme.homeRegistration.sectionWrapper}>
-      <div className={jysSectionTheme.homeRegistration.container}>
+    <section className={componentsTheme.homeRegistration.sectionWrapper}>
+      <div className={componentsTheme.homeRegistration.container}>
         <SectionHeader
           eyebrow="Registration"
           title={title || 'Choose Your Registration Type'}
           subtitle={description}
         />
 
-        <div className={jysSectionTheme.homeRegistration.mainGrid}>
+        <div className={componentsTheme.homeRegistration.mainGrid}>
           {/* Kiri: kartu tipe registrasi (replikasi dari Registration Types di homepage) */}
-          <div className={jysSectionTheme.homeRegistration.cardsGrid}>
+          <div className={componentsTheme.homeRegistration.cardsGrid}>
             {/* Self Funded */}
-            <div className={jysSectionTheme.applyRegistrationTypes.card}>
-              <div className={jysSectionTheme.applyRegistrationTypes.headerWrapper}>
-                <div className={jysSectionTheme.applyRegistrationTypes.headerRow}>
-                  <div className={jysSectionTheme.applyRegistrationTypes.headerTitleRow}>
-                    <span className={jysSectionTheme.applyRegistrationTypes.iconCircle}>
+            <div className={componentsTheme.applyRegistrationTypes.card}>
+              <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
+                <div className={componentsTheme.applyRegistrationTypes.headerRow}>
+                  <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
+                    <span className={componentsTheme.applyRegistrationTypes.iconCircle}>
                       <CreditCard className="h-5 w-5" />
                     </span>
                     <div>
-                      <h3 className={jysSectionTheme.applyRegistrationTypes.headerTitle}>
+                      <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
                         {primaryType?.name ?? 'Self Funded'}
                       </h3>
-                      <p className={jysSectionTheme.applyRegistrationTypes.headerSubtitle}>
-                        {PROGRAMS_REGISTRATION_COPY.selfFundedSubtitle}
+                      <p className={componentsTheme.applyRegistrationTypes.headerSubtitle}>
+                        Registration
                       </p>
                     </div>
                   </div>
                   <span
                     className={
                       isOpen
-                        ? jysSectionTheme.applyRegistrationTypes.statusBadgeOpen
-                        : jysSectionTheme.applyRegistrationTypes.statusBadgeClosed
+                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
+                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
                     }
                   >
                     {isOpen ? 'Open' : 'Closed'}
                   </span>
                 </div>
-                <div className={jysSectionTheme.applyRegistrationTypes.feeRow}>
-                  <span className={jysSectionTheme.applyRegistrationTypes.priceText}>
+                <div className={componentsTheme.applyRegistrationTypes.feeRow}>
+                  <span className={componentsTheme.applyRegistrationTypes.priceText}>
                     {primaryType
                       ? `${primaryType.currency} ${primaryType.price}`
                       : DATA_NOT_ADDED}
                   </span>
-                  <span className={jysSectionTheme.applyRegistrationTypes.feeLabel}>
-                    {PROGRAMS_REGISTRATION_COPY.feeLabel}
+                  <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
+                    Registration Fee
                   </span>
                 </div>
-                <div className={jysSectionTheme.applyRegistrationTypes.periodRow}>
-                  <Calendar className={jysSectionTheme.applyRegistrationTypes.calendarIcon} />
-                  <span className={jysSectionTheme.applyRegistrationTypes.periodLabel}>
-                    {PROGRAMS_REGISTRATION_COPY.periodLabel}
+                <div className={componentsTheme.applyRegistrationTypes.periodRow}>
+                  <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
+                  <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
+                    Registration Period:
                   </span>
                   <span>{registrationPeriodLabel}</span>
                 </div>
               </div>
-              <div className={jysSectionTheme.applyRegistrationTypes.bodyWrapper}>
-                <p className={jysSectionTheme.applyRegistrationTypes.sectionLabel}>
-                  {PROGRAMS_REGISTRATION_COPY.requirementsTitle}
+              <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
+                <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>
+                  Requirements
                 </p>
-                <ul className={jysSectionTheme.applyRegistrationTypes.list}>
-                  {PROGRAMS_REGISTRATION_COPY.selfFundedRequirements.map((label, idx) => (
-                    <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+                <ul className={componentsTheme.applyRegistrationTypes.list}>
+                  {selfFundedRequirements.map((label, idx) => (
+                    <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
                       <span
-                        className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
-                      <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
+                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>
                         {label}
                       </span>
                     </li>
                   ))}
                 </ul>
-                <p className={jysSectionTheme.applyRegistrationTypes.bodySectionSpacer}>
-                  {PROGRAMS_REGISTRATION_COPY.selfFundedBenefitTitle}
+                <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+                  Benefit
                 </p>
-                <ul className={jysSectionTheme.applyRegistrationTypes.list}>
+                <ul className={componentsTheme.applyRegistrationTypes.list}>
                   {primaryBenefits.length > 0 ? (
                     primaryBenefits.map((label, idx) => (
-                      <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
                         <span
-                          className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                          className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                         >
                           <Check className="h-3 w-3" />
                         </span>
-                        <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
+                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>
                           {label}
                         </span>
                       </li>
                     ))
                   ) : (
-                    <li className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+                    <li className={componentsTheme.applyRegistrationTypes.listItemRow}>
                       <span
-                        className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
-                      <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
+                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>
                         {DATA_NOT_ADDED}
                       </span>
                     </li>
                   )}
                 </ul>
               </div>
-              <div className={jysSectionTheme.applyRegistrationTypes.cardFooter}>
-                <div className={jysSectionTheme.applyRegistrationTypes.ctaWrapper}>
+              <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
+                <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   <a
                     href="/apply/self-funded"
                     className={`${
-                      jysSectionTheme.applyRegistrationTypes.ctaButton
-                    } ${jysSectionTheme.applyRegistrationTypes.ctaButtonWide}`}
+                      componentsTheme.applyRegistrationTypes.ctaButton
+                    } ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                   >
-                    {PROGRAMS_REGISTRATION_COPY.selfFundedCtaLabel}
+                    See Details
                   </a>
                 </div>
               </div>
             </div>
 
             {/* Fully Funded */}
-            <div className={jysSectionTheme.applyRegistrationTypes.card}>
-              <div className={jysSectionTheme.applyRegistrationTypes.headerWrapper}>
-                <div className={jysSectionTheme.applyRegistrationTypes.headerRowTopAligned}>
-                  <div className={jysSectionTheme.applyRegistrationTypes.headerTitleRow}>
-                    <span className={jysSectionTheme.applyRegistrationTypes.iconCircle}>
+            <div className={componentsTheme.applyRegistrationTypes.card}>
+              <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
+                <div className={componentsTheme.applyRegistrationTypes.headerRowTopAligned}>
+                  <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
+                    <span className={componentsTheme.applyRegistrationTypes.iconCircle}>
                       <MapPin className="h-5 w-5" />
                     </span>
                     <div>
-                      <h3 className={jysSectionTheme.applyRegistrationTypes.headerTitle}>
+                      <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
                         {secondaryType?.name ?? 'Fully Funded'}
                       </h3>
-                      <p className={jysSectionTheme.applyRegistrationTypes.headerSubtitle}>
-                        {PROGRAMS_REGISTRATION_COPY.fullyFundedSubtitle}
+                      <p className={componentsTheme.applyRegistrationTypes.headerSubtitle}>
+                        Reimbursement System
                       </p>
                     </div>
                   </div>
-                  <span className={jysSectionTheme.applyRegistrationTypes.statusBadgeClosed}>
+                  <span className={componentsTheme.applyRegistrationTypes.statusBadgeClosed}>
                     Closed
                   </span>
                 </div>
-                <div className={jysSectionTheme.applyRegistrationTypes.feeRow}>
-                  <span className={jysSectionTheme.applyRegistrationTypes.priceText}>
+                <div className={componentsTheme.applyRegistrationTypes.feeRow}>
+                  <span className={componentsTheme.applyRegistrationTypes.priceText}>
                     {secondaryType
                       ? `${secondaryType.currency} ${secondaryType.price}`
                       : DATA_NOT_ADDED}
                   </span>
-                  <span className={jysSectionTheme.applyRegistrationTypes.feeLabel}>
+                  <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
                     Registration Fee
                   </span>
                 </div>
-                <div className={jysSectionTheme.applyRegistrationTypes.periodRow}>
-                  <Calendar className={jysSectionTheme.applyRegistrationTypes.calendarIcon} />
-                  <span className={jysSectionTheme.applyRegistrationTypes.periodLabel}>
+                <div className={componentsTheme.applyRegistrationTypes.periodRow}>
+                  <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
+                  <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                     Registration Period:
                   </span>
-                  <span>Aug 01 – Sep 30, 2025</span>
+                  <span>{registrationPeriodLabel}</span>
                 </div>
               </div>
-              <div className={jysSectionTheme.applyRegistrationTypes.bodyWrapper}>
-                <p className={jysSectionTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
-                <ul className={jysSectionTheme.applyRegistrationTypes.list}>
-                  {PROGRAMS_REGISTRATION_COPY.fullyFundedRequirements.map((label, idx) => (
-                    <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+              <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
+                <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+                <ul className={componentsTheme.applyRegistrationTypes.list}>
+                  {fullyFundedRequirements.map((label, idx) => (
+                    <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
                       <span
-                        className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
-                      <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
+                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>
                         {label}
                       </span>
                     </li>
                   ))}
                 </ul>
-                <p className={jysSectionTheme.applyRegistrationTypes.bodySectionSpacer}>
-                  {PROGRAMS_REGISTRATION_COPY.fullyFundedBenefitTitle}
+                <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+                  Benefit (If Selected)
                 </p>
-                <ul className={jysSectionTheme.applyRegistrationTypes.list}>
+                <ul className={componentsTheme.applyRegistrationTypes.list}>
                   {secondaryBenefits.length > 0 ? (
                     secondaryBenefits.map((label, idx) => (
-                      <li key={idx} className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
                         <span
-                          className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                          className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                         >
                           <Check className="h-3 w-3" />
                         </span>
-                        <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
+                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>
                           {label}
                         </span>
                       </li>
                     ))
                   ) : (
-                    <li className={jysSectionTheme.applyRegistrationTypes.listItemRow}>
+                    <li className={componentsTheme.applyRegistrationTypes.listItemRow}>
                       <span
-                        className={`${jysSectionTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
                       >
                         <Check className="h-3 w-3" />
                       </span>
-                      <span className={jysSectionTheme.applyRegistrationTypes.listItemText}>
+                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>
                         {DATA_NOT_ADDED}
                       </span>
                     </li>
                   )}
                 </ul>
               </div>
-              <div className={jysSectionTheme.applyRegistrationTypes.cardFooter}>
-                <div className={jysSectionTheme.applyRegistrationTypes.ctaWrapper}>
+              <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
+                <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   <button
                     type="button"
                     aria-disabled
-                    className={jysSectionTheme.applyRegistrationTypes.ctaButtonDisabled}
+                    className={componentsTheme.applyRegistrationTypes.ctaButtonDisabled}
                   >
-                    {PROGRAMS_REGISTRATION_COPY.fullyFundedCtaLabel}
+                    See Details
                   </button>
                 </div>
               </div>
@@ -313,46 +330,46 @@ export default function RegistrationTypePrograms({
           </div>
 
           {/* Kanan: informasi tambahan seputar registrasi */}
-          <div className={jysSectionTheme.homeImportantPayment.infoSideWrapper}>
-            <div className={jysSectionTheme.homeImportantPayment.infoSideCard}>
+          <div className={componentsTheme.homeImportantPayment.infoSideWrapper}>
+            <div className={componentsTheme.homeImportantPayment.infoSideCard}>
               <div>
-                <h3 className={jysSectionTheme.homeImportantPayment.infoTitle}>
-                  {PROGRAMS_REGISTRATION_COPY.infoSide.title}
+                <h3 className={componentsTheme.homeImportantPayment.infoTitle}>
+                  Registration Information
                 </h3>
-                <p className={jysSectionTheme.homeImportantPayment.infoIntro}>
-                  {PROGRAMS_REGISTRATION_COPY.infoSide.intro}
+                <p className={componentsTheme.homeImportantPayment.infoIntro}>
+                  Make sure you understand the key details about payments, selection, guarantees, and important deadlines before choosing your registration type. This overview is designed to help you make a well-informed decision.
                 </p>
 
-                <div className={jysSectionTheme.homeImportantPayment.infoPointsWrapper}>
+                <div className={componentsTheme.homeImportantPayment.infoPointsWrapper}>
                   {infoInstructions.length > 0 ? (
                     infoInstructions.map(item => (
                       <div
                         key={item.title}
-                        className={jysSectionTheme.homeImportantPayment.infoPointRow}
+                        className={componentsTheme.homeImportantPayment.infoPointRow}
                       >
-                        <span className={jysSectionTheme.homeImportantPayment.infoPointIcon}>
+                        <span className={componentsTheme.homeImportantPayment.infoPointIcon}>
                           {renderInstructionIcon(item.icon)}
                         </span>
                         <div>
-                          <p className={jysSectionTheme.homeImportantPayment.infoPointTitle}>
+                          <p className={componentsTheme.homeImportantPayment.infoPointTitle}>
                             {item.title}
                           </p>
-                          <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
+                          <p className={componentsTheme.homeImportantPayment.infoPointBody}>
                             {item.text}
                           </p>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className={jysSectionTheme.homeImportantPayment.infoPointBody}>
+                    <p className={componentsTheme.homeImportantPayment.infoPointBody}>
                       {DATA_NOT_ADDED}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className={jysSectionTheme.homeImportantPayment.infoFooter}>
-                {PROGRAMS_REGISTRATION_COPY.infoSide.footer}
+              <div className={componentsTheme.homeImportantPayment.infoFooter}>
+                For complete terms and conditions, please read the official guidebook and FAQ on the official program website and check regularly for the most recent updates from the organizing committee.
               </div>
             </div>
           </div>

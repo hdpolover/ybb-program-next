@@ -33,6 +33,18 @@ export type CtaBecomePartnerSection = {
   content: {
     text: string;
     link: string;
+    video_url?: string | null;
+    video_title?: string | null;
+    video_description?: string | null;
+    affiliate_commission?: {
+      fully_funded_pct: number;
+      self_funded_pct: number;
+    } | null;
+    sponsorship_tiers?: {
+      silver?: string | null;
+      gold?: string | null;
+      diamond?: string | null;
+    } | null;
   };
 };
 

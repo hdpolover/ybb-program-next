@@ -13,9 +13,12 @@ import {
   type ParticipantMeData,
   type ParticipantOnboardingData,
   type PortalDashboardSummary,
+  type AmbassadorData,
 } from '@/components/dashboard/DashboardDataContext';
+import { DashboardModeProvider } from '@/components/dashboard/DashboardModeContext';
 import NotificationsPopover from '@/components/dashboard/layout/NotificationsPopover';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import UserMenuPopover from '@/components/dashboard/layout/UserMenuPopover';
+import { componentsTheme } from '@/lib/theme/components';
 
 type DashboardSearchItem = {
   id: string;
@@ -50,12 +53,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const searchTheme = jysSectionTheme.dashboardSearch;
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false); // Mobile sidebar state
+  const searchTheme = componentsTheme.dashboardSearch;
   const [me, setMe] = useState<AuthMeData | null>(null);
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
   const [participantProfile, setParticipantProfile] = useState<ParticipantMeData | null>(null);
   const [dashboardSummary, setDashboardSummary] = useState<PortalDashboardSummary | null>(null);
+  const [ambassadorData, setAmbassadorData] = useState<AmbassadorData | null>(null);
 
   let sectionLabel: string | null = null;
   let subLabel: string | null = null;
@@ -158,6 +162,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         } catch {
           // ignore
         }
+
+        try {
+          const ambassadorRes = await fetch('/api/participants/ambassador', {
+            method: 'GET',
+            cache: 'no-store',
+          });
+
+          if (!cancelled && ambassadorRes.ok) {
+            const ambassadorJson = (await ambassadorRes.json().catch(() => ({}))) as any;
+            const ambassador = (ambassadorJson?.data ?? null) as AmbassadorData | null;
+            if (ambassador?.isActive) {
+              setAmbassadorData(ambassador);
+            }
+          }
+        } catch {
+          // ignore
+        }
       } catch {
         // ignore
       }
@@ -178,43 +199,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     onboarding?.displayName?.trim() ||
     onboarding?.fullName?.trim() ||
     'Participant';
-  const greetingText = dashboardSummary?.greeting?.trim() || null;
-
   // shell grid: sidebar kiri + konten kanan
   return (
+    <DashboardModeProvider>
     <main className="relative h-screen overflow-hidden bg-white">
       <div className="flex h-screen">
         {/* Sidebar nempel di kiri */}
-        <div className="hidden md:block">
-          <Sidebar profileEmail={me?.email ?? ''} />
-        </div>
-
-        {mobileSidebarOpen ? (
-          <div className="fixed inset-0 z-50 md:hidden">
-            <button
-              type="button"
-              aria-label="Close sidebar"
-              className="absolute inset-0 bg-black/40"
-              onClick={() => setMobileSidebarOpen(false)}
-            />
-
-            <div className="absolute left-0 top-0 h-full w-[280px] bg-[#e53b8c] shadow-2xl flex flex-col">
-              <div className="flex items-center justify-end px-3 pt-3 pb-2">
-                <button
-                  type="button"
-                  aria-label="Close"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white/90 ring-1 ring-white/20"
-                  onClick={() => setMobileSidebarOpen(false)}
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <Sidebar profileEmail={me?.email ?? ''} />
-              </div>
-            </div>
-          </div>
-        ) : null}
+        <Sidebar
+          profileEmail={me?.email ?? ''}
+          profileImageUrl={participantProfile?.profilePictureUrl}
+          profileName={greetingName}
+        />
 
         {/* Kolom kanan: navbar atas + konten */}
         <DashboardDataProvider
@@ -222,6 +217,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           me={me}
           onboarding={onboarding}
           participantProfile={participantProfile}
+          ambassadorData={ambassadorData}
         >
           <div className="flex h-screen flex-1 flex-col overflow-y-auto">
           {/* Navbar dashboard */}
@@ -256,11 +252,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
 
-            {/* Program selector di kanan */}
+            {/* Program selector + user menu di kanan */}
             <div className="flex flex-1 justify-end">
               <div className="flex items-center gap-3">
                 <NotificationsPopover />
                 <ProgramSelector programs={me?.registeredPrograms ?? []} />
+                <UserMenuPopover
+                  profileName={greetingName}
+                  profileEmail={me?.email}
+                  profileImageUrl={participantProfile?.profilePictureUrl}
+                  isAmbassador={!!ambassadorData?.isActive}
+                />
               </div>
             </div>
           </header>
@@ -269,7 +271,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <section className="flex-1 px-6 py-6 lg:px-8">
             <div className="mx-auto max-w-6xl space-y-4">
               {/* Header halaman (disembunyiin kalau lagi di halaman payments atau saat sedang mencari) */}
-              {!pathname?.startsWith('/dashboard/payments') && searchQuery.trim().length < 2 && (
+              {!pathname?.startsWith('/dashboard/payments') && !pathname?.startsWith('/dashboard/submission') && searchQuery.trim().length < 2 && (
                 <div className="space-y-1">
                   <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
                     {pageTitle}
@@ -280,7 +282,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Greeting cuma nongol di halaman utama dashboard overview, dan disembunyikan saat sedang mencari */}
               {pathname === '/dashboard' && searchQuery.trim().length < 2 && (
-                <GreetingWithClock name={greetingText || greetingName} />
+                <GreetingWithClock name={greetingName} />
               )}
 
               {/* Hasil smart search dashboard */}
@@ -298,6 +300,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </DashboardDataProvider>
       </div>
     </main>
+    </DashboardModeProvider>
   );
 }
 
@@ -308,7 +311,7 @@ function DashboardSearchResults({
 }: {
   query: string;
   items: DashboardSearchItem[];
-  theme: (typeof jysSectionTheme)['dashboardSearch'];
+  theme: (typeof componentsTheme)['dashboardSearch'];
 }) {
   const normalized = query.trim();
 

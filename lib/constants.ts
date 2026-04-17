@@ -2,7 +2,7 @@
  * Application constants
  */
 
-export const APP_NAME = 'Japan Youth Summit';
+export const APP_NAME = 'YBB Program';
 export const APP_DESCRIPTION = 'International website built with Next.js';
 export const APP_VERSION = '1.0.0';
 

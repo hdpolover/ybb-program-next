@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import Image from 'next/image';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type GalleryImage = {
   id: string | number;
@@ -28,6 +28,8 @@ export default function PhotoGallery({
   ctaLabel = 'See All Photos',
   ctaUrl = '/programs/gallery',
 }: PhotoGalleryProps) {
+  if (!images || images.length === 0) return null;
+
   const [selected, setSelected] = useState<number | null>(null);
   const [visible, setVisible] = useState<number>(12);
   useEffect(() => {
@@ -40,73 +42,67 @@ export default function PhotoGallery({
   const photos: GalleryImage[] = images ?? [];
 
   return (
-    <section className={jysSectionTheme.photoGallery.sectionWrapper}>
-      <div className={jysSectionTheme.photoGallery.container}>
+    <section className={componentsTheme.photoGallery.sectionWrapper}>
+      <div className={componentsTheme.photoGallery.container}>
         <SectionHeader title={title} />
-        <p className={jysSectionTheme.photoGallery.subtitle}>{description}</p>
+        <p className={componentsTheme.photoGallery.subtitle}>{description}</p>
 
-        {photos.length > 0 ? (
-          <div className={jysSectionTheme.photoGallery.grid}>
-            {photos.slice(0, visible).map((p, idx) => (
-              <div
-                key={p.id ?? `${p.src}-${idx}`}
-                className={jysSectionTheme.photoGallery.itemWrapper}
+        <div className={componentsTheme.photoGallery.grid}>
+          {photos.slice(0, visible).map((p, idx) => (
+            <div
+              key={p.id ?? `${p.src}-${idx}`}
+              className={componentsTheme.photoGallery.itemWrapper}
+            >
+              <button
+                type="button"
+                onClick={() => setSelected(idx)}
+                className={componentsTheme.photoGallery.itemButton}
+                aria-label="Open photo"
               >
-                <button
-                  type="button"
-                  onClick={() => setSelected(idx)}
-                  className={jysSectionTheme.photoGallery.itemButton}
-                  aria-label="Open photo"
-                >
-                  <span className={jysSectionTheme.photoGallery.itemImageWrapper}>
-                    <Image
-                      src={p.src}
-                      alt={p.caption}
-                      fill
-                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 50vw"
-                      className={jysSectionTheme.photoGallery.itemImage}
-                    />
-                  </span>
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 flex items-center justify-center text-sm text-slate-500">
-            Belum ada foto yang ditambahkan.
-          </div>
-        )}
+                <span className={componentsTheme.photoGallery.itemImageWrapper}>
+                  <Image
+                    src={p.src}
+                    alt={p.caption}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 50vw"
+                    className={componentsTheme.photoGallery.itemImage}
+                  />
+                </span>
+              </button>
+            </div>
+          ))}
+        </div>
 
         {selected !== null && (
           <div
-            className={jysSectionTheme.photoGallery.modalOverlay}
+            className={componentsTheme.photoGallery.modalOverlay}
             role="dialog"
             aria-modal="true"
             onClick={() => setSelected(null)}
           >
             <div
-              className={jysSectionTheme.photoGallery.modalCard}
+              className={componentsTheme.photoGallery.modalCard}
               onClick={e => e.stopPropagation()}
             >
               <button
                 type="button"
                 onClick={() => setSelected(null)}
-                className={jysSectionTheme.photoGallery.modalCloseButton}
+                className={componentsTheme.photoGallery.modalCloseButton}
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />
               </button>
-              <div className={jysSectionTheme.photoGallery.modalImageWrapper}>
+              <div className={componentsTheme.photoGallery.modalImageWrapper}>
                 <Image
                   src={photos[selected].src}
                   alt={photos[selected].caption}
                   width={1920}
                   height={1080}
                   sizes="100vw"
-                  className={jysSectionTheme.photoGallery.modalImage}
+                  className={componentsTheme.photoGallery.modalImage}
                 />
               </div>
-              <div className={jysSectionTheme.photoGallery.modalCaption}>
+              <div className={componentsTheme.photoGallery.modalCaption}>
                 {photos[selected].caption}
               </div>
             </div>
@@ -115,7 +111,7 @@ export default function PhotoGallery({
 
         {mode === 'home' ? (
           <div className="mt-8 flex justify-center">
-            <a href={ctaUrl} className={jysSectionTheme.photoGallery.homeCtaButton}>
+            <a href={ctaUrl} className={componentsTheme.photoGallery.homeCtaButton}>
               {ctaLabel}
             </a>
           </div>
@@ -125,7 +121,7 @@ export default function PhotoGallery({
               <button
                 type="button"
                 onClick={() => setVisible(v => Math.min(v + 8, photos.length))}
-                className={jysSectionTheme.photoGallery.loadMoreButton}
+                className={componentsTheme.photoGallery.loadMoreButton}
               >
                 Load More Photos
               </button>

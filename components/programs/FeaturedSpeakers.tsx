@@ -22,6 +22,8 @@ export default function FeaturedSpeakers({
   title?: string;
   subtitle?: string;
 }) {
+  if (!speakers || speakers.length === 0) return null;
+
   const listRef = useRef<HTMLDivElement | null>(null);
 
   const scrollBy = (dir: 'prev' | 'next') => {
@@ -37,7 +39,7 @@ export default function FeaturedSpeakers({
     <section className="relative bg-[#edf5ff] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader title={title} />
-        <p className="-mt-6 mb-8 text-center text-sm text-pink-600">{subtitle}</p>
+        <p className="-mt-6 mb-8 text-center text-sm text-primary">{subtitle}</p>
 
         {/* Slider controls (only when many items) */}
         {useSlider ? (
@@ -92,7 +94,7 @@ function SpeakerCard({ speaker, className = '' }: { speaker: Speaker; className?
     <a
       href={href || '#'}
       aria-label={`View speaker ${name}`}
-      className={`group block overflow-hidden rounded-2xl shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:ring-pink-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 ${className}`}
+      className={`group block overflow-hidden rounded-2xl shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:ring-primary/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ${className}`}
     >
       <div className="relative h-48 w-full">
         <Image

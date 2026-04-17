@@ -3,32 +3,22 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Mail as MailIcon } from "lucide-react";
-import { FOOTER_COPY } from "@/data/footerCopy";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
-import { getSettings } from "@/lib/api/settings";
+import { componentsTheme } from "@/lib/theme/components";
+import { useSettings } from "@/components/providers/SettingsProvider";
 import type { SettingsData, SettingsFooterNavSection } from "@/types/settings";
 
+const FOOTER_DEFAULT_NAV = [
+  { label: 'Home', href: '/' },
+  { label: 'Programs', href: '/programs' },
+  { label: 'Partners & Sponsors', href: '/partners' },
+  { label: 'Announcements', href: '/announcements' },
+  { label: 'FAQ', href: '/faq' },
+];
+
 export default function Footer() {
-  const [settings, setSettings] = useState<SettingsData | null>(null);
+  const { settings } = useSettings();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const data = await getSettings();
-        if (!cancelled) {
-          setSettings(data);
-        }
-      } catch {
-        // kalau API-nya error, diam-diam balik pake data FOOTER_COPY aja
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  
 
   const footerNav: SettingsFooterNavSection[] | null = settings?.footer_navigation ?? null;
   const brand = settings?.brand ?? null;
@@ -36,10 +26,10 @@ export default function Footer() {
   const programsSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'programs');
   const legalSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'legal');
 
-  const brandName = brand?.name?.trim() ? brand.name.trim() : 'Japan Youth Summit';
+  const brandName = brand?.name?.trim() ? brand.name.trim() : 'Youth Break the Boundaries';
   const copyrightText = `Copyright © ${new Date().getFullYear()} ${brandName}`;
 
-  const brandLogo = brand?.logo_url?.trim() ? brand.logo_url.trim() : '/img/jysfooters.png';
+  const brandLogo = brand?.logo_url?.trim() ? brand.logo_url.trim() : '/img/ybb-logo.png';
 
   // Menu is partially dynamic: show only Programs links from API.
   // If API missing or empty, fallback to FOOTER_COPY.nav.
@@ -48,7 +38,7 @@ export default function Footer() {
     href: link.url,
   }));
 
-  const menuLinks: { label: string; href: string }[] = apiMenuLinks.length > 0 ? apiMenuLinks : FOOTER_COPY.nav;
+  const menuLinks: { label: string; href: string }[] = apiMenuLinks.length > 0 ? apiMenuLinks : FOOTER_DEFAULT_NAV;
 
   const legalLinks: { label: string; href: string }[] = (legalSection?.links ?? []).map(link => ({
     label: link.label,
@@ -71,11 +61,7 @@ export default function Footer() {
     apiSocials.push({ id: "telegram", label: "Telegram", href: brand.social_media.telegram });
   }
 
-  const fallbackSocials = FOOTER_COPY.socials.filter(s =>
-    ["instagram", "tiktok", "youtube", "telegram"].includes(s.id),
-  );
-
-  const socialLinks = (apiSocials.length > 0 ? apiSocials : fallbackSocials).map(s => ({
+  const socialLinks = apiSocials.map(s => ({
     id: s.id,
     label: s.label,
     href: s.href ?? "",
@@ -83,7 +69,7 @@ export default function Footer() {
 
   return (
     <>
-      <footer className={jysSectionTheme.footer.sectionWrapper}>
+      <footer className={componentsTheme.footer.sectionWrapper}>
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 lg:grid-cols-4 lg:gap-12 lg:px-8">
           {/* Kalimat Khusus program ( deskripsi program ) */}
           <div>
@@ -94,20 +80,24 @@ export default function Footer() {
                 width={700}
                 height={700}
                 className="h-12 w-auto sm:h-16 md:h-20"
+                unoptimized
               />
             </div>
-            <p className="mt-2 max-w-sm text-sm text-white/80">{FOOTER_COPY.description}</p>
+            <div 
+              className="mt-2 max-w-sm text-sm text-white/80 prose prose-invert prose-sm"
+              dangerouslySetInnerHTML={{ __html: brand?.description || '' }}
+            />
           </div>
 
           {/* Navigasi / Menu utama (Quick Links) */}
           <div>
             <h4 className="text-sm font-extrabold uppercase tracking-wider text-white">
-              {FOOTER_COPY.menuTitle}
+              Menu
             </h4>
             <ul className="mt-4 space-y-2 text-sm text-white/80">
               {menuLinks.map(item => (
                 <li key={item.label}>
-                  <a className={jysSectionTheme.footer.navLink} href={item.href}>
+                  <a className={componentsTheme.footer.navLink} href={item.href}>
                     {item.label}
                   </a>
                 </li>
@@ -118,17 +108,15 @@ export default function Footer() {
           {/* Contact / Socials with labels */}
           <div>
             <h4 className="text-sm font-extrabold uppercase tracking-wider text-white">
-              {FOOTER_COPY.contactTitle}
+              Contact Us
             </h4>
             <ul className="mt-4 space-y-3 text-sm text-white/85">
               {/* Email */}
               {(() => {
                 const emailHref = brand?.support_email
                   ? `mailto:${brand.support_email}`
-                  : FOOTER_COPY.socials.find(s => s.id === "email")?.href;
-                const emailLabel = brand?.support_email
-                  ? brand.support_email
-                  : FOOTER_COPY.socials.find(s => s.id === "email")?.label;
+                  : null;
+                const emailLabel = brand?.support_email ?? null;
 
                 return (
                   <li key="email" className="flex items-center gap-3">
@@ -136,7 +124,7 @@ export default function Footer() {
                     {emailHref && emailLabel && (
                       <a
                         href={emailHref}
-                        className={jysSectionTheme.footer.contactLink}
+                        className={componentsTheme.footer.contactLink}
                         target={emailHref.startsWith("http") ? "_blank" : undefined}
                         rel={emailHref.startsWith("http") ? "noreferrer" : undefined}
                       >
@@ -149,7 +137,7 @@ export default function Footer() {
 
               {/* Location / address */}
               {(() => {
-                const address = brand?.address ?? FOOTER_COPY.socials.find(s => s.id === "location")?.label;
+                const address = brand?.address ?? null;
                 if (!address) return null;
                 return (
                   <li key="location" className="flex items-start gap-3">
@@ -174,7 +162,7 @@ export default function Footer() {
                       <MailIcon className="h-4 w-4" />
                       <a
                         href={social.href}
-                        className={jysSectionTheme.footer.contactLink}
+                        className={componentsTheme.footer.contactLink}
                         target={social.href?.startsWith('http') ? '_blank' : undefined}
                         rel={social.href?.startsWith('http') ? 'noreferrer' : undefined}
                      >
@@ -210,7 +198,7 @@ export default function Footer() {
                     ) : null}
                     <a
                       href={social.href}
-                      className="transition hover:text-pink-100"
+                      className="transition hover:text-primary/20"
                       target={social.href?.startsWith('http') ? '_blank' : undefined}
                       rel={social.href?.startsWith('http') ? 'noreferrer' : undefined}
                     >
@@ -225,23 +213,23 @@ export default function Footer() {
           {/* Newsletter / Subscribe */}
           <div>
             <h4 className="text-sm font-extrabold uppercase tracking-wider text-white">
-              {FOOTER_COPY.newsletterTitle}
+              Subscribe to Our Newsletter
             </h4>
             <p className="mt-4 text-sm text-white/80">
-              {FOOTER_COPY.newsletterBody}
+              Get updates about important dates, program announcements, and opportunities directly in your inbox.
             </p>
             <form className="mt-4">
               <div className="flex overflow-hidden rounded-xl ring-1 ring-white/30">
                 <input
                   type="email"
-                  placeholder={FOOTER_COPY.newsletterInputPlaceholder}
+                  placeholder="Enter your email"
                   className="w-full bg-white/95 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                 />
                 <button
                   type="button"
-                  className={jysSectionTheme.footer.newsletterButton}
+                  className={componentsTheme.footer.newsletterButton}
                 >
-                  {FOOTER_COPY.newsletterCtaLabel}
+                  Subscribe
                 </button>
               </div>
             </form>
@@ -259,7 +247,7 @@ export default function Footer() {
                   <a
                     key={link.label}
                     href={link.href}
-                    className="transition hover:text-pink-100"
+                    className="transition hover:text-primary/20"
                   >
                     {link.label}
                   </a>

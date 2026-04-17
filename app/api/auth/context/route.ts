@@ -1,34 +1,6 @@
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { apiGet } from '@/lib/api/httpClient';
-
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
-
-const DEFAULT_BRAND_URL =
-  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
-  'istanbulyouthsummit.com';
-const FALLBACK_BRAND_DOMAIN = 'https://istanbulyouthsummit.com';
-const FALLBACK_BRAND_ID = 'e694b5d1-f0fe-4c26-80ff-9d0bed4793a4';
-const FALLBACK_PROGRAM_ID = '65fe1804-7c99-4566-8880-48b65c5116bb';
-
-async function resolveBrandDomain(): Promise<string> {
-  const h = await headers();
-  const hostnameRaw = h.get('x-hostname') || h.get('host') || '';
-  const hostname = hostnameRaw.split(':')[0];
-
-  if (!hostname) return DEFAULT_BRAND_URL;
-
-  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-    return DEFAULT_BRAND_URL;
-  }
-
-  return normalizeBrandUrl(hostname);
-}
-
+import { resolveBrandDomain } from '@/lib/server/envContext';
 type ProvidersResponse = {
   statusCode: number;
   message: string;
@@ -78,13 +50,11 @@ export async function GET() {
     const localProvider = providers.find(p => p.name === 'local') ?? null;
 
     const brandNeedle = brandDomain.replace(/^https?:\/\//, '').toLowerCase();
-    const fallbackNeedle = FALLBACK_BRAND_DOMAIN.replace(/^https?:\/\//, '').toLowerCase();
     const brand =
       brands.find(b => (b.websiteUrl ?? '').toLowerCase().includes(brandNeedle)) ??
-      brands.find(b => (b.websiteUrl ?? '').toLowerCase().includes(fallbackNeedle)) ??
       null;
 
-    const brandId = envBrandId || brand?.id || FALLBACK_BRAND_ID;
+    const brandId = envBrandId || brand?.id;
 
     const candidates = programs.filter(p => (p.brandId ?? p.programCategoryId) === brandId && p.isPublished);
     candidates.sort((a, b) => {
@@ -96,7 +66,7 @@ export async function GET() {
       return createdB - createdA;
     });
 
-    const programId = envProgramId || candidates[0]?.id || FALLBACK_PROGRAM_ID;
+    const programId = envProgramId || candidates[0]?.id;
     const programFromId = programs.find(p => p.id === programId) ?? null;
     const programSlug =
       envProgramSlug ||

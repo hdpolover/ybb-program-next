@@ -4,58 +4,58 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { CalendarDays, Calendar, MapPin, Square, CheckCircle2, Star } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 export default function FullyFundedOverviewSection() {
   const [tab, setTab] = useState('details');
 
   return (
-    <section className={jysSectionTheme.applyOverview.sectionWrapper}>
-      <div className={jysSectionTheme.applyOverview.container}>
-        <div className={jysSectionTheme.applyOverview.layoutGrid}>
+    <section className={componentsTheme.applyOverview.sectionWrapper}>
+      <div className={componentsTheme.applyOverview.container}>
+        <div className={componentsTheme.applyOverview.layoutGrid}>
           {/* Kiri: card dengan tab */}
-          <div className={jysSectionTheme.applyOverview.leftCol}>
-            <div className={jysSectionTheme.applyOverview.leftCard}>
+          <div className={componentsTheme.applyOverview.leftCol}>
+            <div className={componentsTheme.applyOverview.leftCard}>
               {/* Tabs header */}
-              <div className={jysSectionTheme.applyOverview.tabsHeader}>
+              <div className={componentsTheme.applyOverview.tabsHeader}>
                 <button
                   type="button"
-                  className={`${jysSectionTheme.applyOverview.tabButtonBase} ${
+                  className={`${componentsTheme.applyOverview.tabButtonBase} ${
                     tab === 'details'
-                      ? jysSectionTheme.applyOverview.tabButtonActive
-                      : jysSectionTheme.applyOverview.tabButtonInactive
+                      ? componentsTheme.applyOverview.tabButtonActive
+                      : componentsTheme.applyOverview.tabButtonInactive
                   }`}
                   onClick={() => setTab('details')}
                 >
                   Program Details
                   {tab === 'details' && (
-                    <span className={jysSectionTheme.applyOverview.tabActiveUnderline} />
+                    <span className={componentsTheme.applyOverview.tabActiveUnderline} />
                   )}
                 </button>
                 <button
                   type="button"
-                  className={`${jysSectionTheme.applyOverview.tabButtonBase} ${
+                  className={`${componentsTheme.applyOverview.tabButtonBase} ${
                     tab === 'benefits'
-                      ? jysSectionTheme.applyOverview.tabButtonActive
-                      : jysSectionTheme.applyOverview.tabButtonInactive
+                      ? componentsTheme.applyOverview.tabButtonActive
+                      : componentsTheme.applyOverview.tabButtonInactive
                   }`}
                   onClick={() => setTab('benefits')}
                 >
                   Benefits
                   {tab === 'benefits' && (
-                    <span className={jysSectionTheme.applyOverview.tabActiveUnderline} />
+                    <span className={componentsTheme.applyOverview.tabActiveUnderline} />
                   )}
                 </button>
               </div>
 
               {/* Tab content */}
               {tab === 'details' && (
-                <div className={jysSectionTheme.applyOverview.detailsContentWrapper}>
+                <div className={componentsTheme.applyOverview.detailsContentWrapper}>
                   {/* Description */}
-                  <div className={jysSectionTheme.applyOverview.descriptionBlock}>
-                    <h3 className={jysSectionTheme.applyOverview.sectionHeading}>Description</h3>
+                  <div className={componentsTheme.applyOverview.descriptionBlock}>
+                    <h3 className={componentsTheme.applyOverview.sectionHeading}>Description</h3>
                     <p>
-                      Japan Youth Summit (JYS) 2026 is an international youth forum that brings
+                      This program is an international youth forum that brings
                       together passionate young leaders to discuss, design, and drive collaborative
                       solutions for a more sustainable and inclusive future in Asia and beyond.
                     </p>
@@ -72,48 +72,48 @@ export default function FullyFundedOverviewSection() {
                   </div>
 
                   {/* Requirements */}
-                  <div className={jysSectionTheme.applyOverview.descriptionBlock}>
-                    <h3 className={jysSectionTheme.applyOverview.sectionHeading}>Requirements</h3>
-                    <ul className={jysSectionTheme.applyOverview.requirementsList}>
-                      <li className={jysSectionTheme.applyOverview.requirementItem}>
-                        <CheckCircle2 className={jysSectionTheme.applyOverview.requirementIcon} />
+                  <div className={componentsTheme.applyOverview.descriptionBlock}>
+                    <h3 className={componentsTheme.applyOverview.sectionHeading}>Requirements</h3>
+                    <ul className={componentsTheme.applyOverview.requirementsList}>
+                      <li className={componentsTheme.applyOverview.requirementItem}>
+                        <CheckCircle2 className={componentsTheme.applyOverview.requirementIcon} />
                         <span>Complete registration form and documentation</span>
                       </li>
-                      <li className={jysSectionTheme.applyOverview.requirementItem}>
-                        <CheckCircle2 className={jysSectionTheme.applyOverview.requirementIcon} />
+                      <li className={componentsTheme.applyOverview.requirementItem}>
+                        <CheckCircle2 className={componentsTheme.applyOverview.requirementIcon} />
                         <span>Submit detailed essays and applications</span>
                       </li>
-                      <li className={jysSectionTheme.applyOverview.requirementItem}>
-                        <CheckCircle2 className={jysSectionTheme.applyOverview.requirementIcon} />
+                      <li className={componentsTheme.applyOverview.requirementItem}>
+                        <CheckCircle2 className={componentsTheme.applyOverview.requirementIcon} />
                         <span>Participate in interviews and evaluations</span>
                       </li>
-                      <li className={jysSectionTheme.applyOverview.requirementItem}>
-                        <CheckCircle2 className={jysSectionTheme.applyOverview.requirementIcon} />
+                      <li className={componentsTheme.applyOverview.requirementItem}>
+                        <CheckCircle2 className={componentsTheme.applyOverview.requirementIcon} />
                         <span>Agree to follow all program and funding guidelines</span>
                       </li>
                     </ul>
                   </div>
 
                   {/* Benefits (If Selected) */}
-                  <div className={jysSectionTheme.applyOverview.descriptionBlock}>
-                    <h3 className={jysSectionTheme.applyOverview.sectionHeading}>
+                  <div className={componentsTheme.applyOverview.descriptionBlock}>
+                    <h3 className={componentsTheme.applyOverview.sectionHeading}>
                       Benefits (If Selected)
                     </h3>
-                    <ul className={jysSectionTheme.applyOverview.benefitsList}>
-                      <li className={jysSectionTheme.applyOverview.benefitsItem}>
-                        <Star className={jysSectionTheme.applyOverview.benefitsIcon} />
+                    <ul className={componentsTheme.applyOverview.benefitsList}>
+                      <li className={componentsTheme.applyOverview.benefitsItem}>
+                        <Star className={componentsTheme.applyOverview.benefitsIcon} />
                         <span>Full reimbursement of eligible program payments</span>
                       </li>
-                      <li className={jysSectionTheme.applyOverview.benefitsItem}>
-                        <Star className={jysSectionTheme.applyOverview.benefitsIcon} />
+                      <li className={componentsTheme.applyOverview.benefitsItem}>
+                        <Star className={componentsTheme.applyOverview.benefitsIcon} />
                         <span>Enhanced recognition as a Fully Funded delegate</span>
                       </li>
-                      <li className={jysSectionTheme.applyOverview.benefitsItem}>
-                        <Star className={jysSectionTheme.applyOverview.benefitsIcon} />
+                      <li className={componentsTheme.applyOverview.benefitsItem}>
+                        <Star className={componentsTheme.applyOverview.benefitsIcon} />
                         <span>Same program experience as Self Funded participants</span>
                       </li>
-                      <li className={jysSectionTheme.applyOverview.benefitsItem}>
-                        <Star className={jysSectionTheme.applyOverview.benefitsIcon} />
+                      <li className={componentsTheme.applyOverview.benefitsItem}>
+                        <Star className={componentsTheme.applyOverview.benefitsIcon} />
                         <span>Opportunities for post-program collaboration and features</span>
                       </li>
                     </ul>
@@ -122,7 +122,7 @@ export default function FullyFundedOverviewSection() {
               )}
 
               {tab === 'benefits' && (
-                <div className={jysSectionTheme.applyOverview.benefitsTabContent}>
+                <div className={componentsTheme.applyOverview.benefitsTabContent}>
                   <p>WM HILMI FARREL WKWKKWWKKW</p>
                 </div>
               )}
@@ -130,54 +130,54 @@ export default function FullyFundedOverviewSection() {
           </div>
 
           {/* Kanan: kartu program seperti contoh */}
-          <div className={jysSectionTheme.applyOverview.rightColWrapper}>
-            <div className={jysSectionTheme.applyOverview.rightCard}>
+          <div className={componentsTheme.applyOverview.rightColWrapper}>
+            <div className={componentsTheme.applyOverview.rightCard}>
               {/* Gambar cover */}
-              <div className={jysSectionTheme.applyOverview.coverWrapper}>
+              <div className={componentsTheme.applyOverview.coverWrapper}>
                 <Image
-                  src="/img/jys26posters.png"
-                  alt="Japan Youth Summit 2026 cover"
+                  src="/img/program-cover.png"
+                  alt="Program cover"
                   width={260}
                   height={360}
-                  className={jysSectionTheme.applyOverview.coverImage}
+                  className={componentsTheme.applyOverview.coverImage}
                   priority
                 />
               </div>
 
               {/* Info program */}
-              <div className={jysSectionTheme.applyOverview.infoList}>
-                <div className={jysSectionTheme.applyOverview.infoRow}>
-                  <MapPin className={jysSectionTheme.applyOverview.infoIcon} />
+              <div className={componentsTheme.applyOverview.infoList}>
+                <div className={componentsTheme.applyOverview.infoRow}>
+                  <MapPin className={componentsTheme.applyOverview.infoIcon} />
                   <div>
-                    <p className={jysSectionTheme.applyOverview.infoLabel}>Location</p>
-                    <p className={jysSectionTheme.applyOverview.infoValue}>
+                    <p className={componentsTheme.applyOverview.infoLabel}>Location</p>
+                    <p className={componentsTheme.applyOverview.infoValue}>
                       Osaka &amp; Kyoto, Japan
                     </p>
                   </div>
                 </div>
 
-                <div className={jysSectionTheme.applyOverview.infoGrid}>
-                  <div className={jysSectionTheme.applyOverview.infoRow}>
-                    <CalendarDays className={jysSectionTheme.applyOverview.infoIcon} />
+                <div className={componentsTheme.applyOverview.infoGrid}>
+                  <div className={componentsTheme.applyOverview.infoRow}>
+                    <CalendarDays className={componentsTheme.applyOverview.infoIcon} />
                     <div>
-                      <p className={jysSectionTheme.applyOverview.infoLabel}>Duration</p>
-                      <p className={jysSectionTheme.applyOverview.infoValue}>5 Days</p>
+                      <p className={componentsTheme.applyOverview.infoLabel}>Duration</p>
+                      <p className={componentsTheme.applyOverview.infoValue}>5 Days</p>
                     </div>
                   </div>
-                  <div className={jysSectionTheme.applyOverview.infoRow}>
-                    <Square className={jysSectionTheme.applyOverview.infoIcon} />
+                  <div className={componentsTheme.applyOverview.infoRow}>
+                    <Square className={componentsTheme.applyOverview.infoIcon} />
                     <div>
-                      <p className={jysSectionTheme.applyOverview.infoLabel}>Program Format</p>
-                      <p className={jysSectionTheme.applyOverview.infoValue}>On-site in Japan</p>
+                      <p className={componentsTheme.applyOverview.infoLabel}>Program Format</p>
+                      <p className={componentsTheme.applyOverview.infoValue}>On-site in Japan</p>
                     </div>
                   </div>
                 </div>
 
-                <div className={jysSectionTheme.applyOverview.infoRow}>
-                  <Calendar className={jysSectionTheme.applyOverview.infoIcon} />
+                <div className={componentsTheme.applyOverview.infoRow}>
+                  <Calendar className={componentsTheme.applyOverview.infoIcon} />
                   <div>
-                    <p className={jysSectionTheme.applyOverview.infoLabel}>Event Dates</p>
-                    <p className={jysSectionTheme.applyOverview.infoValue}>02 – 06 February 2026</p>
+                    <p className={componentsTheme.applyOverview.infoLabel}>Event Dates</p>
+                    <p className={componentsTheme.applyOverview.infoValue}>02 – 06 February 2026</p>
                   </div>
                 </div>
               </div>
@@ -186,14 +186,14 @@ export default function FullyFundedOverviewSection() {
               <div className="mt-5 flex flex-col gap-3">
                 <a
                   href="#guidebook-en"
-                  className={`${jysSectionTheme.homeRegistration.guideSecondary} flex w-full items-center justify-center gap-2 text-sm`}
+                  className={`${componentsTheme.homeRegistration.guideSecondary} flex w-full items-center justify-center gap-2 text-sm`}
                 >
                   <span className="text-lg">🇬🇧</span>
                   <span>Read Guidebook (Eng)</span>
                 </a>
                 <a
                   href="#guidebook-id"
-                  className={`${jysSectionTheme.homeRegistration.guidePrimary} flex w-full items-center justify-center gap-2 text-sm`}
+                  className={`${componentsTheme.homeRegistration.guidePrimary} flex w-full items-center justify-center gap-2 text-sm`}
                 >
                   <span className="text-lg">🇮🇩</span>
                   <span>Read Guidebook (Ind)</span>

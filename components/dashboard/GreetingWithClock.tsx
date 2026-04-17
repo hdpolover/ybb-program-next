@@ -51,7 +51,7 @@ export default function GreetingWithClock({ name }: { name: string }) {
     return (
       <div className="flex flex-col">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-extrabold text-[#e53b8c] animate-pulse">
+          <h1 className="text-2xl font-extrabold text-[var(--brand-primary)] animate-pulse">
             Loading...
           </h1>
           <span className="ml-auto rounded-full bg-gray-200 px-3 py-1 text-sm font-medium text-gray-400">
@@ -66,10 +66,10 @@ export default function GreetingWithClock({ name }: { name: string }) {
   return (
     <div className="flex flex-col">
       <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-extrabold text-[#e53b8c]">
+        <h1 className="text-2xl font-extrabold text-[var(--brand-primary)]">
           {getGreeting()}, {name.toUpperCase()}!
         </h1>
-        <span className="ml-auto flex-shrink-0 rounded-full bg-[#e53b8c] px-3 py-1 text-sm font-medium text-white whitespace-nowrap">
+        <span className="ml-auto rounded-full bg-primary px-3 py-1 text-sm font-medium text-white">
           {formatTime(currentTime)}
         </span>
       </div>

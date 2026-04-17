@@ -1,7 +1,7 @@
 import type { Locale } from '@/types';
 
 export const siteConfig = {
-  name: 'Home | Japan Youth Summit',
+  name: 'Home | Youth Summit',
   description: 'International website built with Next.js',
   // This is a static fallback. For multi-tenant features, use request headers.
   url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',

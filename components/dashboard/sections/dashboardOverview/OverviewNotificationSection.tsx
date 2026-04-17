@@ -1,11 +1,19 @@
 "use client";
 
 import { AlertTriangle, ClipboardList } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
+import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 
-const overviewTheme = jysSectionTheme.dashboardOverview;
+const overviewTheme = componentsTheme.dashboardOverview;
 
 export default function OverviewNotificationSection() {
+  const { dashboardSummary } = useDashboardData();
+  const alert = dashboardSummary?.alerts?.[0];
+
+  if (!alert) {
+    return null;
+  }
+
   return (
     <div className={overviewTheme.notificationCard}>
       <div className={overviewTheme.notificationRow}>
@@ -17,20 +25,22 @@ export default function OverviewNotificationSection() {
             <div className={overviewTheme.notificationTitleRow}>
               <p className={overviewTheme.notificationEyebrow}>Notification Alert</p>
               <span className={overviewTheme.notificationStatusPill}>
-                Registration Incomplete
+                {alert.title ?? "Action Required"}
               </span>
             </div>
             <p className={overviewTheme.notificationBodyText}>
-              Your registration form is not fully completed yet. Please review your application details,
-              upload all required documents, and submit the remaining sections to secure your participation.
+              {alert.message ??
+                "Your registration form is not fully completed yet. Please review your application details, upload all required documents, and submit the remaining sections to secure your participation."}
             </p>
           </div>
         </div>
 
-        <a href="/dashboard/submission/edit" className={overviewTheme.notificationButton}>
-          <ClipboardList className="h-4 w-4" />
-          <span>Complete Form</span>
-        </a>
+        {alert.actionUrl && (
+          <a href={alert.actionUrl} className={overviewTheme.notificationButton}>
+            <ClipboardList className="h-4 w-4" />
+            <span>{alert.actionLabel ?? "Take Action"}</span>
+          </a>
+        )}
       </div>
     </div>
   );

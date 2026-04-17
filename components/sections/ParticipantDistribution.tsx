@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { IMPACT_DISTRIBUTION_COPY, CountryLevel } from '@/data/home/sections/impact/impactDistribution';
-
+import { componentsTheme } from '@/lib/theme/components';
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
 type WorldGeo = {
@@ -15,18 +13,48 @@ type WorldGeo = {
   };
 };
 
-export type Level = CountryLevel;
+export type Level = 'high' | 'medium' | 'low' | 'none';
 
-function getFillForCountry(nameKey: string): string {
-  const level = (IMPACT_DISTRIBUTION_COPY.countryLevels[nameKey] ?? 'none') as Level;
-  const colors = jysSectionTheme.participantDistribution.mapColors;
-  if (level === 'high') return colors.high;
-  if (level === 'medium') return colors.medium;
-  if (level === 'low') return colors.low;
-  return colors.none;
-}
+export type ParticipantDistributionProps = {
+  eyebrow?: string;
+  title?: string;
+  countryLevels?: Record<string, Level>;
+  countryParticipants?: Record<string, number>;
+  legend?: { high: string; medium: string; low: string; none: string };
+};
 
-export default function ParticipantDistribution() {
+const DEFAULT_LEGEND = {
+  high: 'High participation',
+  medium: 'Medium participation',
+  low: 'Low participation',
+  none: 'No participants',
+};
+
+export default function ParticipantDistribution({
+  eyebrow = 'Participant Geography',
+  title = 'Participant Distribution by Country',
+  countryLevels,
+  countryParticipants,
+  legend,
+}: ParticipantDistributionProps) {
+  const hasLevels = countryLevels && Object.keys(countryLevels).length > 0;
+  const hasParticipants = countryParticipants && Object.keys(countryParticipants).length > 0;
+  if (!hasLevels && !hasParticipants) return null;
+
+  const levels = countryLevels ?? {};
+  const participants = countryParticipants ?? {};
+  const legendCopy = legend ?? DEFAULT_LEGEND;
+  const headerEyebrow = eyebrow;
+  const headerTitle = title;
+
+  function getFillForCountry(nameKey: string): string {
+    const level = (levels[nameKey] ?? 'none') as Level;
+    const colors = componentsTheme.participantDistribution.mapColors;
+    if (level === 'high') return colors.high;
+    if (level === 'medium') return colors.medium;
+    if (level === 'low') return colors.low;
+    return colors.none;
+  }
   const [selectedCountry, setSelectedCountry] = useState<{
     name: string;
     level: Level;
@@ -42,7 +70,7 @@ export default function ParticipantDistribution() {
     : '';
 
   // Hitung Top 10 negara berdasarkan jumlah peserta (masih mock), buat ditampilin di bawah map
-  const all = Object.entries(IMPACT_DISTRIBUTION_COPY.countryParticipants).map(([name, count]) => ({
+  const all = Object.entries(participants).map(([name, count]) => ({
     name,
     count: Number(count),
   }));
@@ -58,21 +86,21 @@ export default function ParticipantDistribution() {
     .slice(0, 10);
 
   return (
-    <section className={jysSectionTheme.participantDistribution.sectionWrapper}>
+    <section className={componentsTheme.participantDistribution.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader
-          eyebrow={IMPACT_DISTRIBUTION_COPY.participantHeader.eyebrow}
-          title={IMPACT_DISTRIBUTION_COPY.participantHeader.title}
+          eyebrow={headerEyebrow}
+          title={headerTitle}
           align="center"
         />
 
-        <div className={jysSectionTheme.participantDistribution.mapCard}>
-          <div className={jysSectionTheme.participantDistribution.mapWrapper}>
-            {jysSectionTheme.participantDistribution.mapBackdrop ? (
-              <div className={jysSectionTheme.participantDistribution.mapBackdrop} />
+        <div className={componentsTheme.participantDistribution.mapCard}>
+          <div className={componentsTheme.participantDistribution.mapWrapper}>
+            {componentsTheme.participantDistribution.mapBackdrop ? (
+              <div className={componentsTheme.participantDistribution.mapBackdrop} />
             ) : null}
 
-            <div className={jysSectionTheme.participantDistribution.mapInner}>
+            <div className={componentsTheme.participantDistribution.mapInner}>
               <ComposableMap
                 projectionConfig={{ scale: 145 }}
                 style={{ width: '100%', height: '100%' }}
@@ -86,15 +114,15 @@ export default function ParticipantDistribution() {
                           key={geo.rsmKey}
                           geography={geo}
                           fill={getFillForCountry(name)}
-                          stroke={jysSectionTheme.participantDistribution.mapStroke}
+                          stroke={componentsTheme.participantDistribution.mapStroke}
                           strokeWidth={0.4}
                           onClick={() => {
-                            const level = (IMPACT_DISTRIBUTION_COPY.countryLevels[name] ?? 'none') as Level;
-                            const participants = IMPACT_DISTRIBUTION_COPY.countryParticipants[name] ?? 0;
+                            const level = (levels[name] ?? 'none') as Level;
+                            const count = participants[name] ?? 0;
                             setSelectedCountry({
                               name,
                               level,
-                              participants,
+                              participants: count,
                             });
                           }}
                           style={{
@@ -120,30 +148,30 @@ export default function ParticipantDistribution() {
           </div>
 
           {/* Legend row below the map, like the reference layout */}
-          <div className={jysSectionTheme.participantDistribution.legendRow}>
-            <div className={jysSectionTheme.participantDistribution.legendItem}>
+          <div className={componentsTheme.participantDistribution.legendRow}>
+            <div className={componentsTheme.participantDistribution.legendItem}>
               <span
-                className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotHigh}`}
+                className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotHigh}`}
               />
-              <span>{IMPACT_DISTRIBUTION_COPY.legend.high}</span>
+              <span>{legendCopy.high}</span>
             </div>
-            <div className={jysSectionTheme.participantDistribution.legendItem}>
+            <div className={componentsTheme.participantDistribution.legendItem}>
               <span
-                className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotMedium}`}
+                className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotMedium}`}
               />
-              <span>{IMPACT_DISTRIBUTION_COPY.legend.medium}</span>
+              <span>{legendCopy.medium}</span>
             </div>
-            <div className={jysSectionTheme.participantDistribution.legendItem}>
+            <div className={componentsTheme.participantDistribution.legendItem}>
               <span
-                className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotLow}`}
+                className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotLow}`}
               />
-              <span>{IMPACT_DISTRIBUTION_COPY.legend.low}</span>
+              <span>{legendCopy.low}</span>
             </div>
-            <div className={jysSectionTheme.participantDistribution.legendItem}>
+            <div className={componentsTheme.participantDistribution.legendItem}>
               <span
-                className={`${jysSectionTheme.participantDistribution.legendDotBase} ${jysSectionTheme.participantDistribution.legendDotNone}`}
+                className={`${componentsTheme.participantDistribution.legendDotBase} ${componentsTheme.participantDistribution.legendDotNone}`}
               />
-              <span>{IMPACT_DISTRIBUTION_COPY.legend.none}</span>
+              <span>{legendCopy.none}</span>
             </div>
           </div>
         </div>
@@ -183,7 +211,7 @@ export default function ParticipantDistribution() {
                     <div className="flex items-center gap-2">
                       <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
                         <div
-                          className="h-full rounded-full bg-pink-500"
+                          className="h-full rounded-full bg-primary/100"
                           style={{ width: `${row.percentage.toFixed(1)}%` }}
                         />
                       </div>

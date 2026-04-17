@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { CalendarDays, Calendar, MapPin, Square } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { PROGRAMS_CURRENT_COPY } from '@/data/programs/sections/current/programsCurrent';
+import { componentsTheme } from '@/lib/theme/components';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 import type { ProgramOverviewSection } from '@/types/programs';
 
 function useCountdown(target: Date) {
@@ -25,10 +25,11 @@ function useCountdown(target: Date) {
 
 type CurrentProgramProps = {
   overview?: ProgramOverviewSection['content'];
+  coverImage?: string;
 };
 
 function formatDateRange(start?: string | null, end?: string | null): string {
-  if (!start && !end) return PROGRAMS_CURRENT_COPY.dataNotAdded;
+  if (!start && !end) return DATA_NOT_ADDED;
 
   try {
     const startDate = start ? new Date(start) : null;
@@ -54,17 +55,19 @@ function formatDateRange(start?: string | null, end?: string | null): string {
     if (end) return end;
   }
 
-  return PROGRAMS_CURRENT_COPY.dataNotAdded;
+  return DATA_NOT_ADDED;
 }
 
-export default function CurrentProgram({ overview }: CurrentProgramProps) {
-  const description = overview?.description || PROGRAMS_CURRENT_COPY.dataNotAdded;
-  const theme = overview?.theme || PROGRAMS_CURRENT_COPY.dataNotAdded;
-  const subthemes = overview?.subthemes && overview.subthemes.length > 0 ? overview.subthemes : null;
-  const location = overview?.location || PROGRAMS_CURRENT_COPY.dataNotAdded;
-  const duration = overview?.duration || PROGRAMS_CURRENT_COPY.dataNotAdded;
-  const eventDates = formatDateRange(overview?.start_date ?? null, overview?.end_date ?? null);
-  const guidebooksRaw = overview?.guidebooks && overview.guidebooks.length > 0 ? overview.guidebooks : null;
+export default function CurrentProgram({ overview, coverImage }: CurrentProgramProps) {
+  if (!overview) return null;
+
+  const description = overview.description || DATA_NOT_ADDED;
+  const theme = overview.theme || DATA_NOT_ADDED;
+  const subthemes = overview.subthemes && overview.subthemes.length > 0 ? overview.subthemes : null;
+  const location = overview.location || DATA_NOT_ADDED;
+  const duration = overview.duration || DATA_NOT_ADDED;
+  const eventDates = formatDateRange(overview.start_date ?? null, overview.end_date ?? null);
+  const guidebooksRaw = overview.guidebooks && overview.guidebooks.length > 0 ? overview.guidebooks : null;
   const guidebooks = guidebooksRaw ? guidebooksRaw.slice(-2) : null;
 
   const isHtmlContent = (value?: string | null) => {
@@ -74,38 +77,38 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
   };
 
   return (
-    <section className={jysSectionTheme.programsCurrent.sectionWrapper}>
-      <div className={jysSectionTheme.programsCurrent.container}>
-        <div className={jysSectionTheme.programsCurrent.layoutGrid}>
+    <section className={componentsTheme.programsCurrent.sectionWrapper}>
+      <div className={componentsTheme.programsCurrent.container}>
+        <div className={componentsTheme.programsCurrent.layoutGrid}>
           {/* Kiri: deskripsi panjang + theme */}
-          <div className={jysSectionTheme.programsCurrent.leftCol}>
+          <div className={componentsTheme.programsCurrent.leftCol}>
             <SectionHeader
-              eyebrow={PROGRAMS_CURRENT_COPY.eyebrow}
-              title={PROGRAMS_CURRENT_COPY.title}
+              eyebrow="Active Program"
+              title={overview.program_name || 'Active Program'}
               align="left"
             />
             {isHtmlContent(description) ? (
               <div
-                className={jysSectionTheme.programsCurrent.richText}
+                className={componentsTheme.programsCurrent.richText}
                 dangerouslySetInnerHTML={{ __html: description ?? '' }}
               />
             ) : (
-              <p className={jysSectionTheme.programsCurrent.bodyParagraph}>{description}</p>
+              <p className={componentsTheme.programsCurrent.bodyParagraph}>{description}</p>
             )}
 
-            <div className={jysSectionTheme.programsCurrent.themeBlock}>
+            <div className={componentsTheme.programsCurrent.themeBlock}>
               <div>
-                <h3 className={jysSectionTheme.programsCurrent.themeHeading}>Program Theme</h3>
-                <p className={jysSectionTheme.programsCurrent.themeTitle}>{theme}</p>
+                <h3 className={componentsTheme.programsCurrent.themeHeading}>Program Theme</h3>
+                <p className={componentsTheme.programsCurrent.themeTitle}>{theme}</p>
               </div>
               <div>
-                <h3 className={jysSectionTheme.programsCurrent.themeHeading}>Subthemes</h3>
-                <div className={jysSectionTheme.programsCurrent.subthemesGrid}>
+                <h3 className={componentsTheme.programsCurrent.themeHeading}>Subthemes</h3>
+                <div className={componentsTheme.programsCurrent.subthemesGrid}>
                   {subthemes ? (
                     subthemes.map(subtheme => (
                       <div
                         key={subtheme.id}
-                        className={jysSectionTheme.programsCurrent.subthemeCard}
+                        className={componentsTheme.programsCurrent.subthemeCard}
                       >
                         <p className="text-sm font-semibold text-slate-900">
                           {subtheme.title}
@@ -118,8 +121,8 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                       </div>
                     ))
                   ) : (
-                    <div className={jysSectionTheme.programsCurrent.subthemeCard}>
-                      {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                    <div className={componentsTheme.programsCurrent.subthemeCard}>
+                      {DATA_NOT_ADDED}
                     </div>
                   )}
                 </div>
@@ -128,86 +131,86 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
           </div>
 
           {/* Kanan: kartu program seperti contoh */}
-          <div className={jysSectionTheme.programsCurrent.rightCol}>
-            <div className={jysSectionTheme.programsCurrent.rightCard}>
+          <div className={componentsTheme.programsCurrent.rightCol}>
+            <div className={componentsTheme.programsCurrent.rightCard}>
               {/* Gambar cover */}
-              <div className={jysSectionTheme.programsCurrent.coverWrapper}>
+              <div className={componentsTheme.programsCurrent.coverWrapper}>
                 <div className="relative w-full aspect-square overflow-hidden rounded-2xl">
                   <Image
-                    src="/img/jys26posters.png"
-                    alt="Japan Youth Summit 2026 cover"
+                    src={coverImage ?? '/img/program-cover.png'}
+                    alt="Program cover"
                     fill
                     sizes="(min-width:1024px) 260px, (min-width:640px) 50vw, 100vw"
-                    className={`${jysSectionTheme.programsCurrent.coverImage} object-cover`}
+                    className={`${componentsTheme.programsCurrent.coverImage} object-cover`}
                     priority
                   />
                 </div>
               </div>
 
               {/* Info program */}
-              <div className={jysSectionTheme.programsCurrent.infoList}>
-                <div className={jysSectionTheme.programsCurrent.infoRow}>
-                  <MapPin className={jysSectionTheme.programsCurrent.infoIcon} />
+              <div className={componentsTheme.programsCurrent.infoList}>
+                <div className={componentsTheme.programsCurrent.infoRow}>
+                  <MapPin className={componentsTheme.programsCurrent.infoIcon} />
                   <div>
-                    <p className={jysSectionTheme.programsCurrent.infoLabel}>
-                      {PROGRAMS_CURRENT_COPY.labels.location}
+                    <p className={componentsTheme.programsCurrent.infoLabel}>
+                      Location
                     </p>
-                    <p className={jysSectionTheme.programsCurrent.infoValue}>{location}</p>
+                    <p className={componentsTheme.programsCurrent.infoValue}>{location}</p>
                   </div>
                 </div>
 
-                <div className={jysSectionTheme.programsCurrent.infoGrid}>
-                  <div className={jysSectionTheme.programsCurrent.infoRow}>
-                    <CalendarDays className={jysSectionTheme.programsCurrent.infoIcon} />
+                <div className={componentsTheme.programsCurrent.infoGrid}>
+                  <div className={componentsTheme.programsCurrent.infoRow}>
+                    <CalendarDays className={componentsTheme.programsCurrent.infoIcon} />
                     <div>
-                      <p className={jysSectionTheme.programsCurrent.infoLabel}>
-                        {PROGRAMS_CURRENT_COPY.labels.duration}
+                      <p className={componentsTheme.programsCurrent.infoLabel}>
+                        Duration
                       </p>
-                      <p className={jysSectionTheme.programsCurrent.infoValue}>{duration}</p>
+                      <p className={componentsTheme.programsCurrent.infoValue}>{duration}</p>
                     </div>
                   </div>
-                  <div className={jysSectionTheme.programsCurrent.infoRow}>
-                    <Square className={jysSectionTheme.programsCurrent.infoIcon} />
+                  <div className={componentsTheme.programsCurrent.infoRow}>
+                    <Square className={componentsTheme.programsCurrent.infoIcon} />
                     <div>
-                      <p className={jysSectionTheme.programsCurrent.infoLabel}>
-                        {PROGRAMS_CURRENT_COPY.labels.format}
+                      <p className={componentsTheme.programsCurrent.infoLabel}>
+                        Program Format
                       </p>
-                      <p className={jysSectionTheme.programsCurrent.infoValue}>
-                        {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                      <p className={componentsTheme.programsCurrent.infoValue}>
+                        {DATA_NOT_ADDED}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className={jysSectionTheme.programsCurrent.infoRow}>
-                  <Calendar className={jysSectionTheme.programsCurrent.infoIcon} />
+                <div className={componentsTheme.programsCurrent.infoRow}>
+                  <Calendar className={componentsTheme.programsCurrent.infoIcon} />
                   <div>
-                    <p className={jysSectionTheme.programsCurrent.infoLabel}>
-                      {PROGRAMS_CURRENT_COPY.labels.dates}
+                    <p className={componentsTheme.programsCurrent.infoLabel}>
+                      Event Dates
                     </p>
-                    <p className={jysSectionTheme.programsCurrent.infoValue}>{eventDates}</p>
+                    <p className={componentsTheme.programsCurrent.infoValue}>{eventDates}</p>
                   </div>
                 </div>
               </div>
 
               {/* Tombol guidebook */}
-              <div className={jysSectionTheme.programsCurrent.guideButtonsWrapper}>
+              <div className={componentsTheme.programsCurrent.guideButtonsWrapper}>
                 {guidebooks ? (
                   guidebooks.map((guide, index) => (
                     <a
                       key={`${guide.url}-${index}`}
                       href={guide.url}
-                      className={`${jysSectionTheme.homeRegistration.guideSecondary} flex w-full items-center justify-center gap-2 text-sm`}
+                      className={`${componentsTheme.homeRegistration.guideSecondary} flex w-full items-center justify-center gap-2 text-sm`}
                       target="_blank"
                       rel="noreferrer"
                       title={guide.label}
                     >
                       <span>
                         {(() => {
-                          if (!guide.label) return PROGRAMS_CURRENT_COPY.guidebookFallbackLabel;
+                          if (!guide.label) return 'Read Guidebook';
                           const base = guide.label.split('(')[0].trim();
                           return (
-                            base || guide.label || PROGRAMS_CURRENT_COPY.guidebookFallbackLabel
+                            base || guide.label || 'Read Guidebook'
                           );
                         })()}
                       </span>
@@ -217,15 +220,15 @@ export default function CurrentProgram({ overview }: CurrentProgramProps) {
                   <>
                     <span
                       aria-disabled="true"
-                      className={`${jysSectionTheme.homeRegistration.guidePrimary} pointer-events-none flex w-full cursor-not-allowed items-center justify-center gap-2 text-sm opacity-60`}
+                      className={`${componentsTheme.homeRegistration.guidePrimary} pointer-events-none flex w-full cursor-not-allowed items-center justify-center gap-2 text-sm opacity-60`}
                     >
-                      {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                      {DATA_NOT_ADDED}
                     </span>
                     <span
                       aria-disabled="true"
-                      className={`${jysSectionTheme.homeRegistration.guideSecondary} pointer-events-none flex w-full cursor-not-allowed items-center justify-center gap-2 text-sm opacity-60`}
+                      className={`${componentsTheme.homeRegistration.guideSecondary} pointer-events-none flex w-full cursor-not-allowed items-center justify-center gap-2 text-sm opacity-60`}
                     >
-                      {PROGRAMS_CURRENT_COPY.dataNotAdded}
+                      {DATA_NOT_ADDED}
                     </span>
                   </>
                 )}
@@ -250,22 +253,22 @@ function InfoItem({
   const Icon = () => {
     switch (icon) {
       case 'calendar':
-        return <CalendarDays className={jysSectionTheme.programsCurrent.infoItemIcon} />;
+        return <CalendarDays className={componentsTheme.programsCurrent.infoItemIcon} />;
       case 'date':
-        return <Calendar className={jysSectionTheme.programsCurrent.infoItemIcon} />;
+        return <Calendar className={componentsTheme.programsCurrent.infoItemIcon} />;
       case 'pin':
-        return <MapPin className={jysSectionTheme.programsCurrent.infoItemIcon} />;
+        return <MapPin className={componentsTheme.programsCurrent.infoItemIcon} />;
       case 'format':
-        return <Square className={jysSectionTheme.programsCurrent.infoItemIcon} />;
+        return <Square className={componentsTheme.programsCurrent.infoItemIcon} />;
     }
   };
   return (
-    <div className={jysSectionTheme.programsCurrent.infoItemCard}>
-      <div className={jysSectionTheme.programsCurrent.infoItemHeader}>
+    <div className={componentsTheme.programsCurrent.infoItemCard}>
+      <div className={componentsTheme.programsCurrent.infoItemHeader}>
         <Icon />
-        <span className={jysSectionTheme.programsCurrent.infoItemLabel}>{label}</span>
+        <span className={componentsTheme.programsCurrent.infoItemLabel}>{label}</span>
       </div>
-      <div className={jysSectionTheme.programsCurrent.infoItemValue}>{value}</div>
+      <div className={componentsTheme.programsCurrent.infoItemValue}>{value}</div>
     </div>
   );
 }

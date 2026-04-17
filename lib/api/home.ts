@@ -1,15 +1,7 @@
 import type { HomePageData } from '@/types/home';
 import { apiGetWithEnvelope, ApiRequestError } from '@/lib/api/httpClient';
+import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 import { cache } from 'react';
-
-// Must match backend expectation exactly (see Postman collection)
-const BRAND_URL = 'istanbulyouthsummit.com';
-
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
 
 function buildBrandUrlVariants(normalizedUrl: string): string[] {
   const noScheme = normalizedUrl.replace(/^https?:\/\//, '');
@@ -19,7 +11,7 @@ function buildBrandUrlVariants(normalizedUrl: string): string[] {
   return Array.from(new Set(variants.filter(Boolean)));
 }
 
-const DEFAULT_BRAND_URL = normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || BRAND_URL;
+const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
 let homeRateLimitUntil = 0;
 
@@ -57,6 +49,7 @@ const getHomePageDataCached = cache(async (host: string): Promise<HomePageData> 
         headers: {
           'x-brand-domain': brandUrl,
         },
+        next: { revalidate: 0 },
       });
     } catch (e) {
       lastError = e;

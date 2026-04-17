@@ -1,15 +1,15 @@
 import { Calendar, Clock3, Hourglass, Check } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { PROGRAMS_ACTIVITIES_COPY } from '@/data/programs/sections/activities-info/programsActivitiesInfo';
+import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramActivitiesSection } from '@/types/programs';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type ProgramActivitiesProps = {
   activities?: ProgramActivitiesSection['content'];
 };
 
 function formatDate(date: string | null | undefined): string {
-  if (!date) return PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
+  if (!date) return DATA_NOT_ADDED;
 
   try {
     return new Date(date).toLocaleDateString('en-US', {
@@ -23,32 +23,34 @@ function formatDate(date: string | null | undefined): string {
 }
 
 export default function ProgramActivities({ activities }: ProgramActivitiesProps) {
-  const title = activities?.title || PROGRAMS_ACTIVITIES_COPY.headerTitle;
-  const subtitle = activities?.subtitle || PROGRAMS_ACTIVITIES_COPY.headerSubtitleFallback;
-  const items = activities?.items ?? [];
+  if (!activities) return null;
+
+  const title = activities.title || 'Program Activities';
+  const subtitle = activities.subtitle || '';
+  const items = activities.items ?? [];
+  if (items.length === 0) return null;
 
   return (
-    <section className={jysSectionTheme.programsActivities.sectionWrapper}>
-      <div className={jysSectionTheme.programsActivities.overlay} />
-      <div className={jysSectionTheme.programsActivities.container}>
+    <section className={componentsTheme.programsActivities.sectionWrapper}>
+      <div className={componentsTheme.programsActivities.overlay} />
+      <div className={componentsTheme.programsActivities.container}>
         <SectionHeader
-          eyebrow={PROGRAMS_ACTIVITIES_COPY.headerEyebrow}
+          eyebrow="Program Rundown"
           title={title}
           subtitle={subtitle}
           align="center"
         />
 
-        <div className={jysSectionTheme.programsActivities.cardsGrid}>
-          {items.length > 0 ? (
-            items.map(item => {
+        <div className={componentsTheme.programsActivities.cardsGrid}>
+          {items.map(item => {
               const dateLabel = formatDate(item.date);
-              const timeLabel = item.time_range || PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
+              const timeLabel = item.time_range || DATA_NOT_ADDED;
               const durationLabel = item.duration
                 ? `Duration: ${item.duration}`
-                : PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
+                : DATA_NOT_ADDED;
               const rawDay = item.day || '';
 
-              let displayTitle = item.title || PROGRAMS_ACTIVITIES_COPY.dataNotAdded;
+              let displayTitle = item.title || DATA_NOT_ADDED;
               if (rawDay) {
                 const lowerDay = rawDay.toLowerCase();
                 const lowerTitle = displayTitle.toLowerCase();
@@ -61,83 +63,57 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
               return (
                 <article
                   key={`${item.day}-${item.title}`}
-                  className={jysSectionTheme.programsActivities.card}
+                  className={componentsTheme.programsActivities.card}
                 >
                   {/* baris meta bagian atas */}
-                  <div className={jysSectionTheme.programsActivities.metaRow}>
-                    <div className={jysSectionTheme.programsActivities.metaItem}>
-                      <Calendar className={jysSectionTheme.programsActivities.metaIcon} />
+                  <div className={componentsTheme.programsActivities.metaRow}>
+                    <div className={componentsTheme.programsActivities.metaItem}>
+                      <Calendar className={componentsTheme.programsActivities.metaIcon} />
                       <span>{dateLabel}</span>
                     </div>
-                    <div className={jysSectionTheme.programsActivities.metaItem}>
-                      <Clock3 className={jysSectionTheme.programsActivities.metaIcon} />
+                    <div className={componentsTheme.programsActivities.metaItem}>
+                      <Clock3 className={componentsTheme.programsActivities.metaIcon} />
                       <span>{timeLabel}</span>
                     </div>
-                    <div className={jysSectionTheme.programsActivities.metaItem}>
-                      <Hourglass className={jysSectionTheme.programsActivities.metaIcon} />
+                    <div className={componentsTheme.programsActivities.metaItem}>
+                      <Hourglass className={componentsTheme.programsActivities.metaIcon} />
                       <span>{durationLabel}</span>
                     </div>
                   </div>
 
                   {/* Judul + bullet checklist */}
-                  <div className={jysSectionTheme.programsActivities.titleWrapper}>
-                    <h3 className={jysSectionTheme.programsActivities.title}>
-                      <span className={jysSectionTheme.programsActivities.dayLabel}>
+                  <div className={componentsTheme.programsActivities.titleWrapper}>
+                    <h3 className={componentsTheme.programsActivities.title}>
+                      <span className={componentsTheme.programsActivities.dayLabel}>
                         {rawDay ? `${rawDay}:` : ''}
                       </span>{' '}
                       {displayTitle}
                     </h3>
 
-                    <div className={jysSectionTheme.programsActivities.bulletsGrid}>
+                    <div className={componentsTheme.programsActivities.bulletsGrid}>
                       {item.checklist.map(check => (
-                        <div key={check} className={jysSectionTheme.programsActivities.bulletRow}>
-                          <span className={jysSectionTheme.programsActivities.bulletIconWrapper}>
-                            <Check className={jysSectionTheme.programsActivities.bulletIcon} />
+                        <div key={check} className={componentsTheme.programsActivities.bulletRow}>
+                          <span className={componentsTheme.programsActivities.bulletIconWrapper}>
+                            <Check className={componentsTheme.programsActivities.bulletIcon} />
                           </span>
                           <span>{check}</span>
                         </div>
                       ))}
                     </div>
-                    <p className={jysSectionTheme.programsActivities.description}>
-                      {item.description || PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
+                    <p className={componentsTheme.programsActivities.description}>
+                      {item.description || DATA_NOT_ADDED}
                     </p>
                   </div>
                 </article>
               );
-            })
-          ) : (
-            <article className={jysSectionTheme.programsActivities.card}>
-              <div className={jysSectionTheme.programsActivities.metaRow}>
-                <div className={jysSectionTheme.programsActivities.metaItem}>
-                  <Calendar className={jysSectionTheme.programsActivities.metaIcon} />
-                  <span>{PROGRAMS_ACTIVITIES_COPY.dataNotAdded}</span>
-                </div>
-                <div className={jysSectionTheme.programsActivities.metaItem}>
-                  <Clock3 className={jysSectionTheme.programsActivities.metaIcon} />
-                  <span>{PROGRAMS_ACTIVITIES_COPY.dataNotAdded}</span>
-                </div>
-                <div className={jysSectionTheme.programsActivities.metaItem}>
-                  <Hourglass className={jysSectionTheme.programsActivities.metaIcon} />
-                  <span>{PROGRAMS_ACTIVITIES_COPY.dataNotAdded}</span>
-                </div>
-              </div>
-              <div className={jysSectionTheme.programsActivities.titleWrapper}>
-                <h3 className={jysSectionTheme.programsActivities.title}>
-                  {PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
-                </h3>
-                <p className={jysSectionTheme.programsActivities.description}>
-                  {PROGRAMS_ACTIVITIES_COPY.dataNotAdded}
-                </p>
-              </div>
-            </article>
-          )}
+          })}
         </div>
 
-        <p className={jysSectionTheme.programsActivities.note}>
-          <span className={jysSectionTheme.programsActivities.noteEmphasis}>
-            {PROGRAMS_ACTIVITIES_COPY.notePrefix}
+        <p className={componentsTheme.programsActivities.note}>
+          <span className={componentsTheme.programsActivities.noteEmphasis}>
+            Note:
           </span>{' '}
-          {PROGRAMS_ACTIVITIES_COPY.noteBody}
+          This rundown is an estimation only. The final schedule will be updated closer to the program date. Please check back regularly for the most accurate information.
         </p>
       </div>
     </section>

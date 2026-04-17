@@ -9,6 +9,8 @@ export interface ApiPostOptions {
   query?: Record<string, string | number | boolean | undefined>;
   headers?: HeadersInit;
   body?: unknown;
+  cache?: RequestCache;
+  next?: NextFetchRequestConfig;
 }
 
 export class ApiRequestError extends Error {
@@ -25,7 +27,8 @@ export class ApiRequestError extends Error {
   }
 }
 
-const API_BASE_URL = 'https://staging-api.ybbhub.com';
+const INTERNAL_API_BASE_URL = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
+const API_BASE_URL = typeof window === 'undefined' ? INTERNAL_API_BASE_URL : (process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com');
 
 export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Promise<T> {
   const url = new URL(path, API_BASE_URL);
@@ -46,6 +49,11 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
       'Content-Type': 'application/json',
       ...(options.headers ?? {}),
     },
+    cache: options.cache,
+    next: options.next,
+  }).catch((err) => {
+    console.error('[DEBUG] fetch failed GET error:', err.message, url.toString());
+    throw err;
   });
 
   if (!res.ok) {
@@ -73,6 +81,8 @@ export async function apiPost<T>(path: string, options: ApiPostOptions = {}): Pr
       ...(options.headers ?? {}),
     },
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    cache: options.cache,
+    next: options.next,
   });
 
   if (!res.ok) {

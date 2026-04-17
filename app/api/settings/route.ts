@@ -1,50 +1,15 @@
-import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { SettingsData } from '@/types/settings';
-import { apiGet } from '@/lib/api/httpClient';
-
-export const dynamic = 'force-dynamic';
-
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
-
-const DEFAULT_BRAND_URL =
-  normalizeBrandUrl(process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') || 'istanbulyouthsummit.com';
-
-async function resolveBrandDomain(): Promise<string> {
-  const h = await headers();
-  const hostnameRaw = h.get('x-hostname') || h.get('host') || '';
-  const hostname = hostnameRaw.split(':')[0];
-
-  if (!hostname) return DEFAULT_BRAND_URL;
-
-  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-    return DEFAULT_BRAND_URL;
-  }
-
-  return normalizeBrandUrl(hostname);
-}
+import { getSettingsForBrandDomain } from '@/lib/api/settings';
+import { resolveBrandDomain } from '@/lib/server/envContext';
 
 export async function GET() {
   try {
     const brandDomain = await resolveBrandDomain();
-    const json = await apiGet<{ statusCode: number; message: string; data: SettingsData }>(
-      '/v1/landing/settings',
-      {
-        headers: {
-          'x-brand-domain': brandDomain,
-        },
-      },
-    );
-
-    return NextResponse.json(json, {
-      headers: {
-        'Cache-Control': 'no-store, max-age=0',
-      },
-    });
+    // Uses the same unstable_cache-backed fetch as the SSR layout —
+    // so repeated calls within the 1-hour window hit Next.js Data Cache, not the backend.
+    const data = await getSettingsForBrandDomain(brandDomain);
+    return NextResponse.json({ statusCode: 200, message: 'Success', data });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
 
@@ -55,6 +20,9 @@ export async function GET() {
       brand: {
         name: 'Youth Summit',
         logo_url: null,
+        logo_white_url: null,
+        logo_color_url: null,
+        logo_icon_url: null,
         primary_color: null,
         support_email: null,
         contact_phone: null,

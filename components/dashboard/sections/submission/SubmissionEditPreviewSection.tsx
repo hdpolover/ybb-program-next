@@ -2,10 +2,10 @@
 
 import React from "react";
 import { PencilLine } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import type { EntryInfo, PersonalDetails, ProfessionalProfile } from "../SubmissionEditSection";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 type Props = {
   personal: PersonalDetails;
@@ -189,7 +189,7 @@ export default function SubmissionEditPreviewSection({
                     {entry.keywords.map((kw, idx) => (
                       <span
                         key={`${kw}-${idx}`}
-                        className="rounded-full bg-pink-50 px-2.5 py-0.5 text-[11px] font-medium text-pink-700 ring-1 ring-pink-200"
+                        className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-primary ring-1 ring-primary/30"
                       >
                         {kw}
                       </span>

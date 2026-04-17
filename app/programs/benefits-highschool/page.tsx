@@ -1,13 +1,12 @@
 import HeroSection from '@/components/ui/HeroSection';
 import BenefitsHighSchoolDetail from '@/components/programs/BenefitsHighSchoolDetail';
-import { PROGRAMS_HERO_BENEFITS_HIGHSCHOOL } from '@/data/programs/sections/subpages-hero/programsSubpagesHero';
 
 export default function HighSchoolBenefitsPage() {
   return (
     <main className="relative">
       <HeroSection
-        title={PROGRAMS_HERO_BENEFITS_HIGHSCHOOL.title}
-        subtitle={PROGRAMS_HERO_BENEFITS_HIGHSCHOOL.subtitle}
+        title="Benefits for High School Students"
+        subtitle="Understand how the Japan Youth Summit aligns with national and international curricula while supporting your academic journey."
         bgImage="/img/programsbackground.png"
         breadcrumb={[
           { href: '/', label: 'Home' },

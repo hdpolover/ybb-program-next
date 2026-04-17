@@ -1,4 +1,4 @@
-export type ProgramId = 'jys';
+export type ProgramId = string;
 
 export type Theme = {
   primary: string;
@@ -9,17 +9,14 @@ export type Theme = {
   foreground: string;
 };
 
-export const themes: Record<ProgramId, Theme> = {
-  jys: {
-    primary: '#1c57b3',
-    primaryForeground: '#ffffff',
-    accent: '#db2777',
-    accentForeground: '#ffffff',
-    background: '#ffffff',
-    foreground: '#020617',
-  },
-};
-
-export function getTheme(program: ProgramId = 'jys'): Theme {
-  return themes[program];
+// Theme sekarang diambil dari CSS variables yang di-set oleh API/settings per domain
+export function getTheme(): Theme {
+  return {
+    primary: 'var(--brand-primary)',
+    primaryForeground: 'var(--brand-primary-foreground)',
+    accent: 'var(--brand-accent)',
+    accentForeground: 'var(--brand-accent-foreground)',
+    background: 'var(--color-background)',
+    foreground: 'var(--color-foreground)',
+  };
 }

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 type SupportedByItem = {
   id: string;
@@ -13,23 +13,16 @@ type SupportedByItem = {
   tier?: string;
 };
 
-const fallbackSupportedLogos: SupportedByItem[] = [
-  { id: 'local-jys', name: 'JYS', logoUrl: '/img/jysfix.png', websiteUrl: '#', type: 'local', tier: 'primary' },
-  { id: 'local-iys', name: 'IYS', logoUrl: '/img/IYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
-  { id: 'local-yaf', name: 'YAF', logoUrl: '/img/YAFlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
-  { id: 'local-kys', name: 'KYS', logoUrl: '/img/KYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
-  { id: 'local-meys', name: 'MEYS', logoUrl: '/img/MEYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
-  { id: 'local-wys', name: 'WYS', logoUrl: '/img/WYSlogo.png', websiteUrl: '#', type: 'local', tier: 'primary' },
-];
-
 type SupportedByProps = {
   items?: SupportedByItem[];
 };
 
 export default function SupportedBy({ items }: SupportedByProps) {
-  const sponsors = items && items.length > 0 ? items : fallbackSupportedLogos;
+  if (!items || items.length === 0) return null;
+
+  const sponsors = items;
   return (
-    <section className={jysSectionTheme.supportedBy.sectionWrapper}>
+    <section className={componentsTheme.supportedBy.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeader
           eyebrow="Supported By"
@@ -44,14 +37,14 @@ export default function SupportedBy({ items }: SupportedByProps) {
                 href={sponsor.websiteUrl || '#'}
                 target={sponsor.websiteUrl ? '_blank' : undefined}
                 rel={sponsor.websiteUrl ? 'noreferrer' : undefined}
-                className={jysSectionTheme.supportedBy.logoWrapper}
+                className={componentsTheme.supportedBy.logoWrapper}
               >
                 <Image
                   src={sponsor.logoUrl}
                   alt={sponsor.name || 'Supporting organization logo'}
                   fill
                   sizes="(min-width:1024px) 160px, 33vw"
-                  className={jysSectionTheme.supportedBy.logoImg}
+                  className={componentsTheme.supportedBy.logoImg}
                 />
               </a>
             ))}

@@ -3,9 +3,8 @@
 import { useMemo, useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { ChevronDown, Search } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramFaqsSection } from '@/types/programs';
-import { PROGRAMS_FAQ_COPY } from '@/data/programs/sections/faq/programsFaq';
 
 type FAQ = { q: string; a: string };
 
@@ -25,7 +24,7 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   const [query, setQuery] = useState('');
 
-  const title = fqs?.title || PROGRAMS_FAQ_COPY.defaultTitle;
+  const title = fqs?.title || "Got Questions? We've Got Answers.";
   const items = fqs?.items ?? [];
 
   const groups: FAQGroup[] = useMemo(() => {
@@ -33,7 +32,7 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
     if (!items.length) return [];
     const byCategory = new Map<string, FAQ[]>();
     for (const item of items) {
-      const key = item.category || PROGRAMS_FAQ_COPY.defaultCategory;
+      const key = item.category || 'General';
       const list = byCategory.get(key) ?? [];
       list.push({ q: item.question, a: item.answer });
       byCategory.set(key, list);
@@ -41,18 +40,9 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
     return Array.from(byCategory.entries()).map(([label, faqs]) => ({ label, fqs: faqs }));
   }, [items]);
 
-  if (groups.length === 0) {
-    return (
-      <section className="relative w-full py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <SectionHeader eyebrow={PROGRAMS_FAQ_COPY.eyebrow} title={title} />
-          <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-slate-600">
-            {PROGRAMS_FAQ_COPY.emptyStateSubtitle}
-          </p>
-        </div>
-      </section>
-    );
-  }
+  if (!fqs && !groupsOverride) return null;
+
+  if (groups.length === 0) return null;
 
   const activeGroup = groups[activeTab];
 
@@ -67,9 +57,9 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
   return (
     <section className="relative w-full py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader eyebrow={PROGRAMS_FAQ_COPY.eyebrow} title={title} />
+        <SectionHeader eyebrow="FAQ" title={title} />
         <p className="mx-auto -mt-6 mb-8 max-w-2xl text-center text-sm text-slate-600">
-          {PROGRAMS_FAQ_COPY.searchDescription}
+          Explore frequently asked questions to better understand the program flow, requirements, and important information.
         </p>
 
         {/* search bar buat filter FAQ */}
@@ -83,7 +73,7 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
                 setQuery(e.target.value);
                 setOpenIdx(0);
               }}
-              placeholder={PROGRAMS_FAQ_COPY.searchPlaceholder}
+              placeholder="Search for program, registration, payments, etc."
               className="ml-3 w-full border-none bg-transparent text-sm text-blue-950 placeholder:text-slate-400 focus:outline-none focus:ring-0"
             />
           </div>
@@ -106,12 +96,12 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
                     className={`relative flex items-center gap-3 px-5 py-4 text-left text-sm font-semibold transition-colors sm:px-6 sm:text-base ${
                       isActive
                         ? 'bg-white text-blue-950'
-                        : 'bg-white text-slate-500 hover:bg-pink-50 hover:text-blue-950'
+                        : 'bg-white text-slate-500 hover:bg-primary/10 hover:text-blue-950'
                     }`}
                     aria-current={isActive}
                   >
                     {isActive ? (
-                      <span className="h-9 w-0.5 rounded-full bg-pink-600" aria-hidden="true" />
+                      <span className="h-9 w-0.5 rounded-full bg-primary" aria-hidden="true" />
                     ) : (
                       <span className="h-9 w-0.5" aria-hidden="true" />
                     )}
@@ -126,7 +116,7 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
           <div className="space-y-3">
             {filteredFaqs.length === 0 ? (
               <div className="rounded-2xl bg-white px-5 py-6 text-sm text-slate-600 shadow-[0_10px_35px_rgba(15,23,42,0.08)] ring-1 ring-slate-200 sm:px-6">
-                {PROGRAMS_FAQ_COPY.noResults}
+                No questions match your search. Try a different keyword or category.
               </div>
             ) : null}
 
@@ -146,7 +136,7 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
                     <span className="text-base font-extrabold text-blue-950 sm:text-lg">
                       {item.q}
                     </span>
-                    <span className={jysSectionTheme.faq.toggleIcon}>
+                    <span className={componentsTheme.faq.toggleIcon}>
                       <ChevronDown
                         className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                       />

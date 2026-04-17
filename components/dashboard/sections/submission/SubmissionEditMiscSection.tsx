@@ -16,11 +16,11 @@ import {
   BadgeCheck,
   CheckCircle2,
 } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import type { EntryInfo } from "../SubmissionEditSection";
 import StyledSelect from "@/components/ui/StyledSelect";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 function InputWrapper({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -283,14 +283,14 @@ export default function SubmissionEditMiscSection({
           <li className={submissionTheme.twibbonStepItem}>
             <span className={submissionTheme.twibbonStepBadge}>3</span>
             <p className={submissionTheme.twibbonStepText}>
-              Tag at least 5 friends and @youthbreaktheboundaries &amp; @japanyouthsummit on your twibbon
+              Tag at least 5 friends and @youthbreaktheboundaries on your twibbon
               post on Instagram or other social media platforms.
             </p>
           </li>
           <li className={submissionTheme.twibbonStepItem}>
             <span className={submissionTheme.twibbonStepBadge}>4</span>
             <p className={submissionTheme.twibbonStepText}>
-              Share the Japan Youth Summit program poster in a minimum of 3 WhatsApp or other social
+              Share the program poster in a minimum of 3 WhatsApp or other social
               media groups.
             </p>
           </li>
@@ -346,7 +346,7 @@ export default function SubmissionEditMiscSection({
                           ambassadorReferralCode: e.target.value,
                         })
                       }
-                      placeholder="e.g. YBBJYS-AMB01"
+                      placeholder="e.g. YBB-AMB01"
                     />
                   </InputWrapper>
                 </div>

@@ -38,6 +38,8 @@ export type ProgramOverviewGuidebook = {
 export type ProgramOverviewSection = {
   type: 'program_overview';
   content: {
+    program_name: string | null;
+    program_slug: string | null;
     description: string | null;
     theme: string | null;
     subthemes: ProgramOverviewSubtheme[] | null;
@@ -56,6 +58,7 @@ export type RegistrationInfoPricingTier = {
   price: string;
   currency: string;
   benefits: string[];
+  requirements?: string[];
   fee_type: 'full_fee' | 'registration_fee' | string;
   target?: 'self_funded' | 'fully_funded' | string;
   allowed_categories?: Array<'self_funded' | 'fully_funded' | string>;

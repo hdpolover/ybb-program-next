@@ -1,25 +1,5 @@
 import { NextResponse } from 'next/server';
-
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
-
-const DEFAULT_BRAND_URL =
-  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
-  'istanbulyouthsummit.com';
-const FALLBACK_BRAND_ID = 'e694b5d1-f0fe-4c26-80ff-9d0bed4793a4';
-const FALLBACK_PROGRAM_ID = '65fe1804-7c99-4566-8880-48b65c5116bb';
-
-function resolveBrandDomainFromRequest(request: Request): string {
-  const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
-  const hostname = hostnameRaw.split(':')[0];
-
-  if (!hostname) return DEFAULT_BRAND_URL;
-  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_URL;
-  return normalizeBrandUrl(hostname);
-}
+import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
 type RegisterBody = {
   email: string;
@@ -60,6 +40,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Resolve referral code: explicit body value takes priority, then fall back to cookie
+    const cookieHeader = request.headers.get('cookie') ?? '';
+    const cookieReferralCode = cookieHeader
+      .split(';')
+      .map((c) => c.trim())
+      .find((c) => c.startsWith('ybb_referral_code='))
+      ?.split('=')[1] ?? null;
+    const resolvedReferralCode = body.referralCode || cookieReferralCode || null;
+
     let ctxBrandId = '';
     let ctxProgramId = '';
     let ctxProviderId = '';
@@ -98,8 +87,8 @@ export async function POST(request: Request) {
       // ignore
     }
 
-    const brandId = envBrandId || ctxBrandId || FALLBACK_BRAND_ID;
-    const programId = envProgramId || ctxProgramId || FALLBACK_PROGRAM_ID;
+    const brandId = envBrandId || ctxBrandId;
+    const programId = envProgramId || ctxProgramId;
     const providerId = envLocalProviderId || ctxProviderId || '';
     const programSlug = ctxProgramSlug;
 
@@ -118,7 +107,7 @@ export async function POST(request: Request) {
     }
 
     step = 'fetch_backend_register';
-    const apiUrl = new URL('/v1/auth/register', 'https://staging-api.ybbhub.com');
+    const apiUrl = new URL('/v1/auth/register', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {
@@ -133,7 +122,7 @@ export async function POST(request: Request) {
         providerUserId: body.email,
         programId,
         programSlug,
-        ...(body.referralCode ? { referralCode: body.referralCode } : {}),
+        ...(resolvedReferralCode ? { referralCode: resolvedReferralCode } : {}),
         ...(body.applicationCategory ? { applicationCategory: body.applicationCategory } : {}),
       }),
     });

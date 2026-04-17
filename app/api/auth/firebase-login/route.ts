@@ -1,23 +1,6 @@
 import { NextResponse } from 'next/server';
+import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
-const DEFAULT_PROVIDER_ID = '8b4646ec-1e17-4815-bcca-703418b9db9f';
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
-
-const DEFAULT_BRAND_DOMAIN =
-  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
-  'istanbulyouthsummit.com';
-
-function resolveBrandDomainFromRequest(request: Request): string {
-  const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
-  const hostname = hostnameRaw.split(':')[0];
-  if (!hostname) return DEFAULT_BRAND_DOMAIN;
-  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_DOMAIN;
-  return normalizeBrandUrl(hostname);
-}
 
 type FirebaseLoginBody = {
   idToken: string;
@@ -46,10 +29,12 @@ type ProvidersResponse = {
 
 export async function POST(request: Request) {
   try {
-    const fallbackProviderId = process.env.YBB_FIREBASE_GOOGLE_PROVIDER_ID || DEFAULT_PROVIDER_ID;
+    console.log('[firebase-login] Starting...');
     const brandDomain = resolveBrandDomainFromRequest(request);
-
+    console.log('[firebase-login] brandDomain:', brandDomain);
+    
     const body = (await request.json()) as FirebaseLoginBody;
+    console.log('[firebase-login] Has idToken:', !!body?.idToken, 'Has providerId:', !!body?.providerId);
 
     if (!body?.idToken) {
       return NextResponse.json(
@@ -58,29 +43,52 @@ export async function POST(request: Request) {
       );
     }
 
-    let providerId = (body.providerId || '').trim();
-    if (!providerId) {
-      try {
-        const providersRes = await fetch(new URL('/v1/auth/providers', 'https://staging-api.ybbhub.com').toString(), {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'x-brand-domain': brandDomain,
-          },
-          cache: 'no-store',
-        });
-        const providersJson = (await providersRes.json().catch(() => ({}))) as ProvidersResponse;
-        const providers = Array.isArray(providersJson.data) ? providersJson.data : [];
-        const google = providers.find(p => p?.isOAuth && p?.name === 'google');
-        if (google?.id) providerId = google.id;
-      } catch {
-        // ignore
-      }
-    }
-    if (!providerId) providerId = fallbackProviderId;
+    const baseCandidate = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
+    const apiBaseUrl = baseCandidate.replace(/\/v1\/?$/, '');
+    const url = new URL('/v1/auth/firebase-login', apiBaseUrl);
+    console.log('[firebase-login] API URL:', url.toString());
 
-    const url = new URL('/v1/auth/firebase-login', 'https://staging-api.ybbhub.com');
+    const contextUrl = new URL(
+      '/api/auth/context',
+      // Server-side self-fetch must use localhost — the container cannot reach
+      // its own public domain. Use the internal port Next.js listens on (default 3000).
+      process.env.NEXT_INTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`,
+    ).toString();
+    console.log('[firebase-login] Fetching auth context:', contextUrl);
+    const ctxRes = await fetch(contextUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('[firebase-login] Auth context status:', ctxRes.status);
 
+    const ctxJson = (await ctxRes.json().catch((e) => {
+      console.error('[firebase-login] Failed to parse auth context:', e);
+      return {};
+    })) as {
+      data?: {
+        brandId?: string;
+        programId?: string;
+        programSlug?: string | null;
+      } | null;
+    };
+    console.log('[firebase-login] Auth context data:', ctxJson?.data);
+
+    const brandId = ctxJson?.data?.brandId || undefined;
+    const programId = ctxJson?.data?.programId || undefined;
+    const programSlug = ctxJson?.data?.programSlug || undefined;
+
+    // Resolve referral code: explicit body value takes priority, then fall back to cookie
+    const cookieHeader = request.headers.get('cookie') ?? '';
+    const cookieReferralCode = cookieHeader
+      .split(';')
+      .map((c) => c.trim())
+      .find((c) => c.startsWith('ybb_referral_code='))
+      ?.split('=')[1] ?? null;
+    const resolvedReferralCode = body.referralCode || cookieReferralCode || null;
+
+    console.log('[firebase-login] Calling backend with brandId:', brandId, 'programId:', programId);
     const res = await fetch(url.toString(), {
       method: 'POST',
       headers: {
@@ -89,12 +97,17 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         idToken: body.idToken,
-        providerId,
-        ...(body.referralCode ? { referralCode: body.referralCode } : {}),
+        providerId: body.providerId, // Now optional
+        ...(brandId ? { brandId } : {}),
+        ...(programId ? { programId } : {}),
+        ...(programSlug ? { programSlug } : {}),
+        ...(resolvedReferralCode ? { referralCode: resolvedReferralCode } : {}),
       }),
     });
 
+    console.log('[firebase-login] Backend status:', res.status);
     const json = (await res.json()) as FirebaseLoginResponse;
+    console.log('[firebase-login] Backend response:', json);
 
     if (!res.ok || (json.statusCode !== 200 && json.statusCode !== 201)) {
       return NextResponse.json(
@@ -131,7 +144,7 @@ export async function POST(request: Request) {
       data: {
         isNewUser,
         ...(typeof isOnboardingCompleted === 'boolean' ? { isOnboardingCompleted } : {}),
-        ...(process.env.NODE_ENV !== 'production' ? { providerIdUsed: providerId } : {}),
+        ...(process.env.NODE_ENV !== 'production' ? { providerIdUsed: body.providerId } : {}),
       },
     });
 
@@ -152,6 +165,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[firebase-login] Error:', message, error);
     return NextResponse.json(
       {
         statusCode: 500,

@@ -1,14 +1,11 @@
 "use client";
 
-import {
-  getClampedProgressPercentage,
-  PROGRESS_STEPS,
-  type ProgressStep,
-} from "@/components/dashboard/sections/dashboardOverview/OverviewProgramDetailsSection";
+import { buildProgressSteps, type ProgressStep } from "@/components/dashboard/sections/dashboardOverview/OverviewProgramDetailsSection";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { usePortalSubmissionProgress } from "@/hooks/usePortalSubmissionProgress";
+import { componentsTheme } from "@/lib/theme/components";
 
-const overviewTheme = jysSectionTheme.dashboardOverview;
+const overviewTheme = componentsTheme.dashboardOverview;
 
 function normalizeStepTitle(value: string) {
   return value.trim().toLowerCase();
@@ -40,26 +37,25 @@ function getCurrentStepIndex({
 export default function DashboardProgressPage() {
   const { dashboardSummary } = useDashboardData();
   const activeApplication = dashboardSummary?.activeApplication ?? null;
+  const { submissionProgress, currentStepIndex, loading, error } = usePortalSubmissionProgress();
+  const progressSteps = buildProgressSteps(submissionProgress?.sections);
 
-  const totalSteps = PROGRESS_STEPS.length;
-  const completedCount = PROGRESS_STEPS.filter(step => step.status === "done").length;
+  const fallbackCurrentIndex = getCurrentStepIndex({ steps: progressSteps, currentStepTitle: null, progressPercentage: 0 });
+  const currentIndex = currentStepIndex >= 0 ? Math.min(currentStepIndex, Math.max(0, progressSteps.length - 1)) : fallbackCurrentIndex;
+  const totalSteps = progressSteps.length;
+  const completedCount = progressSteps.filter(step => step.status === "done").length;
   const progressRatio = totalSteps > 0 ? (completedCount + 1) / totalSteps : 0;
   const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
 
-  const progressPercentage = getClampedProgressPercentage({
-    progress: activeApplication?.progress,
-    currentStep: activeApplication?.currentStep,
-    fallbackProgressPercentage,
-  });
+  const progressPercentage =
+    typeof submissionProgress?.overallProgress === "number" && !Number.isNaN(submissionProgress.overallProgress)
+      ? Math.min(100, Math.max(0, Math.round(submissionProgress.overallProgress)))
+      : typeof activeApplication?.progress === "number" && !Number.isNaN(activeApplication.progress)
+      ? Math.min(100, Math.max(0, Math.round(activeApplication.progress)))
+      : fallbackProgressPercentage;
 
-  const currentIndex = getCurrentStepIndex({
-    steps: PROGRESS_STEPS,
-    currentStepTitle: activeApplication?.currentStep?.trim() || null,
-    progressPercentage,
-  });
-  const currentStep = PROGRESS_STEPS[currentIndex] ?? PROGRESS_STEPS[0];
-
-  const currentStepTitle = activeApplication?.currentStep?.trim() || currentStep.title;
+  const resolvedCurrentStep = progressSteps[currentIndex];
+  const currentStepTitle = resolvedCurrentStep?.title || activeApplication?.currentStep?.trim() || "Application Progress";
 
   return (
     <section className={overviewTheme.sectionWrapper}>
@@ -67,7 +63,7 @@ export default function DashboardProgressPage() {
         <div>
           <h1 className={overviewTheme.progressDetailTitle}>Program Progress</h1>
           <p className={overviewTheme.progressDetailSubtitle}>
-            Track every stage of your Japan Youth Summit journey and see where you are right now.
+            Track your live submission sections and see exactly what is still pending.
           </p>
         </div>
         <div className={overviewTheme.progressDetailCurrentChip}>
@@ -77,6 +73,18 @@ export default function DashboardProgressPage() {
           </span>
         </div>
       </div>
+
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
+
+      {loading ? (
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-600 shadow-sm">
+          Loading progress...
+        </div>
+      ) : null}
 
       <div className={overviewTheme.progressDetailListWrapper}>
         <div className={overviewTheme.programCard}>
@@ -111,7 +119,7 @@ export default function DashboardProgressPage() {
 
             {/* Steps */}
             <div className={overviewTheme.progressStepsCol}>
-              {PROGRESS_STEPS.map((step, idx) => {
+              {progressSteps.map((step, idx) => {
                 const isCurrent = idx === currentIndex;
                 const isDone = idx < currentIndex;
 
@@ -133,7 +141,7 @@ export default function DashboardProgressPage() {
                   ? "In Progress"
                   : "Not Yet";
 
-                const isLast = idx === PROGRESS_STEPS.length - 1;
+                const isLast = idx === progressSteps.length - 1;
 
                 return (
                   <div key={step.id} className={overviewTheme.progressStepRow}>

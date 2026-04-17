@@ -3,13 +3,13 @@
 import React from "react";
 import Image from "next/image";
 import { Flag, Info, MapPin, Phone, Shirt, User, User2, UserRound } from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
+import { componentsTheme } from "@/lib/theme/components";
 import type { PersonalDetails } from "../SubmissionEditSection";
 import { getCities, getCountries, getGenders, getShirtSizes, getStates } from "@/lib/api/metadata";
 import type { CityMetadata, CountryMetadata, ShirtSizeMetadata, StateMetadata } from "@/types/metadata";
 import StyledSelect from "@/components/ui/StyledSelect";
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 function InputWrapper({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (

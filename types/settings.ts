@@ -9,7 +9,11 @@ export type SettingsSocialMedia = {
 export type SettingsBrand = {
   name: string;
   logo_url: string | null;
+  logo_white_url: string | null;
+  logo_color_url: string | null;
+  logo_icon_url: string | null;
   primary_color: string | null;
+  description?: string | null;
   support_email: string | null;
   contact_phone: string | null;
   contact_whatsapp: string | null;
@@ -39,4 +43,14 @@ export type SettingsData = {
   brand: SettingsBrand;
   footer_navigation: SettingsFooterNavSection[];
   currency: SettingsCurrency;
+  active_program?: { 
+    id: string; 
+    name: string; 
+    slug: string; 
+    year?: number;
+    logo_url?: string | null;
+    logo_white_url?: string | null;
+    logo_color_url?: string | null;
+    logo_icon_url?: string | null;
+  };
 };

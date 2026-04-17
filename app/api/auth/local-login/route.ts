@@ -1,24 +1,5 @@
 import { NextResponse } from 'next/server';
-
-function normalizeBrandUrl(input: string): string {
-  const trimmed = (input || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return '';
-  return trimmed.replace(/^https?:\/\//, '');
-}
-
-const DEFAULT_BRAND_URL =
-  normalizeBrandUrl(process.env.YBB_BRAND_DOMAIN || process.env.NEXT_PUBLIC_BRAND_DOMAIN || '') ||
-  'istanbulyouthsummit.com';
-const FALLBACK_BRAND_ID = 'e694b5d1-f0fe-4c26-80ff-9d0bed4793a4';
-
-function resolveBrandDomainFromRequest(request: Request): string {
-  const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
-  const hostname = hostnameRaw.split(':')[0];
-
-  if (!hostname) return DEFAULT_BRAND_URL;
-  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) return DEFAULT_BRAND_URL;
-  return normalizeBrandUrl(hostname);
-}
+import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
 type LocalLoginBody = {
   email: string;
@@ -61,10 +42,12 @@ export async function POST(request: Request) {
     const ctxJson = (await ctxRes.json()) as {
       statusCode: number;
       message: string;
-      data: { brandId: string } | null;
+      data: { brandId: string; programId?: string; programSlug?: string | null } | null;
     };
 
-    const brandId = envBrandId || ctxJson?.data?.brandId || FALLBACK_BRAND_ID;
+    const brandId = envBrandId || ctxJson?.data?.brandId;
+    const programId = ctxJson?.data?.programId || undefined;
+    const programSlug = ctxJson?.data?.programSlug || undefined;
     if (!brandId) {
       return NextResponse.json(
         { statusCode: 500, message: 'Missing brandId', data: null },
@@ -72,7 +55,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiUrl = new URL('/v1/auth/login', 'https://staging-api.ybbhub.com');
+    const apiUrl = new URL('/v1/auth/login', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {
@@ -83,6 +66,8 @@ export async function POST(request: Request) {
         email: body.email,
         password: body.password,
         brandId,
+        ...(programId ? { programId } : {}),
+        ...(programSlug ? { programSlug } : {}),
       }),
     });
 

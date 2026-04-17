@@ -1,11 +1,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
-const theme = jysSectionTheme.programsBenefitsDetail;
+const theme = componentsTheme.programsBenefitsDetail;
 
-export default function BenefitsUniversityProfessionalDetail() {
+type BenefitsUniversityProfessionalDetailProps = {
+  imageUrl?: string;
+};
+
+export default function BenefitsUniversityProfessionalDetail({ imageUrl }: BenefitsUniversityProfessionalDetailProps) {
   return (
     <section className={theme.sectionWrapper}>
       <div className={theme.container}>
@@ -90,7 +94,7 @@ export default function BenefitsUniversityProfessionalDetail() {
           <aside className={theme.asideCard}>
             <div className={theme.asideImageWrapper}>
               <Image
-                src="/img/programoverview.png"
+                src={imageUrl ?? '/img/programoverview.png'}
                 alt="Benefits for high school students"
                 fill
                 className={theme.asideImage}

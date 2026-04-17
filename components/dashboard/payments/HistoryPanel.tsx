@@ -36,7 +36,7 @@ export default function HistoryPanel({ items, pageSize = 1 }: { items: HistoryIt
   return (
     <div className="rounded-2xl bg-white p-0 shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200">
       <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-        <p className="text-sm font-semibold text-blue-950">Payment History</p>
+        <p className="text-sm font-semibold text-slate-900">Payment History</p>
         <div ref={ref} className="relative">
           <button
             type="button"
@@ -61,7 +61,7 @@ export default function HistoryPanel({ items, pageSize = 1 }: { items: HistoryIt
                     setOpen(false);
                   }}
                   className={`block w-full rounded-md px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-50 ${
-                    filter === f.key ? 'bg-slate-50 text-blue-700' : 'text-slate-700'
+                    filter === f.key ? 'bg-slate-50 text-primary' : 'text-slate-700'
                   }`}
                   type="button"
                 >

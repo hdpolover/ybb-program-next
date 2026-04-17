@@ -1,57 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AlertCircle, CheckCircle2, Info } from "lucide-react";
+import Image from "next/image";
+import { componentsTheme } from "@/lib/theme/components";
 import {
-  Award,
-  BriefcaseBusiness,
-  CheckCircle2,
-  FileText,
-  Flag,
-  Info,
-  Lock,
-  MapPin,
-  Phone,
-  Shirt,
-  Upload,
-  User,
-  User2,
-  UserRound,
-  Users,
-  PencilLine,
-} from "lucide-react";
-import { jysSectionTheme } from "@/lib/theme/jys-components";
-import SubmissionEditPersonalDetailsSection from "./submission/SubmissionEditPersonalDetailsSection";
-import SubmissionEditProfessionalProfileSection from "./submission/SubmissionEditProfessionalProfileSection";
-import SubmissionEditEntryInformationSection from "./submission/SubmissionEditEntryInformationSection";
-import SubmissionEditMiscSection from "./submission/SubmissionEditMiscSection";
-import SubmissionEditPreviewSection from "./submission/SubmissionEditPreviewSection";
-import SubmissionEditSubmitModalSection from "./submission/SubmissionEditSubmitModalSection";
+  ACTIVE_PROGRAM_CHANGED_EVENT,
+  appendProgramId,
+  readActiveProgramId,
+} from "@/lib/dashboard/activeProgram";
+import type {
+  PortalSubmissionDetail,
+  PortalSubmissionEssay,
+  PortalSubmissionField,
+  PortalSubmissionFieldOption,
+  PortalSubmissionSection,
+} from "@/types/portal-submission";
+import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
 
-const steps = [
-  "Personal Details",
-  "Professional Profile",
-  "Entry Information",
-  "Miscellaneous",
-  "Preview",
-] as const;
-
-type StepKey = (typeof steps)[number];
-
-type SubmissionProgressSection = {
-  id: string;
-  title: string;
-  description?: string;
-  status: "completed" | "pending" | string;
-  isRequired?: boolean;
-};
-
-type SubmissionProgressData = {
-  applicationId?: string;
-  programName?: string;
-  status?: string;
-  overallProgress?: number;
-  sections?: SubmissionProgressSection[];
-};
+const submissionTheme = componentsTheme.dashboardSubmission;
 
 export type PersonalDetails = {
   fullName: string;
@@ -98,374 +65,479 @@ export type EntryInfo = {
 };
 
 export const DUMMY_PERSONAL_DETAILS: PersonalDetails = {
-  fullName: "Hilmi Farrel Firjatullah",
-  nickName: "Hilmi",
-  gender: "male",
-  birthdate: "1999-08-12",
-  nationality: "Indonesia",
-  originState: "JB",
-  originCity: "Bandung",
-  currentState: "JB",
-  currentCity: "Depok",
-  phoneNumber: "0812-3456-7890",
-  emergencyPhoneNumber: "0813-9876-5432",
-  emergencyRelationship: "Father",
-  tshirtSize: "L",
-  diseaseHistory: "No chronic diseases. Mild seasonal allergies only.",
+  fullName: "",
+  nickName: "",
+  gender: "",
+  birthdate: "",
+  nationality: "",
+  originState: "",
+  originCity: "",
+  currentState: "",
+  currentCity: "",
+  phoneNumber: "",
+  emergencyPhoneNumber: "",
+  emergencyRelationship: "",
+  tshirtSize: "",
+  diseaseHistory: "",
 };
 
 export const DUMMY_PROFESSIONAL_PROFILE: ProfessionalProfile = {
-  educationLevel: "Bachelor's (S1)",
-  institution: "Universitas Indonesia",
-  major: "Informatics Engineering",
-  occupation: "Software Engineer Intern",
-  organization: "BEM UI – Public Relations",
-  experiences: "Software Engineer Intern — Tokopedia (Jun–Aug 2023).",
-  achievements: "1st Place — Jakarta Youth Innovation Hackathon 2024.",
+  educationLevel: "",
+  institution: "",
+  major: "",
+  occupation: "",
+  organization: "",
+  experiences: "",
+  achievements: "",
   resumeName: "",
 };
 
 export const DUMMY_ENTRY_INFO: EntryInfo = {
-  participationCategory: "Social Innovation — Youth Leadership",
-  programSubtheme: "SDG 3: Good Health and Well-being",
-  knowledgeSource: "Instagram Ads",
-  essayTitle: "How youth can drive sustainable change in local communities",
-  mainEssay:
-    "In this essay, I describe how youth-led initiatives can create sustainable impact in local communities through collaboration, innovation, and long-term commitment to social change.",
-  keywords: [
-    "User Experience",
-    "User Interface",
-    "Muslims",
-    "Society",
-    "Sustainability",
-  ],
-  reference:
-    "UN Sustainable Development Goals reports, local government publications, and community-based research related to youth empowerment and social innovation.",
-  instagramAccount: "@hilmi_farrel",
-  miscKnowledgeSource: "Instagram",
-  sourceAccountName: "@youngbrightbanyuwangi",
-  twibbonLink: "https://twb.nz/ybb-essay-campaign",
-  requirementLink: "https://drive.google.com/requirements-folder",
-  ambassadorReferralCode: "YBBJYS-AMB01",
+  participationCategory: "",
+  programSubtheme: "",
+  knowledgeSource: "",
+  essayTitle: "",
+  mainEssay: "",
+  keywords: [],
+  reference: "",
+  instagramAccount: "",
+  miscKnowledgeSource: "",
+  sourceAccountName: "",
+  twibbonLink: "",
+  requirementLink: "",
+  ambassadorReferralCode: "",
 };
 
-const submissionTheme = jysSectionTheme.dashboardSubmission;
-
-function inputBaseClass() {
-  return submissionTheme.editInputBase;
+function normalizeInputValue(value: unknown) {
+  if (value === null || value === undefined) return "";
+  return String(value);
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className={submissionTheme.editFieldLabelWrapper}>
-      <span className={submissionTheme.editFieldLabelText}>{label}</span>
-      {children}
-    </label>
-  );
+function fieldOptionValue(option: PortalSubmissionFieldOption) {
+  return typeof option === "string" ? option : option.value;
 }
 
-function InputWrapper({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+function fieldOptionLabel(option: PortalSubmissionFieldOption) {
+  return typeof option === "string" ? option : option.label;
+}
+
+function FieldMedia({ field }: { field: PortalSubmissionField }) {
+  if (!field.mediaUrl) return null;
+
+  const isRemote = /^https?:\/\//.test(field.mediaUrl);
+
   return (
-    <div className={submissionTheme.editInputWrapper}>
-      <span className={submissionTheme.editInputIcon}>{icon}</span>
-      {children}
+    <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+      <div className="relative aspect-[4/3] w-full bg-white">
+        <Image
+          src={field.mediaUrl}
+          alt={field.mediaAlt || field.label}
+          fill
+          sizes="(min-width: 1024px) 420px, 100vw"
+          className="object-contain p-4"
+          unoptimized={isRemote}
+        />
+      </div>
+      <div className="border-t border-slate-200 px-4 py-2 text-xs text-slate-600">
+        {field.mediaAlt || `${field.label} guide`}
+      </div>
     </div>
   );
 }
 
 export default function SubmissionEditSection() {
-  const [activeStep, setActiveStep] = useState<StepKey>("Personal Details");
-  const [personal, setPersonal] = useState<PersonalDetails>(DUMMY_PERSONAL_DETAILS);
-
-  const [professional, setProfessional] = useState<ProfessionalProfile>(
-    DUMMY_PROFESSIONAL_PROFILE
-  );
-
-  const [entry, setEntry] = useState<EntryInfo>(DUMMY_ENTRY_INFO);
-  const [personalShowErrors, setPersonalShowErrors] = useState(false);
-  const [professionalShowErrors, setProfessionalShowErrors] = useState(false);
-  const [entryShowErrors, setEntryShowErrors] = useState(false);
-  const [miscShowErrors, setMiscShowErrors] = useState(false);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [submissionProgress, setSubmissionProgress] = useState<SubmissionProgressData | null>(null);
-  const [submissionLoading, setSubmissionLoading] = useState(false);
-  const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const base = inputBaseClass();
-
-  const currentIndex = steps.indexOf(activeStep);
+  const [detail, setDetail] = useState<PortalSubmissionDetail | null>(null);
+  const [sectionValues, setSectionValues] = useState<Record<string, Record<string, string>>>({});
+  const [essayValues, setEssayValues] = useState<Record<string, string>>({});
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [programSelectionReady, setProgramSelectionReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [savingSectionId, setSavingSectionId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    const syncSelectedProgram = () => {
+      setSelectedProgramId(readActiveProgramId());
+      setProgramSelectionReady(true);
+    };
+
+    syncSelectedProgram();
+    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, syncSelectedProgram as EventListener);
+
+    return () => {
+      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, syncSelectedProgram as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!programSelectionReady) return;
+
     let cancelled = false;
-    setSubmissionLoading(true);
-    setSubmissionError(null);
 
     (async () => {
       try {
-        const res = await fetch("/api/portal/submissions", {
+        setLoading(true);
+        setError(null);
+
+        const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           cache: "no-store",
         });
 
         const json = (await res.json().catch(() => ({}))) as any;
-        if (!res.ok) throw new Error(json?.message || "Failed to fetch submissions");
+        if (!res.ok) throw new Error(json?.message || "Failed to load submission detail");
 
-        if (!cancelled) setSubmissionProgress((json?.data ?? null) as SubmissionProgressData | null);
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : "Failed to fetch submissions";
-        if (!cancelled) setSubmissionError(msg);
+        const nextDetail = (json?.data ?? null) as PortalSubmissionDetail | null;
+        if (!cancelled && nextDetail) {
+          setDetail(nextDetail);
+          setActiveSectionId(nextDetail.sections[0]?.id ?? null);
+          setSectionValues(
+            Object.fromEntries(
+              nextDetail.sections.map(section => [
+                section.id,
+                Object.fromEntries(
+                  section.fields.map(field => [field.name, normalizeInputValue(section.values[field.name])]),
+                ),
+              ]),
+            ),
+          );
+          setEssayValues(
+            Object.fromEntries(nextDetail.essays.map(essay => [essay.id, normalizeInputValue(essay.answer)])),
+          );
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : "Failed to load submission detail");
+        }
       } finally {
-        if (!cancelled) setSubmissionLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [programSelectionReady, selectedProgramId]);
 
-  const sectionStatusById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const s of submissionProgress?.sections ?? []) {
-      if (s?.id) map.set(s.id, String(s.status || ""));
-    }
-    return map;
-  }, [submissionProgress?.sections]);
+  const activeSection = useMemo(() => {
+    return detail?.sections.find(section => section.id === activeSectionId) ?? detail?.sections[0] ?? null;
+  }, [activeSectionId, detail?.sections]);
 
-  const hasEssaysSection = useMemo(() => {
-    return (submissionProgress?.sections ?? []).some(s => String(s?.id).toLowerCase() === "essays");
-  }, [submissionProgress?.sections]);
+  const activeSectionIndex = useMemo(() => {
+    return detail?.sections.findIndex(section => section.id === activeSection?.id) ?? -1;
+  }, [activeSection?.id, detail?.sections]);
 
-  const backendSectionForStep = useMemo(() => {
-    // Backend currently returns: personal_info, essays, documents
-    // UI steps are more granular, so we map them as best-effort.
-    return {
-      "Personal Details": "personal_info",
-      "Professional Profile": "personal_info",
-      "Entry Information": "essays",
-      "Miscellaneous": "documents",
-      Preview: null,
-    } as const;
-  }, []);
+  const sectionEssays = useMemo(() => {
+    if (!activeSection || activeSection.id !== "entry_information") return [];
+    return [...(detail?.essays ?? [])].sort((left, right) => left.order - right.order);
+  }, [activeSection, detail?.essays]);
 
-  const isPersonalValid = useMemo(() => {
-    return (Object.keys(personal) as (keyof PersonalDetails)[]).every(
-      key => String(personal[key]).trim().length > 0
-    );
-  }, [personal]);
+  const updateFieldValue = (sectionId: string, fieldName: string, value: string) => {
+    setSectionValues(current => ({
+      ...current,
+      [sectionId]: {
+        ...(current[sectionId] || {}),
+        [fieldName]: value,
+      },
+    }));
+  };
 
-  const isProfessionalValid = useMemo(() => {
-    return (Object.keys(professional) as (keyof ProfessionalProfile)[]).every(
-      key => String(professional[key]).trim().length > 0
-    );
-  }, [professional]);
+  const saveActiveSection = async () => {
+    if (!activeSection) return;
 
-  const isEntryValid = useMemo(() => {
-    const baseOk =
-      entry.participationCategory.trim().length > 0 &&
-      entry.programSubtheme.trim().length > 0 &&
-      entry.knowledgeSource.trim().length > 0;
+    setSavingSectionId(activeSection.id);
+    setError(null);
+    setSuccessMessage(null);
 
-    if (!hasEssaysSection) return baseOk;
+    try {
+      const sectionPayload = sectionValues[activeSection.id] || {};
+      const requests: Promise<Response>[] = [
+        fetch(appendProgramId(`/api/portal/submissions/sections/${activeSection.id}`, selectedProgramId), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: sectionPayload }),
+        }),
+      ];
 
-    return (
-      baseOk &&
-      entry.essayTitle.trim().length > 0 &&
-      entry.mainEssay.trim().length > 0 &&
-      entry.keywords.length > 0 &&
-      entry.reference.trim().length > 0
-    );
-  }, [entry, hasEssaysSection]);
+      if (activeSection.id === "entry_information" && sectionEssays.length > 0) {
+        requests.push(
+          fetch(appendProgramId("/api/portal/submissions/sections/essays", selectedProgramId), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: Object.fromEntries(sectionEssays.map(essay => [essay.id, essayValues[essay.id] || ""])) }),
+          }),
+        );
+      }
 
-  const isMiscValid = useMemo(() => {
-    return (
-      (entry.instagramAccount ?? "").trim().length > 0 &&
-      (entry.miscKnowledgeSource ?? "").trim().length > 0 &&
-      (entry.sourceAccountName ?? "").trim().length > 0 &&
-      (entry.twibbonLink ?? "").trim().length > 0 &&
-      (entry.requirementLink ?? "").trim().length > 0
-    );
-  }, [entry]);
+      const responses = await Promise.all(requests);
+      const results = await Promise.all(responses.map(response => response.json().catch(() => ({}))));
+      const failed = responses.findIndex(response => !response.ok);
 
-  const maxReachableIndex = useMemo(() => {
-    // step 0 always reachable; advance only if previous step valid
-    if (!isPersonalValid) return 0;
-    if (!isProfessionalValid) return 1;
-    if (!isEntryValid) return 2;
-    if (!isMiscValid) return 3;
-    return 4;
-  }, [isPersonalValid, isProfessionalValid, isEntryValid, isMiscValid]);
+      if (failed >= 0) {
+        throw new Error((results[failed] as any)?.message || "Failed to save submission section");
+      }
 
-  const goToStep = (target: StepKey) => {
-    const targetIndex = steps.indexOf(target);
-    if (targetIndex <= maxReachableIndex) {
-      setActiveStep(target);
+      setSuccessMessage(`${activeSection.title} saved successfully.`);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Failed to save submission section");
+    } finally {
+      setSavingSectionId(null);
     }
   };
 
-  const goNext = () => {
-    if (activeStep === "Personal Details" && !isPersonalValid) {
-      setPersonalShowErrors(true);
-      return;
-    }
-    if (activeStep === "Professional Profile" && !isProfessionalValid) {
-      setProfessionalShowErrors(true);
-      return;
-    }
-    if (activeStep === "Entry Information" && !isEntryValid) {
-      setEntryShowErrors(true);
-      return;
-    }
-    if (activeStep === "Miscellaneous" && !isMiscValid) {
-      setMiscShowErrors(true);
-      return;
-    }
-
-    const nextIndex = Math.min(currentIndex + 1, steps.length - 1);
-    if (nextIndex <= maxReachableIndex) {
-      setActiveStep(steps[nextIndex]);
-    }
+  const goToAdjacentSection = (direction: -1 | 1) => {
+    if (!detail || activeSectionIndex < 0) return;
+    const next = detail.sections[activeSectionIndex + direction];
+    if (next) setActiveSectionId(next.id);
   };
 
-  const goBack = () => {
-    const prevIndex = Math.max(currentIndex - 1, 0);
-    setActiveStep(steps[prevIndex]);
+  const renderFieldInput = (section: PortalSubmissionSection, field: PortalSubmissionField) => {
+    const value = sectionValues[section.id]?.[field.name] ?? "";
+
+    if (field.type === "textarea") {
+      return (
+        <textarea
+          className={submissionTheme.essayTextarea}
+          value={value}
+          onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
+          placeholder={field.placeholder || field.helpText || ""}
+        />
+      );
+    }
+
+    if (field.type === "select") {
+      return (
+        <select
+          className={submissionTheme.editInputBase}
+          value={value}
+          onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
+        >
+          <option value="">Select an option</option>
+          {(field.options || []).map(option => (
+            <option key={fieldOptionValue(option)} value={fieldOptionValue(option)}>
+              {fieldOptionLabel(option)}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    const inputType = field.type === "date" || field.type === "url" ? field.type : "text";
+    return (
+      <input
+        type={inputType}
+        className={submissionTheme.editInputBase}
+        value={value}
+        onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
+        placeholder={field.placeholder || field.helpText || ""}
+      />
+    );
   };
 
   return (
     <section className={submissionTheme.editSectionWrapper}>
-      {submissionError ? (
-        <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700">
-          {submissionError}
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
+      {successMessage ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {successMessage}
         </div>
       ) : null}
 
-      {/* Stepper */}
-      <div className={submissionTheme.stepperCard}>
-        <div className={submissionTheme.stepperRow}>
-          {steps.map((step, index) => {
-            const isActive = index === currentIndex;
-            const backendSectionId = backendSectionForStep[step];
-            const backendStatus = backendSectionId ? sectionStatusById.get(backendSectionId) : undefined;
-            const backendIsDone = String(backendStatus || "").toLowerCase() === "completed";
-            const isDone = backendIsDone || (index < currentIndex && index <= maxReachableIndex);
-            const isLocked = index > maxReachableIndex;
-
-            return (
-              <button
-                key={step}
-                type="button"
-                onClick={() => goToStep(step)}
-                className={`${submissionTheme.stepperButtonBase} ${
-                  isLocked ? submissionTheme.stepperButtonLocked : ""
-                }`}
-              >
-                <div className={submissionTheme.stepperPillRow}>
-                  <div
-                    className={`${submissionTheme.stepperCircle} ${
-                      isActive
-                        ? submissionTheme.stepperCircleActive
-                        : isDone
-                        ? submissionTheme.stepperCircleDone
-                        : submissionTheme.stepperCircleIdle
-                    }`}
-                  >
-                    {isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div className={submissionTheme.stepperConnectorWrapper}>
-                      <div
-                        className={`${submissionTheme.stepperConnectorBar} ${
-                          index < currentIndex
-                            ? submissionTheme.stepperConnectorDone
-                            : isActive
-                            ? submissionTheme.stepperConnectorActive
-                            : submissionTheme.stepperConnectorIdle
-                        }`}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className={submissionTheme.stepperTextWrapper}>
-                  <p className={submissionTheme.stepperStepTitle}>
-                    {step}
-                  </p>
-                  <span
-                    className={`${submissionTheme.stepperStatusPill} ${
-                      isActive
-                        ? submissionTheme.stepperStatusActive
-                        : isDone
-                        ? submissionTheme.stepperStatusDone
-                        : submissionTheme.stepperStatusIdle
-                    }`}
-                  >
-                    {isDone ? "Done" : isActive ? "Process" : submissionLoading ? "Loading" : "Not yet"}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
+      {loading ? (
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-600 shadow-sm">
+          Loading submission form...
         </div>
-      </div>
+      ) : null}
 
-      {/* Forms */}
-      <div className={submissionTheme.formCard}>
-        {activeStep === "Personal Details" && (
-          <SubmissionEditPersonalDetailsSection
-            personal={personal}
-            onChangePersonal={setPersonal}
-            showErrors={personalShowErrors}
-            onSaveAndContinue={goNext}
+      {!loading && detail ? (
+        <>
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: "Submissions", href: "/dashboard/submission" },
+              { label: "Registration Form", href: "/dashboard/submission" },
+              { label: "Edit Form" },
+            ]}
           />
-        )}
 
-        {activeStep === "Professional Profile" && (
-          <SubmissionEditProfessionalProfileSection
-            professional={professional}
-            onChangeProfessional={setProfessional}
-            showErrors={professionalShowErrors}
-            onBack={goBack}
-            onSaveAndContinue={goNext}
-          />
-        )}
+          {/* Page Title */}
+          <h1 className="text-2xl font-bold text-slate-900">
+            Registration Form
+          </h1>
 
-        {activeStep === "Entry Information" && (
-          <SubmissionEditEntryInformationSection
-            entry={entry}
-            onChangeEntry={setEntry}
-            showErrors={entryShowErrors}
-            onBack={goBack}
-            onGoToPreview={goNext}
-            showEssayFields={hasEssaysSection}
-          />
-        )}
+          {/* Stepper */}
+          <div className={submissionTheme.stepperCard}>
+            <div className={submissionTheme.stepperRow}>
+              {detail.sections.map((section, index) => {
+                const isDone = index < activeSectionIndex;
+                const isActive = index === activeSectionIndex;
+                const isLast = index === detail.sections.length - 1;
 
-        {activeStep === "Miscellaneous" && (
-          <SubmissionEditMiscSection
-            entry={entry}
-            onChangeEntry={setEntry}
-            showErrors={miscShowErrors}
-            onBack={goBack}
-            onGoToPreview={goNext}
-          />
-        )}
+                const circleClass = isDone
+                  ? submissionTheme.stepperCircleDone
+                  : isActive
+                    ? submissionTheme.stepperCircleActive
+                    : submissionTheme.stepperCircleIdle;
 
-        {activeStep === "Preview" && (
-          <SubmissionEditPreviewSection
-            personal={personal}
-            professional={professional}
-            entry={entry}
-            onBack={goBack}
-            onEditStep={setActiveStep}
-            onSubmitClick={() => setShowSubmitModal(true)}
-          />
-        )}
-      </div>
+                const statusClass = isDone
+                  ? submissionTheme.stepperStatusDone
+                  : isActive
+                    ? submissionTheme.stepperStatusActive
+                    : submissionTheme.stepperStatusIdle;
 
-      {showSubmitModal && <SubmissionEditSubmitModalSection onClose={() => setShowSubmitModal(false)} />}
+                const statusLabel = isDone ? "Done" : isActive ? "In Progress" : "Not yet";
+
+                const connectorBarClass = isDone
+                  ? submissionTheme.stepperConnectorDone
+                  : isActive
+                    ? submissionTheme.stepperConnectorActive
+                    : submissionTheme.stepperConnectorIdle;
+
+                return (
+                  <div key={section.id} className={submissionTheme.stepperPillRow}>
+                    <button
+                      type="button"
+                      className={submissionTheme.stepperButtonBase}
+                      onClick={() => setActiveSectionId(section.id)}
+                    >
+                      <div className={`${submissionTheme.stepperCircle} ${circleClass}`}>
+                        {isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+                      </div>
+                      <div className={submissionTheme.stepperTextWrapper}>
+                        <p className={submissionTheme.stepperStepTitle}>{section.title}</p>
+                        <span className={`${submissionTheme.stepperStatusPill} ${statusClass}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+                    </button>
+                    {!isLast && (
+                      <div className={submissionTheme.stepperConnectorWrapper}>
+                        <div className={`${submissionTheme.stepperConnectorBar} ${connectorBarClass}`} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {activeSection ? (
+            <div className={submissionTheme.formCard}>
+              <div className={submissionTheme.formSectionWrapper}>
+                <div>
+                  <h2 className={submissionTheme.formSectionTitle}>{activeSection.title}</h2>
+                  {activeSection.description ? (
+                    <p className={submissionTheme.formSectionSubtitle}>{activeSection.description}</p>
+                  ) : null}
+                </div>
+
+                <div className={submissionTheme.formGrid}>
+                  {activeSection.fields.map(field => (
+                    <label key={field.id} className={submissionTheme.editFieldLabelWrapper}>
+                      <span className={submissionTheme.editFieldLabelText}>
+                        {field.label}
+                        {field.isRequired ? " *" : ""}
+                      </span>
+                      {renderFieldInput(activeSection, field)}
+                      {field.helpText ? (
+                        <p className={submissionTheme.readSectionSubtitle}>{field.helpText}</p>
+                      ) : null}
+                      <FieldMedia field={field} />
+                    </label>
+                  ))}
+                </div>
+
+                {sectionEssays.length > 0 ? (
+                  <div className={submissionTheme.mainEssaySectionWrapper}>
+                    <div>
+                      <h3 className="text-base font-semibold text-slate-900">Essay Questions</h3>
+                      <p className="mt-1 text-[13px] text-slate-700">
+                        Answer the program essay prompts below. These responses are saved separately from the form fields.
+                      </p>
+                    </div>
+
+                    {sectionEssays.map((essay: PortalSubmissionEssay) => (
+                      <div key={essay.id} className="space-y-2">
+                        <label className={submissionTheme.editFieldLabelWrapper}>
+                          <span className={submissionTheme.editFieldLabelText}>{essay.question}</span>
+                          <textarea
+                            className={submissionTheme.essayTextarea}
+                            value={essayValues[essay.id] || ""}
+                            onChange={event =>
+                              setEssayValues(current => ({
+                                ...current,
+                                [essay.id]: event.target.value,
+                              }))
+                            }
+                            placeholder={essay.wordLimit ? `Word limit: ${essay.wordLimit}` : "Write your answer"}
+                          />
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {detail.requirements.length > 0 ? (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <div>
+                        <p className="font-semibold">Documents are handled in a separate submission flow.</p>
+                        <p className="mt-1 text-xs text-amber-800">
+                          Required documents: {detail.requirements.map(requirement => requirement.name).join(", ")}.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    className={submissionTheme.secondaryButton}
+                    onClick={() => goToAdjacentSection(-1)}
+                    disabled={activeSectionIndex <= 0}
+                  >
+                    Previous
+                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      className={submissionTheme.primaryButton}
+                      onClick={saveActiveSection}
+                      disabled={savingSectionId === activeSection.id}
+                    >
+                      {savingSectionId === activeSection.id ? "Saving..." : "Save Section"}
+                    </button>
+                    <button
+                      type="button"
+                      className={submissionTheme.secondaryButton}
+                      onClick={() => goToAdjacentSection(1)}
+                      disabled={!detail.sections[activeSectionIndex + 1]}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-600 shadow-sm">
+              <div className="flex items-center gap-2">
+                <Info className="h-4 w-4" />
+                No submission fields are configured for this program yet.
+              </div>
+            </div>
+          )}
+        </>
+      ) : null}
     </section>
   );
 }

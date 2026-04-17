@@ -1,5 +1,5 @@
 import React from 'react';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 
 // Komponen Hero reusable biar semua halaman konsisten gaya-nya
 // Pakai ini di tiap page: title, subtitle, dan background bisa diatur
@@ -26,7 +26,7 @@ export default function HeroSection({
   ctaHref?: string;
   textSize?: 'default' | 'sm';
 }) {
-  const heroTheme = jysSectionTheme.heroSection;
+  const heroTheme = componentsTheme.heroSection;
   const containerHeight = heightClass ?? 'min-h-[360px] md:min-h-[420px]';
   const decorTopRight = decorVariant === 'compact' ? 'h-[24rem] w-[24rem]' : 'h-[28rem] w-[28rem]';
   const decorMidRight = decorVariant === 'compact' ? 'h-[16rem] w-[16rem]' : 'h-[18rem] w-[18rem]';
@@ -95,7 +95,7 @@ export default function HeroSection({
             <div className="mt-6">
               <a
                 href={ctaHref}
-                className="inline-flex items-center justify-center rounded-full bg-pink-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-pink-600/40"
+                className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2 focus:ring-offset-primary/40"
               >
                 {ctaLabel}
               </a>

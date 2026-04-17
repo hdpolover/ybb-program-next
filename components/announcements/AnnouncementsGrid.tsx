@@ -3,9 +3,7 @@ import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { DATA_NOT_ADDED } from '@/data/programs/shared/constants';
-
+import { componentsTheme } from '@/lib/theme/components';
 export type AnnouncementCategory =
   | 'awards'
   | 'scholarship'
@@ -36,6 +34,26 @@ export default function AnnouncementsGrid({
   showControls?: boolean;
 }) {
   const showControls = arguments[0]?.showControls ?? true;
+
+  if (!items || items.length === 0) {
+    return (
+      <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader eyebrow="Announcements" title={title} />
+          {subtitle ? <p className={componentsTheme.announcementsGrid.subtitle}>{subtitle}</p> : null}
+          <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-16 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+              <Search className="h-6 w-6 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-700">No announcements yet</h3>
+            <p className="mt-1.5 max-w-sm text-sm text-slate-500">
+              There are no announcements at the moment. Check back later for the latest news and updates.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
   // search & filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<'all' | AnnouncementCategory>('all');
@@ -69,7 +87,7 @@ export default function AnnouncementsGrid({
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeader eyebrow="Announcements" title={title} />
-        {subtitle ? <p className={jysSectionTheme.announcementsGrid.subtitle}>{subtitle}</p> : null}
+        {subtitle ? <p className={componentsTheme.announcementsGrid.subtitle}>{subtitle}</p> : null}
 
         {/* Search bar + category filter (optional) */}
         {showControls ? (
@@ -88,7 +106,7 @@ export default function AnnouncementsGrid({
                   value={searchQuery}
                   onChange={e => handleSearchChange(e.target.value)}
                   placeholder="Type keywords (e.g. scholarship, visa, deadline)"
-                  className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-blue-950 shadow-sm outline-none transition focus:border-pink-400 focus:ring-2 focus:ring-pink-100"
+                  className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-blue-950 shadow-sm outline-none transition focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -109,8 +127,8 @@ export default function AnnouncementsGrid({
                   onClick={() => handleChangeCategory(tab.key as 'all' | AnnouncementCategory)}
                   className={`inline-flex items-center justify-center rounded-full border px-3 py-1 transition ${
                     activeCategory === tab.key
-                      ? 'border-pink-500 bg-pink-50 text-pink-700 shadow-sm'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-pink-200 hover:bg-pink-50/60 hover:text-pink-700'
+                      ? 'border-primary/100 bg-primary/10 text-primary shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:bg-primary/10/60 hover:text-primary'
                   }`}
                 >
                   {tab.label}
@@ -121,19 +139,14 @@ export default function AnnouncementsGrid({
         ) : null}
 
         {/* grid berita — komponen ini reusable biar gampang dipakai di halaman lain */}
-        {items.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-6 text-center text-sm font-medium text-slate-600">
-            {DATA_NOT_ADDED}
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-2 lg:grid-cols-3">
             {visibleItems.map(n => {
               const Wrapper: React.ElementType = n.href ? 'a' : 'article';
               return (
                 <Wrapper
                   key={n.id}
                   {...(n.href ? { href: n.href } : {})}
-                  className={jysSectionTheme.announcementsGrid.card}
+                  className={componentsTheme.announcementsGrid.card}
                 >
                   <div className="relative h-44 w-full overflow-hidden sm:h-52">
                     <Image
@@ -146,7 +159,7 @@ export default function AnnouncementsGrid({
                   </div>
                   <div className="flex flex-1 flex-col p-5">
                     {n.category ? (
-                      <p className="mb-2 inline-flex items-center rounded-full bg-pink-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-pink-700">
+                      <p className="mb-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
                         {n.category === 'program-news'
                           ? 'Program'
                           : n.category === 'scholarship'
@@ -180,14 +193,13 @@ export default function AnnouncementsGrid({
               );
             })}
           </div>
-        )}
 
         {visible < filteredItems.length && (
           <div className="mt-8 flex justify-center">
             <button
               type="button"
               onClick={() => setVisible(v => Math.min(v + 6, filteredItems.length))}
-              className={jysSectionTheme.announcementsGrid.loadMoreButton}
+              className={componentsTheme.announcementsGrid.loadMoreButton}
             >
               Load More
             </button>

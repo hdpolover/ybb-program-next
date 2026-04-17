@@ -38,6 +38,9 @@ export type CtaSupportSection = {
     description: string;
     button_text: string;
     action_url: string;
+    video_url?: string | null;
+    video_title?: string | null;
+    video_description?: string | null;
   };
 };
 

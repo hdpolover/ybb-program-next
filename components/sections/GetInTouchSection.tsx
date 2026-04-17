@@ -3,9 +3,8 @@
 import Image from 'next/image';
 import { PhoneCall, Mail, Instagram, MapPin } from 'lucide-react';
 
-import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
-import { contactItems, contactSectionContent } from '@/data/contact';
+import { componentsTheme } from '@/lib/theme/components';
+import { useSettings } from '@/components/providers/SettingsProvider';
 
 export type ContactItem = {
   id: 'chat' | 'email' | 'instagram' | 'address';
@@ -21,80 +20,59 @@ export type GetInTouchProps = {
   items?: ContactItem[];
 };
 
-const resolveDefaultItems = (): ContactItem[] =>
-  contactItems.map(item => {
-    const base = {
-      id: item.id,
-      title: item.title,
-      subtitle: item.subtitle,
-      href: item.href,
-    } as const;
-
-    if (item.id === 'chat') {
-      return { ...base, icon: <PhoneCall className="h-4 w-4" /> };
-    }
-    if (item.id === 'email') {
-      return { ...base, icon: <Mail className="h-4 w-4" /> };
-    }
-    if (item.id === 'instagram') {
-      return { ...base, icon: <Instagram className="h-4 w-4" /> };
-    }
-    return { ...base, icon: <MapPin className="h-4 w-4" /> };
-  });
-
 export default function GetInTouchSection({
-  title = contactSectionContent.subtitle,
-  eyebrow = contactSectionContent.title,
+  title = 'Get in touch with our team!',
+  eyebrow = 'Contact',
   items,
 }: GetInTouchProps) {
-  const resolvedItems = items ?? resolveDefaultItems();
+  const { settings } = useSettings();
+  const brand = settings?.brand ?? null;
+
+  const resolvedItems: ContactItem[] = items ?? buildContactItems(brand);
+
   return (
-    <section className={jysSectionTheme.getInTouch.sectionWrapper}>
+    <section className={componentsTheme.getInTouch.sectionWrapper}>
       <div
-        className={`${jysSectionTheme.getInTouch.card} relative`}
+        className={`${componentsTheme.getInTouch.card} relative`}
       >
+        {/* Dynamic background with centered effect */}
+        <div className="absolute inset-0 bg-[var(--brand-accent)] opacity-10 sm:opacity-5" />
+        <div className="absolute inset-x-0 top-1/2 h-[200%] w-full -translate-y-1/2 bg-[var(--brand-accent)] opacity-20 sm:opacity-10" />
+        
         <div className="absolute inset-0 sm:hidden">
-          <Image
-            src="/img/touchwithusmobile.png"
-            alt=""
-            fill
-            priority
-            className="object-cover object-left"
-          />
-        </div>
-        <div className="absolute inset-0 hidden sm:block">
-          <Image
-            src={jysSectionTheme.getInTouch.cardBackground}
-            alt=""
-            fill
-            priority
-            className="object-cover object-center"
-          />
+          <div className="absolute inset-0 bg-[var(--brand-accent)] opacity-30" />
         </div>
 
         <div className="relative z-10">
         <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)] items-center gap-8">
-          {/* Kiri: gambar ilustrasi */}
-          <div className={jysSectionTheme.getInTouch.imageWrapper}></div>
+          {/* Left: illustration image */}
+          <div className={componentsTheme.getInTouch.imageWrapper}></div>
 
-          {/* Kanan: judul, deskripsi, dan daftar contact items */}
+          {/* Right: title, description, and contact items */}
           <div>
-            <SectionHeader eyebrow={eyebrow} title={title} align="left" />
-            <div className={jysSectionTheme.getInTouch.list}>
+            <div className="mb-8 text-left">
+              {eyebrow ? (
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{eyebrow}</p>
+              ) : null}
+              <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                {title}
+              </h2>
+            </div>
+            <div className={componentsTheme.getInTouch.list}>
               {resolvedItems.map(item => {
                 const Wrapper: React.ElementType = item.href ? 'a' : 'div';
                 return (
                   <Wrapper
                     key={item.id}
                     href={item.href}
-                    className={jysSectionTheme.getInTouch.item}
+                    className={componentsTheme.getInTouch.item}
                     target={item.href?.startsWith('http') ? '_blank' : undefined}
                     rel={item.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
                   >
-                    <div className={jysSectionTheme.getInTouch.itemIconCircle}>{item.icon}</div>
+                    <div className={componentsTheme.getInTouch.itemIconCircle}>{item.icon}</div>
                     <div className="min-w-0">
-                      <p className={jysSectionTheme.getInTouch.itemTitle}>{item.title}</p>
-                      <p className={jysSectionTheme.getInTouch.itemSubtitle}>{item.subtitle}</p>
+                      <p className={componentsTheme.getInTouch.itemTitle}>{item.title}</p>
+                      <p className={componentsTheme.getInTouch.itemSubtitle}>{item.subtitle}</p>
                     </div>
                   </Wrapper>
                 );
@@ -106,4 +84,38 @@ export default function GetInTouchSection({
       </div>
     </section>
   );
+}
+
+function buildContactItems(brand: NonNullable<ReturnType<typeof useSettings>>['settings'] extends infer S ? S extends { brand: infer B } ? B : null : null): ContactItem[] {
+  const items: ContactItem[] = [];
+
+  // WhatsApp / Phone
+  const phone = brand?.contact_whatsapp || brand?.contact_phone;
+  if (phone) {
+    const href = brand?.contact_whatsapp
+      ? `https://wa.me/${brand.contact_whatsapp.replace(/\D/g, '')}`
+      : `tel:${phone}`;
+    items.push({ id: 'chat', title: 'Chat to Customer Support', subtitle: phone, href, icon: <PhoneCall className="h-4 w-4" /> });
+  }
+
+  // Email
+  const email = brand?.support_email;
+  if (email) {
+    items.push({ id: 'email', title: 'Email to Customer Support', subtitle: email, href: `mailto:${email}`, icon: <Mail className="h-4 w-4" /> });
+  }
+
+  // Instagram
+  const igUrl = brand?.social_media?.instagram;
+  if (igUrl) {
+    const handle = igUrl.replace(/^https?:\/\/(www\.)?instagram\.com\/?/, '').replace(/^@/, '').replace(/\/$/, '');
+    items.push({ id: 'instagram', title: 'Visit Us', subtitle: `@${handle}`, href: igUrl, icon: <Instagram className="h-4 w-4" /> });
+  }
+
+  // Address
+  const address = brand?.address;
+  if (address) {
+    items.push({ id: 'address', title: 'Address', subtitle: address, icon: <MapPin className="h-4 w-4" /> });
+  }
+
+  return items;
 }

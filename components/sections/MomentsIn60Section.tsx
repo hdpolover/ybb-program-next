@@ -2,44 +2,23 @@
 
 import { useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
+import type { ProgramShortsSection } from '@/types/home';
 
-const shorts = [
-  {
-    id: 'short-1',
-    embedUrl: 'https://www.youtube.com/embed/TnCyfXh_p2M?rel=0&mute=1',
-  },
-  {
-    id: 'short-2',
-    embedUrl: 'https://www.youtube.com/embed/Jwgd05MZ4iI?rel=0&mute=1',
-  },
-  {
-    id: 'short-3',
-    embedUrl: 'https://www.youtube.com/embed/vsNbESxF1wM?rel=0&mute=1',
-  },
-  {
-    id: 'short-4',
-    embedUrl: 'https://www.youtube.com/embed/PKJyaMElURY?rel=0&mute=1',
-  },
-  {
-    id: 'short-5',
-    embedUrl: 'https://www.youtube.com/embed/2h8vSDcr5PI?rel=0&mute=1',
-  },
-  {
-    id: 'short-6',
-    embedUrl: 'https://www.youtube.com/embed/2OViDwjKre0?rel=0&mute=1',
-  },
-  {
-    id: 'short-7',
-    embedUrl: 'https://www.youtube.com/embed/HX5Wesz0jgk?rel=0&mute=1',
-  },
-  {
-    id: 'short-8',
-    embedUrl: 'https://www.youtube.com/embed/DxDSMQLvyS0?rel=0&mute=1',
-  },
-];
+interface Props {
+  section?: ProgramShortsSection;
+}
 
-export default function MomentsIn60Section() {
+export default function MomentsIn60Section({ section }: Props) {
+  if (!section || !section.content.items || section.content.items.length === 0) return null;
+
+  const shorts = section.content.items.filter(s => s.embed_url);
+  if (shorts.length === 0) return null;
+
+  const eyebrow = section?.content.eyebrow ?? 'Short Highlights';
+  const title = section?.content.title ?? 'Discover Our Moments in 60 Seconds';
+  const description = section?.content.description ?? "Japan Youth Summit's workshops, cultural night, and sessions — all captured in 60-second highlights straight from Osaka."
+
   const [startIndex, setStartIndex] = useState(0);
 
   const visibleShorts = shorts
@@ -57,11 +36,11 @@ export default function MomentsIn60Section() {
   };
 
   return (
-    <section className={jysSectionTheme.momentsShorts.sectionWrapper}>
+    <section className={componentsTheme.momentsShorts.sectionWrapper}>
       <div
-        className={jysSectionTheme.momentsShorts.card}
+        className={componentsTheme.momentsShorts.card}
         style={{
-          backgroundImage: `url(${jysSectionTheme.momentsShorts.cardBackground})`,
+          backgroundImage: `url(${componentsTheme.momentsShorts.cardBackground})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -70,24 +49,23 @@ export default function MomentsIn60Section() {
         <div className="grid grid-cols-1 items-center gap-8 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)]">
           <div>
             <SectionHeader
-              eyebrow="Short Highlights"
-              title="Discover Our Moments in 60 Seconds"
+              eyebrow={eyebrow}
+              title={title}
               align="left"
             />
-            <p className={jysSectionTheme.momentsShorts.description}>
-              Watch bite-sized YouTube Shorts from Japan Youth Summit’s workshops, cultural
-              sessions, and everyday moments in Osaka.
+            <p className={componentsTheme.momentsShorts.description}>
+              {description}
             </p>
           </div>
 
           <div className="relative sm:px-10">
-            <div className={jysSectionTheme.momentsShorts.shortsRow}>
+            <div className={componentsTheme.momentsShorts.shortsRow}>
               {visibleShorts.map(short => (
-                <div key={short.id} className={jysSectionTheme.momentsShorts.shortWrapper}>
+                <div key={short.id} className={componentsTheme.momentsShorts.shortWrapper}>
                   <iframe
-                    src={short.embedUrl}
-                    title="Japan Youth Summit short highlight"
-                    className={jysSectionTheme.momentsShorts.shortIframe}
+                    src={short.embed_url!}
+                    title="Program short highlight"
+                    className={componentsTheme.momentsShorts.shortIframe}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                   />

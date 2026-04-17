@@ -1,7 +1,7 @@
 import SectionHeader from '@/components/ui/SectionHeader';
-import { jysSectionTheme } from '@/lib/theme/jys-components';
+import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramImportantDatesSection } from '@/types/programs';
-import { PROGRAMS_SCHEDULES_COPY } from '@/data/programs/sections/schedules-info/programsSchedulesInfo';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type VisualStatus = 'active' | 'upcoming' | 'closed';
 
@@ -18,79 +18,81 @@ function mapStatus(status?: string, isActive?: boolean): VisualStatus {
 }
 
 function StatusBadge({ visualStatus, label }: { visualStatus: VisualStatus; label?: string }) {
-  const text = label || PROGRAMS_SCHEDULES_COPY.dataNotAdded;
+  const text = label || DATA_NOT_ADDED;
   if (visualStatus === 'active') {
     return (
-      <span className={jysSectionTheme.programsSchedules.statusActive}>
-        <span className={jysSectionTheme.programsSchedules.statusActiveDot} /> {text}
+      <span className={componentsTheme.programsSchedules.statusActive}>
+        <span className={componentsTheme.programsSchedules.statusActiveDot} /> {text}
       </span>
     );
   }
   if (visualStatus === 'upcoming') {
     return (
-      <span className={jysSectionTheme.programsSchedules.statusUpcoming}>
-        <span className={jysSectionTheme.programsSchedules.statusUpcomingDot} /> {text}
+      <span className={componentsTheme.programsSchedules.statusUpcoming}>
+        <span className={componentsTheme.programsSchedules.statusUpcomingDot} /> {text}
       </span>
     );
   }
   return (
-    <span className={jysSectionTheme.programsSchedules.statusClosed}>
-      <span className={jysSectionTheme.programsSchedules.statusClosedDot} /> {text}
+    <span className={componentsTheme.programsSchedules.statusClosed}>
+      <span className={componentsTheme.programsSchedules.statusClosedDot} /> {text}
     </span>
   );
 }
 
 export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
-  const title = dates?.title || PROGRAMS_SCHEDULES_COPY.headerTitle;
-  const subtitle = dates?.subtitle || PROGRAMS_SCHEDULES_COPY.headerSubtitleFallback;
-  const items = dates?.items ?? [];
+  if (!dates) return null;
+
+  const title = dates.title || 'Key dates and important deadlines';
+  const subtitle = dates.subtitle || '';
+  const items = dates.items ?? [];
+  if (items.length === 0) return null;
 
   return (
-    <section className={jysSectionTheme.programsSchedules.sectionWrapper}>
-      <div className={jysSectionTheme.programsSchedules.container}>
+    <section className={componentsTheme.programsSchedules.sectionWrapper}>
+      <div className={componentsTheme.programsSchedules.container}>
         <SectionHeader
-          eyebrow={PROGRAMS_SCHEDULES_COPY.headerEyebrow}
+          eyebrow="Program Schedules"
           title={title}
           subtitle={subtitle}
           align="center"
         />
 
-        <div className={jysSectionTheme.programsSchedules.tableWrapper}>
-          <div className={jysSectionTheme.programsSchedules.tableInner}>
-            <table className={jysSectionTheme.programsSchedules.table}>
-              <thead className={jysSectionTheme.programsSchedules.thead}>
-                <tr className={jysSectionTheme.programsSchedules.headerRow}>
-                  <th scope="col" className={jysSectionTheme.programsSchedules.headerCell}>
-                    {PROGRAMS_SCHEDULES_COPY.columnDateRange}
+        <div className={componentsTheme.programsSchedules.tableWrapper}>
+          <div className={componentsTheme.programsSchedules.tableInner}>
+            <table className={componentsTheme.programsSchedules.table}>
+              <thead className={componentsTheme.programsSchedules.thead}>
+                <tr className={componentsTheme.programsSchedules.headerRow}>
+                  <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
+                    Date Range
                   </th>
-                  <th scope="col" className={jysSectionTheme.programsSchedules.headerCell}>
-                    {PROGRAMS_SCHEDULES_COPY.columnStatus}
+                  <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
+                    Status
                   </th>
-                  <th scope="col" className={jysSectionTheme.programsSchedules.headerCell}>
-                    {PROGRAMS_SCHEDULES_COPY.columnName}
+                  <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
+                    Schedule Name
                   </th>
-                  <th scope="col" className={jysSectionTheme.programsSchedules.headerCell}>
-                    {PROGRAMS_SCHEDULES_COPY.columnDescription}
+                  <th scope="col" className={componentsTheme.programsSchedules.headerCell}>
+                    Description
                   </th>
                 </tr>
               </thead>
-              <tbody className={jysSectionTheme.programsSchedules.body}>
-                {items.length > 0 ? (
-                  items.map(item => {
+              <tbody className={componentsTheme.programsSchedules.body}>
+                {items.map(item => {
                     const visualStatus = mapStatus(item.status, item.is_active);
-                    const descriptionLines = (item.description || PROGRAMS_SCHEDULES_COPY.dataNotAdded).split(/\n+/);
+                    const descriptionLines = (item.description || DATA_NOT_ADDED).split(/\n+/);
                     return (
-                      <tr key={item.name} className={jysSectionTheme.programsSchedules.row}>
-                        <td className={jysSectionTheme.programsSchedules.cellDate}>
-                          {item.date_display || PROGRAMS_SCHEDULES_COPY.dataNotAdded}
+                      <tr key={item.name} className={componentsTheme.programsSchedules.row}>
+                        <td className={componentsTheme.programsSchedules.cellDate}>
+                          {item.date_display || DATA_NOT_ADDED}
                         </td>
-                        <td className={jysSectionTheme.programsSchedules.cellStatus}>
+                        <td className={componentsTheme.programsSchedules.cellStatus}>
                           <StatusBadge visualStatus={visualStatus} label={item.status} />
                         </td>
-                        <td className={jysSectionTheme.programsSchedules.cellName}>
-                          {item.name || PROGRAMS_SCHEDULES_COPY.dataNotAdded}
+                        <td className={componentsTheme.programsSchedules.cellName}>
+                          {item.name || DATA_NOT_ADDED}
                         </td>
-                        <td className={jysSectionTheme.programsSchedules.cellDesc}>
+                        <td className={componentsTheme.programsSchedules.cellDesc}>
                           {descriptionLines.map(line => (
                             <span key={line} className="block">
                               {line}
@@ -99,27 +101,17 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
                         </td>
                       </tr>
                     );
-                  })
-                ) : (
-                  <tr className={jysSectionTheme.programsSchedules.row}>
-                    <td
-                      className={jysSectionTheme.programsSchedules.cellDesc}
-                      colSpan={4}
-                    >
-                      {PROGRAMS_SCHEDULES_COPY.dataNotAdded}
-                    </td>
-                  </tr>
-                )}
+                  })}
               </tbody>
             </table>
           </div>
         </div>
 
-        <p className={jysSectionTheme.programsSchedules.note}>
-          <span className={jysSectionTheme.programsSchedules.noteEmphasis}>
-            {PROGRAMS_SCHEDULES_COPY.notePrefix}
+        <p className={componentsTheme.programsSchedules.note}>
+          <span className={componentsTheme.programsSchedules.noteEmphasis}>
+            Important:
           </span>{' '}
-          {PROGRAMS_SCHEDULES_COPY.noteBody}
+          All dates and deadlines are subject to change. Please check this page regularly for the most up-to-date information.
         </p>
       </div>
     </section>
