@@ -49,8 +49,6 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
       'Content-Type': 'application/json',
       ...(options.headers ?? {}),
     },
-    cache: options.cache,
-    next: options.next,
   }).catch((err) => {
     console.error('[DEBUG] fetch failed GET error:', err.message, url.toString());
     throw err;
