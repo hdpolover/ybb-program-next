@@ -79,6 +79,12 @@ const nextConfig = {
         port: '',
         pathname: '/api/v1/images/**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.digitaloceanspaces.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
     // Allow SVG responses from trusted remote hosts like placehold.co
     dangerouslyAllowSVG: true,

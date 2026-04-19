@@ -32,7 +32,7 @@ export default function OnboardingPage() {
   const [statesLoading, setStatesLoading] = useState(false);
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [knowledgeSources, setKnowledgeSources] = useState<string[]>([]);
-  const brandLogo = settings?.brand?.logo_url?.trim() || '/img/ybb-logo.png';
+  const brandLogo = settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
   // if user is authenticated and has programs, we could override this, but let's just use settings first
   const [brandName, setBrandName] = useState(settings?.active_program?.name?.trim() || settings?.brand?.name?.trim() || 'Youth Break the Boundaries');
 

@@ -281,7 +281,7 @@ export default function LoginPage() {
             <div className="absolute left-6 top-6 z-10 lg:hidden">
               <a href="/" className="inline-block">
                 <Image
-                  src={settings?.brand?.logo_url?.trim() || "/img/ybb-logo.png"}
+                  src={settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || "/img/ybb-logo.png"}
                   alt={settings?.brand?.name?.trim() || "Youth Break the Boundaries"}
                   width={100}
                   height={34}
@@ -305,7 +305,7 @@ export default function LoginPage() {
               <div className={componentsTheme.login.heroLogoWrapper}>
                 <a href="/" className="inline-block">
                   <Image
-                    src={settings?.brand?.logo_url?.trim() || "/img/ybb-logo.png"}
+                    src={settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || "/img/ybb-logo.png"}
                     alt={settings?.brand?.name?.trim() || "Youth Break the Boundaries"}
                     width={120}
                     height={40}
