@@ -10,13 +10,43 @@ type InstagramFeedItem = {
   caption: string;
 };
 
+type ValidityPeriod = {
+  start_date: string;
+  end_date: string;
+};
+
 type RegistrationType = {
   id: string;
   name: string;
   price: string;
   currency: string;
   benefits: string[];
+  validity_periods?: ValidityPeriod[];
 };
+
+function isRegistrationOpen(periods: ValidityPeriod[] | undefined): boolean {
+  if (!periods || periods.length === 0) return false;
+  const now = new Date();
+  return periods.some(
+    (p) => new Date(p.start_date) <= now && now <= new Date(p.end_date),
+  );
+}
+
+function getActivePeriodLabel(periods: ValidityPeriod[] | undefined): string {
+  if (!periods || periods.length === 0) return 'TBD';
+  const now = new Date();
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+  const active = periods.find(
+    (p) => new Date(p.start_date) <= now && now <= new Date(p.end_date),
+  );
+  if (active) return `${fmt(active.start_date)} – ${fmt(active.end_date)}`;
+  const upcoming = periods.find((p) => new Date(p.start_date) > now);
+  if (upcoming) return `${fmt(upcoming.start_date)} – ${fmt(upcoming.end_date)}`;
+  // all periods have passed — show the last one
+  const last = periods[periods.length - 1];
+  return `${fmt(last.start_date)} – ${fmt(last.end_date)}`;
+}
 
 type Guideline = {
   id: string;
@@ -41,6 +71,9 @@ export default function HomeRegistrationStrip({
   const primaryPost = igFeed?.[0];
   const primaryType = registrationTypes?.[0];
   const secondaryType = registrationTypes?.[1];
+
+  const primaryOpen = isRegistrationOpen(primaryType?.validity_periods);
+  const secondaryOpen = isRegistrationOpen(secondaryType?.validity_periods);
 
   return (
     <section className={componentsTheme.homeRegistration.sectionWrapper}>
@@ -156,8 +189,14 @@ export default function HomeRegistrationStrip({
                       </p>
                     </div>
                   </div>
-                  <span className={componentsTheme.applyRegistrationTypes.statusBadgeOpen}>
-                    Open
+                  <span
+                    className={
+                      primaryOpen
+                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
+                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
+                    }
+                  >
+                    {primaryOpen ? 'Open' : 'Closed'}
                   </span>
                 </div>
                 <div className={componentsTheme.applyRegistrationTypes.feeRow}>
@@ -175,7 +214,7 @@ export default function HomeRegistrationStrip({
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                     Registration Period:
                   </span>
-                  <span>Sep 01 – Dec 31, 2025</span>
+                  <span>{getActivePeriodLabel(primaryType?.validity_periods)}</span>
                 </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
@@ -216,12 +255,22 @@ export default function HomeRegistrationStrip({
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
-                  <a
-                    href="/apply#self-funded"
-                    className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
-                  >
-                    Register as Self Funded
-                  </a>
+                  {primaryOpen ? (
+                    <a
+                      href="/apply#self-funded"
+                      className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
+                    >
+                      Register as Self Funded
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-disabled
+                      className="inline-flex w-full max-w-xs cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500"
+                    >
+                      Registration Closed
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -243,8 +292,14 @@ export default function HomeRegistrationStrip({
                       </p>
                     </div>
                   </div>
-                  <span className={componentsTheme.applyRegistrationTypes.statusBadgeClosed}>
-                    Closed
+                  <span
+                    className={
+                      secondaryOpen
+                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
+                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
+                    }
+                  >
+                    {secondaryOpen ? 'Open' : 'Closed'}
                   </span>
                 </div>
                 <div className={componentsTheme.applyRegistrationTypes.feeRow}>
@@ -262,7 +317,7 @@ export default function HomeRegistrationStrip({
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                     Registration Period:
                   </span>
-                  <span>Aug 01 – Sep 30, 2025</span>
+                  <span>{getActivePeriodLabel(secondaryType?.validity_periods)}</span>
                 </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
@@ -305,13 +360,22 @@ export default function HomeRegistrationStrip({
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
-                  <button
-                    type="button"
-                    aria-disabled
-                    className="inline-flex w-full max-w-xs cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500"
-                  >
-                    Registration Closed
-                  </button>
+                  {secondaryOpen ? (
+                    <a
+                      href="/apply#fully-funded"
+                      className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
+                    >
+                      Register as Fully Funded
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-disabled
+                      className="inline-flex w-full max-w-xs cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500"
+                    >
+                      Registration Closed
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

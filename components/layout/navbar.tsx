@@ -170,8 +170,8 @@ export function Navbar() {
                     aria-current={isActive ? 'page' : undefined}
                     className={
                       isActive
-                        ? 'text-base font-semibold text-[var(--brand-accent)] transition-colors lg:text-lg'
-                        : 'text-base font-semibold text-gray-600 transition-colors hover:text-[var(--brand-accent)] lg:text-lg'
+                        ? 'text-sm font-semibold text-[var(--brand-accent)] transition-colors lg:text-base'
+                        : 'text-sm font-semibold text-gray-600 transition-colors hover:text-[var(--brand-accent)] lg:text-base'
                     }
                   >
                     {item}

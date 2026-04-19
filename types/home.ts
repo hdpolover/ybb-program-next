@@ -46,6 +46,10 @@ export type RegistrationOverviewSection = {
       price: string;
       currency: string;
       benefits: string[];
+      validity_periods?: {
+        start_date: string;
+        end_date: string;
+      }[];
     }[];
     guidelines: {
       id: string;
