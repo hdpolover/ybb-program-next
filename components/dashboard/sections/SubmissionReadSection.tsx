@@ -18,6 +18,8 @@ import type {
   PortalSubmissionSection,
 } from "@/types/portal-submission";
 import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
+import { CountryDisplay } from "@/components/dashboard/fields/CountryDisplay";
+import { PhoneDisplay } from "@/components/dashboard/fields/PhoneDisplay";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -47,11 +49,22 @@ function FieldRow({ field, value }: { field: PortalSubmissionField; value: unkno
   const rendered = renderFieldValue(field, value);
   const isLong = field.type === "textarea" || rendered.length > 120;
   const isRemote = field.mediaUrl ? /^https?:\/\//.test(field.mediaUrl) : false;
+  const stringValue = value === null || value === undefined ? "" : String(value);
+  const isCountry = field.type === "country";
+  const isPhone = field.type === "phone";
 
   return (
     <label className={submissionTheme.readFieldLabelWrapper}>
       <span className={submissionTheme.readFieldLabelText}>{field.label}</span>
-      {isLong ? (
+      {isCountry ? (
+        <div className={submissionTheme.readInputBase}>
+          <CountryDisplay value={stringValue} />
+        </div>
+      ) : isPhone ? (
+        <div className={submissionTheme.readInputBase}>
+          <PhoneDisplay value={stringValue} />
+        </div>
+      ) : isLong ? (
         <textarea
           readOnly
           className={`${submissionTheme.essayTextarea} ${submissionTheme.readEssayTextarea}`}

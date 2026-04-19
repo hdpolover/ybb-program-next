@@ -17,6 +17,8 @@ import type {
   PortalSubmissionSection,
 } from "@/types/portal-submission";
 import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
+import { CountryField } from "@/components/dashboard/fields/CountryField";
+import { PhoneField } from "@/components/dashboard/fields/PhoneField";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -322,6 +324,25 @@ export default function SubmissionEditSection() {
             </option>
           ))}
         </select>
+      );
+    }
+
+    if (field.type === "country") {
+      return (
+        <CountryField
+          value={value}
+          onChange={code => updateFieldValue(section.id, field.name, code)}
+          placeholder={field.placeholder}
+        />
+      );
+    }
+
+    if (field.type === "phone") {
+      return (
+        <PhoneField
+          value={value}
+          onChange={e164 => updateFieldValue(section.id, field.name, e164)}
+        />
       );
     }
 
