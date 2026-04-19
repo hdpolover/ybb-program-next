@@ -41,15 +41,49 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json ?? null });
+    // Transform API shape { history, outstanding, availableMethods, stats }
+    // into what the frontend PaymentsListSection expects: { items, summary }
+    const apiData = (json as any)?.data ?? json ?? {};
+    const history: any[] = apiData.history ?? [];
+    const outstanding: any[] = apiData.outstanding ?? [];
+    const stats = apiData.stats ?? {};
+
+    const toItem = (inv: any, status: 'paid' | 'unpaid') => ({
+      id: inv.id,
+      label: inv.title ?? 'Payment',
+      status,
+      period: inv.dueDate
+        ? new Date(inv.dueDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        : inv.paidAt
+        ? new Date(inv.paidAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        : '—',
+      amount: `${inv.currency ?? 'USD'} ${Number(inv.amount ?? 0).toFixed(2)}`,
+      syncDate: inv.paidAt
+        ? new Date(inv.paidAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '—',
+    });
+
+    const items = [
+      ...history.map((inv) => toItem(inv, 'paid')),
+      ...outstanding.map((inv) => toItem(inv, 'unpaid')),
+    ];
+
+    const overdue = outstanding.filter(
+      (inv) => inv.dueDate && new Date(inv.dueDate) < new Date(),
+    ).length;
+
+    const summary = {
+      complete: history.length,
+      pending: outstanding.length - overdue,
+      overdue,
+      totalRequired: `${stats.currency ?? 'USD'} ${Number((stats.totalPaid ?? 0) + (stats.totalDue ?? 0)).toFixed(2)}`,
+    };
+
+    return NextResponse.json({ statusCode: 200, message: 'Success', data: { items, summary } });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      {
-        statusCode: 500,
-        message,
-        data: null,
-      },
+      { statusCode: 500, message, data: null },
       { status: 500 },
     );
   }

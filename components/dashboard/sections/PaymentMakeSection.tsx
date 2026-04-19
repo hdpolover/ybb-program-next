@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CalendarClock,
@@ -34,6 +35,7 @@ interface InvoiceData {
 
 export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProps) {
   const { settings } = useSettings();
+  const router = useRouter();
   const rateToIdr = settings?.currency?.rate_to_idr ?? 16900;
 
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
@@ -89,6 +91,8 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const [manualPaymentDate, setManualPaymentDate] = useState("");
   const [manualProofUploaded, setManualProofUploaded] = useState(false);
   const [manualNotes, setManualNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const amountUsd = invoice?.amount ?? 0;
   const amountIdr = amountUsd * rateToIdr;
@@ -121,6 +125,53 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     manualPaymentDate.trim() !== "" &&
     manualProofUploaded;
   const isFormComplete = isGatewayComplete || isManualComplete;
+
+  const handleSubmit = useCallback(async () => {
+    if (!isFormComplete || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const body: Record<string, unknown> = {
+        payment_type: paymentType,
+        payment_method_id: paymentType === "manual" ? manualMethod : "credit_card",
+      };
+
+      if (paymentType === "manual") {
+        body.account_name = manualAccountName;
+        body.source_name = manualSourceName;
+        body.payment_date = manualPaymentDate;
+        body.notes = manualNotes || undefined;
+      }
+
+      const response = await fetch(`/api/portal/payments/${paymentId}/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const json = (await response.json().catch(() => ({}))) as any;
+
+      if (!response.ok) {
+        throw new Error(json?.message || "Payment submission failed");
+      }
+
+      const data = json?.data ?? {};
+
+      // Gateway: redirect to payment gateway URL if provided
+      if (data.action?.url) {
+        window.location.href = data.action.url;
+        return;
+      }
+
+      // Success — go back to the payment detail page
+      router.push(`/dashboard/payments/${paymentId}`);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Payment submission failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [isFormComplete, submitting, paymentType, manualMethod, manualAccountName, manualSourceName, manualPaymentDate, manualNotes, paymentId, router]);
 
   if (loading) {
     return (
@@ -599,17 +650,33 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
           </div>
 
           <div className={paymentsTheme.completeButtonWrapper}>
+            {submitError && (
+              <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                <span>{submitError}</span>
+              </div>
+            )}
             <button
               type="button"
+              onClick={handleSubmit}
               className={`${
-                isFormComplete
+                isFormComplete && !submitting
                   ? paymentsTheme.completeButtonEnabled
                   : paymentsTheme.completeButtonDisabled
               } ${paymentsTheme.completeButtonBase}`}
-              disabled={!isFormComplete}
+              disabled={!isFormComplete || submitting}
             >
-              <CreditCard className="h-4 w-4" />
-              <span>Complete Payment</span>
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-4 w-4" />
+                  <span>Complete Payment</span>
+                </>
+              )}
             </button>
           </div>
         </div>
