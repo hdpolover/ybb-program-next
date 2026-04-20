@@ -1,24 +1,34 @@
+'use client';
+
 import { MapPin, Phone, Mail } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
+import { useSettings } from '@/components/providers/SettingsProvider';
 
 export default function InfoStrip() {
+  const { settings } = useSettings();
+  const brand = settings?.brand;
+
+  const location = brand?.address?.trim() || process.env.NEXT_PUBLIC_PROGRAM_LOCATION || 'Asia';
+  const phone = (brand?.contact_whatsapp?.trim() || brand?.contact_phone?.trim()) || process.env.NEXT_PUBLIC_CONTACT_PHONE || '+6280000000000';
+  const email = brand?.support_email?.trim() || process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@youthbreaktheboundaries.com';
+
   const items = [
     {
       subtitle: 'Location',
       title: 'Programs Held in',
-      description: process.env.NEXT_PUBLIC_PROGRAM_LOCATION || 'Asia',
+      description: location,
       icon: <MapPin className={componentsTheme.infoStrip.icon} />,
     },
     {
       subtitle: 'Contact',
       title: 'Customer Service',
-      description: process.env.NEXT_PUBLIC_CONTACT_PHONE || '+6280000000000',
+      description: phone,
       icon: <Phone className={componentsTheme.infoStrip.icon} />,
     },
     {
       subtitle: 'Email',
       title: 'Official Email',
-      description: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@youthbreaktheboundaries.com',
+      description: email,
       icon: <Mail className={componentsTheme.infoStrip.icon} />,
     },
   ];

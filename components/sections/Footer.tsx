@@ -29,10 +29,7 @@ export default function Footer() {
   const brandName = brand?.name?.trim() ? brand.name.trim() : 'Youth Break the Boundaries';
   const copyrightText = `Copyright © ${new Date().getFullYear()} ${brandName}`;
 
-  const whiteLogo = brand?.logo_white_url?.trim() || settings?.active_program?.logo_white_url?.trim();
-  const colorLogo = brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
-  const brandLogo = whiteLogo || colorLogo;
-  const brandLogoNeedsWhiteFilter = !whiteLogo;
+  const brandLogo = brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
 
   // Menu is partially dynamic: show only Programs links from API.
   // If API missing or empty, fallback to FOOTER_COPY.nav.
@@ -82,12 +79,12 @@ export default function Footer() {
                 alt={brandName}
                 width={700}
                 height={700}
-                className={`h-12 w-auto sm:h-16 md:h-20 ${brandLogoNeedsWhiteFilter ? 'brightness-0 invert' : ''}`}
+                className="h-10 w-auto sm:h-12 md:h-14 brightness-0 invert"
                 unoptimized
               />
             </div>
             <div 
-              className="mt-2 max-w-sm text-sm text-white/80 prose prose-invert prose-sm"
+              className="mt-6 max-w-sm text-sm text-white/80 prose prose-invert prose-sm"
               dangerouslySetInnerHTML={{ __html: brand?.description || '' }}
             />
           </div>

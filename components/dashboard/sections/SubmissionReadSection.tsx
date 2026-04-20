@@ -38,8 +38,17 @@ function getOptionLabel(options: PortalSubmissionFieldOption[] | undefined, valu
 function renderFieldValue(field: PortalSubmissionField, value: unknown) {
   if (value === null || value === undefined || value === "") return "-";
 
-  if (field.type === "select") {
+  if (field.type === "select" || field.type === "radio") {
     return getOptionLabel(field.options, value);
+  }
+
+  if (field.type === "checkbox") {
+    const arr = Array.isArray(value) ? value : [value];
+    if (arr.length === 0) return "-";
+    return arr
+      .map((v) => getOptionLabel(field.options, v))
+      .filter(Boolean)
+      .join(", ");
   }
 
   return String(value);
@@ -193,9 +202,19 @@ export default function SubmissionReadSection() {
       <SubmissionReadProfileHeaderSection />
 
       {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
+        /no active application/i.test(error) ? (
+          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center shadow-sm">
+            <FileText className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+            <p className="text-base font-semibold text-slate-800">No submission yet</p>
+            <p className="mt-1 text-sm text-slate-500">
+              You haven&apos;t started your application form. Click <strong>Fill Form</strong> to begin.
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )
       ) : null}
 
       {loading ? (

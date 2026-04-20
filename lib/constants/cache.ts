@@ -1,13 +1,9 @@
 // Server-side Next.js Data Cache.
-// Kept short so admin-side brand changes (logo, colors, contact info) surface
-// on the landing within a minute without relying on cross-service cache-bust
-// coordination. The /api/revalidate-settings route can flip cache instantly
-// when the admin wants to force a refresh.
+// 15s TTL so brand logo/color changes surface quickly without cross-service
+// cache-bust coordination. The /api/settings/revalidate route can flush instantly.
 export const SETTINGS_CACHE_TAG = 'settings';
-export const SETTINGS_CACHE_TTL = 60; // seconds
+export const SETTINGS_CACHE_TTL = 15; // seconds
 
-// Client-side localStorage — same reasoning as above. A stale entry older than
-// this is ignored at read time, so reducing the constant implicitly expires
-// anything older than 60s in the user's browser.
+// Client-side localStorage — matches server TTL so stale entries expire together.
 export const SETTINGS_LS_KEY = 'ybb:settings';
-export const SETTINGS_LS_TTL_MS = 60 * 1000; // 60s
+export const SETTINGS_LS_TTL_MS = 15 * 1000; // 15s

@@ -100,7 +100,7 @@ export default function Sidebar({
               src={settings.brand.logo_url}
               alt={settings?.brand?.name || "Logo"}
               fill
-              className="object-contain object-left"
+              className="object-contain object-left brightness-0 invert"
               priority
               unoptimized
             />

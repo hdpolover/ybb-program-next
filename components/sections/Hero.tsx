@@ -9,8 +9,8 @@ type HeroProps = {
 };
 
 export default function Hero({ imageUrl, title, subtitle }: HeroProps) {
-  const fallbackImage = '/img/banner-default.png';
-  const src = imageUrl && imageUrl.length > 0 ? imageUrl : fallbackImage;
+  if (!imageUrl || imageUrl.length === 0) return null;
+  const src = imageUrl;
   const alt = title || 'Youth Summit';
 
   return (

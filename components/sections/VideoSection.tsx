@@ -24,6 +24,7 @@ type NormalizedVideoItem = {
   description: string;
   thumbnail: string;
   embedUrl: string;
+  thumbnailUrl: string;
 };
 
 type NormalizedTab = {
@@ -38,16 +39,27 @@ type ProgramHighlightVideosProps = {
   tabs?: ApiVideoTab[];
 };
 
-const toEmbedUrl = (videoUrl: string): string => {
+const extractYouTubeId = (videoUrl: string): string => {
   if (!videoUrl) return '';
-  // helper kecil aja: ubah URL https://www.youtube.com/watch?v=ID jadi https://www.youtube.com/embed/ID?rel=0
   const watchParam = 'watch?v=';
   const idx = videoUrl.indexOf(watchParam);
-  if (idx !== -1) {
-    const id = videoUrl.slice(idx + watchParam.length).split('&')[0];
-    return `https://www.youtube.com/embed/${id}?rel=0`;
-  }
+  if (idx !== -1) return videoUrl.slice(idx + watchParam.length).split('&')[0];
+  // handle youtu.be/ID
+  const shortIdx = videoUrl.indexOf('youtu.be/');
+  if (shortIdx !== -1) return videoUrl.slice(shortIdx + 9).split('?')[0];
+  return '';
+};
+
+const toEmbedUrl = (videoUrl: string): string => {
+  const id = extractYouTubeId(videoUrl);
+  if (id) return `https://www.youtube.com/embed/${id}?rel=0`;
   return videoUrl;
+};
+
+const toThumbnailUrl = (videoUrl: string): string => {
+  const id = extractYouTubeId(videoUrl);
+  if (id) return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+  return '';
 };
 
 const normalizeTabs = (tabs?: ApiVideoTab[]): NormalizedTab[] => {
@@ -62,6 +74,7 @@ const normalizeTabs = (tabs?: ApiVideoTab[]): NormalizedTab[] => {
         description: video.description,
         thumbnail: video.thumbnail,
         embedUrl: toEmbedUrl(video.video_url),
+        thumbnailUrl: video.thumbnail?.trim() || toThumbnailUrl(video.video_url),
       })),
     }))
     .sort((a, b) => b.year - a.year);
@@ -161,12 +174,19 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                     }`}
                   >
                     <div className={componentsTheme.videoSection.thumbnailWrapper}>
-                      <iframe
-                        src={`${video.embedUrl}&mute=1`}
-                        title={video.title}
-                        className={componentsTheme.videoSection.mainIframe}
-                        aria-hidden="true"
-                      />
+                      {video.thumbnailUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={video.thumbnailUrl}
+                          alt={video.title}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-slate-200 text-xs text-slate-400">
+                          No preview
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 text-left">
                       <p className={componentsTheme.videoSection.listTitle}>
