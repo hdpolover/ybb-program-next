@@ -291,21 +291,21 @@ export const homeTheme = {
   },
   promoCta: {
     sectionWrapper:
-      "relative w-full overflow-hidden bg-[var(--brand-accent)] bg-cover bg-center bg-no-repeat py-12 text-white sm:py-16 lg:py-20",
+      "relative w-full overflow-hidden bg-[var(--brand-accent-soft)] bg-cover bg-center bg-no-repeat py-12 text-slate-900 sm:py-16 lg:py-20",
     glowLeft:
-      'pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl',
+      'pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-[var(--brand-accent)]/10 blur-3xl',
     glowRight:
-      'pointer-events-none absolute -right-24 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-white/10 blur-3xl',
+      'pointer-events-none absolute -right-24 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-[var(--brand-accent)]/10 blur-3xl',
     glowBottom:
-      'bg-accent/20 pointer-events-none absolute bottom-0 left-1/4 h-32 w-32 rounded-full blur-2xl',
+      'pointer-events-none absolute bottom-0 left-1/4 h-32 w-32 rounded-full bg-[var(--brand-accent)]/20 blur-2xl',
     container:
       'relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-6 lg:grid-cols-2 lg:gap-10 lg:px-8',
     leftCol: 'relative z-10',
-    eyebrow: 'text-sm font-semibold uppercase tracking-[0.18em] text-white/80',
-    title: 'text-3xl font-extrabold leading-tight text-white sm:text-4xl lg:text-5xl',
-    subtitle: 'text-white/80 mt-4 max-w-xl',
+    eyebrow: 'text-sm font-semibold uppercase tracking-[0.18em] text-slate-700',
+    title: 'text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl lg:text-5xl',
+    subtitle: 'mt-4 max-w-xl text-slate-700',
     primaryButton:
-      'hover:bg-white/90 inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-[var(--brand-accent)] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-md bg-[var(--brand-accent)] px-5 py-3 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2',
     actionsRow: 'mt-6 flex flex-wrap gap-3',
     rightCol: 'relative z-10 flex flex-col',
     videoCard:

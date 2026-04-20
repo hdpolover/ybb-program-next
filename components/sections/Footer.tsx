@@ -29,7 +29,10 @@ export default function Footer() {
   const brandName = brand?.name?.trim() ? brand.name.trim() : 'Youth Break the Boundaries';
   const copyrightText = `Copyright © ${new Date().getFullYear()} ${brandName}`;
 
-  const brandLogo = brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
+  const whiteLogo = brand?.logo_white_url?.trim() || settings?.active_program?.logo_white_url?.trim();
+  const colorLogo = brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
+  const brandLogo = whiteLogo || colorLogo;
+  const brandLogoNeedsWhiteFilter = !whiteLogo;
 
   // Menu is partially dynamic: show only Programs links from API.
   // If API missing or empty, fallback to FOOTER_COPY.nav.
@@ -79,7 +82,7 @@ export default function Footer() {
                 alt={brandName}
                 width={700}
                 height={700}
-                className="h-12 w-auto sm:h-16 md:h-20"
+                className={`h-12 w-auto sm:h-16 md:h-20 ${brandLogoNeedsWhiteFilter ? 'brightness-0 invert' : ''}`}
                 unoptimized
               />
             </div>
