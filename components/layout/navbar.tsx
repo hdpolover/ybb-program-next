@@ -129,7 +129,7 @@ export function Navbar() {
 
 
 
-  const logoSrc = settings?.brand?.logo_color_url?.trim() || settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_color_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
+  const logoSrc = settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
 
   const submitSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
