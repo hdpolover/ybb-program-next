@@ -7,6 +7,7 @@ export default function HeroSection({
   title,
   subtitle,
   bgImage = '/img/bgprogramoverview.png',
+  galleryImages,
   breadcrumb,
   heightClass,
   decorVariant = 'default',
@@ -18,6 +19,7 @@ export default function HeroSection({
   title: string;
   subtitle?: string;
   bgImage?: string;
+  galleryImages?: string[];
   breadcrumb?: Array<{ href?: string; label: string }>;
   heightClass?: string; // custom tinggi hero biar fleksibel
   decorVariant?: 'default' | 'compact'; // ukuran dekor bulat
@@ -41,13 +43,41 @@ export default function HeroSection({
     textSize === 'sm'
       ? 'text-sm text-white/90 sm:text-base md:text-lg'
       : 'text-base text-white/90 sm:text-lg md:text-xl';
+  const normalizedGallery = (galleryImages ?? []).filter(Boolean);
+  const useGallery = normalizedGallery.length > 1;
+
   return (
-    <section
-      className="relative overflow-hidden bg-cover bg-center"
-      style={{ backgroundImage: `url('${bgImage}')` }}
-    >
+    <section className="relative overflow-hidden bg-slate-900">
+      {useGallery ? (
+        <div aria-hidden className="absolute inset-0 grid grid-cols-2 md:grid-cols-3">
+          {normalizedGallery.map((image, index) => (
+            <div
+              key={`${image}-${index}`}
+              className="bg-cover bg-center transition-transform duration-700"
+              style={{
+                backgroundImage: `url('${image}')`,
+                transform: index % 2 === 0 ? 'scale(1.04)' : 'scale(1.08)',
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url('${bgImage}')` }}
+        />
+      )}
+
       <div
-        className={`mx-auto flex ${containerHeight} max-w-7xl flex-col justify-center px-6 py-24 text-white sm:py-28 md:py-32 lg:px-8 ${alignGroup}`}
+        aria-hidden
+        className="absolute inset-0"
+        style={{ backgroundColor: 'var(--brand-primary)', opacity: useGallery ? 0.68 : 0.58 }}
+      />
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-black/45" />
+
+      <div
+        className={`relative z-10 mx-auto flex ${containerHeight} max-w-7xl flex-col justify-center px-6 py-24 text-white sm:py-28 md:py-32 lg:px-8 ${alignGroup}`}
       >
         <div className={contentWidth}>
           <h1 className={titleSizeCls}>{title}</h1>

@@ -4,6 +4,7 @@ import FeaturedSpeakers from '@/components/programs/FeaturedSpeakers';
 import { getProgramSpeakers, type ProgramSpeaker } from '@/lib/api/programs';
 import { headers } from 'next/headers';
 import { getSettings } from '@/lib/api/settings';
+import { getLandingHeroMedia } from '@/lib/landing/hero';
 
 function toSlug(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -51,12 +52,18 @@ export default async function SpeakerDetailPage({ params }: { params: Promise<{ 
       photo: s.photoUrl ?? '/img/bannerpeople.png',
       href: `/speakers/${toSlug(s.name)}`,
     }));
+  const heroMedia = await getLandingHeroMedia(host, `speaker-${slug}`, {
+    preferredImages: [photoUrl, ...otherSpeakers.map((item) => item.photo)],
+    fallbackImage: '/img/bannerpeople.png',
+  });
 
   return (
     <main className="relative">
       <HeroSection
         title={name}
         subtitle={org ? `${role} • ${org}` : role}
+        bgImage={heroMedia.bgImage ?? photoUrl}
+        galleryImages={heroMedia.galleryImages}
         breadcrumb={[
           { href: '/', label: 'Home' },
           { href: '/programs', label: 'Programs' },

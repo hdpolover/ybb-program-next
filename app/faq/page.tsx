@@ -1,6 +1,7 @@
 import HeroSection from '@/components/ui/HeroSection';
 import MainFAQSection from '@/components/faq/MainFAQSection';
 import { getFaqsPageData } from '@/lib/api/faqs';
+import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { headers } from 'next/headers';
 import type { CtaSupportSection, FaqListSection, FaqsHeroSection } from '@/types/faqs';
 import { SetPromoCTA } from '@/components/sections/PromoCTAContext';
@@ -33,13 +34,18 @@ export default async function FaqPage() {
     heroSection?.content.subheadline ??
     'Find quick answers about the program, registration, and payments.';
   const heroBgImage = heroSection?.content.bg_image ?? '/img/faqhero.png';
+  const heroMedia = await getLandingHeroMedia(host, 'faq', {
+    preferredImages: [heroBgImage],
+    fallbackImage: '/img/faqhero.png',
+  });
 
   return (
     <main className="relative">
       <HeroSection
         title={heroTitle}
         subtitle={heroSubtitle}
-        bgImage={heroBgImage}
+        bgImage={heroMedia.bgImage ?? heroBgImage}
+        galleryImages={heroMedia.galleryImages}
         breadcrumb={[
           { href: '/', label: 'Home' },
           { href: '/faq', label: 'FAQ' },

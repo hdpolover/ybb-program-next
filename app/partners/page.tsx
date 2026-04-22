@@ -13,10 +13,16 @@ import { headers } from 'next/headers';
 import type { CtaBecomePartnerSection, PartnersGridSection, SponsorsGridSection } from '@/types/partners';
 import { SetPromoCTA } from '@/components/sections/PromoCTAContext';
 import { componentsTheme } from '@/lib/theme/components';
+import { getLandingHeroMedia } from '@/lib/landing/hero';
 
 export default async function PartnersSponsorsPage() {
   const host = (await headers()).get('host') || '';
-  const partnersPage = await getPartnersPageData(host);
+  const [partnersPage, heroMedia] = await Promise.all([
+    getPartnersPageData(host),
+    getLandingHeroMedia(host, 'partners', {
+      fallbackImage: '/img/sponsorpartnershipbg.png',
+    }),
+  ]);
 
   const heroSection = partnersPage.sections.find(section => section.type === 'hero');
   const sponsorsGridSection = partnersPage.sections.find(
@@ -43,7 +49,8 @@ export default async function PartnersSponsorsPage() {
       <HeroSection
         title={heroHeadline}
         subtitle={heroSubheadline}
-        bgImage="/img/sponsorpartnershipbg.png"
+        bgImage={heroMedia.bgImage ?? '/img/sponsorpartnershipbg.png'}
+        galleryImages={heroMedia.galleryImages}
         breadcrumb={[
           { href: `/${partnersPage.slug}`, label: partnersPage.slug },
           { href: `/${partnersPage.slug}`, label: partnersPage.title },

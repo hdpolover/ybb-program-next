@@ -13,6 +13,7 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
 import { getProgramsPageData } from '@/lib/api/programs';
+import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { headers } from 'next/headers';
 import type {
   ProgramActivitiesSection,
@@ -27,7 +28,13 @@ import type {
 
 export default async function ProgramOverviewPage() {
   const host = (await headers()).get('host') || '';
-  const programsPage = await getProgramsPageData(host);
+  const [programsPage, heroMedia] = await Promise.all([
+    getProgramsPageData(host),
+    getLandingHeroMedia(host, 'programs', {
+      preferredImages: [],
+      fallbackImage: '/img/programsbackground.png',
+    }),
+  ]);
 
   const heroSection = programsPage.sections.find(
     section => section.type === 'hero',
@@ -82,7 +89,8 @@ export default async function ProgramOverviewPage() {
       <HeroSection
         title={heroTitle}
         subtitle={heroSubtitle}
-        bgImage={heroBgImage}
+        bgImage={heroMedia.bgImage ?? heroBgImage}
+        galleryImages={heroMedia.galleryImages}
         breadcrumb={[
           { href: `/${programsPage.slug}`, label: programsPage.slug },
           { href: `/${programsPage.slug}`, label: programsPage.title },

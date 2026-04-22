@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import { Mail as MailIcon } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
 import { useSettings } from "@/components/providers/SettingsProvider";
-import type { SettingsData, SettingsFooterNavSection } from "@/types/settings";
+import type { SettingsFooterNavSection } from "@/types/settings";
 
 const FOOTER_DEFAULT_NAV = [
   { label: 'Home', href: '/' },
@@ -18,16 +17,24 @@ const FOOTER_DEFAULT_NAV = [
 export default function Footer() {
   const { settings } = useSettings();
 
-  
-
   const footerNav: SettingsFooterNavSection[] | null = settings?.footer_navigation ?? null;
   const brand = settings?.brand ?? null;
+  const activeProgram = settings?.active_program ?? null;
 
   const programsSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'programs');
   const legalSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'legal');
 
   const brandName = brand?.name?.trim() ? brand.name.trim() : 'Youth Break the Boundaries';
   const copyrightText = `Copyright © ${new Date().getFullYear()} ${brandName}`;
+  const activeProgramLabel = (() => {
+    const programName = activeProgram?.name?.trim();
+    if (!programName) return brandName;
+
+    const programYear = activeProgram?.year;
+    return typeof programYear === 'number' && !programName.includes(String(programYear))
+      ? `${programName} ${programYear}`
+      : programName;
+  })();
 
   const brandLogo = brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
 
@@ -83,10 +90,17 @@ export default function Footer() {
                 unoptimized
               />
             </div>
-            <div 
-              className="mt-6 max-w-sm text-sm text-white/80 prose prose-invert prose-sm"
-              dangerouslySetInnerHTML={{ __html: brand?.description || '' }}
-            />
+            <div className="mt-6 max-w-sm">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-white/55">
+                Current Program
+              </p>
+              <p className="mt-3 text-lg font-semibold leading-snug text-white">
+                {activeProgramLabel}
+              </p>
+              <p className="mt-2 max-w-xs text-sm leading-6 text-white/75">
+                Official landing page for the current program experience.
+              </p>
+            </div>
           </div>
 
           {/* Navigasi / Menu utama (Quick Links) */}

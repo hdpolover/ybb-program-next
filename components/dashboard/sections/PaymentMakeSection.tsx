@@ -23,6 +23,19 @@ interface PaymentMakeSectionProps {
   paymentId: string;
 }
 
+interface PaymentMethodData {
+  id: string;
+  code: string;
+  display_name: string;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  instructions: string;
+  icon: string;
+  requires_proof: boolean;
+  type: string;
+}
+
 interface InvoiceData {
   id: string;
   label: string;
@@ -80,10 +93,32 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     };
   }, [paymentId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setMethodsLoading(true);
+      try {
+        const res = await fetch('/api/portal/payment-methods', { cache: 'no-store' });
+        const json = (await res.json().catch(() => ({}))) as any;
+        if (!cancelled && res.ok && Array.isArray(json?.data)) {
+          const methods: PaymentMethodData[] = json.data;
+          setPaymentMethods(methods);
+          if (methods.length > 0) setManualMethod(methods[0].code);
+        }
+      } catch {
+        // fall through — methods stay empty, UI shows fallback
+      } finally {
+        if (!cancelled) setMethodsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodData[]>([]);
+  const [methodsLoading, setMethodsLoading] = useState(false);
+
   const [paymentType, setPaymentType] = useState<"gateway" | "manual">("gateway");
-  const [manualMethod, setManualMethod] = useState<
-    "bca" | "bni" | "bri" | "mandiri" | "paypal"
-  >("bca");
+  const [manualMethod, setManualMethod] = useState<string>("");
   const [agreeFunding, setAgreeFunding] = useState(false);
   const [agreeReady, setAgreeReady] = useState(false);
   const [manualAccountName, setManualAccountName] = useState("");
@@ -101,25 +136,14 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const currencyIdr = (v: number) =>
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(v);
 
-  // NOTE: Bank methods are hardcoded as UI config for now.
-  // These could be moved to an API endpoint in the future (e.g. /api/portal/payment-methods).
-  const bankMethods: {
-    id: "bca" | "bni" | "bri" | "mandiri" | "paypal";
-    label: string;
-    logoSrc: string;
-  }[] = [
-    { id: "bca", label: "BCA Bank Transfer", logoSrc: "/img/bca-logo.png" },
-    { id: "bni", label: "BNI Bank Transfer", logoSrc: "/img/bni-logo.png" },
-    { id: "bri", label: "BRI Bank Transfer", logoSrc: "/img/bri-logo.png" },
-    { id: "mandiri", label: "Mandiri Bank Transfer", logoSrc: "/img/mandiri-logo.png" },
-    { id: "paypal", label: "PayPal", logoSrc: "/img/paypal-logo.png" },
-  ];
+  const selectedMethodObj = paymentMethods.find(m => m.code === manualMethod) ?? null;
 
   const isGatewayComplete = paymentType === "gateway" && agreeFunding && agreeReady;
   const isManualComplete =
     paymentType === "manual" &&
     agreeFunding &&
     agreeReady &&
+    manualMethod !== "" &&
     manualAccountName.trim() !== "" &&
     manualSourceName.trim() !== "" &&
     manualPaymentDate.trim() !== "" &&
@@ -134,7 +158,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     try {
       const body: Record<string, unknown> = {
         payment_type: paymentType,
-        payment_method_id: paymentType === "manual" ? manualMethod : "credit_card",
+        payment_method_id: paymentType === "manual" ? (selectedMethodObj?.id ?? manualMethod) : "credit_card",
       };
 
       if (paymentType === "manual") {
@@ -401,54 +425,49 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     </label>
 
                     <div className={paymentsTheme.bankMethodGrid} id="manual-method-select">
-                      {bankMethods.map((method) => {
-                        const isSelected = manualMethod === method.id;
-                        return (
-                          <button
-                            key={method.id}
-                            type="button"
-                            onClick={() =>
-                              setManualMethod(
-                                method.id as "bca" | "bni" | "bri" | "mandiri" | "paypal",
-                              )
-                            }
-                            className={`${paymentsTheme.bankMethodCard} ${
-                              isSelected ? paymentsTheme.bankMethodCardSelected : ""
-                            }`}
-                          >
-                            <span className={paymentsTheme.bankMethodLogoWrapper}>
-                              <img
-                                src={method.logoSrc}
-                                alt={method.label}
-                                className={paymentsTheme.bankMethodLogoImage}
-                              />
-                            </span>
-                            <span className="text-center leading-snug">{method.label}</span>
-                          </button>
-                        );
-                      })}
+                      {methodsLoading ? (
+                        <div className="col-span-full flex items-center gap-2 py-4 text-sm text-slate-500">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Loading payment methods...</span>
+                        </div>
+                      ) : paymentMethods.length === 0 ? (
+                        <p className="col-span-full text-sm text-slate-500">No payment methods available. Contact our team for assistance.</p>
+                      ) : (
+                        paymentMethods.map((method) => {
+                          const isSelected = manualMethod === method.code;
+                          return (
+                            <button
+                              key={method.id}
+                              type="button"
+                              onClick={() => setManualMethod(method.code)}
+                              className={`${paymentsTheme.bankMethodCard} ${
+                                isSelected ? paymentsTheme.bankMethodCardSelected : ""
+                              }`}
+                            >
+                              <span className={paymentsTheme.bankMethodLogoWrapper}>
+                                {method.icon ? (
+                                  <img
+                                    src={method.icon}
+                                    alt={method.display_name}
+                                    className={paymentsTheme.bankMethodLogoImage}
+                                  />
+                                ) : (
+                                  <CreditCard className="h-6 w-6 text-slate-400" />
+                                )}
+                              </span>
+                              <span className="text-center leading-snug">{method.display_name}</span>
+                            </button>
+                          );
+                        })
+                      )}
                     </div>
 
-                    <div className={paymentsTheme.selectionSummaryRow}>
-                      {manualMethod === "paypal" ? (
-                        <Globe2 className="h-4 w-4 text-primary" />
-                      ) : (
+                    {selectedMethodObj && (
+                      <div className={paymentsTheme.selectionSummaryRow}>
                         <CreditCard className="h-4 w-4 text-primary" />
-                      )}
-                      <span>
-                        {manualMethod === "paypal"
-                          ? "You selected: PayPal (International participants)"
-                          : `You selected: Bank Transfer - ${
-                              manualMethod === "bca"
-                                ? "BCA"
-                                : manualMethod === "bni"
-                                ? "BNI"
-                                : manualMethod === "bri"
-                                ? "BRI"
-                                : "Mandiri"
-                            }`}
-                      </span>
-                    </div>
+                        <span>You selected: {selectedMethodObj.display_name}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -458,30 +477,36 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                   </p>
                   <p className={paymentsTheme.manualNote}>If you pay by this method you have to contact our admin and send your payment proof.</p>
 
-                  <dl className={paymentsTheme.bankDetailsGrid}>
-                    <div>
-                      <dt className={paymentsTheme.bankDetailsTerm}>Account Name</dt>
-                      <dd className={paymentsTheme.bankDetailsValue}>YOUTH BREAK THE BOUNDARIES</dd>
-                    </div>
-                    <div>
-                      <dt className={paymentsTheme.bankDetailsTerm}>Bank Name</dt>
-                      <dd className={paymentsTheme.bankDetailsValue}>Bank Central Asia (BCA)</dd>
-                    </div>
-                    <div>
-                      <dt className={paymentsTheme.bankDetailsTerm}>Bank Account Number</dt>
-                      <dd className={paymentsTheme.bankDetailsValue}>1234 5678 90</dd>
-                    </div>
-                    <div>
-                      <dt className={paymentsTheme.bankDetailsTerm}>Swift Code</dt>
-                      <dd className={paymentsTheme.bankDetailsValue}>CENAIDJA</dd>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <dt className={paymentsTheme.bankDetailsTerm}>Bank Address</dt>
-                      <dd className={paymentsTheme.bankDetailsValue}>
-                        Jl. Example Address No. 123, Jakarta, Indonesia
-                      </dd>
-                    </div>
-                  </dl>
+                  {selectedMethodObj ? (
+                    <dl className={paymentsTheme.bankDetailsGrid}>
+                      {selectedMethodObj.account_name && (
+                        <div>
+                          <dt className={paymentsTheme.bankDetailsTerm}>Account Name</dt>
+                          <dd className={paymentsTheme.bankDetailsValue}>{selectedMethodObj.account_name}</dd>
+                        </div>
+                      )}
+                      {selectedMethodObj.bank_name && (
+                        <div>
+                          <dt className={paymentsTheme.bankDetailsTerm}>Bank Name</dt>
+                          <dd className={paymentsTheme.bankDetailsValue}>{selectedMethodObj.bank_name}</dd>
+                        </div>
+                      )}
+                      {selectedMethodObj.account_number && (
+                        <div>
+                          <dt className={paymentsTheme.bankDetailsTerm}>Account Number</dt>
+                          <dd className={paymentsTheme.bankDetailsValue}>{selectedMethodObj.account_number}</dd>
+                        </div>
+                      )}
+                      {selectedMethodObj.instructions && (
+                        <div className="sm:col-span-2">
+                          <dt className={paymentsTheme.bankDetailsTerm}>Instructions</dt>
+                          <dd className={`${paymentsTheme.bankDetailsValue} whitespace-pre-line`}>{selectedMethodObj.instructions}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  ) : (
+                    <p className="text-sm text-slate-500">Select a payment method above to see account details.</p>
+                  )}
 
                   <div className="mt-2 space-y-3">
                     <div className={paymentsTheme.stepRow}>

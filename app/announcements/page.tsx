@@ -1,6 +1,7 @@
 import AnnouncementsGrid from '@/components/announcements/AnnouncementsGrid';
 import HeroSection from '@/components/ui/HeroSection';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
+import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { headers } from 'next/headers';
 import type { AnnouncementListSection, AnnouncementsHeroSection } from '@/types/announcements';
 
@@ -38,13 +39,18 @@ export default async function AnnouncementsPage() {
   const heroHeadline = heroSection?.content.headline || 'Latest News & Updates';
   const heroSubheadline =
     heroSection?.content.subheadline || 'Stay informed about our latest activities and opportunities.';
+  const heroMedia = await getLandingHeroMedia(host, 'announcements', {
+    preferredImages: items.map((item) => item.image),
+    fallbackImage: '/img/announcementbackground.png',
+  });
 
   return (
     <main className="relative">
       <HeroSection
         title={heroHeadline}
         subtitle={heroSubheadline}
-        bgImage="/img/announcementbackground.png"
+        bgImage={heroMedia.bgImage ?? '/img/announcementbackground.png'}
+        galleryImages={heroMedia.galleryImages}
         align="left"
         textSize="sm"
       />

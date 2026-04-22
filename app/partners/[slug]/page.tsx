@@ -2,6 +2,7 @@ import HeroSection from '@/components/ui/HeroSection';
 import PartnershipDetailSection from '@/components/partners/PartnershipDetail';
 import RequireNowSection from '@/components/partners/RequireNow';
 import { getPartnersPageData } from '@/lib/api/partners';
+import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { headers } from 'next/headers';
 import type { CtaBecomePartnerSection } from '@/types/partners';
 
@@ -12,7 +13,12 @@ export default async function PartnerDetailPage({
 }) {
   const { slug } = await params;
   const host = (await headers()).get('host') || '';
-  const partnersPage = await getPartnersPageData(host).catch(() => null);
+  const [partnersPage, heroMedia] = await Promise.all([
+    getPartnersPageData(host).catch(() => null),
+    getLandingHeroMedia(host, `partners-detail-${slug}`, {
+      fallbackImage: '/img/sponsorpartnershipbg.png',
+    }),
+  ]);
 
   const ctaSection = partnersPage?.sections.find(
     (s): s is CtaBecomePartnerSection => s.type === 'cta_become_partner',
@@ -23,7 +29,8 @@ export default async function PartnerDetailPage({
       <HeroSection
         title="Partnerships Enquiry Form"
         subtitle="Review your selected partnership package and submit your enquiry to our team."
-        bgImage="/img/sponsorpartnershipbg.png"
+        bgImage={heroMedia.bgImage ?? '/img/sponsorpartnershipbg.png'}
+        galleryImages={heroMedia.galleryImages}
         breadcrumb={[
           { href: '/', label: 'Home' },
           { href: '/partners', label: 'Partners & Sponsors' },
