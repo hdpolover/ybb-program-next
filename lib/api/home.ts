@@ -1,7 +1,6 @@
 import type { HomePageData } from '@/types/home';
 import { apiGetWithEnvelope, ApiRequestError } from '@/lib/api/httpClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
-import { cache } from 'react';
 
 function buildBrandUrlVariants(normalizedUrl: string): string[] {
   const noScheme = normalizedUrl.replace(/^https?:\/\//, '');
@@ -24,10 +23,10 @@ function buildHomeFallback(): HomePageData {
 }
 
 export async function getHomePageData(host: string): Promise<HomePageData> {
-  return getHomePageDataCached(host);
+  return fetchHomePageData(host);
 }
 
-const getHomePageDataCached = cache(async (host: string): Promise<HomePageData> => {
+async function fetchHomePageData(host: string): Promise<HomePageData> {
   if (Date.now() < homeRateLimitUntil) {
     return buildHomeFallback();
   }
@@ -74,4 +73,4 @@ const getHomePageDataCached = cache(async (host: string): Promise<HomePageData> 
     urlVariants,
   });
   throw lastError instanceof Error ? lastError : new Error('Failed to fetch home page data');
-});
+}

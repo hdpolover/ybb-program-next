@@ -17,7 +17,7 @@ const FALLBACK_IMAGES = [
   '/img/galeri2.png',
   '/img/programhighlight1.jpg',
   '/img/programoverview.png',
-  '/img/program-overview-2.png',
+  '/img/galeri1.png',
   '/img/galeri3.png',
 ];
 

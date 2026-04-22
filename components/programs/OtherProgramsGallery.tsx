@@ -26,7 +26,7 @@ const defaultItems: ProgramGalleryItem[] = [
       '/img/programoverview.png',
       '/img/programhighlight1.jpg',
       '/img/osaka.jpg',
-      '/img/program-overview-2.png',
+      '/img/galeri5.png',
     ],
     href: '#',
   },
