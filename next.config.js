@@ -85,6 +85,18 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.ybbhub.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'files.ybbhub.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
     // Allow SVG responses from trusted remote hosts like placehold.co
     dangerouslyAllowSVG: true,
