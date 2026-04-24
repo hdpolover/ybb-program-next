@@ -86,10 +86,6 @@ export default function OverviewProgramDetailsSection({
   const activeApplication = dashboardSummary?.activeApplication ?? null;
   const { submissionProgress, currentStepIndex, loading } = usePortalSubmissionProgress();
 
-  if (isDashboardSummaryLoading || loading) {
-    return <DashboardPageSkeleton variant="overview-program-details" className="w-full" />;
-  }
-
   const progressSteps = useMemo(() => buildProgressSteps(submissionProgress?.sections), [submissionProgress?.sections]);
 
   const totalSteps = progressSteps.length;
@@ -133,6 +129,10 @@ export default function OverviewProgramDetailsSection({
     if (currentStep.status === "waiting") return "In Progress";
     return "Upcoming";
   }, [currentStep]);
+
+  if (isDashboardSummaryLoading || loading) {
+    return <DashboardPageSkeleton variant="overview-program-details" className="w-full" />;
+  }
 
   return (
     <div className={overviewTheme.programCard}>
