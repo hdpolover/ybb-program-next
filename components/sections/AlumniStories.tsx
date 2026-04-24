@@ -25,15 +25,40 @@ type AlumniStoriesProps = {
 
 const REELS_PAGE_SIZE = 4;
 
-const toEmbedUrl = (videoUrl: string | null): string | null => {
+function extractYouTubeId(videoUrl: string | null): string | null {
 	if (!videoUrl) return null;
-	const watchParam = 'watch?v=';
-	const idx = videoUrl.indexOf(watchParam);
-	if (idx !== -1) {
-		const id = videoUrl.slice(idx + watchParam.length).split('&')[0];
-		return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
+	try {
+		const url = new URL(videoUrl);
+		// youtu.be/ID
+		if (url.hostname === 'youtu.be') return url.pathname.slice(1).split('?')[0];
+		// youtube.com/shorts/ID
+		const shortsMatch = url.pathname.match(/\/shorts\/([^/?&]+)/);
+		if (shortsMatch) return shortsMatch[1];
+		// youtube.com/embed/ID (already embed)
+		const embedMatch = url.pathname.match(/\/embed\/([^/?&]+)/);
+		if (embedMatch) return embedMatch[1];
+		// youtube.com/watch?v=ID
+		const v = url.searchParams.get('v');
+		if (v) return v;
+	} catch {
+		// plain string fallback: look for ?v= or youtu.be/ pattern without URL parsing
+		const vMatch = videoUrl.match(/[?&]v=([^&]+)/);
+		if (vMatch) return vMatch[1];
+		const shortMatch = videoUrl.match(/youtu\.be\/([^?&/]+)/);
+		if (shortMatch) return shortMatch[1];
 	}
-	return videoUrl;
+	return null;
+}
+
+const toEmbedUrl = (videoUrl: string | null): string | null => {
+	const id = extractYouTubeId(videoUrl);
+	if (id) return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
+	return null;
+};
+
+const toYouTubeThumbnail = (videoUrl: string | null): string | null => {
+	const id = extractYouTubeId(videoUrl);
+	return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null;
 };
 
 export default function AlumniStoriesSection({
@@ -201,10 +226,9 @@ export default function AlumniStoriesSection({
 										{!thumbLoaded && (
 											<div className={componentsTheme.alumniStories.reelSkeleton} />
 										)}
-										{item.type === 'video' && item.thumbnail_url ? (
-											// pakai thumbnail YouTube sebagai background via img tag
+										{item.type === 'video' && (item.thumbnail_url || toYouTubeThumbnail(item.video_url)) ? (
 											<img
-												src={item.thumbnail_url}
+												src={item.thumbnail_url || toYouTubeThumbnail(item.video_url) || ''}
 												alt={item.testimonial || item.name}
 												className={componentsTheme.alumniStories.reelVideo}
 												onLoad={() => markLoaded(item.id)}
@@ -212,7 +236,7 @@ export default function AlumniStoriesSection({
 										) : (
 											<div className={componentsTheme.alumniStories.reelVideo}>
 												<div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-													Video coming soon
+													No preview
 												</div>
 											</div>
 										)}

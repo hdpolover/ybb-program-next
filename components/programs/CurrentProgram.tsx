@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { CalendarDays, Calendar, MapPin, Square } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 import type { ProgramOverviewSection } from '@/types/programs';
 
 function useCountdown(target: Date) {
@@ -28,8 +27,8 @@ type CurrentProgramProps = {
   coverImage?: string;
 };
 
-function formatDateRange(start?: string | null, end?: string | null): string {
-  if (!start && !end) return DATA_NOT_ADDED;
+function formatDateRange(start?: string | null, end?: string | null): string | null {
+  if (!start && !end) return null;
 
   try {
     const startDate = start ? new Date(start) : null;
@@ -49,23 +48,22 @@ function formatDateRange(start?: string | null, end?: string | null): string {
     if (startDate) return format(startDate);
     if (endDate) return format(endDate);
   } catch {
-    // kalau format tanggal tidak valid, fallback ke text mentah
     if (start && end) return `${start} – ${end}`;
     if (start) return start;
     if (end) return end;
   }
 
-  return DATA_NOT_ADDED;
+  return null;
 }
 
 export default function CurrentProgram({ overview, coverImage }: CurrentProgramProps) {
   if (!overview) return null;
 
-  const description = overview.description || DATA_NOT_ADDED;
-  const theme = overview.theme || DATA_NOT_ADDED;
+  const description = overview.description;
+  const theme = overview.theme;
   const subthemes = overview.subthemes && overview.subthemes.length > 0 ? overview.subthemes : null;
-  const location = overview.location || DATA_NOT_ADDED;
-  const duration = overview.duration || DATA_NOT_ADDED;
+  const location = overview.location;
+  const duration = overview.duration;
   const programFormatLabel = (() => {
     switch (overview.program_format) {
       case 'in_person':
@@ -75,12 +73,13 @@ export default function CurrentProgram({ overview, coverImage }: CurrentProgramP
       case 'online':
         return 'Online';
       default:
-        return DATA_NOT_ADDED;
+        return null;
     }
   })();
   const eventDates = formatDateRange(overview.start_date ?? null, overview.end_date ?? null);
   const guidebooksRaw = overview.guidebooks && overview.guidebooks.length > 0 ? overview.guidebooks : null;
   const guidebooks = guidebooksRaw ? guidebooksRaw.slice(-2) : null;
+  const showThemeBlock = Boolean(theme) || Boolean(subthemes);
 
   const isHtmlContent = (value?: string | null) => {
     if (!value) return false;
