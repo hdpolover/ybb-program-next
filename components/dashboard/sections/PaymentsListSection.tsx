@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -67,6 +66,77 @@ export default function PaymentsListSection() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [rowActionLoadingId, setRowActionLoadingId] = useState<string | null>(null);
+
+  const resolveInvoiceId = async (payment: PaymentItem): Promise<string> => {
+    if (payment.hasInvoice !== false) {
+      return payment.id;
+    }
+
+    const tierId = payment.id.startsWith("tier:") ? payment.id.slice(5) : "";
+    if (!tierId) {
+      throw new Error("Unable to resolve payment option ID.");
+    }
+
+    const programId = readActiveProgramId();
+    const response = await fetch(`/api/portal/payments/tiers/${tierId}/ensure-invoice`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ program_id: programId || undefined }),
+    });
+
+    const json = (await response.json().catch(() => ({}))) as any;
+    if (!response.ok) {
+      throw new Error(json?.message || "Failed to prepare payment invoice");
+    }
+
+    const invoiceId = json?.data?.invoice_id ?? json?.invoice_id;
+    if (!invoiceId) {
+      throw new Error("Invoice was not returned by the server");
+    }
+
+    setPayments((prev) =>
+      prev.map((row) =>
+        row.id === payment.id
+          ? {
+              ...row,
+              id: invoiceId,
+              hasInvoice: true,
+            }
+          : row,
+      ),
+    );
+
+    return invoiceId;
+  };
+
+  const handlePaymentAction = async (
+    payment: PaymentItem,
+    target: "detail" | "make-payment" | "print",
+  ) => {
+    try {
+      setActionError(null);
+      setRowActionLoadingId(payment.id);
+      const invoiceId = await resolveInvoiceId(payment);
+
+      if (target === "make-payment") {
+        router.push(`/dashboard/payments/${invoiceId}/make-payment`);
+        return;
+      }
+
+      if (target === "print") {
+        window.open(`/dashboard/payments/${invoiceId}`, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      router.push(`/dashboard/payments/${invoiceId}`);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to open payment action");
+    } finally {
+      setRowActionLoadingId(null);
+    }
+  };
 
   async function handleSwitch() {
     if (!activeApplication?.id) {
@@ -118,6 +188,7 @@ export default function PaymentsListSection() {
         }
 
         if (!cancelled) {
+          setActionError(null);
           setPayments(json?.data?.items ?? []);
           setSummary(
             json?.data?.summary ?? {
@@ -363,6 +434,12 @@ export default function PaymentsListSection() {
       )}
 
       <div className={paymentsTheme.tableCard}>
+        {actionError && (
+          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {actionError}
+          </div>
+        )}
+
         <div className={paymentsTheme.tableHeaderRow}>
           <div>
             <h2 className={paymentsTheme.tableTitle}>
@@ -430,6 +507,7 @@ export default function PaymentsListSection() {
                 const isPaid = payment.status === "paid";
                 const isProcessing = payment.status === "processing";
                 const isFailed = payment.status === "failed";
+                const isRowLoading = rowActionLoadingId === payment.id;
                 return (
                   <tr key={payment.id} className={paymentsTheme.tableRow}>
                     <td className={paymentsTheme.paymentInfoCell}>{payment.label}</td>
@@ -456,33 +534,28 @@ export default function PaymentsListSection() {
                       <div className={paymentsTheme.actionsWrapper}>
                         <button
                           type="button"
-                          className={`${paymentsTheme.primaryIconButton} ${payment.hasInvoice === false ? "cursor-not-allowed opacity-40" : ""}`}
+                          className={`${paymentsTheme.primaryIconButton} ${isRowLoading ? "cursor-wait opacity-70" : ""}`}
                           aria-label="Pay now"
-                          disabled={payment.hasInvoice === false}
+                          disabled={isRowLoading}
+                          onClick={() => handlePaymentAction(payment, "make-payment")}
                         >
                           <CreditCard className="h-3.5 w-3.5" />
                         </button>
-                        {payment.hasInvoice === false ? (
-                          <span
-                            className={`${paymentsTheme.secondaryIconButton} cursor-not-allowed opacity-40`}
-                            aria-label="Details unavailable until invoice is generated"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                          </span>
-                        ) : (
-                          <Link
-                            href={`/dashboard/payments/${payment.id}`}
-                            className={paymentsTheme.secondaryIconButton}
-                            aria-label="See details"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                          </Link>
-                        )}
                         <button
                           type="button"
-                          className={`${paymentsTheme.tertiaryIconButton} ${payment.hasInvoice === false ? "cursor-not-allowed opacity-40" : ""}`}
+                          className={`${paymentsTheme.secondaryIconButton} ${isRowLoading ? "cursor-wait opacity-70" : ""}`}
+                          aria-label="See details"
+                          disabled={isRowLoading}
+                          onClick={() => handlePaymentAction(payment, "detail")}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          className={`${paymentsTheme.tertiaryIconButton} ${isRowLoading ? "cursor-wait opacity-70" : ""}`}
                           aria-label="Print invoice"
-                          disabled={payment.hasInvoice === false}
+                          disabled={isRowLoading}
+                          onClick={() => handlePaymentAction(payment, "print")}
                         >
                           <Printer className="h-3.5 w-3.5" />
                         </button>

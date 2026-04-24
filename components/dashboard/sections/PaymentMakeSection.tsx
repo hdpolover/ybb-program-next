@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  CalendarClock,
   CreditCard,
   Globe2,
   Info,
@@ -100,10 +99,28 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
       try {
         const res = await fetch('/api/portal/payment-methods', { cache: 'no-store' });
         const json = (await res.json().catch(() => ({}))) as any;
-        if (!cancelled && res.ok && Array.isArray(json?.data)) {
-          const methods: PaymentMethodData[] = json.data;
+        const payload = json?.data ?? json;
+        const methods: PaymentMethodData[] = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.data)
+            ? payload.data
+            : Array.isArray(payload?.methods)
+              ? payload.methods
+              : [];
+
+        if (!cancelled && res.ok) {
           setPaymentMethods(methods);
-          if (methods.length > 0) setManualMethod(methods[0].code);
+
+          const firstManual = methods.find((method) => method.type?.toLowerCase() === "manual");
+          const firstGateway = methods.find((method) => method.type?.toLowerCase() === "automatic");
+
+          if (firstManual) {
+            setManualMethod(firstManual.code);
+          }
+
+          if (firstGateway) {
+            setGatewayMethod(firstGateway.code);
+          }
         }
       } catch {
         // fall through — methods stay empty, UI shows fallback
@@ -119,6 +136,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
 
   const [paymentType, setPaymentType] = useState<"gateway" | "manual">("gateway");
   const [manualMethod, setManualMethod] = useState<string>("");
+  const [gatewayMethod, setGatewayMethod] = useState<string>("");
   const [agreeFunding, setAgreeFunding] = useState(false);
   const [agreeReady, setAgreeReady] = useState(false);
   const [manualAccountName, setManualAccountName] = useState("");
@@ -136,9 +154,14 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const currencyIdr = (v: number) =>
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(v);
 
-  const selectedMethodObj = paymentMethods.find(m => m.code === manualMethod) ?? null;
+  const normalizeMethodType = (method: PaymentMethodData) => method.type?.trim().toLowerCase() ?? "";
+  const manualMethods = paymentMethods.filter((method) => normalizeMethodType(method) === "manual");
+  const gatewayMethods = paymentMethods.filter((method) => normalizeMethodType(method) === "automatic");
 
-  const isGatewayComplete = paymentType === "gateway" && agreeFunding && agreeReady;
+  const selectedManualMethodObj = manualMethods.find((method) => method.code === manualMethod) ?? null;
+  const selectedGatewayMethodObj = gatewayMethods.find((method) => method.code === gatewayMethod) ?? null;
+
+  const isGatewayComplete = paymentType === "gateway" && agreeFunding && agreeReady && gatewayMethod !== "";
   const isManualComplete =
     paymentType === "manual" &&
     agreeFunding &&
@@ -156,9 +179,17 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     setSubmitError(null);
 
     try {
+      if (paymentType === "manual" && !manualMethod) {
+        throw new Error("Please select a manual payment method");
+      }
+
+      if (paymentType === "gateway" && !gatewayMethod) {
+        throw new Error("Please select a gateway payment method");
+      }
+
       const body: Record<string, unknown> = {
         payment_type: paymentType,
-        payment_method_id: paymentType === "manual" ? (selectedMethodObj?.id ?? manualMethod) : "credit_card",
+        payment_method_id: paymentType === "manual" ? manualMethod : gatewayMethod,
       };
 
       if (paymentType === "manual") {
@@ -195,7 +226,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     } finally {
       setSubmitting(false);
     }
-  }, [isFormComplete, submitting, paymentType, manualMethod, manualAccountName, manualSourceName, manualPaymentDate, manualNotes, paymentId, router]);
+  }, [isFormComplete, submitting, paymentType, manualMethod, gatewayMethod, manualAccountName, manualSourceName, manualPaymentDate, manualNotes, paymentId, router]);
 
   if (loading) {
     return (
@@ -310,197 +341,172 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
             </div>
 
             {paymentType === "gateway" ? (
-              <div className="space-y-3">
-                <p className={paymentsTheme.fieldLabelSmall}>
-                  Automatic Secure Payment Gateway
-                </p>
-
-                <div className={paymentsTheme.stepWrapper}>
-                  <div className={paymentsTheme.stepRow}>
-                    <div className={paymentsTheme.stepNumberCircle}>
-                      1
-                    </div>
-                    <div>
-                      <p className={paymentsTheme.stepTextTitle}>
-                        Debit or Credit Card (Visa or Mastercard)
-                      </p>
-                      <p className={paymentsTheme.stepTextBody}>
-                        Use a Visa or Mastercard for payment. Make sure your card is active and enabled for
-                        international online transactions.
-                      </p>
-                    </div>
+              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="space-y-1">
+                    <p className={paymentsTheme.fieldLabelSmall}>Automatic Secure Payment Gateway</p>
+                    <p className="text-xs text-slate-600">
+                      Choose a gateway method provided by the backend configuration.
+                    </p>
                   </div>
-
-                  <div className={paymentsTheme.stepRow}>
-                    <div className={paymentsTheme.stepNumberCircle}>
-                      2
-                    </div>
-                    <div>
-                      <p className={paymentsTheme.stepTextTitle}>Go to the checkout page</p>
-                      <p className={paymentsTheme.stepTextBody}>
-                        After choosing your service, proceed to the checkout page that uses our official
-                        payment gateway.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={paymentsTheme.stepRow}>
-                    <div className={paymentsTheme.stepNumberCircle}>
-                      3
-                    </div>
-                    <div>
-                      <p className={paymentsTheme.stepTextTitle}>
-                        Select "Credit/Debit Card" as the payment method
-                      </p>
-                      <p className={paymentsTheme.stepTextBody}>
-                        The payment gateway will show several options such as:
-                      </p>
-                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700">
-                        <li>Credit/Debit Card (Visa, Mastercard, JCB)</li>
-                        <li>Virtual Account (BCA, BNI, Mandiri, etc.)</li>
-                        <li>E-wallets (GoPay, ShopeePay, OVO, etc.)</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className={paymentsTheme.stepRow}>
-                    <div className={paymentsTheme.stepNumberCircle}>
-                      4
-                    </div>
-                    <div>
-                      <p className={paymentsTheme.stepTextTitle}>Enter your card details</p>
-                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700">
-                        <li>Card number (16 digits)</li>
-                        <li>Expiry date (MM/YY)</li>
-                        <li>CVV (3-digit code on the back of the card)</li>
-                        <li>Cardholder name</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className={paymentsTheme.stepRow}>
-                    <div className={paymentsTheme.stepNumberCircle}>
-                      5
-                    </div>
-                    <div>
-                      <p className={paymentsTheme.stepTextTitle}>Verify with 3D Secure (OTP)</p>
-                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700">
-                        <li>You will receive an OTP (One-Time Password) via SMS or your banking app.</li>
-                        <li>Enter the OTP to confirm the transaction.</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className={paymentsTheme.stepRow}>
-                    <div className={paymentsTheme.stepNumberCircle}>
-                      6
-                    </div>
-                    <div>
-                      <p className={paymentsTheme.stepTextTitle}>Payment confirmation</p>
-                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700">
-                        <li>
-                          If successful, you will see a confirmation page from the payment gateway or the
-                          merchant (Youth Break the Boundaries).
-                        </li>
-                        <li>You will also receive an email and/or SMS notification.</li>
-                      </ul>
-                    </div>
-                  </div>
+                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    {gatewayMethods.length} method{gatewayMethods.length === 1 ? "" : "s"}
+                  </span>
                 </div>
+
+                <div className={paymentsTheme.bankMethodGrid} id="gateway-method-select">
+                  {methodsLoading ? (
+                    <div className="col-span-full flex items-center gap-2 py-4 text-sm text-slate-500">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Loading payment methods...</span>
+                    </div>
+                  ) : gatewayMethods.length === 0 ? (
+                    <p className="col-span-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                      No automatic gateway methods are available yet. Please contact support.
+                    </p>
+                  ) : (
+                    gatewayMethods.map((method) => {
+                      const isSelected = gatewayMethod === method.code;
+                      const label = method.display_name || method.code;
+
+                      return (
+                        <button
+                          key={method.id}
+                          type="button"
+                          onClick={() => setGatewayMethod(method.code)}
+                          className={`${paymentsTheme.bankMethodCard} ${
+                            isSelected ? paymentsTheme.bankMethodCardSelected : ""
+                          }`}
+                        >
+                          <span className={paymentsTheme.bankMethodLogoWrapper}>
+                            {method.icon ? (
+                              <img
+                                src={method.icon}
+                                alt={label}
+                                className={paymentsTheme.bankMethodLogoImage}
+                              />
+                            ) : (
+                              <CreditCard className="h-6 w-6 text-slate-400" />
+                            )}
+                          </span>
+                          <span className="text-center leading-snug">{label}</span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+
+                {selectedGatewayMethodObj && (
+                  <div className={paymentsTheme.selectionSummaryRow}>
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                    <span>You selected: {selectedGatewayMethodObj.display_name || selectedGatewayMethodObj.code}</span>
+                  </div>
+                )}
+
+                <details className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                  <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                    View gateway payment steps
+                  </summary>
+                  <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-slate-600">
+                    <li>Select your preferred method from the list above.</li>
+                    <li>Click Complete Payment to open the secure gateway checkout.</li>
+                    <li>Complete OTP or 3D Secure verification in the gateway page.</li>
+                    <li>Return to your dashboard while the payment status is updated.</li>
+                  </ol>
+                </details>
               </div>
             ) : (
               <div className={paymentsTheme.manualPaymentWrapper}>
-                <div className="space-y-2">
-                  <p className={paymentsTheme.fieldLabelSmall}>
-                    Payment Method
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    Choose one of the available bank transfer options below. You will need to contact our admin
-                    and send your payment proof after completing the transfer.
-                  </p>
-
-                  <div className={paymentsTheme.pillSelectWrapper}>
-                    <label htmlFor="manual-method-select" className="block">
-                      Select Bank / Method
-                    </label>
-
-                    <div className={paymentsTheme.bankMethodGrid} id="manual-method-select">
-                      {methodsLoading ? (
-                        <div className="col-span-full flex items-center gap-2 py-4 text-sm text-slate-500">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Loading payment methods...</span>
-                        </div>
-                      ) : paymentMethods.length === 0 ? (
-                        <p className="col-span-full text-sm text-slate-500">No payment methods available. Contact our team for assistance.</p>
-                      ) : (
-                        paymentMethods.map((method) => {
-                          const isSelected = manualMethod === method.code;
-                          return (
-                            <button
-                              key={method.id}
-                              type="button"
-                              onClick={() => setManualMethod(method.code)}
-                              className={`${paymentsTheme.bankMethodCard} ${
-                                isSelected ? paymentsTheme.bankMethodCardSelected : ""
-                              }`}
-                            >
-                              <span className={paymentsTheme.bankMethodLogoWrapper}>
-                                {method.icon ? (
-                                  <img
-                                    src={method.icon}
-                                    alt={method.display_name}
-                                    className={paymentsTheme.bankMethodLogoImage}
-                                  />
-                                ) : (
-                                  <CreditCard className="h-6 w-6 text-slate-400" />
-                                )}
-                              </span>
-                              <span className="text-center leading-snug">{method.display_name}</span>
-                            </button>
-                          );
-                        })
-                      )}
+                <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <p className={paymentsTheme.fieldLabelSmall}>Manual Payment Method</p>
+                      <p className="text-xs text-slate-600">
+                        Choose a transfer method and submit payment proof for manual verification.
+                      </p>
                     </div>
+                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                      {manualMethods.length} method{manualMethods.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
 
-                    {selectedMethodObj && (
-                      <div className={paymentsTheme.selectionSummaryRow}>
-                        <CreditCard className="h-4 w-4 text-primary" />
-                        <span>You selected: {selectedMethodObj.display_name}</span>
+                  <div className={paymentsTheme.bankMethodGrid} id="manual-method-select">
+                    {methodsLoading ? (
+                      <div className="col-span-full flex items-center gap-2 py-4 text-sm text-slate-500">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Loading payment methods...</span>
                       </div>
+                    ) : manualMethods.length === 0 ? (
+                      <p className="col-span-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                        No manual payment methods are available at the moment.
+                      </p>
+                    ) : (
+                      manualMethods.map((method) => {
+                        const isSelected = manualMethod === method.code;
+                        const label = method.display_name || method.code;
+
+                        return (
+                          <button
+                            key={method.id}
+                            type="button"
+                            onClick={() => setManualMethod(method.code)}
+                            className={`${paymentsTheme.bankMethodCard} ${
+                              isSelected ? paymentsTheme.bankMethodCardSelected : ""
+                            }`}
+                          >
+                            <span className={paymentsTheme.bankMethodLogoWrapper}>
+                              {method.icon ? (
+                                <img
+                                  src={method.icon}
+                                  alt={label}
+                                  className={paymentsTheme.bankMethodLogoImage}
+                                />
+                              ) : (
+                                <CreditCard className="h-6 w-6 text-slate-400" />
+                              )}
+                            </span>
+                            <span className="text-center leading-snug">{label}</span>
+                          </button>
+                        );
+                      })
                     )}
                   </div>
+
+                  {selectedManualMethodObj && (
+                    <div className={paymentsTheme.selectionSummaryRow}>
+                      <CreditCard className="h-4 w-4 text-primary" />
+                      <span>You selected: {selectedManualMethodObj.display_name || selectedManualMethodObj.code}</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-3">
-                  <p className={paymentsTheme.fieldLabelSmall}>
-                    Bank Transfer Instructions
-                  </p>
-                  <p className={paymentsTheme.manualNote}>If you pay by this method you have to contact our admin and send your payment proof.</p>
+                <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+                  <p className={paymentsTheme.fieldLabelSmall}>Recipient Account Details</p>
 
-                  {selectedMethodObj ? (
+                  {selectedManualMethodObj ? (
                     <dl className={paymentsTheme.bankDetailsGrid}>
-                      {selectedMethodObj.account_name && (
+                      {selectedManualMethodObj.account_name && (
                         <div>
                           <dt className={paymentsTheme.bankDetailsTerm}>Account Name</dt>
-                          <dd className={paymentsTheme.bankDetailsValue}>{selectedMethodObj.account_name}</dd>
+                          <dd className={paymentsTheme.bankDetailsValue}>{selectedManualMethodObj.account_name}</dd>
                         </div>
                       )}
-                      {selectedMethodObj.bank_name && (
+                      {selectedManualMethodObj.bank_name && (
                         <div>
                           <dt className={paymentsTheme.bankDetailsTerm}>Bank Name</dt>
-                          <dd className={paymentsTheme.bankDetailsValue}>{selectedMethodObj.bank_name}</dd>
+                          <dd className={paymentsTheme.bankDetailsValue}>{selectedManualMethodObj.bank_name}</dd>
                         </div>
                       )}
-                      {selectedMethodObj.account_number && (
+                      {selectedManualMethodObj.account_number && (
                         <div>
                           <dt className={paymentsTheme.bankDetailsTerm}>Account Number</dt>
-                          <dd className={paymentsTheme.bankDetailsValue}>{selectedMethodObj.account_number}</dd>
+                          <dd className={paymentsTheme.bankDetailsValue}>{selectedManualMethodObj.account_number}</dd>
                         </div>
                       )}
-                      {selectedMethodObj.instructions && (
+                      {selectedManualMethodObj.instructions && (
                         <div className="sm:col-span-2">
                           <dt className={paymentsTheme.bankDetailsTerm}>Instructions</dt>
-                          <dd className={`${paymentsTheme.bankDetailsValue} whitespace-pre-line`}>{selectedMethodObj.instructions}</dd>
+                          <dd className={`${paymentsTheme.bankDetailsValue} whitespace-pre-line`}>{selectedManualMethodObj.instructions}</dd>
                         </div>
                       )}
                     </dl>
@@ -508,68 +514,20 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     <p className="text-sm text-slate-500">Select a payment method above to see account details.</p>
                   )}
 
-                  <div className="mt-2 space-y-3">
-                    <div className={paymentsTheme.stepRow}>
-                      <div className={paymentsTheme.stepNumberCircle}>
-                        1
-                      </div>
-                      <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <CreditCard className="h-4 w-4 text-primary" />
-                        <span>Log in to your online banking account or visit your bank's branch.</span>
-                      </p>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
-                        2
-                      </div>
-                      <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <CalendarClock className="h-4 w-4 text-primary" />
-                        <span>Navigate to the "Transfer" or "Send Money" section.</span>
-                      </p>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
-                        3
-                      </div>
-                      <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <Info className="h-4 w-4 text-primary" />
-                        <span>Enter the recipient's bank details as listed above.</span>
-                      </p>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
-                        4
-                      </div>
-                      <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <CreditCard className="h-4 w-4 text-primary" />
-                        <span>Input the transfer amount and select the currency (if applicable).</span>
-                      </p>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
-                        5
-                      </div>
-                      <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <Info className="h-4 w-4 text-primary" />
-                        <span>Review the details for accuracy.</span>
-                      </p>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm">
-                        6
-                      </div>
-                      <p className="flex items-center gap-2 text-sm text-slate-700">
-                        <ShieldCheck className="h-4 w-4 text-primary" />
-                        <span>
-                          Confirm the transfer and authorize the payment, then save the transaction confirmation
-                          for your records.
-                        </span>
-                      </p>
-                    </div>
-                  </div>
+                  <details className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                    <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                      View transfer instructions
+                    </summary>
+                    <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-slate-600">
+                      <li>Transfer the exact invoice amount to the selected account.</li>
+                      <li>Keep your transfer proof (screenshot or receipt).</li>
+                      <li>Complete the form below using the same transfer details.</li>
+                      <li>Submit payment and wait for manual verification from our team.</li>
+                    </ol>
+                  </details>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
                   <p className={paymentsTheme.fieldLabelSmall}>
                     Bank Transfer Details Form
                   </p>

@@ -55,6 +55,7 @@ export async function GET(request: Request) {
       id: string;
       label: string;
       status: ItemStatus;
+      rawType: string;
       paymentType: string;
       period: string;
       amount: string;
@@ -66,6 +67,14 @@ export async function GET(request: Request) {
       amountValue: number;
       currency: string;
       dueDate?: string;
+    };
+
+    const getFeeTypePriority = (value: unknown): number => {
+      const raw = String(value ?? '').toLowerCase();
+      if (raw === 'registration_fee') return 1;
+      if (raw === 'program_fee_1' || raw === 'full_fee') return 2;
+      if (raw === 'program_fee_2') return 3;
+      return 99;
     };
 
     const formatPaymentType = (value: unknown): string => {
@@ -116,11 +125,14 @@ export async function GET(request: Request) {
       const status = normalizeStatus(inv.status, fallbackStatus);
       const amountValue = Number(inv.amount ?? 0);
       const currency = String(inv.currency ?? stats.currency ?? 'USD');
+      const rawType = String(inv.type ?? '').toLowerCase();
+      const fallbackSequenceOrder = getFeeTypePriority(rawType) * 1000;
 
       return {
         id: inv.id,
         label: inv.title ?? 'Payment',
         status,
+        rawType,
         paymentType: formatPaymentType(inv.type),
         period: toPeriodLabel(startDate, inv.paidAt),
         amount: `${currency} ${amountValue.toFixed(2)}`,
@@ -128,8 +140,8 @@ export async function GET(request: Request) {
           ? new Date(inv.paidAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '—',
         hasInvoice: true,
-        sequenceOrder: Number(inv.sequenceOrder ?? Number.MAX_SAFE_INTEGER),
-        startTime: startDate?.getTime() ?? Number.MAX_SAFE_INTEGER,
+        sequenceOrder: Number(inv.sequenceOrder ?? fallbackSequenceOrder),
+        startTime: startDate?.getTime() ?? 0,
         hasStarted: !startDate || startDate <= now,
         amountValue,
         currency,
@@ -146,18 +158,21 @@ export async function GET(request: Request) {
       const startDate = toStartDate(method.startDate);
       const amountValue = Number(method.amount ?? 0);
       const currency = String(method.currency ?? stats.currency ?? 'USD');
+      const rawType = String(method.type ?? '').toLowerCase();
+      const fallbackSequenceOrder = getFeeTypePriority(rawType) * 1000;
 
       return {
         id: `tier:${method.id}`,
         label: method.title ?? 'Payment',
         status: 'unpaid',
+        rawType,
         paymentType: formatPaymentType(method.type),
         period: toPeriodLabel(startDate, null),
         amount: `${currency} ${amountValue.toFixed(2)}`,
         syncDate: 'Not paid yet',
         hasInvoice: false,
-        sequenceOrder: Number(method.sequenceOrder ?? Number.MAX_SAFE_INTEGER),
-        startTime: startDate?.getTime() ?? Number.MAX_SAFE_INTEGER,
+        sequenceOrder: Number(method.sequenceOrder ?? fallbackSequenceOrder),
+        startTime: startDate?.getTime() ?? 0,
         hasStarted: !startDate || startDate <= now,
         amountValue,
         currency,
@@ -194,7 +209,7 @@ export async function GET(request: Request) {
       (item) => item.status === 'unpaid' && item.dueDate && new Date(item.dueDate) < now,
     ).length;
 
-    const items = stagedItems.map(({ sequenceOrder, startTime, hasStarted, amountValue, currency, dueDate, ...rest }) => rest);
+    const items = stagedItems.map(({ sequenceOrder, startTime, hasStarted, amountValue, currency, dueDate, rawType, ...rest }) => rest);
 
     const summary = {
       complete,
