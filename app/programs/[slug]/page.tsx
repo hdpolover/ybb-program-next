@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Clock, Info, Check } from 'lucide-react';
+import { CalendarDays, MapPin, Clock, Info, Check, ClipboardCheck, FileText, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import RegistrationTutorial from '@/components/sections/RegistrationTutorial';
@@ -35,8 +35,8 @@ function parseBullets(text: string | null): string[] {
     .filter(Boolean);
 }
 
-export default async function ProgramDetailPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default async function ProgramDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const host = (await headers()).get('host') || '';
   const program = await getProgramDetail(slug, host);
 
@@ -55,6 +55,8 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
 
   const overviewBullets = parseBullets(program.benefitsDescription);
   const overviewIntro = program.description ?? '';
+  const requirementBullets = parseBullets(program.requirementsDescription);
+  const termsText = program.termsAndConditions?.trim() ?? '';
 
   // Map API speakers → FeaturedSpeakers format
   const speakers = (program.speakers ?? []).map(s => ({
@@ -226,6 +228,33 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         </div>
       </section>
 
+      {requirementBullets.length > 0 && (
+        <section className={componentsTheme.programDetail.requirementsSection}>
+          <div className={componentsTheme.programDetail.requirementsContainer}>
+            <SectionHeader eyebrow="Requirements" title="Who Can Apply" />
+            <div className={componentsTheme.programDetail.requirementsCard}>
+              <div className={componentsTheme.programDetail.overviewInner}>
+                <div className={componentsTheme.programDetail.overviewIconCircle}>
+                  <ClipboardCheck className={componentsTheme.programDetail.overviewIcon} />
+                </div>
+                <div className={componentsTheme.programDetail.overviewContent}>
+                  <ul className={componentsTheme.programDetail.overviewList}>
+                    {requirementBullets.map(bullet => (
+                      <li key={bullet} className={componentsTheme.programDetail.overviewListItem}>
+                        <span className={componentsTheme.programDetail.overviewBulletIconAlt}>
+                          <Check className={componentsTheme.programDetail.overviewCheckIcon} />
+                        </span>
+                        <span className={componentsTheme.programDetail.overviewText}>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       <RegistrationTutorial />
 
       {speakers.length > 0 && <FeaturedSpeakers speakers={speakers} />}
@@ -233,6 +262,23 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
       {rundownDays.length > 0 && <ProgramRundowns days={rundownDays} />}
 
       {faqGroups.length > 0 && <ProgramFAQ groupsOverride={faqGroups} />}
+
+      {termsText && (
+        <section className={componentsTheme.programDetail.termsSection}>
+          <div className={componentsTheme.programDetail.termsContainer}>
+            <details className={componentsTheme.programDetail.termsDetails}>
+              <summary className={componentsTheme.programDetail.termsSummary}>
+                <FileText className={componentsTheme.programDetail.termsIcon} />
+                <span>Terms &amp; Conditions</span>
+                <ChevronDown className={componentsTheme.programDetail.termsChevron} />
+              </summary>
+              <div className={componentsTheme.programDetail.termsBody}>
+                <p className={componentsTheme.programDetail.termsText}>{termsText}</p>
+              </div>
+            </details>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

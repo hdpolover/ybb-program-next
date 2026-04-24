@@ -172,7 +172,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false); // Mobile sidebar state
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const searchTheme = componentsTheme.dashboardSearch;
   const [me, setMe] = useState<AuthMeData | null>(null);
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
@@ -360,7 +361,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex h-screen flex-1 flex-col overflow-y-auto">
           {/* Navbar dashboard */}
           <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-slate-100 bg-white px-4 py-4 sm:px-6 lg:px-8">
-            <div className="flex flex-1 items-center gap-3">
+            {/* Left: mobile menu + collapsible search */}
+            <div className="flex flex-1 items-center gap-2">
               <button
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-700 ring-1 ring-slate-200 md:hidden"
@@ -370,38 +372,48 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Menu className="h-5 w-5" />
               </button>
 
-              {/* Spacer kiri (bisa dipakai untuk breadcrumb nanti) */}
-              <div className="hidden flex-1 md:block" />
-            </div>
-
-            {/* Search bar di tengah */}
-            <div className="flex flex-[2] justify-center">
-              <div className="w-full max-w-xl">
-                <div className="flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2 text-sm ring-1 ring-slate-200">
-                  <Search className="h-4 w-4 text-slate-400" />
+              {searchOpen ? (
+                <div className="hidden md:flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2 text-sm ring-1 ring-slate-300 w-72 transition-all">
+                  <Search className="h-4 w-4 shrink-0 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search in dashboard..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
+                    autoFocus
                     className="w-full border-none bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-0"
                   />
+                  <button
+                    type="button"
+                    aria-label="Close search"
+                    onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                    className="shrink-0 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <button
+                  type="button"
+                  aria-label="Open search"
+                  onClick={() => setSearchOpen(true)}
+                  className="hidden md:inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-50 text-slate-500 ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+              )}
             </div>
 
-            {/* Program selector + user menu di kanan */}
-            <div className="flex flex-1 justify-end">
-              <div className="flex items-center gap-3">
-                <NotificationsPopover />
-                <ProgramSelector programs={me?.registeredPrograms ?? []} />
-                <UserMenuPopover
-                  profileName={greetingName}
-                  profileEmail={me?.email}
-                  profileImageUrl={participantProfile?.profilePictureUrl}
-                  isAmbassador={!!ambassadorData?.isActive}
-                />
-              </div>
+            {/* Right: notifications + program selector + user menu */}
+            <div className="flex items-center gap-3">
+              <NotificationsPopover />
+              <ProgramSelector programs={me?.registeredPrograms ?? []} />
+              <UserMenuPopover
+                profileName={greetingName}
+                profileEmail={me?.email}
+                profileImageUrl={participantProfile?.profilePictureUrl}
+                isAmbassador={!!ambassadorData?.isActive}
+              />
             </div>
           </header>
 

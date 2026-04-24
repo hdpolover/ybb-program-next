@@ -179,6 +179,16 @@ function isProfilePhotoField(field: PortalSubmissionField) {
   return normalized === "pictureurl" || normalized === "profilephotourl" || normalized === "profilepictureurl";
 }
 
+function isEmailField(field: PortalSubmissionField) {
+  if (field.type === "email") return true;
+
+  const inputType = getFieldInputType(field);
+  if (inputType === "email") return true;
+
+  const normalized = normalizeFieldKey(field.name);
+  return normalized === "email" || normalized === "emailaddress";
+}
+
 type PhonePairKind =
   | "primary_country"
   | "primary_number"
@@ -283,6 +293,7 @@ function splitE164ToDialAndNumber(value: string) {
 
 function shouldRenderField(section: PortalSubmissionSection, field: PortalSubmissionField) {
   if (isProfilePhotoField(field)) return false;
+  if (isEmailField(field)) return false;
 
   const kind = getPhonePairKind(field);
   if (kind === "primary_country" || kind === "emergency_country") {
@@ -476,6 +487,8 @@ export default function SubmissionEditSection() {
 
   const renderFieldInput = (section: PortalSubmissionSection, field: PortalSubmissionField) => {
     const value = sectionValues[section.id]?.[field.name] ?? "";
+    const fieldType = field.type.toLowerCase();
+    const isRadioField = fieldType === "radio";
     const treatAsSelect = field.type === "select" || isCategoryField(field);
     const phonePairKind = getPhonePairKind(field);
 
@@ -507,6 +520,30 @@ export default function SubmissionEditSection() {
           onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
           placeholder={field.placeholder || field.helpText || ""}
         />
+      );
+    }
+
+    if (isRadioField && (field.options?.length ?? 0) > 0) {
+      return (
+        <div className="space-y-2">
+          {(field.options || []).map(option => {
+            const optionValue = fieldOptionValue(option);
+
+            return (
+              <div key={optionValue} className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="radio"
+                  name={`field-${field.id}`}
+                  value={optionValue}
+                  checked={value === optionValue}
+                  onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
+                  className="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>{fieldOptionLabel(option)}</span>
+              </div>
+            );
+          })}
+        </div>
       );
     }
 

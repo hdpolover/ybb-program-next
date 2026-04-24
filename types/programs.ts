@@ -44,6 +44,7 @@ export type ProgramOverviewSection = {
     theme: string | null;
     subthemes: ProgramOverviewSubtheme[] | null;
     location: string | null;
+    program_format: 'in_person' | 'hybrid' | 'online' | null;
     start_date: string | null;
     end_date: string | null;
     duration: string | null;

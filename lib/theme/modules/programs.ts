@@ -269,6 +269,20 @@ export const programsTheme = {
     applicationTitle: 'text-xl font-extrabold text-slate-900 sm:text-2xl',
     applicationSubtitle: 'mt-2 text-sm text-gray-600',
     applicationCtaWrapper: 'mt-6',
+    // Requirements section
+    requirementsSection: 'relative bg-white',
+    requirementsContainer: 'mx-auto max-w-7xl px-6 py-16 lg:px-8',
+    requirementsCard: 'mx-auto max-w-3xl overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
+    // Terms & Conditions section
+    termsSection: 'relative bg-[#eef5ff]',
+    termsContainer: 'mx-auto max-w-3xl px-6 py-16 lg:px-8',
+    termsDetails: 'group overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
+    termsSummary:
+      'flex cursor-pointer list-none items-center gap-3 p-6 text-base font-semibold text-slate-900 sm:p-8 [&::-webkit-details-marker]:hidden',
+    termsIcon: 'h-5 w-5 text-primary',
+    termsChevron: 'ml-auto h-5 w-5 text-gray-400 transition-transform group-open:rotate-180',
+    termsBody: 'border-t border-gray-200 px-6 pb-6 pt-4 sm:px-8 sm:pb-8',
+    termsText: 'whitespace-pre-line text-sm leading-7 text-gray-600',
   },
   galleryOtherPrograms: {
     subtitle: '-mt-6 mb-8 text-center text-sm text-primary sm:text-base',

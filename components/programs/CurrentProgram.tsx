@@ -66,6 +66,18 @@ export default function CurrentProgram({ overview, coverImage }: CurrentProgramP
   const subthemes = overview.subthemes && overview.subthemes.length > 0 ? overview.subthemes : null;
   const location = overview.location || DATA_NOT_ADDED;
   const duration = overview.duration || DATA_NOT_ADDED;
+  const programFormatLabel = (() => {
+    switch (overview.program_format) {
+      case 'in_person':
+        return 'In-Person';
+      case 'hybrid':
+        return 'Hybrid';
+      case 'online':
+        return 'Online';
+      default:
+        return DATA_NOT_ADDED;
+    }
+  })();
   const eventDates = formatDateRange(overview.start_date ?? null, overview.end_date ?? null);
   const guidebooksRaw = overview.guidebooks && overview.guidebooks.length > 0 ? overview.guidebooks : null;
   const guidebooks = guidebooksRaw ? guidebooksRaw.slice(-2) : null;
@@ -176,7 +188,7 @@ export default function CurrentProgram({ overview, coverImage }: CurrentProgramP
                         Program Format
                       </p>
                       <p className={componentsTheme.programsCurrent.infoValue}>
-                        {DATA_NOT_ADDED}
+                        {programFormatLabel}
                       </p>
                     </div>
                   </div>

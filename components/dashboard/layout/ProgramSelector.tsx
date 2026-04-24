@@ -18,14 +18,12 @@ type RegisteredProgram = {
 
 function buildProgramLabel(programName: string, year?: number): string {
   const cleanedName = (programName || '').trim();
-  if (!cleanedName) return 'Participant';
+  if (!cleanedName) return 'My Program';
 
   const hasYearInName = typeof year === 'number' && cleanedName.includes(String(year));
-  const nameWithYear = typeof year === 'number' && !hasYearInName
+  return typeof year === 'number' && !hasYearInName
     ? `${cleanedName} ${year}`
     : cleanedName;
-
-  return `${nameWithYear} Participant`;
 }
 
 export default function ProgramSelector({
@@ -99,7 +97,7 @@ export default function ProgramSelector({
   const active = normalizedPrograms.find(p => p.id === activeId) ?? normalizedPrograms[0] ?? null;
   const defaultLabel = settings?.active_program?.name
     ? buildProgramLabel(settings.active_program.name, settings.active_program.year)
-    : (settings?.brand?.name ? buildProgramLabel(settings.brand.name) : 'Participant');
+    : (settings?.brand?.name ? buildProgramLabel(settings.brand.name) : 'My Program');
   const displayedLabel = active?.label ?? defaultLabel;
   const displayedLogo = active?.logo ?? settings?.brand?.logo_url ?? settings?.active_program?.logo_url ?? '/img/ybb-logo.png';
 
