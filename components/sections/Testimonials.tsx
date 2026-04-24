@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import Image from 'next/image';
 import { componentsTheme } from '@/lib/theme/components';
@@ -20,6 +20,14 @@ const DIRECTIONS: Array<'left' | 'right'> = ['left', 'right', 'left'];
 interface Props {
   section?: DelegateTestimonialsSection;
 }
+
+type MarqueeStyle = CSSProperties & {
+  '--duration': string;
+};
+
+const MARQUEE_STYLE: MarqueeStyle = {
+  '--duration': '55s',
+};
 
 export default function Testimonials({ section }: Props) {
   if (!section || !section.content.items || section.content.items.length === 0) return null;
@@ -64,7 +72,7 @@ export default function Testimonials({ section }: Props) {
               className={`${componentsTheme.testimonialsHome.marqueeRowBase} ${
                 row.direction === 'left' ? 'animate-marquee' : 'animate-marquee-reverse'
               }`}
-              style={{ ['--duration' as any]: '55s' }}
+              style={MARQUEE_STYLE}
             >
               {[...row.items, ...row.items].map((t, idx) => (
                 <div

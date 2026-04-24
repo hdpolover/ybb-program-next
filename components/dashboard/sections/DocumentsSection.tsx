@@ -10,6 +10,7 @@ import {
   appendProgramId,
   readActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
+import { getEnvelopeData, getErrorMessage, isRecord } from "@/lib/api/response";
 
 const TABS = ["All", "Upload Required", "Can Generate", "Reference"] as const;
 type TabKey = (typeof TABS)[number];
@@ -42,6 +43,66 @@ interface DocumentItem {
   submissionStatus?: string;
   signedCopyUrl?: string;
   rejectionReason?: string;
+}
+
+function normalizeDocumentCategory(value: unknown): ProgramDocument["category"] {
+  if (value === "upload_required" || value === "can_generate" || value === "reference") {
+    return value;
+  }
+  return "reference";
+}
+
+function toProgramDocument(value: unknown): ProgramDocument | null {
+  if (!isRecord(value)) return null;
+
+  const name =
+    typeof value.name === "string"
+      ? value.name
+      : typeof value.title === "string"
+        ? value.title
+        : null;
+
+  if (!name) return null;
+
+  return {
+    name,
+    description: typeof value.description === "string" ? value.description : "",
+    type: typeof value.type === "string" ? value.type : "Document",
+    category: normalizeDocumentCategory(value.category),
+  };
+}
+
+function toDocumentItem(value: unknown): DocumentItem | null {
+  if (!isRecord(value)) return null;
+
+  const id = typeof value.id === "string" ? value.id : null;
+  const title = typeof value.title === "string" ? value.title : null;
+  if (!id || !title) return null;
+
+  return {
+    id,
+    title,
+    description: typeof value.description === "string" ? value.description : undefined,
+    documentType: typeof value.documentType === "string" ? value.documentType : "document",
+    fileUrl: typeof value.fileUrl === "string" ? value.fileUrl : undefined,
+    submissionStatus: typeof value.submissionStatus === "string" ? value.submissionStatus : undefined,
+    signedCopyUrl: typeof value.signedCopyUrl === "string" ? value.signedCopyUrl : undefined,
+    rejectionReason: typeof value.rejectionReason === "string" ? value.rejectionReason : undefined,
+  };
+}
+
+function toCertificate(value: unknown): Certificate | null {
+  if (!isRecord(value)) return null;
+
+  const id = typeof value.id === "string" ? value.id : null;
+  if (!id) return null;
+
+  return {
+    id,
+    award: typeof value.award === "string" ? value.award : "-",
+    assignment: typeof value.assignment === "string" ? value.assignment : "-",
+    status: typeof value.status === "string" ? value.status : "Ongoing",
+  };
 }
 
 function DocumentsRowsSkeleton() {
@@ -131,15 +192,36 @@ export default function DocumentsSection() {
         cache: "no-store",
       });
 
-      const json = (await response.json().catch(() => ({}))) as any;
+      const json = (await response.json().catch(() => null)) as unknown;
       if (!response.ok) {
-        throw new Error(json?.message || "Failed to load documents");
+        throw new Error(getErrorMessage(json, "Failed to load documents"));
       }
 
+      const payload = getEnvelopeData(json);
+      const payloadRecord = isRecord(payload) ? payload : null;
+
       // Support both old shape (data.items) and new shape (data.programResources / data.myDocuments)
-      setProgramDocuments(json?.data?.items ?? []);
-      setProgramResources(json?.data?.programResources ?? []);
-      setMyDocuments(json?.data?.myDocuments ?? []);
+      setProgramDocuments(
+        Array.isArray(payloadRecord?.items)
+          ? payloadRecord.items
+              .map(toProgramDocument)
+              .filter((item): item is ProgramDocument => item !== null)
+          : [],
+      );
+      setProgramResources(
+        Array.isArray(payloadRecord?.programResources)
+          ? payloadRecord.programResources
+              .map(toDocumentItem)
+              .filter((item): item is DocumentItem => item !== null)
+          : [],
+      );
+      setMyDocuments(
+        Array.isArray(payloadRecord?.myDocuments)
+          ? payloadRecord.myDocuments
+              .map(toDocumentItem)
+              .filter((item): item is DocumentItem => item !== null)
+          : [],
+      );
     } catch (err) {
       setErrorDocs(err instanceof Error ? err.message : "Failed to load documents");
     } finally {
@@ -186,13 +268,21 @@ export default function DocumentsSection() {
           cache: "no-store",
         });
 
-        const json = (await response.json().catch(() => ({}))) as any;
+        const json = (await response.json().catch(() => null)) as unknown;
         if (!response.ok) {
-          throw new Error(json?.message || "Failed to load certificates");
+          throw new Error(getErrorMessage(json, "Failed to load certificates"));
         }
 
         if (!cancelled) {
-          setCertificates(json?.data?.items ?? []);
+          const payload = getEnvelopeData(json);
+          const payloadRecord = isRecord(payload) ? payload : null;
+          setCertificates(
+            Array.isArray(payloadRecord?.items)
+              ? payloadRecord.items
+                  .map(toCertificate)
+                  .filter((item): item is Certificate => item !== null)
+              : [],
+          );
         }
       } catch (err) {
         if (!cancelled) {
@@ -731,8 +821,8 @@ function SignedCopyUpload({
         { method: "POST", body: formData },
       );
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message ?? data.error ?? "Upload failed");
+        const data = (await res.json().catch(() => null)) as unknown;
+        throw new Error(getErrorMessage(data, "Upload failed"));
       }
       onUploaded();
     } catch (err) {

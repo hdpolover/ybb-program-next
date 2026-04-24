@@ -22,6 +22,7 @@ import {
   readActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
+import { getEnvelopeData, getMessage, isRecord } from "@/lib/api/response";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -41,20 +42,6 @@ interface PaymentsSummary {
   pending: number;
   overdue: number;
   totalRequired: string;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === "object";
-}
-
-function getMessage(payload: unknown): string | null {
-  if (!isRecord(payload)) return null;
-  return typeof payload.message === "string" ? payload.message : null;
-}
-
-function getEnvelopeData(payload: unknown): unknown {
-  if (!isRecord(payload)) return payload;
-  return "data" in payload ? payload.data ?? null : payload;
 }
 
 function toPaymentStatus(value: unknown): PaymentItem["status"] {

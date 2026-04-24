@@ -9,6 +9,7 @@ import {
   appendProgramId,
   readActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
+import { getEnvelopeData, getErrorMessage } from "@/lib/api/response";
 import type {
   PortalSubmissionDetail,
   PortalSubmissionEssay,
@@ -20,6 +21,7 @@ import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 import { CountryField } from "@/components/dashboard/fields/CountryField";
 import { PhoneField } from "@/components/dashboard/fields/PhoneField";
+import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -208,10 +210,10 @@ export default function SubmissionEditSection() {
           cache: "no-store",
         });
 
-        const json = (await res.json().catch(() => ({}))) as any;
-        if (!res.ok) throw new Error(json?.message || "Failed to load submission detail");
+        const json = (await res.json().catch(() => null)) as unknown;
+        if (!res.ok) throw new Error(getErrorMessage(json, "Failed to load submission detail"));
 
-        const nextDetail = (json?.data ?? null) as PortalSubmissionDetail | null;
+        const nextDetail = toPortalSubmissionDetail(getEnvelopeData(json));
         if (!cancelled && nextDetail) {
           setDetail(nextDetail);
           setActiveSectionId(nextDetail.sections[0]?.id ?? null);
@@ -294,11 +296,11 @@ export default function SubmissionEditSection() {
       }
 
       const responses = await Promise.all(requests);
-      const results = await Promise.all(responses.map(response => response.json().catch(() => ({}))));
+      const results = await Promise.all(responses.map(response => response.json().catch(() => null)));
       const failed = responses.findIndex(response => !response.ok);
 
       if (failed >= 0) {
-        throw new Error((results[failed] as any)?.message || "Failed to save submission section");
+        throw new Error(getErrorMessage(results[failed], "Failed to save submission section"));
       }
 
       setSuccessMessage(`${activeSection.title} saved successfully.`);

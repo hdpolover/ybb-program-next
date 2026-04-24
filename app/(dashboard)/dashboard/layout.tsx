@@ -18,6 +18,7 @@ import {
 import { DashboardModeProvider } from '@/components/dashboard/DashboardModeContext';
 import NotificationsPopover from '@/components/dashboard/layout/NotificationsPopover';
 import UserMenuPopover from '@/components/dashboard/layout/UserMenuPopover';
+import { getEnvelopeData, isRecord } from '@/lib/api/response';
 import { componentsTheme } from '@/lib/theme/components';
 
 type DashboardSearchItem = {
@@ -48,18 +49,6 @@ const DASHBOARD_SEARCH_ITEMS: DashboardSearchItem[] = [
     breadcrumb: 'Dashboard Overview',
   },
 ];
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object';
-}
-
-function extractEnvelopeData(payload: unknown): unknown {
-  if (!isRecord(payload)) {
-    return payload;
-  }
-
-  return 'data' in payload ? payload.data ?? null : payload;
-}
 
 function toParticipantMeData(payload: unknown): ParticipantMeData | null {
   if (!isRecord(payload)) return null;
@@ -272,7 +261,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           if (!cancelled && dashRes.ok) {
             const dashJson = (await dashRes.json().catch(() => null)) as unknown;
-            const dashPayload = extractEnvelopeData(dashJson);
+            const dashPayload = getEnvelopeData(dashJson);
             const dashData = toPortalDashboardSummary(dashPayload);
             setDashboardSummary(dashData);
           }
@@ -295,7 +284,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           if (!cancelled && profileRes.ok) {
             const profileJson = (await profileRes.json().catch(() => null)) as unknown;
-            const profilePayload = extractEnvelopeData(profileJson);
+            const profilePayload = getEnvelopeData(profileJson);
             const profileData = toParticipantMeData(profilePayload);
             setParticipantProfile(profileData);
 
@@ -315,7 +304,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           if (!cancelled && ambassadorRes.ok) {
             const ambassadorJson = (await ambassadorRes.json().catch(() => null)) as unknown;
-            const ambassadorPayload = extractEnvelopeData(ambassadorJson);
+            const ambassadorPayload = getEnvelopeData(ambassadorJson);
             const ambassador = toAmbassadorData(ambassadorPayload);
             if (ambassador?.isActive) {
               setAmbassadorData(ambassador);

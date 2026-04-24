@@ -5,19 +5,11 @@ import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
+import { getErrorMessage } from "@/lib/api/response";
 import { componentsTheme } from "@/lib/theme/components";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 
 const overviewTheme = componentsTheme.dashboardOverview;
-
-function getErrorMessage(payload: unknown, fallback: string): string {
-  if (!payload || typeof payload !== "object") return fallback;
-
-  const record = payload as { message?: unknown };
-  return typeof record.message === "string" && record.message.length > 0
-    ? record.message
-    : fallback;
-}
 
 export default function OverviewRegistrationSection() {
   const { dashboardSummary, isDashboardSummaryLoading } = useDashboardData();

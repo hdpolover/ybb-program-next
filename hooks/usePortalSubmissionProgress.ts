@@ -6,21 +6,8 @@ import {
   appendProgramId,
   readActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
+import { getEnvelopeData, getMessage, isRecord } from "@/lib/api/response";
 import type { PortalSubmissionProgress } from "@/types/portal-submission";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === "object";
-}
-
-function getMessage(payload: unknown): string | null {
-  if (!isRecord(payload)) return null;
-  return typeof payload.message === "string" ? payload.message : null;
-}
-
-function getEnvelopeData(payload: unknown): unknown {
-  if (!isRecord(payload)) return payload;
-  return "data" in payload ? payload.data ?? null : payload;
-}
 
 function toPortalSubmissionProgress(payload: unknown): PortalSubmissionProgress | null {
   if (!isRecord(payload)) return null;

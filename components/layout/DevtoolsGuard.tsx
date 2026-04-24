@@ -11,6 +11,8 @@ export default function DevtoolsGuard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const listenerOptions: AddEventListenerOptions = { capture: true };
+
     const keyHandler = (e: KeyboardEvent) => {
       const key = typeof e.key === 'string' ? e.key.toLowerCase() : '';
       const isDevtoolsShortcut =
@@ -33,11 +35,11 @@ export default function DevtoolsGuard() {
       }
     };
 
-    window.addEventListener('keydown', keyHandler, { capture: true });
-    window.addEventListener('contextmenu', contextHandler, { capture: true });
+    window.addEventListener('keydown', keyHandler, listenerOptions);
+    window.addEventListener('contextmenu', contextHandler, listenerOptions);
     return () => {
-      window.removeEventListener('keydown', keyHandler, { capture: true } as any);
-      window.removeEventListener('contextmenu', contextHandler, { capture: true } as any);
+      window.removeEventListener('keydown', keyHandler, listenerOptions);
+      window.removeEventListener('contextmenu', contextHandler, listenerOptions);
     };
   }, [unlocked]);
 

@@ -18,6 +18,7 @@ import { type HistoryItem } from "@/components/dashboard/payments/HistoryList";
 import HistoryPanel from "@/components/dashboard/payments/HistoryPanel";
 import PaymentPageSkeleton from "@/components/dashboard/payments/PaymentPageSkeleton";
 import { componentsTheme } from "@/lib/theme/components";
+import { getEnvelopeData, getErrorMessage, isRecord } from "@/lib/api/response";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -139,6 +140,50 @@ function formatDateTimeLabel(value?: string | null): string {
   }).format(date);
 }
 
+function toInvoiceData(value: unknown): InvoiceData | null {
+  if (!isRecord(value)) return null;
+
+  const id = typeof value.id === "string" ? value.id : null;
+  if (!id) return null;
+
+  return {
+    id,
+    label: typeof value.label === "string" ? value.label : "Program Payment",
+    category: typeof value.category === "string" ? value.category : "payment",
+    amount: typeof value.amount === "number" && Number.isFinite(value.amount) ? value.amount : 0,
+    dueDate: typeof value.dueDate === "string" ? value.dueDate : undefined,
+    status: normalizeInvoiceStatus(value.status),
+    currency: typeof value.currency === "string" ? value.currency.toUpperCase() : "USD",
+  };
+}
+
+function toHistoryEntry(value: unknown): HistoryEntry | null {
+  if (!isRecord(value)) return null;
+
+  const id = typeof value.id === "string" ? value.id : null;
+  if (!id) return null;
+
+  return {
+    id,
+    method:
+      typeof value.method === "string"
+        ? value.method
+        : typeof value.paymentMethod === "string"
+          ? value.paymentMethod
+          : "Payment",
+    amount: typeof value.amount === "number" && Number.isFinite(value.amount) ? value.amount : 0,
+    date: typeof value.date === "string" ? value.date : "-",
+    time: typeof value.time === "string" ? value.time : "-",
+    status: normalizeHistoryStatus(value.status),
+    note: typeof value.note === "string" ? value.note : "",
+    code: typeof value.code === "string" ? value.code : undefined,
+    paymentMethod: typeof value.paymentMethod === "string" ? value.paymentMethod : undefined,
+    dateTime: typeof value.dateTime === "string" ? value.dateTime : undefined,
+    accountName: typeof value.accountName === "string" ? value.accountName : undefined,
+    amountLabel: typeof value.amountLabel === "string" ? value.amountLabel : undefined,
+  };
+}
+
 export default function PaymentDetailSection({ paymentId }: PaymentDetailSectionProps) {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -159,44 +204,21 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
           cache: "no-store",
         });
 
-        const json = (await response.json().catch(() => ({}))) as any;
+        const json = (await response.json().catch(() => null)) as unknown;
         if (!response.ok) {
-          throw new Error(json?.message || "Failed to load payment details");
+          throw new Error(getErrorMessage(json, "Failed to load payment details"));
         }
 
         if (!cancelled) {
-          const rawInvoice = json?.data?.invoice;
-          const rawHistory = json?.data?.history;
+          const payload = getEnvelopeData(json);
+          const payloadRecord = isRecord(payload) ? payload : null;
 
-          if (rawInvoice) {
-            setInvoice({
-              id: String(rawInvoice.id ?? ""),
-              label: String(rawInvoice.label ?? "Program Payment"),
-              category: String(rawInvoice.category ?? "payment"),
-              amount: Number(rawInvoice.amount ?? 0),
-              dueDate: typeof rawInvoice.dueDate === "string" ? rawInvoice.dueDate : undefined,
-              status: normalizeInvoiceStatus(rawInvoice.status),
-              currency: typeof rawInvoice.currency === "string" ? rawInvoice.currency.toUpperCase() : "USD",
-            });
-          } else {
-            setInvoice(null);
-          }
+          setInvoice(toInvoiceData(payloadRecord?.invoice));
 
-          const normalizedHistory: HistoryEntry[] = Array.isArray(rawHistory)
-            ? rawHistory.map((entry: any) => ({
-                id: String(entry?.id ?? ""),
-                method: String(entry?.method ?? entry?.paymentMethod ?? "Payment"),
-                amount: Number(entry?.amount ?? 0),
-                date: String(entry?.date ?? "-"),
-                time: String(entry?.time ?? "-"),
-                status: normalizeHistoryStatus(entry?.status),
-                note: String(entry?.note ?? ""),
-                code: typeof entry?.code === "string" ? entry.code : undefined,
-                paymentMethod: typeof entry?.paymentMethod === "string" ? entry.paymentMethod : undefined,
-                dateTime: typeof entry?.dateTime === "string" ? entry.dateTime : undefined,
-                accountName: typeof entry?.accountName === "string" ? entry.accountName : undefined,
-                amountLabel: typeof entry?.amountLabel === "string" ? entry.amountLabel : undefined,
-              }))
+          const normalizedHistory: HistoryEntry[] = Array.isArray(payloadRecord?.history)
+            ? payloadRecord.history
+                .map(toHistoryEntry)
+                .filter((entry): entry is HistoryEntry => entry !== null)
             : [];
 
           setHistory(normalizedHistory);

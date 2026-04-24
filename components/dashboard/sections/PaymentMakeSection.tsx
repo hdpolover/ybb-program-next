@@ -17,6 +17,7 @@ import {
 import { componentsTheme } from "@/lib/theme/components";
 import { useSettings } from "@/components/providers/SettingsProvider";
 import PaymentPageSkeleton from "@/components/dashboard/payments/PaymentPageSkeleton";
+import { getEnvelopeData, getErrorMessage, isRecord } from "@/lib/api/response";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -47,6 +48,68 @@ interface InvoiceData {
   currency?: string;
 }
 
+function toPaymentMethodData(value: unknown): PaymentMethodData | null {
+  if (!isRecord(value)) return null;
+
+  const code = typeof value.code === "string" ? value.code : null;
+  if (!code) return null;
+
+  return {
+    id: typeof value.id === "string" ? value.id : code,
+    code,
+    display_name:
+      typeof value.display_name === "string" && value.display_name.length > 0
+        ? value.display_name
+        : code,
+    bank_name: typeof value.bank_name === "string" ? value.bank_name : "",
+    account_number: typeof value.account_number === "string" ? value.account_number : "",
+    account_name: typeof value.account_name === "string" ? value.account_name : "",
+    instructions: typeof value.instructions === "string" ? value.instructions : "",
+    icon: typeof value.icon === "string" ? value.icon : "",
+    requires_proof: typeof value.requires_proof === "boolean" ? value.requires_proof : false,
+    type: typeof value.type === "string" ? value.type : "",
+  };
+}
+
+function toInvoiceData(value: unknown): InvoiceData | null {
+  if (!isRecord(value)) return null;
+
+  const id = typeof value.id === "string" ? value.id : null;
+  if (!id) return null;
+
+  return {
+    id,
+    label: typeof value.label === "string" ? value.label : "Payment",
+    category: typeof value.category === "string" ? value.category : "payment",
+    amount: typeof value.amount === "number" && Number.isFinite(value.amount) ? value.amount : 0,
+    dueDate: typeof value.dueDate === "string" ? value.dueDate : "",
+    status: typeof value.status === "string" ? value.status : "unpaid",
+    currency: typeof value.currency === "string" ? value.currency : "USD",
+  };
+}
+
+function normalizeMethodsPayload(payload: unknown): PaymentMethodData[] {
+  const source =
+    Array.isArray(payload)
+      ? payload
+      : isRecord(payload) && Array.isArray(payload.data)
+        ? payload.data
+        : isRecord(payload) && Array.isArray(payload.methods)
+          ? payload.methods
+          : [];
+
+  return source
+    .map(toPaymentMethodData)
+    .filter((method): method is PaymentMethodData => method !== null);
+}
+
+function getActionUrl(payload: unknown): string | null {
+  if (!isRecord(payload)) return null;
+  const action = payload.action;
+  if (!isRecord(action)) return null;
+  return typeof action.url === "string" && action.url.length > 0 ? action.url : null;
+}
+
 export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProps) {
   const { settings } = useSettings();
   const router = useRouter();
@@ -70,13 +133,15 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
           cache: "no-store",
         });
 
-        const json = (await response.json().catch(() => ({}))) as any;
+        const json = (await response.json().catch(() => null)) as unknown;
         if (!response.ok) {
-          throw new Error(json?.message || "Failed to load payment details");
+          throw new Error(getErrorMessage(json, "Failed to load payment details"));
         }
 
         if (!cancelled) {
-          setInvoice(json?.data?.invoice ?? null);
+          const payload = getEnvelopeData(json);
+          const invoicePayload = isRecord(payload) ? payload.invoice : null;
+          setInvoice(toInvoiceData(invoicePayload));
         }
       } catch (err) {
         if (!cancelled) {
@@ -100,15 +165,9 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
       setMethodsLoading(true);
       try {
         const res = await fetch('/api/portal/payment-methods', { cache: 'no-store' });
-        const json = (await res.json().catch(() => ({}))) as any;
-        const payload = json?.data ?? json;
-        const methods: PaymentMethodData[] = Array.isArray(payload)
-          ? payload
-          : Array.isArray(payload?.data)
-            ? payload.data
-            : Array.isArray(payload?.methods)
-              ? payload.methods
-              : [];
+        const json = (await res.json().catch(() => null)) as unknown;
+        const payload = getEnvelopeData(json);
+        const methods = normalizeMethodsPayload(payload);
 
         if (!cancelled && res.ok) {
           setPaymentMethods(methods);
@@ -219,17 +278,18 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
         body: JSON.stringify(body),
       });
 
-      const json = (await response.json().catch(() => ({}))) as any;
+      const json = (await response.json().catch(() => null)) as unknown;
 
       if (!response.ok) {
-        throw new Error(json?.message || "Payment submission failed");
+        throw new Error(getErrorMessage(json, "Payment submission failed"));
       }
 
-      const data = json?.data ?? {};
+      const payload = getEnvelopeData(json);
+      const actionUrl = getActionUrl(payload);
 
       // Gateway: redirect to payment gateway URL if provided
-      if (data.action?.url) {
-        window.location.href = data.action.url;
+      if (actionUrl) {
+        window.location.href = actionUrl;
         return;
       }
 
