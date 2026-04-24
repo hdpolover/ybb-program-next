@@ -3,12 +3,17 @@
 import { AlertTriangle, ClipboardList } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
+import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
 export default function OverviewNotificationSection() {
-  const { dashboardSummary } = useDashboardData();
+  const { dashboardSummary, isDashboardSummaryLoading } = useDashboardData();
   const alert = dashboardSummary?.alerts?.[0];
+
+  if (isDashboardSummaryLoading) {
+    return <DashboardPageSkeleton variant="overview-notification" className="w-full" />;
+  }
 
   if (!alert) {
     return null;

@@ -44,7 +44,7 @@ export default function DashboardProgressPage() {
   const currentIndex = currentStepIndex >= 0 ? Math.min(currentStepIndex, Math.max(0, progressSteps.length - 1)) : fallbackCurrentIndex;
   const totalSteps = progressSteps.length;
   const completedCount = progressSteps.filter(step => step.status === "done").length;
-  const progressRatio = totalSteps > 0 ? (completedCount + 1) / totalSteps : 0;
+  const progressRatio = totalSteps > 0 ? completedCount / totalSteps : 0;
   const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
 
   const progressPercentage =

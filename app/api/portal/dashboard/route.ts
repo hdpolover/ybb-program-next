@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
+type ApiEnvelope = {
+  statusCode?: number;
+  message?: string;
+  data?: unknown;
+};
+
+function asApiEnvelope(value: unknown): ApiEnvelope {
+  return value && typeof value === 'object' ? (value as ApiEnvelope) : {};
+}
+
 export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
@@ -24,19 +34,19 @@ export async function GET(request: Request) {
       cache: 'no-store',
     });
 
-    const json = await res.json().catch(() => ({}));
+    const json = asApiEnvelope(await res.json().catch(() => null));
     if (!res.ok) {
       return NextResponse.json(
         {
-          statusCode: (json as any)?.statusCode ?? res.status,
-          message: (json as any)?.message ?? 'Failed to fetch dashboard summary',
-          data: (json as any)?.data ?? null,
+          statusCode: json.statusCode ?? res.status,
+          message: json.message ?? 'Failed to fetch dashboard summary',
+          data: json.data ?? null,
         },
         { status: res.status },
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json ?? null });
+    return NextResponse.json({ statusCode: 200, message: 'Success', data: json.data ?? json ?? null });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(

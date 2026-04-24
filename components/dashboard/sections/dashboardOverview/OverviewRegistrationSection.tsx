@@ -6,11 +6,21 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { componentsTheme } from "@/lib/theme/components";
+import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
+function getErrorMessage(payload: unknown, fallback: string): string {
+  if (!payload || typeof payload !== "object") return fallback;
+
+  const record = payload as { message?: unknown };
+  return typeof record.message === "string" && record.message.length > 0
+    ? record.message
+    : fallback;
+}
+
 export default function OverviewRegistrationSection() {
-  const { dashboardSummary } = useDashboardData();
+  const { dashboardSummary, isDashboardSummaryLoading } = useDashboardData();
   const router = useRouter();
   const activeApplication = dashboardSummary?.activeApplication ?? null;
 
@@ -47,6 +57,10 @@ export default function OverviewRegistrationSection() {
   const switchTarget = currentCategory === "self_funded" ? "fully_funded" : "self_funded";
   const switchTargetLabel = switchTarget === "fully_funded" ? "Fully Funded" : "Self Funded";
 
+  if (isDashboardSummaryLoading) {
+    return <DashboardPageSkeleton variant="overview-registration" className="w-full" />;
+  }
+
   async function handleSwitch() {
     if (!activeApplication?.id) {
       setError("Application ID not found. Please refresh the page and try again.");
@@ -63,9 +77,9 @@ export default function OverviewRegistrationSection() {
           targetCategory: switchTarget,
         }),
       });
-      const json = await res.json().catch(() => ({}));
+      const json = (await res.json().catch(() => null)) as unknown;
       if (!res.ok) {
-        setError((json as any)?.message ?? "Failed to switch category. Please try again.");
+        setError(getErrorMessage(json, "Failed to switch category. Please try again."));
         return;
       }
       setShowModal(false);

@@ -1,6 +1,8 @@
 "use client";
 
 import { componentsTheme } from "@/lib/theme/components";
+import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
+import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
@@ -15,6 +17,12 @@ export default function OverviewGuidebookSection({
   guidebookEnUrl = "#guidebook-en",
   guidebookIdUrl = "#guidebook-id",
 }: OverviewGuidebookSectionProps) {
+  const { isDashboardSummaryLoading } = useDashboardData();
+
+  if (isDashboardSummaryLoading) {
+    return <DashboardPageSkeleton variant="overview-guidebook" className={overviewTheme.guideAside} />;
+  }
+
   return (
     <aside
       className={overviewTheme.guideAside}

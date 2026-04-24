@@ -2,6 +2,18 @@
 
 import { createContext, useContext } from 'react';
 
+export type PortalDashboardMoney = {
+  amount: number;
+  currency: string;
+};
+
+export type PortalDashboardStats = {
+  applicationsCount: number;
+  completedProgramsCount: number;
+  certificatesCount: number;
+  totalRequired: PortalDashboardMoney;
+};
+
 export type PortalDashboardSummary = {
   greeting?: string;
   activeApplication?: {
@@ -29,7 +41,7 @@ export type PortalDashboardSummary = {
     date?: string;
     isRead?: boolean;
   }>;
-  stats?: Record<string, unknown>;
+  stats?: PortalDashboardStats;
 };
 
 export type AuthMeData = {
@@ -78,6 +90,7 @@ export type AmbassadorData = {
 
 type DashboardDataContextValue = {
   dashboardSummary: PortalDashboardSummary | null;
+  isDashboardSummaryLoading: boolean;
   me: AuthMeData | null;
   onboarding: ParticipantOnboardingData | null;
   participantProfile: ParticipantMeData | null;
@@ -86,6 +99,7 @@ type DashboardDataContextValue = {
 
 const DashboardDataContext = createContext<DashboardDataContextValue>({
   dashboardSummary: null,
+  isDashboardSummaryLoading: false,
   me: null,
   onboarding: null,
   participantProfile: null,
@@ -94,6 +108,7 @@ const DashboardDataContext = createContext<DashboardDataContextValue>({
 
 export function DashboardDataProvider({
   dashboardSummary,
+  isDashboardSummaryLoading,
   me,
   onboarding,
   participantProfile,
@@ -101,6 +116,7 @@ export function DashboardDataProvider({
   children,
 }: {
   dashboardSummary: PortalDashboardSummary | null;
+  isDashboardSummaryLoading: boolean;
   me: AuthMeData | null;
   onboarding: ParticipantOnboardingData | null;
   participantProfile: ParticipantMeData | null;
@@ -108,7 +124,7 @@ export function DashboardDataProvider({
   children: React.ReactNode;
 }) {
   return (
-    <DashboardDataContext.Provider value={{ dashboardSummary, me, onboarding, participantProfile, ambassadorData }}>
+    <DashboardDataContext.Provider value={{ dashboardSummary, isDashboardSummaryLoading, me, onboarding, participantProfile, ambassadorData }}>
       {children}
     </DashboardDataContext.Provider>
   );

@@ -13,9 +13,9 @@ import {
   Search,
   Printer,
   Eye,
-  Loader2,
 } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
+import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
@@ -41,6 +41,68 @@ interface PaymentsSummary {
   pending: number;
   overdue: number;
   totalRequired: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object";
+}
+
+function getMessage(payload: unknown): string | null {
+  if (!isRecord(payload)) return null;
+  return typeof payload.message === "string" ? payload.message : null;
+}
+
+function getEnvelopeData(payload: unknown): unknown {
+  if (!isRecord(payload)) return payload;
+  return "data" in payload ? payload.data ?? null : payload;
+}
+
+function toPaymentStatus(value: unknown): PaymentItem["status"] {
+  if (value === "paid" || value === "unpaid" || value === "processing" || value === "failed") {
+    return value;
+  }
+  return "unpaid";
+}
+
+function toPaymentItem(value: unknown): PaymentItem | null {
+  if (!isRecord(value)) return null;
+
+  const id = typeof value.id === "string" ? value.id : null;
+  if (!id) return null;
+
+  return {
+    id,
+    label: typeof value.label === "string" ? value.label : "Payment",
+    status: toPaymentStatus(value.status),
+    paymentType: typeof value.paymentType === "string" ? value.paymentType : "General",
+    period: typeof value.period === "string" ? value.period : "-",
+    amount:
+      typeof value.amount === "string"
+        ? value.amount
+        : typeof value.amount === "number" && Number.isFinite(value.amount)
+          ? String(value.amount)
+          : "-",
+    syncDate: typeof value.syncDate === "string" ? value.syncDate : "-",
+    hasInvoice: typeof value.hasInvoice === "boolean" ? value.hasInvoice : undefined,
+  };
+}
+
+function toPaymentsSummary(value: unknown): PaymentsSummary {
+  const fallback: PaymentsSummary = {
+    complete: 0,
+    pending: 0,
+    overdue: 0,
+    totalRequired: "$0",
+  };
+
+  if (!isRecord(value)) return fallback;
+
+  return {
+    complete: typeof value.complete === "number" && Number.isFinite(value.complete) ? value.complete : 0,
+    pending: typeof value.pending === "number" && Number.isFinite(value.pending) ? value.pending : 0,
+    overdue: typeof value.overdue === "number" && Number.isFinite(value.overdue) ? value.overdue : 0,
+    totalRequired: typeof value.totalRequired === "string" ? value.totalRequired : "$0",
+  };
 }
 
 export default function PaymentsListSection() {
@@ -86,12 +148,16 @@ export default function PaymentsListSection() {
       body: JSON.stringify({ program_id: programId || undefined }),
     });
 
-    const json = (await response.json().catch(() => ({}))) as any;
+    const json = (await response.json().catch(() => null)) as unknown;
     if (!response.ok) {
-      throw new Error(json?.message || "Failed to prepare payment invoice");
+      throw new Error(getMessage(json) ?? "Failed to prepare payment invoice");
     }
 
-    const invoiceId = json?.data?.invoice_id ?? json?.invoice_id;
+    const payload = getEnvelopeData(json);
+    const invoiceId =
+      isRecord(payload) && typeof payload.invoice_id === "string"
+        ? payload.invoice_id
+        : null;
     if (!invoiceId) {
       throw new Error("Invoice was not returned by the server");
     }
@@ -151,9 +217,9 @@ export default function PaymentsListSection() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ applicationId: activeApplication.id, targetCategory: switchTarget }),
       });
-      const json = await res.json().catch(() => ({}));
+      const json = (await res.json().catch(() => null)) as unknown;
       if (!res.ok) {
-        setSwitchError((json as any)?.message ?? "Failed to switch category. Please try again.");
+        setSwitchError(getMessage(json) ?? "Failed to switch category. Please try again.");
         return;
       }
       setShowSwitchModal(false);
@@ -182,22 +248,23 @@ export default function PaymentsListSection() {
           cache: "no-store",
         });
 
-        const json = (await response.json().catch(() => ({}))) as any;
+        const json = (await response.json().catch(() => null)) as unknown;
         if (!response.ok) {
-          throw new Error(json?.message || "Failed to load payments");
+          throw new Error(getMessage(json) ?? "Failed to load payments");
         }
 
         if (!cancelled) {
+          const payload = getEnvelopeData(json);
+          const payloadRecord = isRecord(payload) ? payload : null;
+          const items = Array.isArray(payloadRecord?.items)
+            ? payloadRecord.items
+                .map(toPaymentItem)
+                .filter((item): item is PaymentItem => item !== null)
+            : [];
+
           setActionError(null);
-          setPayments(json?.data?.items ?? []);
-          setSummary(
-            json?.data?.summary ?? {
-              complete: 0,
-              pending: 0,
-              overdue: 0,
-              totalRequired: "$0",
-            },
-          );
+          setPayments(items);
+          setSummary(toPaymentsSummary(payloadRecord?.summary));
         }
       } catch (err) {
         if (!cancelled) {
@@ -225,14 +292,7 @@ export default function PaymentsListSection() {
   }, []);
 
   if (loading) {
-    return (
-      <section className={paymentsTheme.sectionWrapper}>
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          <span className="ml-2 text-sm text-slate-500">Loading payments...</span>
-        </div>
-      </section>
-    );
+    return <DashboardPageSkeleton variant="payments-list" className={paymentsTheme.sectionWrapper} />;
   }
 
   if (error) {

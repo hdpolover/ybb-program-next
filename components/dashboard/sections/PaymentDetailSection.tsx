@@ -7,17 +7,16 @@ import {
   ArrowLeft,
   Clock,
   Mail,
-  MessageCircle,
   Tag,
   Info,
   CalendarClock,
   CreditCard,
   Printer,
-  Loader2,
   AlertTriangle,
 } from "lucide-react";
-import HistoryList, { type HistoryItem } from "@/components/dashboard/payments/HistoryList";
+import { type HistoryItem } from "@/components/dashboard/payments/HistoryList";
 import HistoryPanel from "@/components/dashboard/payments/HistoryPanel";
+import PaymentPageSkeleton from "@/components/dashboard/payments/PaymentPageSkeleton";
 import { componentsTheme } from "@/lib/theme/components";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
@@ -31,8 +30,8 @@ interface InvoiceData {
   label: string;
   category: string;
   amount: number;
-  dueDate: string;
-  status: "paid" | "unpaid";
+  dueDate?: string;
+  status: "paid" | "unpaid" | "processing" | "failed";
   currency?: string;
 }
 
@@ -51,13 +50,100 @@ interface HistoryEntry {
   amountLabel?: string;
 }
 
+function toTitleCaseFromToken(value: string | null | undefined): string {
+  if (!value) return "-";
+
+  const acronymTokens = new Set([
+    "va",
+    "qris",
+    "bca",
+    "bni",
+    "bri",
+    "cimb",
+    "btn",
+    "bsi",
+    "ovo",
+    "dana",
+    "gopay",
+    "jcb",
+    "idr",
+    "usd",
+  ]);
+
+  return value
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .map((word) => {
+      const lower = word.toLowerCase();
+      if (acronymTokens.has(lower)) {
+        return lower.toUpperCase();
+      }
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
+}
+
+function normalizeInvoiceStatus(value: unknown): InvoiceData["status"] {
+  const status = String(value ?? "").toLowerCase();
+  if (status === "paid") return "paid";
+  if (status === "processing") return "processing";
+  if (status === "failed") return "failed";
+  return "unpaid";
+}
+
+function normalizeHistoryStatus(value: unknown): HistoryEntry["status"] {
+  const status = String(value ?? "").toLowerCase();
+  if (status === "paid") return "paid";
+  if (status === "processing") return "processing";
+  if (status === "failed") return "failed";
+  if (status === "cancelled") return "cancelled";
+  return "processing";
+}
+
+function formatCurrencyValue(amount: number, currencyCode = "USD"): string {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currencyCode.toUpperCase(),
+      maximumFractionDigits: currencyCode.toUpperCase() === "IDR" ? 0 : 2,
+    }).format(amount);
+  } catch {
+    return `${currencyCode.toUpperCase()} ${amount.toFixed(2)}`;
+  }
+}
+
+function formatDateLabel(value?: string | null): string {
+  if (!value) return "No due date";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "No due date";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatDateTimeLabel(value?: string | null): string {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export default function PaymentDetailSection({ paymentId }: PaymentDetailSectionProps) {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const currency = (v: number) => `$${v.toFixed(2)}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -79,8 +165,41 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
         }
 
         if (!cancelled) {
-          setInvoice(json?.data?.invoice ?? null);
-          setHistory(json?.data?.history ?? []);
+          const rawInvoice = json?.data?.invoice;
+          const rawHistory = json?.data?.history;
+
+          if (rawInvoice) {
+            setInvoice({
+              id: String(rawInvoice.id ?? ""),
+              label: String(rawInvoice.label ?? "Program Payment"),
+              category: String(rawInvoice.category ?? "payment"),
+              amount: Number(rawInvoice.amount ?? 0),
+              dueDate: typeof rawInvoice.dueDate === "string" ? rawInvoice.dueDate : undefined,
+              status: normalizeInvoiceStatus(rawInvoice.status),
+              currency: typeof rawInvoice.currency === "string" ? rawInvoice.currency.toUpperCase() : "USD",
+            });
+          } else {
+            setInvoice(null);
+          }
+
+          const normalizedHistory: HistoryEntry[] = Array.isArray(rawHistory)
+            ? rawHistory.map((entry: any) => ({
+                id: String(entry?.id ?? ""),
+                method: String(entry?.method ?? entry?.paymentMethod ?? "Payment"),
+                amount: Number(entry?.amount ?? 0),
+                date: String(entry?.date ?? "-"),
+                time: String(entry?.time ?? "-"),
+                status: normalizeHistoryStatus(entry?.status),
+                note: String(entry?.note ?? ""),
+                code: typeof entry?.code === "string" ? entry.code : undefined,
+                paymentMethod: typeof entry?.paymentMethod === "string" ? entry.paymentMethod : undefined,
+                dateTime: typeof entry?.dateTime === "string" ? entry.dateTime : undefined,
+                accountName: typeof entry?.accountName === "string" ? entry.accountName : undefined,
+                amountLabel: typeof entry?.amountLabel === "string" ? entry.amountLabel : undefined,
+              }))
+            : [];
+
+          setHistory(normalizedHistory);
         }
       } catch (err) {
         if (!cancelled) {
@@ -99,14 +218,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   }, [paymentId]);
 
   if (loading) {
-    return (
-      <div className={paymentsTheme.sectionWrapper}>
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          <span className="ml-2 text-sm text-slate-500">Loading payment details...</span>
-        </div>
-      </div>
-    );
+    return <PaymentPageSkeleton variant="payment-detail" />;
   }
 
   if (error) {
@@ -144,9 +256,19 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     );
   }
 
-  const overdue = false;
+  const invoiceCurrency = (invoice.currency || "USD").toUpperCase();
+  const formatInvoiceAmount = (value: number) => formatCurrencyValue(value, invoiceCurrency);
+  const categoryLabel = toTitleCaseFromToken(invoice.category);
+  const dueDateLabel = formatDateLabel(invoice.dueDate);
+  const paymentName = invoice.label?.trim() ? invoice.label : "Program Payment";
+  const invoiceStatusLabel = toTitleCaseFromToken(invoice.status);
+  const paymentDescription = `Payment for ${paymentName} (${categoryLabel}). Current status: ${invoiceStatusLabel}.`;
+  const dueDateValue = invoice.dueDate ? new Date(invoice.dueDate) : null;
+  const overdue = Boolean(
+    dueDateValue && !Number.isNaN(dueDateValue.getTime()) && dueDateValue < new Date() && invoice.status !== "paid",
+  );
 
-  const items: HistoryItem[] = history.map(h => ({
+  const items: HistoryItem[] = history.map((h) => ({
     id: h.id,
     title:
       h.status === "cancelled"
@@ -158,19 +280,24 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
         : h.status === "processing"
         ? "Payment Update"
         : "Payment Created",
-    method: h.method,
-    amountLabel: h.amountLabel ?? currency(h.amount),
-    date: h.date,
+    method: toTitleCaseFromToken(h.method),
+    amountLabel: h.amountLabel ?? formatInvoiceAmount(h.amount),
+    date: formatDateLabel(h.date),
     time: h.time,
-    badge: h.status === "cancelled" ? { label: "Cancelled", tone: "red" } : undefined,
-    note: h.note,
+    badge:
+      h.status === "cancelled"
+        ? { label: "Cancelled", tone: "red" as const }
+        : h.status === "failed"
+        ? { label: "Failed", tone: "red" as const }
+        : undefined,
+    note: h.note?.trim() || "No additional notes.",
     details: {
       code: h.code ?? `TR-${h.id}`,
-      paymentMethod: h.paymentMethod ?? h.method,
-      dateTime: h.dateTime ?? `${h.date} ${h.time}`,
+      paymentMethod: toTitleCaseFromToken(h.paymentMethod ?? h.method),
+      dateTime: h.dateTime ? formatDateTimeLabel(h.dateTime) : `${formatDateLabel(h.date)} ${h.time}`,
       accountName: h.accountName ?? "",
-      amountLabel: h.amountLabel ?? currency(h.amount),
-      source: "Dashboard",
+      amountLabel: h.amountLabel ?? formatInvoiceAmount(h.amount),
+      source: "Participant Dashboard",
       proofUrl: undefined,
     },
     status:
@@ -208,23 +335,23 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <InfoRow
                 label="Payment Name"
-                value={invoice.label}
+                value={paymentName}
                 icon={<Tag className="h-4 w-4" />}
               />
-              <TagRow label="Category" tag={invoice.category} icon={<Tag className="h-4 w-4" />} />
+              <TagRow label="Category" tag={categoryLabel} icon={<Tag className="h-4 w-4" />} />
               <InfoRow
                 label="Description"
-                value="Japan Youth Summit — Final program fee for self-funded participant"
+                value={paymentDescription}
                 icon={<Info className="h-4 w-4" />}
               />
               <InfoRow
                 label="Amount"
-                value={currency(invoice.amount)}
+                value={formatInvoiceAmount(invoice.amount)}
                 icon={<CreditCard className="h-4 w-4" />}
               />
               <InfoRow
                 label="Due Date"
-                value={`${invoice.dueDate}`}
+                value={dueDateLabel}
                 overdue={overdue}
                 icon={<CalendarClock className="h-4 w-4" />}
               />
@@ -274,20 +401,28 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
                     className={paymentsTheme.detailIllustrationImage}
                   />
                 </div>
-                <p className={paymentsTheme.detailIllustrationTitle}>Payment Required</p>
+                <p className={paymentsTheme.detailIllustrationTitle}>
+                  {invoice.status === "paid" ? "Payment Completed" : overdue ? "Payment Overdue" : "Payment Required"}
+                </p>
                 <p className={paymentsTheme.detailIllustrationBody}>
-                  This payment requires your attention. Please complete your payment before the due date.
+                  {invoice.status === "paid"
+                    ? "This payment has been completed. You can review the details and receipt history below."
+                    : overdue
+                    ? "This payment is overdue. Please complete your payment as soon as possible."
+                    : "This payment requires your attention. Please complete your payment before the due date."}
                 </p>
               </div>
-              <button type="button" className={paymentsTheme.detailMakePaymentButton}>
-                <Link
-                  href={`/dashboard/payments/${paymentId}/make-payment`}
-                  className={paymentsTheme.detailMakePaymentInner}
-                >
-                  <CreditCard className="h-4 w-4" />
-                  <span>Make Payment</span>
-                </Link>
-              </button>
+              {invoice.status !== "paid" ? (
+                <button type="button" className={paymentsTheme.detailMakePaymentButton}>
+                  <Link
+                    href={`/dashboard/payments/${paymentId}/make-payment`}
+                    className={paymentsTheme.detailMakePaymentInner}
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    <span>Make Payment</span>
+                  </Link>
+                </button>
+              ) : null}
             </div>
           </div>
 

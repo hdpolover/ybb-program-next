@@ -49,6 +49,136 @@ const DASHBOARD_SEARCH_ITEMS: DashboardSearchItem[] = [
   },
 ];
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object';
+}
+
+function extractEnvelopeData(payload: unknown): unknown {
+  if (!isRecord(payload)) {
+    return payload;
+  }
+
+  return 'data' in payload ? payload.data ?? null : payload;
+}
+
+function toParticipantMeData(payload: unknown): ParticipantMeData | null {
+  if (!isRecord(payload)) return null;
+
+  const participant: ParticipantMeData = {
+    id: typeof payload.id === 'string' ? payload.id : undefined,
+    profileCompletionPercentage:
+      typeof payload.profileCompletionPercentage === 'number' && Number.isFinite(payload.profileCompletionPercentage)
+        ? payload.profileCompletionPercentage
+        : undefined,
+    displayName: typeof payload.displayName === 'string' ? payload.displayName : undefined,
+    fullName: typeof payload.fullName === 'string' ? payload.fullName : undefined,
+    profilePictureUrl: typeof payload.profilePictureUrl === 'string' ? payload.profilePictureUrl : undefined,
+  };
+
+  return Object.values(participant).some((value) => value !== undefined) ? participant : null;
+}
+
+function toAmbassadorData(payload: unknown): AmbassadorData | null {
+  if (!isRecord(payload)) return null;
+
+  const id = typeof payload.id === 'string' ? payload.id : null;
+  const referralCode = typeof payload.referralCode === 'string' ? payload.referralCode : null;
+  const shareLink = typeof payload.shareLink === 'string' ? payload.shareLink : null;
+  const totalReferrals =
+    typeof payload.totalReferrals === 'number' && Number.isFinite(payload.totalReferrals)
+      ? payload.totalReferrals
+      : null;
+  const successfulReferrals =
+    typeof payload.successfulReferrals === 'number' && Number.isFinite(payload.successfulReferrals)
+      ? payload.successfulReferrals
+      : null;
+  const isActive = typeof payload.isActive === 'boolean' ? payload.isActive : null;
+  const programName = typeof payload.programName === 'string' ? payload.programName : null;
+
+  if (
+    !id ||
+    !referralCode ||
+    !shareLink ||
+    totalReferrals === null ||
+    successfulReferrals === null ||
+    isActive === null ||
+    !programName
+  ) {
+    return null;
+  }
+
+  return {
+    id,
+    referralCode,
+    shareLink,
+    totalReferrals,
+    successfulReferrals,
+    isActive,
+    programName,
+  };
+}
+
+function toPortalDashboardSummary(payload: unknown): PortalDashboardSummary | null {
+  if (!payload || typeof payload !== 'object') return null;
+
+  const raw = payload as Partial<PortalDashboardSummary>;
+  const rawStats = raw.stats;
+
+  if (!rawStats || typeof rawStats !== 'object') {
+    return {
+      ...raw,
+      stats: {
+        applicationsCount: 0,
+        completedProgramsCount: 0,
+        certificatesCount: 0,
+        totalRequired: {
+          amount: 0,
+          currency: 'USD',
+        },
+      },
+    };
+  }
+
+  const stats = rawStats as {
+    applicationsCount?: unknown;
+    completedProgramsCount?: unknown;
+    certificatesCount?: unknown;
+    totalRequired?: { amount?: unknown; currency?: unknown } | null;
+  };
+
+  const totalRequired = stats.totalRequired;
+  const amount =
+    typeof totalRequired?.amount === 'number' && Number.isFinite(totalRequired.amount)
+      ? totalRequired.amount
+      : 0;
+  const currency =
+    typeof totalRequired?.currency === 'string' && totalRequired.currency.trim().length > 0
+      ? totalRequired.currency.toUpperCase()
+      : 'USD';
+
+  return {
+    ...raw,
+    stats: {
+      applicationsCount:
+        typeof stats.applicationsCount === 'number' && Number.isFinite(stats.applicationsCount)
+          ? stats.applicationsCount
+          : 0,
+      completedProgramsCount:
+        typeof stats.completedProgramsCount === 'number' && Number.isFinite(stats.completedProgramsCount)
+          ? stats.completedProgramsCount
+          : 0,
+      certificatesCount:
+        typeof stats.certificatesCount === 'number' && Number.isFinite(stats.certificatesCount)
+          ? stats.certificatesCount
+          : 0,
+      totalRequired: {
+        amount,
+        currency,
+      },
+    },
+  };
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -59,6 +189,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
   const [participantProfile, setParticipantProfile] = useState<ParticipantMeData | null>(null);
   const [dashboardSummary, setDashboardSummary] = useState<PortalDashboardSummary | null>(null);
+  const [isDashboardSummaryLoading, setIsDashboardSummaryLoading] = useState(true);
   const [ambassadorData, setAmbassadorData] = useState<AmbassadorData | null>(null);
 
   let sectionLabel: string | null = null;
@@ -99,6 +230,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (!cancelled) {
+        setIsDashboardSummaryLoading(true);
+      }
+
       try {
         const res = await fetch('/api/auth/me', {
           method: 'GET',
@@ -110,6 +245,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (cancelled) return;
 
         if (res.status === 401) {
+          if (!cancelled) {
+            setIsDashboardSummaryLoading(false);
+          }
           router.push('/login');
           return;
         }
@@ -133,12 +271,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           });
 
           if (!cancelled && dashRes.ok) {
-            const dashJson = (await dashRes.json().catch(() => ({}))) as any;
-            const dashData = (dashJson?.data ?? dashJson ?? null) as PortalDashboardSummary | null;
+            const dashJson = (await dashRes.json().catch(() => null)) as unknown;
+            const dashPayload = extractEnvelopeData(dashJson);
+            const dashData = toPortalDashboardSummary(dashPayload);
             setDashboardSummary(dashData);
           }
         } catch {
           // ignore
+        } finally {
+          if (!cancelled) {
+            setIsDashboardSummaryLoading(false);
+          }
         }
 
         try {
@@ -151,8 +294,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           });
 
           if (!cancelled && profileRes.ok) {
-            const profileJson = (await profileRes.json().catch(() => ({}))) as any;
-            const profileData = (profileJson?.data ?? profileJson ?? null) as ParticipantMeData | null;
+            const profileJson = (await profileRes.json().catch(() => null)) as unknown;
+            const profilePayload = extractEnvelopeData(profileJson);
+            const profileData = toParticipantMeData(profilePayload);
             setParticipantProfile(profileData);
 
             if (data && !profileData?.id) {
@@ -170,8 +314,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           });
 
           if (!cancelled && ambassadorRes.ok) {
-            const ambassadorJson = (await ambassadorRes.json().catch(() => ({}))) as any;
-            const ambassador = (ambassadorJson?.data ?? null) as AmbassadorData | null;
+            const ambassadorJson = (await ambassadorRes.json().catch(() => null)) as unknown;
+            const ambassadorPayload = extractEnvelopeData(ambassadorJson);
+            const ambassador = toAmbassadorData(ambassadorPayload);
             if (ambassador?.isActive) {
               setAmbassadorData(ambassador);
             }
@@ -181,6 +326,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       } catch {
         // ignore
+        if (!cancelled) {
+          setIsDashboardSummaryLoading(false);
+        }
       }
     })();
 
@@ -214,6 +362,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Kolom kanan: navbar atas + konten */}
         <DashboardDataProvider
           dashboardSummary={dashboardSummary}
+          isDashboardSummaryLoading={isDashboardSummaryLoading}
           me={me}
           onboarding={onboarding}
           participantProfile={participantProfile}

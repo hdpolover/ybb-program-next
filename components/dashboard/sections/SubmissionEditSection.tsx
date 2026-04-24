@@ -17,6 +17,7 @@ import type {
   PortalSubmissionSection,
 } from "@/types/portal-submission";
 import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
+import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 import { CountryField } from "@/components/dashboard/fields/CountryField";
 import { PhoneField } from "@/components/dashboard/fields/PhoneField";
 
@@ -377,6 +378,10 @@ export default function SubmissionEditSection() {
     );
   };
 
+  if (loading) {
+    return <DashboardPageSkeleton variant="submission-edit" className={submissionTheme.editSectionWrapper} />;
+  }
+
   return (
     <section className={submissionTheme.editSectionWrapper}>
       {error ? (
@@ -387,12 +392,6 @@ export default function SubmissionEditSection() {
       {successMessage ? (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {successMessage}
-        </div>
-      ) : null}
-
-      {loading ? (
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-600 shadow-sm">
-          Loading submission form...
         </div>
       ) : null}
 

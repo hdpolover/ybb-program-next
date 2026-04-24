@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  Building2,
   CreditCard,
   Globe2,
   Info,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
 import { useSettings } from "@/components/providers/SettingsProvider";
+import PaymentPageSkeleton from "@/components/dashboard/payments/PaymentPageSkeleton";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -161,6 +163,18 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const selectedManualMethodObj = manualMethods.find((method) => method.code === manualMethod) ?? null;
   const selectedGatewayMethodObj = gatewayMethods.find((method) => method.code === gatewayMethod) ?? null;
 
+  const renderMethodCardSkeletons = (prefix: string) =>
+    Array.from({ length: 4 }).map((_, index) => (
+      <div
+        key={`${prefix}-${index}`}
+        className={`${paymentsTheme.bankMethodCard} pointer-events-none cursor-default`}
+        aria-hidden="true"
+      >
+        <span className={`${paymentsTheme.bankMethodLogoWrapper} animate-pulse bg-slate-200/80`} />
+        <span className="mt-2 h-3 w-20 animate-pulse rounded-full bg-slate-200/80" />
+      </div>
+    ));
+
   const isGatewayComplete = paymentType === "gateway" && agreeFunding && agreeReady && gatewayMethod !== "";
   const isManualComplete =
     paymentType === "manual" &&
@@ -229,14 +243,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   }, [isFormComplete, submitting, paymentType, manualMethod, gatewayMethod, manualAccountName, manualSourceName, manualPaymentDate, manualNotes, paymentId, router]);
 
   if (loading) {
-    return (
-      <section className={paymentsTheme.sectionWrapper}>
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          <span className="ml-2 text-sm text-slate-500">Loading payment details...</span>
-        </div>
-      </section>
-    );
+    return <PaymentPageSkeleton variant="make-payment" />;
   }
 
   if (error || !invoice) {
@@ -254,6 +261,18 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   }
 
   const formattedRate = new Intl.NumberFormat("id-ID").format(rateToIdr);
+  const paymentTypeOptionMeta: Record<"gateway" | "manual", { title: string; subtitle: string; helper: string }> = {
+    gateway: {
+      title: "Payment Gateway",
+      subtitle: "Card, Virtual Account, QRIS, e-wallet",
+      helper: "Instant verification via secure payment gateway.",
+    },
+    manual: {
+      title: "Manual Transfer",
+      subtitle: "Bank transfer with proof upload",
+      helper: "Best for direct transfer and manual confirmation.",
+    },
+  };
 
   return (
     <section className={paymentsTheme.sectionWrapper}>
@@ -312,30 +331,66 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
               </p>
             </div>
 
-            <div className={paymentsTheme.pillSelectWrapper}>
-              <label htmlFor="payment-type-select" className="block">
-                Select Payment Type
-              </label>
-              <select
-                id="payment-type-select"
-                className={`${paymentsTheme.pillSelect} w-full sm:max-w-xs`}
-                value={paymentType}
-                onChange={(e) => setPaymentType(e.target.value as "gateway" | "manual")}
-              >
-                <option value="gateway">
-                  Payment Gateway (Credit/Debit Card, Virtual Account, QRIS, etc.)
-                </option>
-                <option value="manual">
-                  Manual Payment (Bank Transfer, Paypal, etc.)
-                </option>
-              </select>
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Select Payment Type</p>
+              <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Payment type">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={paymentType === "gateway"}
+                  onClick={() => setPaymentType("gateway")}
+                  className={`rounded-2xl border p-4 text-left transition-all ${
+                    paymentType === "gateway"
+                      ? "border-primary bg-primary/5 shadow-[0_10px_30px_rgba(37,99,235,0.12)]"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
+                        paymentType === "gateway" ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      <Globe2 className="h-4.5 w-4.5" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{paymentTypeOptionMeta.gateway.title}</p>
+                      <p className="mt-0.5 text-xs text-slate-600">{paymentTypeOptionMeta.gateway.subtitle}</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={paymentType === "manual"}
+                  onClick={() => setPaymentType("manual")}
+                  className={`rounded-2xl border p-4 text-left transition-all ${
+                    paymentType === "manual"
+                      ? "border-primary bg-primary/5 shadow-[0_10px_30px_rgba(37,99,235,0.12)]"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
+                        paymentType === "manual" ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      <Building2 className="h-4.5 w-4.5" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{paymentTypeOptionMeta.manual.title}</p>
+                      <p className="mt-0.5 text-xs text-slate-600">{paymentTypeOptionMeta.manual.subtitle}</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
 
               <div className={paymentsTheme.selectionSummaryRow}>
                 <CheckCircle2 className="h-4 w-4 text-primary" />
                 <span>
-                  {paymentType === "gateway"
-                    ? "You selected: Payment Gateway (Credit/Debit Card, Virtual Account, QRIS, etc.)"
-                    : "You selected: Manual Payment (Bank Transfer, Paypal, etc.)"}
+                  Selected: <span className="font-semibold">{paymentTypeOptionMeta[paymentType].title}</span>. {paymentTypeOptionMeta[paymentType].helper}
                 </span>
               </div>
             </div>
@@ -356,10 +411,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
 
                 <div className={paymentsTheme.bankMethodGrid} id="gateway-method-select">
                   {methodsLoading ? (
-                    <div className="col-span-full flex items-center gap-2 py-4 text-sm text-slate-500">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Loading payment methods...</span>
-                    </div>
+                    renderMethodCardSkeletons("gateway-method-skeleton")
                   ) : gatewayMethods.length === 0 ? (
                     <p className="col-span-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
                       No automatic gateway methods are available yet. Please contact support.
@@ -432,10 +484,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
 
                   <div className={paymentsTheme.bankMethodGrid} id="manual-method-select">
                     {methodsLoading ? (
-                      <div className="col-span-full flex items-center gap-2 py-4 text-sm text-slate-500">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Loading payment methods...</span>
-                      </div>
+                      renderMethodCardSkeletons("manual-method-skeleton")
                     ) : manualMethods.length === 0 ? (
                       <p className="col-span-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
                         No manual payment methods are available at the moment.

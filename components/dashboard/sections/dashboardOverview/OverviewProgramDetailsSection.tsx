@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { usePortalSubmissionProgress } from "@/hooks/usePortalSubmissionProgress";
 import { componentsTheme } from "@/lib/theme/components";
+import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
@@ -81,9 +82,13 @@ export default function OverviewProgramDetailsSection({
   showSeeDetailsButton = true,
 }: OverviewProgramDetailsSectionProps) {
   const router = useRouter();
-  const { dashboardSummary } = useDashboardData();
+  const { dashboardSummary, isDashboardSummaryLoading } = useDashboardData();
   const activeApplication = dashboardSummary?.activeApplication ?? null;
   const { submissionProgress, currentStepIndex, loading } = usePortalSubmissionProgress();
+
+  if (isDashboardSummaryLoading || loading) {
+    return <DashboardPageSkeleton variant="overview-program-details" className="w-full" />;
+  }
 
   const progressSteps = useMemo(() => buildProgressSteps(submissionProgress?.sections), [submissionProgress?.sections]);
 
@@ -92,7 +97,7 @@ export default function OverviewProgramDetailsSection({
   const currentStep = progressSteps[currentIndex] ?? progressSteps[0];
 
   const completedCount = progressSteps.filter(step => step.status === "done").length;
-  const progressRatio = totalSteps > 0 ? (completedCount + 1) / totalSteps : 0;
+  const progressRatio = totalSteps > 0 ? completedCount / totalSteps : 0;
 
   const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
 
@@ -123,12 +128,11 @@ export default function OverviewProgramDetailsSection({
   }, [activeApplication?.daysUntilDeadline]);
 
   const statusLabel = useMemo(() => {
-    if (loading) return "Loading";
     if (!currentStep) return "Upcoming";
     if (currentStep.status === "done") return "Completed";
     if (currentStep.status === "waiting") return "In Progress";
     return "Upcoming";
-  }, [currentStep, loading]);
+  }, [currentStep]);
 
   return (
     <div className={overviewTheme.programCard}>

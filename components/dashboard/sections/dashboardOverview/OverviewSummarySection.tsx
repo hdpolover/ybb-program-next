@@ -3,16 +3,41 @@
 import { AlertTriangle, CheckCircle2, Clock4, Wallet2 } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
+import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
+function formatMoney(amount: number, currencyCode: string): string {
+  const normalizedCurrency = String(currencyCode || "USD").toUpperCase();
+  const fractionDigits = normalizedCurrency === "IDR" ? 0 : 2;
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: normalizedCurrency,
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }).format(amount);
+  } catch {
+    return `${normalizedCurrency} ${amount.toFixed(fractionDigits)}`;
+  }
+}
+
 export default function OverviewSummarySection() {
-  const { dashboardSummary } = useDashboardData();
-  const stats = dashboardSummary?.stats as Record<string, any> | undefined;
+  const { dashboardSummary, isDashboardSummaryLoading } = useDashboardData();
+  const stats = dashboardSummary?.stats;
 
   const applicationsCount = stats?.applicationsCount ?? 0;
   const completedProgramsCount = stats?.completedProgramsCount ?? 0;
   const certificatesCount = stats?.certificatesCount ?? 0;
+  const totalRequiredLabel = formatMoney(
+    stats?.totalRequired?.amount ?? 0,
+    stats?.totalRequired?.currency ?? "USD",
+  );
+
+  if (isDashboardSummaryLoading) {
+    return <DashboardPageSkeleton variant="overview-summary" className={overviewTheme.summaryGrid} />;
+  }
 
   return (
     <div className={overviewTheme.summaryGrid}>
@@ -93,7 +118,7 @@ export default function OverviewSummarySection() {
             <p
               className={`${overviewTheme.summaryValueBase} ${overviewTheme.summaryValueTotal}`}
             >
-              {stats?.totalRequired ?? "$0"}
+              {totalRequiredLabel}
             </p>
           </div>
           <div

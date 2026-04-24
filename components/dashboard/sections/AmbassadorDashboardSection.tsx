@@ -6,10 +6,10 @@ import {
   CheckCircle2,
   Copy,
   ExternalLink,
-  Loader2,
   AlertTriangle,
   TrendingUp,
 } from 'lucide-react';
+import DashboardPageSkeleton from '@/components/dashboard/ui/DashboardPageSkeleton';
 
 interface AmbassadorDashboard {
   id: string;
@@ -19,6 +19,60 @@ interface AmbassadorDashboard {
   successfulReferrals: number;
   isActive: boolean;
   programName: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object';
+}
+
+function getMessage(payload: unknown): string | null {
+  if (!isRecord(payload)) return null;
+  return typeof payload.message === 'string' ? payload.message : null;
+}
+
+function getEnvelopeData(payload: unknown): unknown {
+  if (!isRecord(payload)) return payload;
+  return 'data' in payload ? payload.data ?? null : payload;
+}
+
+function toAmbassadorDashboard(payload: unknown): AmbassadorDashboard | null {
+  if (!isRecord(payload)) return null;
+
+  const id = typeof payload.id === 'string' ? payload.id : null;
+  const referralCode = typeof payload.referralCode === 'string' ? payload.referralCode : null;
+  const shareLink = typeof payload.shareLink === 'string' ? payload.shareLink : null;
+  const totalReferrals =
+    typeof payload.totalReferrals === 'number' && Number.isFinite(payload.totalReferrals)
+      ? payload.totalReferrals
+      : null;
+  const successfulReferrals =
+    typeof payload.successfulReferrals === 'number' && Number.isFinite(payload.successfulReferrals)
+      ? payload.successfulReferrals
+      : null;
+  const isActive = typeof payload.isActive === 'boolean' ? payload.isActive : null;
+  const programName = typeof payload.programName === 'string' ? payload.programName : null;
+
+  if (
+    !id ||
+    !referralCode ||
+    !shareLink ||
+    totalReferrals === null ||
+    successfulReferrals === null ||
+    isActive === null ||
+    !programName
+  ) {
+    return null;
+  }
+
+  return {
+    id,
+    referralCode,
+    shareLink,
+    totalReferrals,
+    successfulReferrals,
+    isActive,
+    programName,
+  };
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -51,9 +105,9 @@ export default function AmbassadorDashboardSection() {
         setLoading(true);
         setError(null);
         const res = await fetch('/api/participants/ambassador', { cache: 'no-store' });
-        const json = (await res.json().catch(() => ({}))) as any;
-        if (!res.ok) throw new Error(json?.message || 'Failed to load ambassador data');
-        if (!cancelled) setData(json?.data ?? null);
+        const json = (await res.json().catch(() => null)) as unknown;
+        if (!res.ok) throw new Error(getMessage(json) ?? 'Failed to load ambassador data');
+        if (!cancelled) setData(toAmbassadorDashboard(getEnvelopeData(json)));
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Something went wrong');
       } finally {
@@ -73,11 +127,7 @@ export default function AmbassadorDashboardSection() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <DashboardPageSkeleton variant="ambassador" className="space-y-6 p-4 md:p-6" />;
   }
 
   if (error) {
