@@ -1,4 +1,5 @@
 import type {
+  PortalFieldHelpAsset,
   PortalProgramOption,
   PortalSubmissionDetail,
   PortalSubmissionEssay,
@@ -8,6 +9,16 @@ import type {
   PortalSubmissionSection,
 } from "@/types/portal-submission";
 import { isRecord } from "@/lib/api/response";
+
+function toHelpAsset(value: unknown): PortalFieldHelpAsset | null {
+  if (!isRecord(value)) return null;
+  const kind = value.kind;
+  const label = value.label;
+  const url = value.url;
+  if (kind !== "link" && kind !== "video" && kind !== "file") return null;
+  if (typeof label !== "string" || typeof url !== "string") return null;
+  return { kind, label, url };
+}
 
 function toSubmissionFieldOption(value: unknown): PortalSubmissionFieldOption | null {
   if (typeof value === "string") return value;
@@ -37,6 +48,10 @@ function toSubmissionField(value: unknown): PortalSubmissionField | null {
     .map(toSubmissionFieldOption)
     .filter((option): option is PortalSubmissionFieldOption => option !== null);
 
+  const helpAssets = (Array.isArray(value.helpAssets) ? value.helpAssets : [])
+    .map(toHelpAsset)
+    .filter((asset): asset is PortalFieldHelpAsset => asset !== null);
+
   return {
     id,
     name,
@@ -46,6 +61,7 @@ function toSubmissionField(value: unknown): PortalSubmissionField | null {
     helpText: typeof value.helpText === "string" ? value.helpText : undefined,
     mediaUrl: typeof value.mediaUrl === "string" ? value.mediaUrl : undefined,
     mediaAlt: typeof value.mediaAlt === "string" ? value.mediaAlt : undefined,
+    helpAssets: helpAssets.length > 0 ? helpAssets : undefined,
     options: options.length > 0 ? options : undefined,
     validationRules: isRecord(value.validationRules) ? value.validationRules : undefined,
     isRequired: typeof value.isRequired === "boolean" ? value.isRequired : false,

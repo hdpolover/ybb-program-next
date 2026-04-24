@@ -21,6 +21,7 @@ import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 import { CountryField } from "@/components/dashboard/fields/CountryField";
 import { PhoneField } from "@/components/dashboard/fields/PhoneField";
+import { FieldHelpAssets } from "@/components/dashboard/sections/FieldHelpAssets";
 import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
@@ -498,6 +499,7 @@ export default function SubmissionEditSection() {
                         <p className={submissionTheme.readSectionSubtitle}>{field.helpText}</p>
                       ) : null}
                       <FieldMedia field={field} />
+                      <FieldHelpAssets items={field.helpAssets} className="mt-2" />
                     </label>
                   ))}
                 </div>

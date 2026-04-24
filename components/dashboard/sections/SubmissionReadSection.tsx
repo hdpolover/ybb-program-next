@@ -13,6 +13,7 @@ import {
 } from "@/lib/dashboard/activeProgram";
 import { getEnvelopeData, getMessage } from "@/lib/api/response";
 import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
+import { FieldHelpAssets } from "@/components/dashboard/sections/FieldHelpAssets";
 import type {
   PortalSubmissionDetail,
   PortalSubmissionField,
@@ -137,6 +138,7 @@ function FieldRow({
           </div>
         </div>
       ) : null}
+      <FieldHelpAssets items={field.helpAssets} className="mt-2" />
     </label>
   );
 }

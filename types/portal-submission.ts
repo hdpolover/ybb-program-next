@@ -6,6 +6,12 @@ export type PortalSubmissionFieldOption =
       description?: string;
     };
 
+export type PortalFieldHelpAsset = {
+  kind: 'link' | 'video' | 'file';
+  label: string;
+  url: string;
+};
+
 export type PortalSubmissionField = {
   id: string;
   name: string;
@@ -15,6 +21,7 @@ export type PortalSubmissionField = {
   helpText?: string;
   mediaUrl?: string;
   mediaAlt?: string;
+  helpAssets?: PortalFieldHelpAsset[];
   options?: PortalSubmissionFieldOption[];
   validationRules?: Record<string, unknown>;
   isRequired: boolean;
