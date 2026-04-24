@@ -35,10 +35,20 @@ function getOptionLabel(options: PortalSubmissionFieldOption[] | undefined, valu
   return typeof match === "string" ? match : match.label;
 }
 
+function normalizeFieldKey(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function isCategoryField(field: PortalSubmissionField) {
+  const normalized = normalizeFieldKey(field.name);
+  return normalized === "category" || normalized === "applicationcategory" || normalized === "participationcategory" || normalized === "participationcategoryid";
+}
+
 function renderFieldValue(field: PortalSubmissionField, value: unknown) {
   if (value === null || value === undefined || value === "") return "-";
+  const treatAsOptionField = field.type === "select" || field.type === "radio" || isCategoryField(field);
 
-  if (field.type === "select" || field.type === "radio") {
+  if (treatAsOptionField) {
     return getOptionLabel(field.options, value);
   }
 
@@ -54,16 +64,37 @@ function renderFieldValue(field: PortalSubmissionField, value: unknown) {
   return String(value);
 }
 
-function FieldRow({ field, value }: { field: PortalSubmissionField; value: unknown }) {
+function isLongFormField(field: PortalSubmissionField) {
+  return field.type === "textarea";
+}
+
+function shouldSpanFullWidth(field: PortalSubmissionField) {
+  if (field.mediaUrl) return true;
+  if (isLongFormField(field)) return true;
+
+  const normalized = normalizeFieldKey(field.name);
+  const isAddressField = normalized.endsWith("address") && !normalized.includes("email");
+  return isAddressField || /(experience|achievement|organization|portfolio|resume|medical|disease|specialneed|essay|twibbon|requirement)/.test(normalized);
+}
+
+function FieldRow({
+  field,
+  value,
+  className,
+}: {
+  field: PortalSubmissionField;
+  value: unknown;
+  className?: string;
+}) {
   const rendered = renderFieldValue(field, value);
-  const isLong = field.type === "textarea" || rendered.length > 120;
+  const isLong = isLongFormField(field) || rendered.length > 120;
   const isRemote = field.mediaUrl ? /^https?:\/\//.test(field.mediaUrl) : false;
   const stringValue = value === null || value === undefined ? "" : String(value);
   const isCountry = field.type === "country";
   const isPhone = field.type === "phone";
 
   return (
-    <label className={submissionTheme.readFieldLabelWrapper}>
+    <label className={`${submissionTheme.readFieldLabelWrapper} rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${className ?? ""}`}>
       <span className={submissionTheme.readFieldLabelText}>{field.label}</span>
       {isCountry ? (
         <div className={submissionTheme.readInputBase}>
@@ -76,7 +107,7 @@ function FieldRow({ field, value }: { field: PortalSubmissionField; value: unkno
       ) : isLong ? (
         <textarea
           readOnly
-          className={`${submissionTheme.essayTextarea} ${submissionTheme.readEssayTextarea}`}
+          className={`${submissionTheme.essayTextarea} ${submissionTheme.readEssayTextarea} min-h-[140px]`}
           value={rendered}
         />
       ) : (
@@ -269,12 +300,13 @@ export default function SubmissionReadSection() {
                 ) : null}
               </div>
 
-              <div className={submissionTheme.readGrid}>
+              <div className={`${submissionTheme.readGrid} items-start`}>
                 {activeSection.fields.map(field => (
                   <FieldRow
                     key={field.id}
                     field={field}
                     value={activeSection.values[field.name]}
+                    className={shouldSpanFullWidth(field) ? "md:col-span-2" : undefined}
                   />
                 ))}
               </div>

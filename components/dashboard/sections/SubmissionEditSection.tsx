@@ -123,6 +123,24 @@ function fieldOptionLabel(option: PortalSubmissionFieldOption) {
   return typeof option === "string" ? option : option.label;
 }
 
+function normalizeFieldKey(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function isCategoryField(field: PortalSubmissionField) {
+  const normalized = normalizeFieldKey(field.name);
+  return normalized === "category" || normalized === "applicationcategory" || normalized === "participationcategory" || normalized === "participationcategoryid";
+}
+
+function shouldSpanFullWidth(field: PortalSubmissionField) {
+  if (field.mediaUrl) return true;
+  if (field.type === "textarea" || field.type === "file") return true;
+
+  const normalized = normalizeFieldKey(field.name);
+  const isAddressField = normalized.endsWith("address") && !normalized.includes("email");
+  return isAddressField || /(experience|achievement|organization|portfolio|resume|medical|disease|specialneed|essay|twibbon|requirement|originaddress|currentaddress)/.test(normalized);
+}
+
 function FieldMedia({ field }: { field: PortalSubmissionField }) {
   if (!field.mediaUrl) return null;
 
@@ -298,11 +316,12 @@ export default function SubmissionEditSection() {
 
   const renderFieldInput = (section: PortalSubmissionSection, field: PortalSubmissionField) => {
     const value = sectionValues[section.id]?.[field.name] ?? "";
+    const treatAsSelect = field.type === "select" || isCategoryField(field);
 
     if (field.type === "textarea") {
       return (
         <textarea
-          className={submissionTheme.essayTextarea}
+          className={`${submissionTheme.essayTextarea} min-h-[140px]`}
           value={value}
           onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
           placeholder={field.placeholder || field.helpText || ""}
@@ -310,7 +329,7 @@ export default function SubmissionEditSection() {
       );
     }
 
-    if (field.type === "select") {
+    if (treatAsSelect) {
       return (
         <select
           className={submissionTheme.editInputBase}
@@ -397,27 +416,29 @@ export default function SubmissionEditSection() {
           <div className={submissionTheme.stepperCard}>
             <div className={submissionTheme.stepperRow}>
               {detail.sections.map((section, index) => {
-                const isDone = index < activeSectionIndex;
+                const sectionStatus = String(section.status || "pending").toLowerCase();
+                const isDone = sectionStatus === "completed";
+                const isSectionInProgress = sectionStatus === "in_progress";
                 const isActive = index === activeSectionIndex;
                 const isLast = index === detail.sections.length - 1;
 
                 const circleClass = isDone
                   ? submissionTheme.stepperCircleDone
-                  : isActive
+                  : isActive || isSectionInProgress
                     ? submissionTheme.stepperCircleActive
                     : submissionTheme.stepperCircleIdle;
 
                 const statusClass = isDone
                   ? submissionTheme.stepperStatusDone
-                  : isActive
+                  : isSectionInProgress
                     ? submissionTheme.stepperStatusActive
                     : submissionTheme.stepperStatusIdle;
 
-                const statusLabel = isDone ? "Done" : isActive ? "In Progress" : "Not yet";
+                const statusLabel = isDone ? "Done" : isSectionInProgress ? "In Progress" : "Not yet";
 
                 const connectorBarClass = isDone
                   ? submissionTheme.stepperConnectorDone
-                  : isActive
+                  : isSectionInProgress || isActive
                     ? submissionTheme.stepperConnectorActive
                     : submissionTheme.stepperConnectorIdle;
 
@@ -459,9 +480,14 @@ export default function SubmissionEditSection() {
                   ) : null}
                 </div>
 
-                <div className={submissionTheme.formGrid}>
+                <div className={`${submissionTheme.formGrid} items-start`}>
                   {activeSection.fields.map(field => (
-                    <label key={field.id} className={submissionTheme.editFieldLabelWrapper}>
+                    <label
+                      key={field.id}
+                      className={`${submissionTheme.editFieldLabelWrapper} rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${
+                        shouldSpanFullWidth(field) ? "md:col-span-2" : ""
+                      }`}
+                    >
                       <span className={submissionTheme.editFieldLabelText}>
                         {field.label}
                         {field.isRequired ? " *" : ""}
