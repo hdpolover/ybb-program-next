@@ -588,7 +588,7 @@ export const dashboardTheme = {
     // edit: essay fields
     essayFormGrid: 'mt-5 grid gap-4 md:grid-cols-2',
     essayTextarea:
-      'min-h-[120px] resize-vertical rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30',
+      'w-full min-h-[120px] resize-vertical rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30',
 
     // edit: essay guidelines summary & note & guidebook CTA
     essaySummaryWrapper: 'mt-10 space-y-4 text-sm text-slate-700',

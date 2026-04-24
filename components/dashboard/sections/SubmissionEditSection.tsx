@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Info } from "lucide-react";
 import Image from "next/image";
+import {
+  getCountryCallingCode,
+  isSupportedCountry,
+  parsePhoneNumberFromString,
+  type CountryCode,
+} from "libphonenumber-js";
 import { componentsTheme } from "@/lib/theme/components";
 import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
@@ -127,6 +133,20 @@ function fieldOptionLabel(option: PortalSubmissionFieldOption) {
   return typeof option === "string" ? option : option.label;
 }
 
+function fieldOptionDescription(option: PortalSubmissionFieldOption) {
+  return typeof option === "string" ? undefined : option.description;
+}
+
+function getSelectedOptionDescription(field: PortalSubmissionField, value: string) {
+  if (!value || !field.options || field.options.length === 0) return "";
+
+  const selected = field.options.find(option => fieldOptionValue(option) === value);
+  if (!selected) return "";
+
+  const description = fieldOptionDescription(selected);
+  return typeof description === "string" ? description : "";
+}
+
 function normalizeFieldKey(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
@@ -134,6 +154,142 @@ function normalizeFieldKey(name: string) {
 function isCategoryField(field: PortalSubmissionField) {
   const normalized = normalizeFieldKey(field.name);
   return normalized === "category" || normalized === "applicationcategory" || normalized === "participationcategory" || normalized === "participationcategoryid";
+}
+
+function getFieldInputType(field: PortalSubmissionField) {
+  const rules = field.validationRules;
+  if (!rules || typeof rules !== "object") return "";
+
+  const inputType = (rules as Record<string, unknown>).inputType;
+  return typeof inputType === "string" ? inputType.toLowerCase() : "";
+}
+
+function isCountrySelectorField(field: PortalSubmissionField) {
+  if (field.type === "country") return true;
+
+  const inputType = getFieldInputType(field);
+  if (inputType === "country_select") return true;
+
+  const normalized = normalizeFieldKey(field.name);
+  return normalized === "nationality" || normalized === "nationalitycode" || normalized === "origincountry" || normalized === "currentcountry";
+}
+
+function isProfilePhotoField(field: PortalSubmissionField) {
+  const normalized = normalizeFieldKey(field.name);
+  return normalized === "pictureurl" || normalized === "profilephotourl" || normalized === "profilepictureurl";
+}
+
+type PhonePairKind =
+  | "primary_country"
+  | "primary_number"
+  | "emergency_country"
+  | "emergency_number";
+
+function getPhonePairKind(field: PortalSubmissionField): PhonePairKind | null {
+  const normalized = normalizeFieldKey(field.name);
+  const inputType = getFieldInputType(field);
+
+  if (inputType === "phone_country_code") {
+    return normalized.includes("emergency") ? "emergency_country" : "primary_country";
+  }
+
+  if (inputType === "phone_number") {
+    return normalized.includes("emergency") ? "emergency_number" : "primary_number";
+  }
+
+  if (normalized === "phonecountrycode") return "primary_country";
+  if (normalized === "phonenumber") return "primary_number";
+  if (normalized === "emergencycountrycode" || normalized === "emergencycontactcountrycode") {
+    return "emergency_country";
+  }
+  if (
+    normalized === "emergencyphonenumber" ||
+    normalized === "emergencycontactphone" ||
+    normalized === "emergencycontactphonenumber"
+  ) {
+    return "emergency_number";
+  }
+
+  return null;
+}
+
+function getPairedPhoneField(section: PortalSubmissionSection, field: PortalSubmissionField) {
+  const kind = getPhonePairKind(field);
+  if (!kind) return null;
+
+  const targetKind: PhonePairKind = kind === "primary_country"
+    ? "primary_number"
+    : kind === "primary_number"
+      ? "primary_country"
+      : kind === "emergency_country"
+        ? "emergency_number"
+        : "emergency_country";
+
+  return (
+    section.fields.find(candidate => candidate.id !== field.id && getPhonePairKind(candidate) === targetKind) ||
+    null
+  );
+}
+
+function normalizeDialCode(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  const plusPrefixed = trimmed.startsWith("+");
+  const digits = trimmed.replace(/\D+/g, "");
+  if (digits.length > 0) return `${plusPrefixed ? "+" : "+"}${digits}`;
+
+  const countryCode = trimmed.toUpperCase();
+  if (/^[A-Z]{2}$/.test(countryCode) && isSupportedCountry(countryCode as CountryCode)) {
+    return `+${getCountryCallingCode(countryCode as CountryCode)}`;
+  }
+
+  return "";
+}
+
+function buildE164FromDialAndNumber(countryCode: string, phoneNumber: string) {
+  const rawNumber = phoneNumber.trim();
+  if (!rawNumber) return "";
+  if (rawNumber.startsWith("+")) return rawNumber;
+
+  const digits = rawNumber.replace(/\D+/g, "");
+  if (!digits) return "";
+
+  const dialCode = normalizeDialCode(countryCode);
+  if (!dialCode) return `+${digits}`;
+
+  const normalizedNumber = digits.replace(/^0+/, "") || digits;
+  return `${dialCode}${normalizedNumber}`;
+}
+
+function splitE164ToDialAndNumber(value: string) {
+  if (!value) {
+    return { countryCode: "", phoneNumber: "" };
+  }
+
+  const parsed = parsePhoneNumberFromString(value);
+  if (parsed) {
+    return {
+      countryCode: parsed.countryCallingCode ? `+${parsed.countryCallingCode}` : "",
+      phoneNumber: parsed.nationalNumber,
+    };
+  }
+
+  return {
+    countryCode: "",
+    phoneNumber: value.replace(/\D+/g, ""),
+  };
+}
+
+function shouldRenderField(section: PortalSubmissionSection, field: PortalSubmissionField) {
+  if (isProfilePhotoField(field)) return false;
+
+  const kind = getPhonePairKind(field);
+  if (kind === "primary_country" || kind === "emergency_country") {
+    return getPairedPhoneField(section, field) === null;
+  }
+
+  return true;
 }
 
 function shouldSpanFullWidth(field: PortalSubmissionField) {
@@ -321,6 +477,27 @@ export default function SubmissionEditSection() {
   const renderFieldInput = (section: PortalSubmissionSection, field: PortalSubmissionField) => {
     const value = sectionValues[section.id]?.[field.name] ?? "";
     const treatAsSelect = field.type === "select" || isCategoryField(field);
+    const phonePairKind = getPhonePairKind(field);
+
+    if (phonePairKind === "primary_number" || phonePairKind === "emergency_number") {
+      const pairedCountryField = getPairedPhoneField(section, field);
+
+      if (pairedCountryField) {
+        const countryCodeValue = sectionValues[section.id]?.[pairedCountryField.name] ?? "";
+        const e164 = buildE164FromDialAndNumber(countryCodeValue, value);
+
+        return (
+          <PhoneField
+            value={e164}
+            onChange={nextE164 => {
+              const normalized = splitE164ToDialAndNumber(nextE164);
+              updateFieldValue(section.id, pairedCountryField.name, normalized.countryCode);
+              updateFieldValue(section.id, field.name, normalized.phoneNumber);
+            }}
+          />
+        );
+      }
+    }
 
     if (field.type === "textarea") {
       return (
@@ -350,7 +527,7 @@ export default function SubmissionEditSection() {
       );
     }
 
-    if (field.type === "country") {
+    if (isCountrySelectorField(field)) {
       return (
         <CountryField
           value={value}
@@ -483,25 +660,33 @@ export default function SubmissionEditSection() {
                 </div>
 
                 <div className={`${submissionTheme.formGrid} items-start`}>
-                  {activeSection.fields.map(field => (
-                    <label
-                      key={field.id}
-                      className={`${submissionTheme.editFieldLabelWrapper} rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${
-                        shouldSpanFullWidth(field) ? "md:col-span-2" : ""
-                      }`}
-                    >
-                      <span className={submissionTheme.editFieldLabelText}>
-                        {field.label}
-                        {field.isRequired ? " *" : ""}
-                      </span>
-                      {renderFieldInput(activeSection, field)}
-                      {field.helpText ? (
-                        <p className={submissionTheme.readSectionSubtitle}>{field.helpText}</p>
-                      ) : null}
-                      <FieldMedia field={field} />
-                      <FieldHelpAssets items={field.helpAssets} className="mt-2" />
-                    </label>
-                  ))}
+                  {activeSection.fields.filter(field => shouldRenderField(activeSection, field)).map(field => {
+                    const currentValue = sectionValues[activeSection.id]?.[field.name] ?? "";
+                    const selectedDescription = getSelectedOptionDescription(field, currentValue);
+
+                    return (
+                      <label
+                        key={field.id}
+                        className={`${submissionTheme.editFieldLabelWrapper} rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${
+                          shouldSpanFullWidth(field) ? "md:col-span-2" : ""
+                        }`}
+                      >
+                        <span className={submissionTheme.editFieldLabelText}>
+                          {field.label}
+                          {field.isRequired ? " *" : ""}
+                        </span>
+                        {renderFieldInput(activeSection, field)}
+                        {selectedDescription ? (
+                          <p className={submissionTheme.readSectionSubtitle}>{selectedDescription}</p>
+                        ) : null}
+                        {field.helpText ? (
+                          <p className={submissionTheme.readSectionSubtitle}>{field.helpText}</p>
+                        ) : null}
+                        <FieldMedia field={field} />
+                        <FieldHelpAssets items={field.helpAssets} className="mt-2" />
+                      </label>
+                    );
+                  })}
                 </div>
 
                 {sectionEssays.length > 0 ? (

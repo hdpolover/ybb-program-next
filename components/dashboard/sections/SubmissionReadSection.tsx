@@ -42,6 +42,24 @@ function normalizeFieldKey(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
+function getFieldInputType(field: PortalSubmissionField) {
+  const rules = field.validationRules;
+  if (!rules || typeof rules !== "object") return "";
+
+  const inputType = (rules as Record<string, unknown>).inputType;
+  return typeof inputType === "string" ? inputType.toLowerCase() : "";
+}
+
+function isCountrySelectorField(field: PortalSubmissionField) {
+  if (field.type === "country") return true;
+  return getFieldInputType(field) === "country_select";
+}
+
+function isProfilePhotoField(field: PortalSubmissionField) {
+  const normalized = normalizeFieldKey(field.name);
+  return normalized === "pictureurl" || normalized === "profilephotourl" || normalized === "profilepictureurl";
+}
+
 function isCategoryField(field: PortalSubmissionField) {
   const normalized = normalizeFieldKey(field.name);
   return normalized === "category" || normalized === "applicationcategory" || normalized === "participationcategory" || normalized === "participationcategoryid";
@@ -93,7 +111,7 @@ function FieldRow({
   const isLong = isLongFormField(field) || rendered.length > 120;
   const isRemote = field.mediaUrl ? /^https?:\/\//.test(field.mediaUrl) : false;
   const stringValue = value === null || value === undefined ? "" : String(value);
-  const isCountry = field.type === "country";
+  const isCountry = isCountrySelectorField(field);
   const isPhone = field.type === "phone";
 
   return (
@@ -303,7 +321,7 @@ export default function SubmissionReadSection() {
               </div>
 
               <div className={`${submissionTheme.readGrid} items-start`}>
-                {activeSection.fields.map(field => (
+                {activeSection.fields.filter(field => !isProfilePhotoField(field)).map(field => (
                   <FieldRow
                     key={field.id}
                     field={field}

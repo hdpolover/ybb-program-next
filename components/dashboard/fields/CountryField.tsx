@@ -36,7 +36,16 @@ export function CountryField({
       })),
     [],
   );
-  const selected = countries.find(c => c.code === value) ?? null;
+  const selected = useMemo(() => {
+    const normalized = value.trim();
+    if (!normalized) return null;
+
+    const byCode = countries.find(c => c.code === normalized.toUpperCase());
+    if (byCode) return byCode;
+
+    const lower = normalized.toLowerCase();
+    return countries.find(c => c.name.toLowerCase() === lower) ?? null;
+  }, [countries, value]);
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -120,7 +129,7 @@ export function CountryField({
                   setQuery("");
                 }}
                 className={`flex cursor-pointer items-center gap-2 px-3 py-1.5 hover:bg-slate-100 ${
-                  c.code === value ? "bg-slate-50 font-semibold" : ""
+                  c.code === selected?.code ? "bg-slate-50 font-semibold" : ""
                 }`}
               >
                 <span aria-hidden>{c.flag}</span>
