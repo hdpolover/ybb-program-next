@@ -19,7 +19,7 @@ import Testimonials from '@/components/sections/Testimonials';
 import FAQ from '@/components/sections/FAQ';
 import GetInTouchSection from '@/components/sections/GetInTouchSection';
 import { getHomePageData } from '@/lib/api/home';
-import { headers } from 'next/headers';
+import { resolveBrandDomain } from '@/lib/server/envContext';
 import PromoCTA from '@/components/sections/PromoCTA';
 import type {
   MainBannerSection,
@@ -47,8 +47,7 @@ export const dynamic = 'force-dynamic';
 
 
 export default async function Home() {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'youthacademicforum.com';
+  const host = await resolveBrandDomain();
   let homeData: Awaited<ReturnType<typeof getHomePageData>>;
   try {
     homeData = await getHomePageData(host);

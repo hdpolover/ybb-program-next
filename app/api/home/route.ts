@@ -1,10 +1,9 @@
 import { getHomePageData } from '@/lib/api/home';
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
+import { resolveBrandDomain } from '@/lib/server/envContext';
 
 export async function GET() {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'youthacademicforum.com';
+  const host = await resolveBrandDomain();
 
   try {
     const data = await getHomePageData(host);

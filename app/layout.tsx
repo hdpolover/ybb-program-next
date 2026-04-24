@@ -1,9 +1,9 @@
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import Script from 'next/script';
 import { getHomePageData } from '@/lib/api/home';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
+import { resolveBrandDomain } from '@/lib/server/envContext';
 import { SettingsProvider } from '@/components/providers/SettingsProvider';
 import './globals.css';
 import ClientNavbarGate from '@/components/layout/ClientNavbarGate';
@@ -63,8 +63,7 @@ function pickForeground(hex: string): string {
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'youthacademicforum.com';
+  const host = await resolveBrandDomain();
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;
 
@@ -124,8 +123,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'youthacademicforum.com';
+  const host = await resolveBrandDomain();
   const appVersion = process.env.NEXT_PUBLIC_APP_BUILD_ID || 'development';
   let programSlug = 'ybb'; // Default/fallback
 
