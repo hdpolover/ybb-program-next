@@ -74,18 +74,11 @@ export const commonTheme = {
     listMeta: 'mt-0.5 text-xs text-slate-500',
   },
   getInTouch: {
-    cardBackground: 'none',
-    sectionWrapper: 'relative w-full overflow-visible bg-transparent py-16 sm:py-20',
-    card: 'mx-auto max-w-7xl bg-transparent px-6 py-10 text-white sm:px-10 lg:px-16',
-    layoutGrid: 'grid items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)]',
-    imageWrapper: 'relative mx-auto h-64 w-full max-w-sm sm:h-72 overflow-visible',
-    image: 'object-contain',
-    title: 'text-2xl font-extrabold leading-tight text-white sm:text-3xl lg:text-4xl',
-    list: 'mt-6 space-y-3',
+    sectionWrapper: 'relative w-full bg-[var(--brand-accent)] py-16 sm:py-20 text-white',
     item: 'flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_10px_30px_rgba(15,23,42,0.18)]',
     itemIconCircle:
       'grid aspect-square h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-[0_6px_20px_rgba(15,23,42,0.25)]',
-    itemTitle: 'text-sm font-semibold',
+    itemTitle: 'text-sm font-semibold text-slate-900',
     itemSubtitle: 'text-xs text-slate-600 break-words',
   },
   supportedBy: {

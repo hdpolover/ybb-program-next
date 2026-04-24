@@ -32,54 +32,32 @@ export default function GetInTouchSection({
 
   return (
     <section className={componentsTheme.getInTouch.sectionWrapper}>
-      <div
-        className={`${componentsTheme.getInTouch.card} relative`}
-      >
-        {/* Dynamic background with centered effect */}
-        <div className="absolute inset-0 bg-[var(--brand-accent)] opacity-10 sm:opacity-5" />
-        <div className="absolute inset-x-0 top-1/2 h-[200%] w-full -translate-y-1/2 bg-[var(--brand-accent)] opacity-20 sm:opacity-10" />
-        
-        <div className="absolute inset-0 sm:hidden">
-          <div className="absolute inset-0 bg-[var(--brand-accent)] opacity-30" />
-        </div>
-
-        <div className="relative z-10">
-        <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)] items-center gap-8">
-          {/* Left: illustration image */}
-          <div className={componentsTheme.getInTouch.imageWrapper}></div>
-
-          {/* Right: title, description, and contact items */}
-          <div>
-            <div className="mb-8 text-left">
-              {eyebrow ? (
-                <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{eyebrow}</p>
-              ) : null}
-              <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                {title}
-              </h2>
-            </div>
-            <div className={componentsTheme.getInTouch.list}>
-              {resolvedItems.map(item => {
-                const Wrapper: React.ElementType = item.href ? 'a' : 'div';
-                return (
-                  <Wrapper
-                    key={item.id}
-                    href={item.href}
-                    className={componentsTheme.getInTouch.item}
-                    target={item.href?.startsWith('http') ? '_blank' : undefined}
-                    rel={item.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  >
-                    <div className={componentsTheme.getInTouch.itemIconCircle}>{item.icon}</div>
-                    <div className="min-w-0">
-                      <p className={componentsTheme.getInTouch.itemTitle}>{item.title}</p>
-                      <p className={componentsTheme.getInTouch.itemSubtitle}>{item.subtitle}</p>
-                    </div>
-                  </Wrapper>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+      <div className="mx-auto max-w-2xl px-6 text-center sm:px-10">
+        {eyebrow ? (
+          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{eyebrow}</p>
+        ) : null}
+        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          {title}
+        </h2>
+        <div className="mt-8 space-y-3">
+          {resolvedItems.map(item => {
+            const Wrapper: React.ElementType = item.href ? 'a' : 'div';
+            return (
+              <Wrapper
+                key={item.id}
+                href={item.href}
+                className={componentsTheme.getInTouch.item}
+                target={item.href?.startsWith('http') ? '_blank' : undefined}
+                rel={item.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+              >
+                <div className={componentsTheme.getInTouch.itemIconCircle}>{item.icon}</div>
+                <div className="min-w-0 text-left">
+                  <p className={componentsTheme.getInTouch.itemTitle}>{item.title}</p>
+                  <p className={componentsTheme.getInTouch.itemSubtitle}>{item.subtitle}</p>
+                </div>
+              </Wrapper>
+            );
+          })}
         </div>
       </div>
     </section>
