@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Download, Loader2, AlertTriangle } from "lucide-react";
+import { Download, AlertTriangle, CheckCircle } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
+import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
@@ -31,6 +32,73 @@ interface Certificate {
   status: "Approved" | "Ongoing" | string;
 }
 
+// New types added in Task 6 — present in backend API but not previously typed on frontend
+interface DocumentItem {
+  id: string;
+  name: string;
+  description?: string;
+  documentType: string;
+  fileUrl?: string;
+  submissionStatus?: string;
+  signedCopyUrl?: string;
+  rejectionReason?: string;
+}
+
+function DocumentsRowsSkeleton() {
+  return (
+    <div className={componentsTheme.dashboardDocuments.tableBody} aria-hidden="true">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={`documents-row-skeleton-${index}`}
+          className={`grid grid-cols-[2fr,3fr,1.5fr,1.5fr] ${componentsTheme.dashboardDocuments.tableRow}`}
+        >
+          <div className={componentsTheme.dashboardDocuments.docNameCell}>
+            <div className="h-4 w-32 animate-pulse rounded bg-slate-200/80" />
+          </div>
+          <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+            <div className="h-4 w-full animate-pulse rounded bg-slate-200/80" />
+          </div>
+          <div className={componentsTheme.dashboardDocuments.docTypeCell}>
+            <div className="h-4 w-20 animate-pulse rounded bg-slate-200/80" />
+          </div>
+          <div className={componentsTheme.dashboardDocuments.actionCell}>
+            <div className="h-8 w-24 animate-pulse rounded-full bg-slate-200/80" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CertificatesRowsSkeleton() {
+  return (
+    <div className={componentsTheme.dashboardDocuments.tableBody} aria-hidden="true">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={`certificates-row-skeleton-${index}`}
+          className={`grid grid-cols-[1.4fr,2.4fr,2.2fr,1.4fr,1.4fr] ${componentsTheme.dashboardDocuments.tableRow}`}
+        >
+          <div className={componentsTheme.dashboardDocuments.docNameCell}>
+            <div className="h-4 w-24 animate-pulse rounded bg-slate-200/80" />
+          </div>
+          <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+            <div className="h-4 w-full animate-pulse rounded bg-slate-200/80" />
+          </div>
+          <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+            <div className="h-4 w-full animate-pulse rounded bg-slate-200/80" />
+          </div>
+          <div>
+            <div className="h-6 w-20 animate-pulse rounded-full bg-slate-200/80" />
+          </div>
+          <div className={componentsTheme.dashboardDocuments.actionCell}>
+            <div className="h-8 w-24 animate-pulse rounded-full bg-slate-200/80" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function DocumentsSection() {
   const [activeTab, setActiveTab] = useState<TabKey>("All");
   const [sortField, setSortField] = useState<SortField>("name");
@@ -40,6 +108,8 @@ export default function DocumentsSection() {
   const [certSortDirection, setCertSortDirection] = useState<SortDirection>("asc");
 
   const [programDocuments, setProgramDocuments] = useState<ProgramDocument[]>([]);
+  const [programResources, setProgramResources] = useState<DocumentItem[]>([]);
+  const [myDocuments, setMyDocuments] = useState<DocumentItem[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
   const [loadingCerts, setLoadingCerts] = useState(true);
@@ -47,46 +117,49 @@ export default function DocumentsSection() {
   const [errorCerts, setErrorCerts] = useState<string | null>(null);
 
   // Fetch program documents
+  const fetchDocuments = async () => {
+    try {
+      setLoadingDocs(true);
+      setErrorDocs(null);
+
+      const programId = readActiveProgramId();
+      const url = appendProgramId("/api/portal/documents", programId);
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+      });
+
+      const json = (await response.json().catch(() => ({}))) as any;
+      if (!response.ok) {
+        throw new Error(json?.message || "Failed to load documents");
+      }
+
+      // Support both old shape (data.items) and new shape (data.programResources / data.myDocuments)
+      setProgramDocuments(json?.data?.items ?? []);
+      setProgramResources(json?.data?.programResources ?? []);
+      setMyDocuments(json?.data?.myDocuments ?? []);
+    } catch (err) {
+      setErrorDocs(err instanceof Error ? err.message : "Failed to load documents");
+    } finally {
+      setLoadingDocs(false);
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
 
-    const fetchDocuments = async () => {
-      try {
-        setLoadingDocs(true);
-        setErrorDocs(null);
-
-        const programId = readActiveProgramId();
-        const url = appendProgramId("/api/portal/documents", programId);
-
-        const response = await fetch(url, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-        });
-
-        const json = (await response.json().catch(() => ({}))) as any;
-        if (!response.ok) {
-          throw new Error(json?.message || "Failed to load documents");
-        }
-
-        if (!cancelled) {
-          setProgramDocuments(json?.data?.items ?? []);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setErrorDocs(err instanceof Error ? err.message : "Failed to load documents");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingDocs(false);
-        }
-      }
+    const run = async () => {
+      await fetchDocuments();
     };
 
-    fetchDocuments();
+    run();
 
     const handleProgramChange = () => {
-      fetchDocuments();
+      if (!cancelled) {
+        fetchDocuments();
+      }
     };
 
     window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleProgramChange as EventListener);
@@ -95,6 +168,7 @@ export default function DocumentsSection() {
       cancelled = true;
       window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleProgramChange as EventListener);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch certificates
@@ -223,6 +297,18 @@ export default function DocumentsSection() {
     }
   };
 
+  const showInitialSkeleton =
+    loadingDocs &&
+    loadingCerts &&
+    !errorDocs &&
+    !errorCerts &&
+    programDocuments.length === 0 &&
+    certificates.length === 0;
+
+  if (showInitialSkeleton) {
+    return <DashboardPageSkeleton variant="documents" className={componentsTheme.dashboardDocuments.sectionWrapper} />;
+  }
+
   return (
     <div className={componentsTheme.dashboardDocuments.sectionWrapper}>
       {/* Program documents filter */}
@@ -296,10 +382,7 @@ export default function DocumentsSection() {
         </div>
 
         {loadingDocs ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            <span className="ml-2 text-sm text-slate-500">Loading documents...</span>
-          </div>
+          <DocumentsRowsSkeleton />
         ) : errorDocs ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -349,6 +432,115 @@ export default function DocumentsSection() {
           </div>
         )}
       </div>
+
+      {/* Program Resources section (new — complementary documents) */}
+      {!loadingDocs && programResources.length > 0 && (
+        <div className="mt-6">
+          <h2 className={componentsTheme.dashboardDocuments.certificatesTitle}>Program Resources</h2>
+          <p className={componentsTheme.dashboardDocuments.certificatesSubtitle}>
+            Additional resources and complementary documents provided for your program.
+          </p>
+          <div className={componentsTheme.dashboardDocuments.tableCard}>
+            <div className={componentsTheme.dashboardDocuments.tableBody}>
+              {programResources.map(item => (
+                <div
+                  key={item.id}
+                  className={`flex items-center justify-between gap-4 ${componentsTheme.dashboardDocuments.tableRow}`}
+                >
+                  <div>
+                    <p className={componentsTheme.dashboardDocuments.docNameCell}>{item.name}</p>
+                    {item.description && (
+                      <p className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className={componentsTheme.dashboardDocuments.actionCell}>
+                    {item.documentType === "complementary_document" && item.fileUrl && (
+                      <a
+                        href={item.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
+                        download
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Download
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* My Documents section (new — agreement letters) */}
+      {!loadingDocs && myDocuments.length > 0 && (
+        <div className="mt-6">
+          <h2 className={componentsTheme.dashboardDocuments.certificatesTitle}>My Documents</h2>
+          <p className={componentsTheme.dashboardDocuments.certificatesSubtitle}>
+            Personal documents assigned to you, including agreement letters requiring your signature.
+          </p>
+          <div className={componentsTheme.dashboardDocuments.tableCard}>
+            <div className={componentsTheme.dashboardDocuments.tableBody}>
+              {myDocuments.map(item => (
+                <div
+                  key={item.id}
+                  className={`${componentsTheme.dashboardDocuments.tableRow}`}
+                >
+                  <p className={componentsTheme.dashboardDocuments.docNameCell}>{item.name}</p>
+                  {item.description && (
+                    <p className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+                      {item.description}
+                    </p>
+                  )}
+
+                  {item.documentType === "agreement_letter" && (
+                    <div className="mt-2 flex flex-col gap-2">
+                      {item.fileUrl && (
+                        <a
+                          href={item.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:underline"
+                          download
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          Download Agreement Letter
+                        </a>
+                      )}
+
+                      {item.submissionStatus !== "verified" && (
+                        <SignedCopyUpload
+                          templateId={item.id}
+                          submissionStatus={item.submissionStatus ?? "pending_upload"}
+                          signedCopyUrl={item.signedCopyUrl}
+                          onUploaded={fetchDocuments}
+                        />
+                      )}
+
+                      {item.submissionStatus === "verified" && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Signed copy verified
+                        </span>
+                      )}
+
+                      {item.submissionStatus === "rejected" && item.rejectionReason && (
+                        <p className="text-[11px] text-red-600">
+                          Rejected: {item.rejectionReason}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Certificates section */}
       <div className={componentsTheme.dashboardDocuments.certificatesSectionWrapper}>
@@ -441,10 +633,7 @@ export default function DocumentsSection() {
 
           {/* Empty state / rows certificates */}
           {loadingCerts ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              <span className="ml-2 text-sm text-slate-500">Loading certificates...</span>
-            </div>
+            <CertificatesRowsSkeleton />
           ) : errorCerts ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -505,6 +694,82 @@ export default function DocumentsSection() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function SignedCopyUpload({
+  templateId,
+  submissionStatus,
+  signedCopyUrl,
+  onUploaded,
+}: {
+  templateId: string;
+  submissionStatus: string;
+  signedCopyUrl?: string;
+  onUploaded: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(
+        `/api/portal/documents/${templateId}/signed-copy`,
+        { method: "POST", body: formData },
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message ?? data.error ?? "Upload failed");
+      }
+      onUploaded();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div>
+      {submissionStatus === "uploaded" && signedCopyUrl ? (
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-amber-600 font-medium">
+            Signed copy submitted — awaiting review
+          </span>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="text-[11px] text-zinc-500 underline hover:text-zinc-700"
+          >
+            Replace
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
+        >
+          {uploading ? "Uploading…" : "Upload Signed Copy"}
+        </button>
+      )}
+      {error && <p className="mt-1 text-[11px] text-red-600">{error}</p>}
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".pdf,.doc,.docx"
+        className="hidden"
+        onChange={handleFileChange}
+      />
     </div>
   );
 }
