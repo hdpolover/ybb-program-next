@@ -44,7 +44,12 @@ export default function OverviewGuidebookSection({
         </div>
 
         <div className={overviewTheme.guideLinksWrapper}>
-          <a href={guidebookEnUrl} className={overviewTheme.guideLink}>
+          <a
+            href={guidebookEnUrl}
+            className={overviewTheme.guideLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <span className={overviewTheme.guideLeftLinkInner}>
               <span className={overviewTheme.guideBadgeCircle}>
                 <span className={overviewTheme.guideBadgeText}>GB</span>
@@ -53,7 +58,12 @@ export default function OverviewGuidebookSection({
             </span>
             <span className={overviewTheme.guideFileType}>PDF</span>
           </a>
-          <a href={guidebookIdUrl} className={overviewTheme.guideLink}>
+          <a
+            href={guidebookIdUrl}
+            className={overviewTheme.guideLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <span className={overviewTheme.guideLeftLinkInner}>
               <span className={overviewTheme.guideBadgeCircle}>
                 <span className={overviewTheme.guideBadgeText}>ID</span>

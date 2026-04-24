@@ -181,5 +181,26 @@ export function toPortalSubmissionDetail(payload: unknown): PortalSubmissionDeta
       typeof payload.participantLocation === "string" ? payload.participantLocation : undefined,
     participantAvatarUrl:
       typeof payload.participantAvatarUrl === "string" ? payload.participantAvatarUrl : undefined,
+    termsAndConditions:
+      isRecord(payload.preview) && typeof payload.preview.termsAndConditionsHtml === "string"
+        ? payload.preview.termsAndConditionsHtml
+        : typeof payload.termsAndConditions === "string"
+          ? payload.termsAndConditions
+          : null,
+    previewChecklistItems:
+      isRecord(payload.preview) && Array.isArray(payload.preview.checklists)
+        ? (payload.preview.checklists as unknown[])
+            .filter(isRecord)
+            .map(c => (typeof c.label === "string" ? c.label : null))
+            .filter((l): l is string => l !== null)
+        : Array.isArray(payload.previewChecklistItems)
+          ? payload.previewChecklistItems.filter((item): item is string => typeof item === "string")
+          : [],
+    isRegistrationPaymentSettled:
+      isRecord(payload.preview) && isRecord(payload.preview.payment) && typeof payload.preview.payment.paid === "boolean"
+        ? payload.preview.payment.paid
+        : typeof payload.isRegistrationPaymentSettled === "boolean"
+          ? payload.isRegistrationPaymentSettled
+          : undefined,
   };
 }

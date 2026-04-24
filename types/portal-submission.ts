@@ -76,6 +76,9 @@ export type PortalSubmissionDetail = {
   participantAccountId?: string;
   participantLocation?: string;
   participantAvatarUrl?: string;
+  termsAndConditions?: string | null;
+  previewChecklistItems?: string[];
+  isRegistrationPaymentSettled?: boolean;
 };
 
 export type PortalSubmissionProgressSection = {
