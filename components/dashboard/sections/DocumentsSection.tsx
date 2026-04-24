@@ -35,7 +35,7 @@ interface Certificate {
 // New types added in Task 6 — present in backend API but not previously typed on frontend
 interface DocumentItem {
   id: string;
-  name: string;
+  title: string;
   description?: string;
   documentType: string;
   fileUrl?: string;
@@ -448,7 +448,7 @@ export default function DocumentsSection() {
                   className={`flex items-center justify-between gap-4 ${componentsTheme.dashboardDocuments.tableRow}`}
                 >
                   <div>
-                    <p className={componentsTheme.dashboardDocuments.docNameCell}>{item.name}</p>
+                    <p className={componentsTheme.dashboardDocuments.docNameCell}>{item.title}</p>
                     {item.description && (
                       <p className={componentsTheme.dashboardDocuments.docDescriptionCell}>
                         {item.description}
@@ -490,7 +490,7 @@ export default function DocumentsSection() {
                   key={item.id}
                   className={`${componentsTheme.dashboardDocuments.tableRow}`}
                 >
-                  <p className={componentsTheme.dashboardDocuments.docNameCell}>{item.name}</p>
+                  <p className={componentsTheme.dashboardDocuments.docNameCell}>{item.title}</p>
                   {item.description && (
                     <p className={componentsTheme.dashboardDocuments.docDescriptionCell}>
                       {item.description}
