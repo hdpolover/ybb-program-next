@@ -244,6 +244,34 @@ export default function LoginPage() {
   
 
   useEffect(() => {
+    async function fetchGalleryImages() {
+      try {
+        const res = await fetch('/api/home');
+        if (!res.ok) return;
+        const json = (await res.json()) as {
+          data?: {
+            sections?: Array<{
+              type: string;
+              content?: { images?: Array<{ url: string }> };
+            }>;
+          };
+        };
+        const gallerySection = json?.data?.sections?.find(s => s.type === 'program_gallery');
+        const images = gallerySection?.content?.images
+          ?.map(img => img.url)
+          .filter(Boolean);
+        if (images && images.length > 0) {
+          setLoginImages(images);
+          setImageIndex(0);
+        }
+      } catch {
+        // keep fallback images
+      }
+    }
+    fetchGalleryImages();
+  }, []);
+
+  useEffect(() => {
     if (loginImages.length <= 1) return;
     const id = setInterval(() => {
       setImageIndex(prev => (prev + 1) % loginImages.length);
@@ -347,6 +375,11 @@ export default function LoginPage() {
         <div className={componentsTheme.login.formPanelOuter}>
           <div className={componentsTheme.login.formPanelInner}>
             <div>
+              {settings?.active_program?.name && (
+                <p className={componentsTheme.login.formProgramName}>
+                  {settings.active_program.name}
+                </p>
+              )}
               <h1 className={componentsTheme.login.formHeading}>
                 {mode === 'login' ? 'Welcome back!' : 'Create your account'}
               </h1>
@@ -412,7 +445,7 @@ export default function LoginPage() {
                         />
                         Keep me signed in
                       </label>
-                      <a href="#" className={componentsTheme.login.forgotPasswordLink}>
+                      <a href="/auth/forgot-password" className={componentsTheme.login.forgotPasswordLink}>
                         Forgot Password?
                       </a>
                     </div>
