@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,9 +10,7 @@ import {
   Clock4,
   Wallet2,
   ArrowLeftRight,
-  BadgeCheck,
   CreditCard,
-  Sparkles,
   Search,
   Printer,
   Eye,
@@ -30,10 +29,12 @@ const paymentsTheme = componentsTheme.dashboardPayments;
 interface PaymentItem {
   id: string;
   label: string;
-  status: "paid" | "unpaid";
+  status: "paid" | "unpaid" | "processing" | "failed";
+  paymentType: string;
   period: string;
   amount: string;
   syncDate: string;
+  hasInvoice?: boolean;
 }
 
 interface PaymentsSummary {
@@ -68,7 +69,10 @@ export default function PaymentsListSection() {
   const [error, setError] = useState<string | null>(null);
 
   async function handleSwitch() {
-    if (!activeApplication?.id) return;
+    if (!activeApplication?.id) {
+      setSwitchError("Application ID not found. Please refresh the page and try again.");
+      return;
+    }
     setSwitchLoading(true);
     setSwitchError(null);
     try {
@@ -273,68 +277,33 @@ export default function PaymentsListSection() {
       </div>
 
       {canSwitchCategory && (
-        <div className={paymentsTheme.categoryCard}>
-          <div className={paymentsTheme.categoryHeader}>
-            <div className="space-y-3">
-              <h2 className={paymentsTheme.categoryTitle}>
-                Category Switch Available
-              </h2>
-              <div className={paymentsTheme.categoryBodyText}>
-                <p className={paymentsTheme.categoryLabel}>Your Registration Category:</p>
-                <div className="flex items-center gap-2">
-                  <span className={paymentsTheme.categoryPill}>
-                    <BadgeCheck className={paymentsTheme.categoryPillIcon} />
-                  </span>
-                  <p className={paymentsTheme.categoryStatusText}>{currentCategoryLabel}</p>
-                </div>
-                <p className={paymentsTheme.categoryDescription}>
-                  You&apos;re eligible to switch from {currentCategoryLabel} to {switchTargetLabel}. By switching, you&apos;ll be able to:
-                </p>
-              </div>
-
-              <ul className={paymentsTheme.categoryBulletList}>
-                <li className={paymentsTheme.categoryBulletItem}>
-                  <span
-                    className={`${paymentsTheme.categoryBulletIconBase} ${paymentsTheme.categoryBulletIconPrimary}`}
-                  >
-                    <BadgeCheck className={paymentsTheme.categoryBulletIconInner} />
-                  </span>
-                  <span>Continue with your program participation.</span>
-                </li>
-                <li className={paymentsTheme.categoryBulletItem}>
-                  <span
-                    className={`${paymentsTheme.categoryBulletIconBase} ${paymentsTheme.categoryBulletIconSecondary}`}
-                  >
-                    <CreditCard className={paymentsTheme.categoryBulletIconInner} />
-                  </span>
-                  <span>Access {switchTargetLabel.toLowerCase()} payment options.</span>
-                </li>
-                <li className={paymentsTheme.categoryBulletItem}>
-                  <span
-                    className={`${paymentsTheme.categoryBulletIconBase} ${paymentsTheme.categoryBulletIconTertiary}`}
-                  >
-                    <Sparkles className={paymentsTheme.categoryBulletIconInner} />
-                  </span>
-                  <span>Complete your registration and program fees.</span>
-                </li>
-              </ul>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  className={paymentsTheme.categoryPrimaryCta}
-                  onClick={() => setShowSwitchModal(true)}
-                >
-                  <ArrowLeftRight className="h-4 w-4" />
-                  <span>Switch to {switchTargetLabel}</span>
-                </button>
-              </div>
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Registration Category</p>
+              <p className="mt-0.5 text-sm font-semibold text-slate-900">
+                {currentCategoryLabel}
+                <span className="mx-2 text-slate-300">|</span>
+                <span className="text-primary">Eligible to switch to {switchTargetLabel}</span>
+              </p>
+              <p className="mt-0.5 text-xs text-slate-600">
+                Payment options will follow your selected category and payment stage.
+              </p>
             </div>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary"
+              onClick={() => setShowSwitchModal(true)}
+            >
+              <ArrowLeftRight className="h-4 w-4" />
+              <span>Switch to {switchTargetLabel}</span>
+            </button>
           </div>
         </div>
       )}
 
-      {showSwitchModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 px-4">
+      {showSwitchModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 px-4">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
@@ -389,7 +358,8 @@ export default function PaymentsListSection() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className={paymentsTheme.tableCard}>
@@ -430,6 +400,7 @@ export default function PaymentsListSection() {
             <thead>
               <tr className={paymentsTheme.tableHeadRow}>
                 <th className={paymentsTheme.tableHeadCell}>Payment Information</th>
+                <th className={paymentsTheme.tableHeadCell}>Payment Type</th>
                 <th className={paymentsTheme.tableHeadCell}>Payment Status</th>
                 <th className={paymentsTheme.tableHeadCell}>Period</th>
                 <th className={paymentsTheme.tableHeadCell}>Amount</th>
@@ -440,7 +411,7 @@ export default function PaymentsListSection() {
             <tbody className={paymentsTheme.tableBody}>
               {payments.length === 0 && (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="flex flex-col items-center justify-center bg-slate-50 px-6 py-10 text-center">
                       <img
                         src="/img/tablenotfounds.png"
@@ -457,18 +428,25 @@ export default function PaymentsListSection() {
               )}
               {payments.map(payment => {
                 const isPaid = payment.status === "paid";
+                const isProcessing = payment.status === "processing";
+                const isFailed = payment.status === "failed";
                 return (
                   <tr key={payment.id} className={paymentsTheme.tableRow}>
                     <td className={paymentsTheme.paymentInfoCell}>{payment.label}</td>
+                    <td className={paymentsTheme.periodCell}>{payment.paymentType || "General"}</td>
                     <td className={paymentsTheme.statusCell}>
                       <span
                         className={`${paymentsTheme.statusBadgeBase} ${
                           isPaid
                             ? paymentsTheme.statusBadgePaid
-                            : paymentsTheme.statusBadgeUnpaid
+                            : isProcessing
+                              ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                              : isFailed
+                                ? "bg-red-50 text-red-700 ring-1 ring-red-200"
+                                : paymentsTheme.statusBadgeUnpaid
                         }`}
                       >
-                        {isPaid ? "Paid" : "Unpaid"}
+                        {isPaid ? "Paid" : isProcessing ? "Processing" : isFailed ? "Failed" : "Unpaid"}
                       </span>
                     </td>
                     <td className={paymentsTheme.periodCell}>{payment.period}</td>
@@ -478,22 +456,33 @@ export default function PaymentsListSection() {
                       <div className={paymentsTheme.actionsWrapper}>
                         <button
                           type="button"
-                          className={paymentsTheme.primaryIconButton}
+                          className={`${paymentsTheme.primaryIconButton} ${payment.hasInvoice === false ? "cursor-not-allowed opacity-40" : ""}`}
                           aria-label="Pay now"
+                          disabled={payment.hasInvoice === false}
                         >
                           <CreditCard className="h-3.5 w-3.5" />
                         </button>
-                        <Link
-                          href={`/dashboard/payments/${payment.id}`}
-                          className={paymentsTheme.secondaryIconButton}
-                          aria-label="See details"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                        </Link>
+                        {payment.hasInvoice === false ? (
+                          <span
+                            className={`${paymentsTheme.secondaryIconButton} cursor-not-allowed opacity-40`}
+                            aria-label="Details unavailable until invoice is generated"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </span>
+                        ) : (
+                          <Link
+                            href={`/dashboard/payments/${payment.id}`}
+                            className={paymentsTheme.secondaryIconButton}
+                            aria-label="See details"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </Link>
+                        )}
                         <button
                           type="button"
-                          className={paymentsTheme.tertiaryIconButton}
+                          className={`${paymentsTheme.tertiaryIconButton} ${payment.hasInvoice === false ? "cursor-not-allowed opacity-40" : ""}`}
                           aria-label="Print invoice"
+                          disabled={payment.hasInvoice === false}
                         >
                           <Printer className="h-3.5 w-3.5" />
                         </button>

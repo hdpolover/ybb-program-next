@@ -2,6 +2,7 @@
 
 import { ArrowLeftRight, GraduationCap, AlertTriangle } from "lucide-react";
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { componentsTheme } from "@/lib/theme/components";
@@ -47,7 +48,10 @@ export default function OverviewRegistrationSection() {
   const switchTargetLabel = switchTarget === "fully_funded" ? "Fully Funded" : "Self Funded";
 
   async function handleSwitch() {
-    if (!activeApplication?.id) return;
+    if (!activeApplication?.id) {
+      setError("Application ID not found. Please refresh the page and try again.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -118,8 +122,8 @@ export default function OverviewRegistrationSection() {
         </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 px-4">
+      {showModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 px-4">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
@@ -165,7 +169,8 @@ export default function OverviewRegistrationSection() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
