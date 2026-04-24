@@ -7,7 +7,6 @@ import { componentsTheme } from '@/lib/theme/components';
 import { useSettings } from '@/components/providers/SettingsProvider';
 // import { useSettings } from '@/components/providers/SettingsProvider';
 // import { getSettings } from '@/lib/api/settings';
-import type { SettingsData, SettingsFooterNavSection } from '@/types/settings';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
@@ -20,6 +19,18 @@ const FALLBACK_IMAGES = [
   '/img/galeri1.png',
   '/img/galeri3.png',
 ];
+
+const DUPLICATE_EMAIL_MESSAGE = 'This email is already registered. Please sign in instead.';
+
+type LegalDocumentType = 'terms' | 'privacy';
+
+type LegalDocumentPayload = {
+  title: string;
+  slug: string;
+  content: string;
+  version?: string;
+  publishedAt?: string | null;
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,6 +50,11 @@ export default function LoginPage() {
   const [localError, setLocalError] = useState<string>('');
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string>('');
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalModalType, setLegalModalType] = useState<LegalDocumentType | null>(null);
+  const [legalLoading, setLegalLoading] = useState(false);
+  const [legalError, setLegalError] = useState<string>('');
+  const [legalDocs, setLegalDocs] = useState<Partial<Record<LegalDocumentType, LegalDocumentPayload>>>({});
   const [oauthProviderIds, setOauthProviderIds] = useState<Record<string, string>>({});
   const [authProviders, setAuthProviders] = useState<
     Array<{ id: string; name: string; displayName: string; isOAuth: boolean; buttonColor?: string }>
@@ -130,16 +146,74 @@ export default function LoginPage() {
       };
 
       if (!res.ok) {
+        const backendMessage = json?.message || '';
+        const isDuplicateEmail =
+          res.status === 409 ||
+          /already\s+(has|registered|exists)|authentication\s+configured|email\s+already/i.test(
+            backendMessage,
+          );
+
+        if (isDuplicateEmail) {
+          throw new Error(DUPLICATE_EMAIL_MESSAGE);
+        }
+
         throw new Error(json?.message || `Register failed: ${res.status} ${res.statusText}`);
       }
 
-      router.push('/verify-email');
+      const needsEmailVerification = json?.data?.needsEmailVerification ?? true;
+      router.push(needsEmailVerification ? '/verify-email' : '/onboarding');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Register failed';
       setRegisterError(message);
     } finally {
       setRegisterLoading(false);
     }
+  };
+
+  const openLegalModal = async (type: LegalDocumentType) => {
+    setLegalModalType(type);
+    setLegalModalOpen(true);
+    setLegalError('');
+
+    if (legalDocs[type]) return;
+
+    setLegalLoading(true);
+    try {
+      const res = await fetch(`/api/legal-documents?type=${encodeURIComponent(type)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const json = (await res.json().catch(() => ({}))) as {
+        message?: string;
+        data?: LegalDocumentPayload | null;
+      };
+
+      if (!res.ok || !json?.data) {
+        throw new Error(
+          json?.message || 'Unable to load legal document right now. Please try again shortly.',
+        );
+      }
+
+      setLegalDocs(prev => ({
+        ...prev,
+        [type]: json.data as LegalDocumentPayload,
+      }));
+    } catch (error) {
+      setLegalError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to load legal document right now. Please try again shortly.',
+      );
+    } finally {
+      setLegalLoading(false);
+    }
+  };
+
+  const closeLegalModal = () => {
+    setLegalModalOpen(false);
   };
 
   const onOAuthLogin = async (providerName: string) => {
@@ -280,33 +354,22 @@ export default function LoginPage() {
   }, [loginImages]);
 
   const loginImageSrc = loginImages[imageIndex] ?? loginImages[0];
-
-  const footerNav: SettingsFooterNavSection[] | null = settings?.footer_navigation ?? null;
-  const legalSection = (footerNav ?? []).find(section => section.title.toLowerCase() === 'legal');
-  const legalLinks: { label: string; href: string }[] = (legalSection?.links ?? []).map(link => ({
-    label: link.label,
-    href: link.url,
-  }));
-
-  const findLegalHref = (kind: 'terms' | 'privacy'): string => {
-    const needle = kind === 'terms' ? 'terms' : 'privacy';
-    const found = legalLinks.find(l => l.label.toLowerCase().includes(needle));
-    return found?.href || '#';
-  };
-
-  const termsHref = findLegalHref('terms');
-  const privacyHref = findLegalHref('privacy');
+  const activeLegalDoc = legalModalType ? legalDocs[legalModalType] : null;
+  const legalModalTitle =
+    activeLegalDoc?.title || (legalModalType === 'terms' ? 'Terms of Service' : 'Privacy Policy');
+  const legalDocLooksLikeHtml =
+    !!activeLegalDoc?.content && /<\/?[a-z][\s\S]*>/i.test(activeLegalDoc.content);
 
   return (
     <section className={`fixed inset-0 overflow-hidden ${componentsTheme.login.pageBackground}`}>
-      <div className="grid h-full grid-cols-1 overflow-hidden lg:grid-cols-[40%_60%]">
+      <div className="grid h-full grid-cols-1 overflow-hidden md:grid-cols-[40%_60%]">
         {/* Panel Gambar (selalu di kiri, dalam card dengan background full) */}
         <div
-          className="relative hidden lg:flex items-center justify-center bg-slate-50 p-10"
+          className="relative hidden md:flex items-center justify-center bg-slate-50 p-6 lg:p-10"
         >
           <div className="relative h-[calc(100vh-5rem)] w-full overflow-hidden rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
             {/* Mobile logo - visible only on small screens */}
-            <div className="absolute left-6 top-6 z-10 lg:hidden">
+            <div className="absolute left-6 top-6 z-10 md:hidden">
               <a href="/" className="inline-block">
                 <Image
                   src={settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || "/img/ybb-logo.png"}
@@ -325,7 +388,7 @@ export default function LoginPage() {
               fill
               priority
               className="object-cover"
-              sizes="(min-width: 1024px) 45vw, 0px"
+              sizes="(min-width: 768px) 40vw, 0px"
             />
             <div className={componentsTheme.login.heroOverlay} />
 
@@ -527,11 +590,11 @@ export default function LoginPage() {
                           type="email"
                           required
                           className={componentsTheme.login.input}
-                          placeholder="hilmi123@example.com"
+                          placeholder="you@example.com"
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
                         <label className={componentsTheme.login.fieldLabel}>
                           Password
@@ -583,7 +646,7 @@ export default function LoginPage() {
                         </div>
                       </div>
                     </div>
-                    <label className={componentsTheme.login.termsLabel}>
+                    <div className={componentsTheme.login.termsLabel}>
                       <input
                         type="checkbox"
                         className={componentsTheme.login.checkbox}
@@ -591,15 +654,25 @@ export default function LoginPage() {
                         onChange={e => setAgree(e.target.checked)}
                         required
                       />
-                      I agree to the{' '}
-                      <a href={termsHref} className={componentsTheme.login.termsLink}>
-                        Terms of Service
-                      </a>
-                      and{' '}
-                      <a href={privacyHref} className={componentsTheme.login.termsLink}>
-                        Privacy Policy
-                      </a>
-                    </label>
+                      <span>
+                        I agree to the{' '}
+                        <button
+                          type="button"
+                          onClick={() => openLegalModal('terms')}
+                          className={componentsTheme.login.termsLink}
+                        >
+                          Terms of Service
+                        </button>
+                        {' '}and{' '}
+                        <button
+                          type="button"
+                          onClick={() => openLegalModal('privacy')}
+                          className={componentsTheme.login.termsLink}
+                        >
+                          Privacy Policy
+                        </button>
+                      </span>
+                    </div>
                     {registerError ? (
                       <p className="text-sm text-red-200">{registerError}</p>
                     ) : null}
@@ -648,6 +721,54 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {legalModalOpen && (
+        <div
+          className="fixed inset-0 z-[140] flex items-center justify-center bg-slate-950/60 p-4"
+          onClick={closeLegalModal}
+        >
+          <div
+            className="w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">{legalModalTitle}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeLegalModal}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+              {legalLoading && !activeLegalDoc ? (
+                <p className="text-sm text-slate-600">Loading document...</p>
+              ) : null}
+
+              {!legalLoading && legalError ? (
+                <p className="text-sm font-medium text-primary">{legalError}</p>
+              ) : null}
+
+              {!legalLoading && !legalError && activeLegalDoc?.content ? (
+                legalDocLooksLikeHtml ? (
+                  <div
+                    className="prose prose-slate max-w-none text-sm"
+                    dangerouslySetInnerHTML={{ __html: activeLegalDoc.content }}
+                  />
+                ) : (
+                  <div className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                    {activeLegalDoc.content}
+                  </div>
+                )
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

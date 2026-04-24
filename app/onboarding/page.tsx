@@ -22,6 +22,7 @@ export default function OnboardingPage() {
   const onboardingTheme = componentsTheme.onboarding;
 
   const [imageIndex, setImageIndex] = useState(0);
+  const [heroImages, setHeroImages] = useState<string[]>(LOGIN_IMAGES);
 
   const [countries, setCountries] = useState<CountryMetadata[]>([]);
   const [genders, setGenders] = useState<string[]>([]);
@@ -124,14 +125,50 @@ export default function OnboardingPage() {
   }, []);
 
   useEffect(() => {
-    if (LOGIN_IMAGES.length <= 1) return;
+    if (heroImages.length <= 1) return;
     const id = setInterval(() => {
-      setImageIndex(prev => (prev + 1) % LOGIN_IMAGES.length);
+      setImageIndex(prev => (prev + 1) % heroImages.length);
     }, 7000);
     return () => clearInterval(id);
+  }, [heroImages]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch('/api/home');
+        if (!res.ok) return;
+
+        const json = (await res.json()) as {
+          data?: {
+            sections?: Array<{
+              type: string;
+              content?: { images?: Array<{ url: string }> };
+            }>;
+          };
+        };
+
+        const gallerySection = json?.data?.sections?.find(
+          section => section.type === 'program_gallery',
+        );
+        const images = gallerySection?.content?.images?.map(img => img.url).filter(Boolean) ?? [];
+
+        if (!cancelled && images.length > 0) {
+          setHeroImages(images);
+          setImageIndex(0);
+        }
+      } catch {
+        // Keep fallback images when home API is unavailable.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const loginImageSrc = LOGIN_IMAGES[imageIndex] ?? LOGIN_IMAGES[0];
+  const loginImageSrc = heroImages[imageIndex] ?? heroImages[0] ?? LOGIN_IMAGES[0];
 
   const countryOptions = useMemo(() => {
     if (countries.length === 0) return [];

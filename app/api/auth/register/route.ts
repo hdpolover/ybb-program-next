@@ -53,6 +53,7 @@ export async function POST(request: Request) {
     let ctxProgramId = '';
     let ctxProviderId = '';
     let ctxProgramSlug: string | null = null;
+    let ctxRequireEmailVerification: boolean | null = null;
 
     try {
       step = 'fetch_auth_context';
@@ -70,6 +71,7 @@ export async function POST(request: Request) {
         data:
           | {
               brandId: string;
+              requireEmailVerification?: boolean;
               programId: string;
               programSlug?: string | null;
               localProviderId: string;
@@ -82,6 +84,9 @@ export async function POST(request: Request) {
         ctxProgramId = ctxJson.data.programId || '';
         ctxProgramSlug = ctxJson.data.programSlug ?? null;
         ctxProviderId = ctxJson.data.localProviderId || '';
+        if (typeof ctxJson.data.requireEmailVerification === 'boolean') {
+          ctxRequireEmailVerification = ctxJson.data.requireEmailVerification;
+        }
       }
     } catch {
       // ignore
@@ -91,6 +96,7 @@ export async function POST(request: Request) {
     const programId = envProgramId || ctxProgramId;
     const providerId = envLocalProviderId || ctxProviderId || '';
     const programSlug = ctxProgramSlug;
+    const needsEmailVerification = ctxRequireEmailVerification ?? true;
 
     if (!brandId || !programId || !providerId) {
       return NextResponse.json(
@@ -156,7 +162,7 @@ export async function POST(request: Request) {
       statusCode: 201,
       message: 'Success',
       data: {
-        needsEmailVerification: true,
+        needsEmailVerification,
       },
     });
 

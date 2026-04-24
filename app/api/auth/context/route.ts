@@ -10,7 +10,12 @@ type ProvidersResponse = {
 type BrandsResponse = {
   statusCode: number;
   message: string;
-  data: Array<{ id: string; slug: string; websiteUrl?: string | null }>;
+  data: Array<{
+    id: string;
+    slug: string;
+    websiteUrl?: string | null;
+    requireEmailVerification?: boolean;
+  }>;
 };
 
 type ProgramsResponse = {
@@ -55,6 +60,14 @@ export async function GET() {
       null;
 
     const brandId = envBrandId || brand?.id;
+    const brandById =
+      (brandId ? brands.find(b => b.id === brandId) : null) ??
+      brand ??
+      null;
+    const requireEmailVerification =
+      typeof brandById?.requireEmailVerification === 'boolean'
+        ? brandById.requireEmailVerification
+        : true;
 
     const candidates = programs.filter(p => (p.brandId ?? p.programCategoryId) === brandId && p.isPublished);
     candidates.sort((a, b) => {
@@ -96,6 +109,7 @@ export async function GET() {
       data: {
         brandDomain,
         brandId,
+        requireEmailVerification,
         programId,
         programSlug,
         providers,
