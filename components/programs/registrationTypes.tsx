@@ -15,7 +15,6 @@ import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
 } from '@/types/programs';
-import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 
 type RegistrationTypeProgramsProps = {
   pricingTiers?: RegistrationInfoPricingTier[];
@@ -47,8 +46,8 @@ export default function RegistrationTypePrograms({
 
   const isOpen = (status || '').toLowerCase() === 'open';
 
-  const formatDateRange = (open?: string | null, close?: string | null) => {
-    if (!open && !close) return DATA_NOT_ADDED;
+  const formatDateRange = (open?: string | null, close?: string | null): string | null => {
+    if (!open && !close) return null;
 
     const safeFormat = (value: string | null | undefined) => {
       if (!value) return '';
@@ -67,7 +66,7 @@ export default function RegistrationTypePrograms({
     const closeLabel = safeFormat(close ?? null);
 
     if (openLabel && closeLabel) return `${openLabel} – ${closeLabel}`;
-    return openLabel || closeLabel || DATA_NOT_ADDED;
+    return openLabel || closeLabel || null;
   };
 
   const registrationPeriodLabel = formatDateRange(
@@ -148,23 +147,25 @@ export default function RegistrationTypePrograms({
                     {isOpen ? 'Open' : 'Closed'}
                   </span>
                 </div>
-                <div className={componentsTheme.applyRegistrationTypes.feeRow}>
-                  <span className={componentsTheme.applyRegistrationTypes.priceText}>
-                    {primaryType
-                      ? `${primaryType.currency} ${primaryType.price}`
-                      : DATA_NOT_ADDED}
-                  </span>
-                  <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
-                    Registration Fee
-                  </span>
-                </div>
-                <div className={componentsTheme.applyRegistrationTypes.periodRow}>
-                  <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
-                  <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
-                    Registration Period:
-                  </span>
-                  <span>{registrationPeriodLabel}</span>
-                </div>
+                {primaryType && (
+                  <div className={componentsTheme.applyRegistrationTypes.feeRow}>
+                    <span className={componentsTheme.applyRegistrationTypes.priceText}>
+                      {`${primaryType.currency} ${primaryType.price}`}
+                    </span>
+                    <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
+                      Registration Fee
+                    </span>
+                  </div>
+                )}
+                {registrationPeriodLabel && (
+                  <div className={componentsTheme.applyRegistrationTypes.periodRow}>
+                    <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
+                    <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
+                      Registration Period:
+                    </span>
+                    <span>{registrationPeriodLabel}</span>
+                  </div>
+                )}
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
                 <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>
@@ -184,36 +185,27 @@ export default function RegistrationTypePrograms({
                     </li>
                   ))}
                 </ul>
-                <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
-                  Benefit
-                </p>
-                <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {primaryBenefits.length > 0 ? (
-                    primaryBenefits.map((label, idx) => (
-                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                        <span
-                          className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                        >
-                          <Check className="h-3 w-3" />
-                        </span>
-                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>
-                          {label}
-                        </span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span
-                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                      >
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>
-                        {DATA_NOT_ADDED}
-                      </span>
-                    </li>
-                  )}
-                </ul>
+                {primaryBenefits.length > 0 && (
+                  <>
+                    <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+                      Benefit
+                    </p>
+                    <ul className={componentsTheme.applyRegistrationTypes.list}>
+                      {primaryBenefits.map((label, idx) => (
+                        <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                          <span
+                            className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                          >
+                            <Check className="h-3 w-3" />
+                          </span>
+                          <span className={componentsTheme.applyRegistrationTypes.listItemText}>
+                            {label}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
@@ -250,23 +242,25 @@ export default function RegistrationTypePrograms({
                     Closed
                   </span>
                 </div>
-                <div className={componentsTheme.applyRegistrationTypes.feeRow}>
-                  <span className={componentsTheme.applyRegistrationTypes.priceText}>
-                    {secondaryType
-                      ? `${secondaryType.currency} ${secondaryType.price}`
-                      : DATA_NOT_ADDED}
-                  </span>
-                  <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
-                    Registration Fee
-                  </span>
-                </div>
-                <div className={componentsTheme.applyRegistrationTypes.periodRow}>
-                  <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
-                  <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
-                    Registration Period:
-                  </span>
-                  <span>{registrationPeriodLabel}</span>
-                </div>
+                {secondaryType && (
+                  <div className={componentsTheme.applyRegistrationTypes.feeRow}>
+                    <span className={componentsTheme.applyRegistrationTypes.priceText}>
+                      {`${secondaryType.currency} ${secondaryType.price}`}
+                    </span>
+                    <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
+                      Registration Fee
+                    </span>
+                  </div>
+                )}
+                {registrationPeriodLabel && (
+                  <div className={componentsTheme.applyRegistrationTypes.periodRow}>
+                    <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
+                    <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
+                      Registration Period:
+                    </span>
+                    <span>{registrationPeriodLabel}</span>
+                  </div>
+                )}
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
                 <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
@@ -284,36 +278,27 @@ export default function RegistrationTypePrograms({
                     </li>
                   ))}
                 </ul>
-                <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
-                  Benefit (If Selected)
-                </p>
-                <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {secondaryBenefits.length > 0 ? (
-                    secondaryBenefits.map((label, idx) => (
-                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                        <span
-                          className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                        >
-                          <Check className="h-3 w-3" />
-                        </span>
-                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>
-                          {label}
-                        </span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span
-                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                      >
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>
-                        {DATA_NOT_ADDED}
-                      </span>
-                    </li>
-                  )}
-                </ul>
+                {secondaryBenefits.length > 0 && (
+                  <>
+                    <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+                      Benefit (If Selected)
+                    </p>
+                    <ul className={componentsTheme.applyRegistrationTypes.list}>
+                      {secondaryBenefits.map((label, idx) => (
+                        <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                          <span
+                            className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                          >
+                            <Check className="h-3 w-3" />
+                          </span>
+                          <span className={componentsTheme.applyRegistrationTypes.listItemText}>
+                            {label}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
@@ -340,9 +325,9 @@ export default function RegistrationTypePrograms({
                   Make sure you understand the key details about payments, selection, guarantees, and important deadlines before choosing your registration type. This overview is designed to help you make a well-informed decision.
                 </p>
 
-                <div className={componentsTheme.homeImportantPayment.infoPointsWrapper}>
-                  {infoInstructions.length > 0 ? (
-                    infoInstructions.map(item => (
+                {infoInstructions.length > 0 && (
+                  <div className={componentsTheme.homeImportantPayment.infoPointsWrapper}>
+                    {infoInstructions.map(item => (
                       <div
                         key={item.title}
                         className={componentsTheme.homeImportantPayment.infoPointRow}
@@ -359,13 +344,9 @@ export default function RegistrationTypePrograms({
                           </p>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <p className={componentsTheme.homeImportantPayment.infoPointBody}>
-                      {DATA_NOT_ADDED}
-                    </p>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className={componentsTheme.homeImportantPayment.infoFooter}>
