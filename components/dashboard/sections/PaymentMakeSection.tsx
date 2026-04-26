@@ -18,6 +18,12 @@ import { componentsTheme } from "@/lib/theme/components";
 import { useSettings } from "@/components/providers/SettingsProvider";
 import PaymentPageSkeleton from "@/components/dashboard/payments/PaymentPageSkeleton";
 import { getEnvelopeData, getErrorMessage, isRecord } from "@/lib/api/response";
+import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
+import {
+  ACTIVE_PROGRAM_CHANGED_EVENT,
+  appendProgramId,
+  readActiveProgramId,
+} from "@/lib/dashboard/activeProgram";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -46,6 +52,13 @@ interface InvoiceData {
   dueDate: string;
   status: string;
   currency?: string;
+}
+
+function buildDefaultChecklistItems(programName?: string | null): string[] {
+  return [
+    "If I am not selected as a fully funded participant, I agree to continue as a self-funded participant, and the payment is non-refundable.",
+    `I am ready to join ${programName?.trim() || "this program"}.`,
+  ];
 }
 
 function toPaymentMethodData(value: unknown): PaymentMethodData | null {
@@ -118,6 +131,25 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [programSelectionReady, setProgramSelectionReady] = useState(false);
+  const [programName, setProgramName] = useState<string | null>(null);
+  const [agreementItems, setAgreementItems] = useState<string[]>([]);
+  const [agreementChecked, setAgreementChecked] = useState<boolean[]>([]);
+
+  useEffect(() => {
+    const syncSelectedProgram = () => {
+      setSelectedProgramId(readActiveProgramId());
+      setProgramSelectionReady(true);
+    };
+
+    syncSelectedProgram();
+    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, syncSelectedProgram as EventListener);
+
+    return () => {
+      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, syncSelectedProgram as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -192,14 +224,57 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    if (!programSelectionReady) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = (await res.json().catch(() => null)) as unknown;
+        if (!res.ok) {
+          throw new Error(getErrorMessage(json, "Failed to load submission detail"));
+        }
+
+        const detail = toPortalSubmissionDetail(getEnvelopeData(json));
+        const nextProgramName = detail?.programName ?? null;
+        const previewChecklistItems = detail?.previewChecklistItems ?? [];
+        const nextAgreementItems: string[] =
+          previewChecklistItems.length > 0
+            ? previewChecklistItems
+            : buildDefaultChecklistItems(nextProgramName ?? settings?.active_program?.name ?? null);
+
+        if (!cancelled) {
+          setProgramName(nextProgramName);
+          setAgreementItems(nextAgreementItems);
+          setAgreementChecked(nextAgreementItems.map(() => false));
+        }
+      } catch {
+        if (!cancelled) {
+          const fallbackItems = buildDefaultChecklistItems(settings?.active_program?.name ?? null);
+          setAgreementItems(fallbackItems);
+          setAgreementChecked(fallbackItems.map(() => false));
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [programSelectionReady, selectedProgramId, settings?.active_program?.name]);
+
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodData[]>([]);
   const [methodsLoading, setMethodsLoading] = useState(false);
 
   const [paymentType, setPaymentType] = useState<"gateway" | "manual">("gateway");
   const [manualMethod, setManualMethod] = useState<string>("");
   const [gatewayMethod, setGatewayMethod] = useState<string>("");
-  const [agreeFunding, setAgreeFunding] = useState(false);
-  const [agreeReady, setAgreeReady] = useState(false);
   const [manualAccountName, setManualAccountName] = useState("");
   const [manualSourceName, setManualSourceName] = useState("");
   const [manualPaymentDate, setManualPaymentDate] = useState("");
@@ -221,6 +296,10 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
 
   const selectedManualMethodObj = manualMethods.find((method) => method.code === manualMethod) ?? null;
   const selectedGatewayMethodObj = gatewayMethods.find((method) => method.code === gatewayMethod) ?? null;
+  const displayedAgreementItems =
+    agreementItems.length > 0
+      ? agreementItems
+      : buildDefaultChecklistItems(programName ?? settings?.active_program?.name ?? null);
 
   const renderMethodCardSkeletons = (prefix: string) =>
     Array.from({ length: 4 }).map((_, index) => (
@@ -234,11 +313,13 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
       </div>
     ));
 
-  const isGatewayComplete = paymentType === "gateway" && agreeFunding && agreeReady && gatewayMethod !== "";
+  const allAgreementsChecked =
+    displayedAgreementItems.length > 0 &&
+    displayedAgreementItems.every((_, index) => agreementChecked[index] === true);
+  const isGatewayComplete = paymentType === "gateway" && allAgreementsChecked && gatewayMethod !== "";
   const isManualComplete =
     paymentType === "manual" &&
-    agreeFunding &&
-    agreeReady &&
+    allAgreementsChecked &&
     manualMethod !== "" &&
     manualAccountName.trim() !== "" &&
     manualSourceName.trim() !== "" &&
@@ -709,36 +790,34 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
           {/* Agreement section */}
           <div className={paymentsTheme.agreementCard}>
             <p className={paymentsTheme.agreementTitle}>Before you continue</p>
-            <label className={paymentsTheme.agreementRowBrand}>
-              <input
-                type="checkbox"
-                className={paymentsTheme.agreementCheckboxBrand}
-                checked={agreeFunding}
-                onChange={(e) => setAgreeFunding(e.target.checked)}
-              />
-              <div className={paymentsTheme.agreementRowInner}>
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                <span className="leading-snug">
-                  If I am not selected as a fully funded participant, I agree to continue as a self-funded participant,
-                  and the payment is non-refundable.
-                </span>
-              </div>
-            </label>
+            {displayedAgreementItems.map((item, index) => {
+              const rowClassName = index % 2 === 0 ? paymentsTheme.agreementRowBrand : paymentsTheme.agreementRowIndigo;
+              const checkboxClassName =
+                index % 2 === 0 ? paymentsTheme.agreementCheckboxBrand : paymentsTheme.agreementCheckboxIndigo;
+              const Icon = index % 2 === 0 ? ShieldCheck : Globe2;
 
-            <label className={paymentsTheme.agreementRowIndigo}>
-              <input
-                type="checkbox"
-                className={paymentsTheme.agreementCheckboxIndigo}
-                checked={agreeReady}
-                onChange={(e) => setAgreeReady(e.target.checked)}
-              />
-              <div className={paymentsTheme.agreementRowInner}>
-                <Globe2 className="h-4 w-4 text-primary" />
-                <span className="leading-snug">
-                  I am ready to join the Japan Youth Summit 2026 in Kyoto, Japan.
-                </span>
-              </div>
-            </label>
+              return (
+                <label key={`${item}-${index}`} className={rowClassName}>
+                  <input
+                    type="checkbox"
+                    className={checkboxClassName}
+                    checked={agreementChecked[index] ?? false}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setAgreementChecked((current) => {
+                        const next = displayedAgreementItems.map((_, itemIndex) => current[itemIndex] ?? false);
+                        next[index] = checked;
+                        return next;
+                      });
+                    }}
+                  />
+                  <div className={paymentsTheme.agreementRowInner}>
+                    <Icon className="h-4 w-4 text-primary" />
+                    <span className="leading-snug">{item}</span>
+                  </div>
+                </label>
+              );
+            })}
           </div>
 
           <div className={paymentsTheme.completeButtonWrapper}>
