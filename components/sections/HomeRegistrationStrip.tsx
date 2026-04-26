@@ -1,4 +1,7 @@
-import { MapPin, Calendar, Check, CreditCard } from 'lucide-react';
+"use client";
+
+import { useEffect, useMemo, useState } from 'react';
+import { Calendar, Check, ChevronLeft, ChevronRight, CreditCard, ExternalLink, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
@@ -24,30 +27,6 @@ type RegistrationType = {
   validity_periods?: ValidityPeriod[];
 };
 
-function isRegistrationOpen(periods: ValidityPeriod[] | undefined): boolean {
-  if (!periods || periods.length === 0) return false;
-  const now = new Date();
-  return periods.some(
-    (p) => new Date(p.start_date) <= now && now <= new Date(p.end_date),
-  );
-}
-
-function getActivePeriodLabel(periods: ValidityPeriod[] | undefined): string {
-  if (!periods || periods.length === 0) return 'TBD';
-  const now = new Date();
-  const fmt = (d: string) =>
-    new Date(d).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-  const active = periods.find(
-    (p) => new Date(p.start_date) <= now && now <= new Date(p.end_date),
-  );
-  if (active) return `${fmt(active.start_date)} – ${fmt(active.end_date)}`;
-  const upcoming = periods.find((p) => new Date(p.start_date) > now);
-  if (upcoming) return `${fmt(upcoming.start_date)} – ${fmt(upcoming.end_date)}`;
-  // all periods have passed — show the last one
-  const last = periods[periods.length - 1];
-  return `${fmt(last.start_date)} – ${fmt(last.end_date)}`;
-}
-
 type Guideline = {
   id: string;
   title: string;
@@ -61,6 +40,25 @@ type HomeRegistrationStripProps = {
   guidelines?: Guideline[];
 };
 
+function isRegistrationOpen(periods: ValidityPeriod[] | undefined): boolean {
+  if (!periods || periods.length === 0) return false;
+  const now = new Date();
+  return periods.some((p) => new Date(p.start_date) <= now && now <= new Date(p.end_date));
+}
+
+function getActivePeriodLabel(periods: ValidityPeriod[] | undefined): string {
+  if (!periods || periods.length === 0) return 'TBD';
+  const now = new Date();
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+  const active = periods.find((p) => new Date(p.start_date) <= now && now <= new Date(p.end_date));
+  if (active) return `${fmt(active.start_date)} - ${fmt(active.end_date)}`;
+  const upcoming = periods.find((p) => new Date(p.start_date) > now);
+  if (upcoming) return `${fmt(upcoming.start_date)} - ${fmt(upcoming.end_date)}`;
+  const last = periods[periods.length - 1];
+  return `${fmt(last.start_date)} - ${fmt(last.end_date)}`;
+}
+
 export default function HomeRegistrationStrip({
   igFeed,
   registrationTypes,
@@ -68,12 +66,46 @@ export default function HomeRegistrationStrip({
 }: HomeRegistrationStripProps) {
   if (!registrationTypes || registrationTypes.length === 0) return null;
 
-  const primaryPost = igFeed?.[0];
-  const primaryType = registrationTypes?.[0];
-  const secondaryType = registrationTypes?.[1];
+  const posts = useMemo(
+    () =>
+      (igFeed ?? []).filter(
+        (item): item is InstagramFeedItem =>
+          Boolean(item?.id && item?.permalink && item?.imageUrl),
+      ),
+    [igFeed],
+  );
+  const [activePostIndex, setActivePostIndex] = useState(0);
+
+  useEffect(() => {
+    setActivePostIndex(0);
+  }, [posts.length]);
+
+  useEffect(() => {
+    if (posts.length <= 1) return;
+
+    const timer = window.setInterval(() => {
+      setActivePostIndex((current) => (current + 1) % posts.length);
+    }, 4500);
+
+    return () => window.clearInterval(timer);
+  }, [posts.length]);
+
+  const activePost = posts[activePostIndex] ?? null;
+  const primaryType = registrationTypes[0];
+  const secondaryType = registrationTypes[1];
 
   const primaryOpen = isRegistrationOpen(primaryType?.validity_periods);
   const secondaryOpen = isRegistrationOpen(secondaryType?.validity_periods);
+
+  const previousPost = () => {
+    setActivePostIndex((current) => (current - 1 + posts.length) % posts.length);
+  };
+
+  const nextPost = () => {
+    setActivePostIndex((current) => (current + 1) % posts.length);
+  };
+
+  const displayedGuidelines = (guidelines ?? []).filter((guide) => Boolean(guide.url)).slice(0, 2);
 
   return (
     <section className={componentsTheme.homeRegistration.sectionWrapper}>
@@ -87,92 +119,131 @@ export default function HomeRegistrationStrip({
         </p>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.6fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.7fr)]">
-          {/* Kiri: Instagram feed + tombol guidebook */}
           <div className="flex flex-col gap-4">
-            <div className={componentsTheme.homeRegistration.instagramCard}>
-              <div className={componentsTheme.homeRegistration.instagramHeader}>
-                Official Instagram Feed
+            <div className={`${componentsTheme.homeRegistration.instagramCard} p-0`}>
+              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                <div>
+                  <p className={componentsTheme.homeRegistration.instagramHeader}>Official Instagram Feed</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {posts.length > 0
+                      ? `${posts.length} post${posts.length === 1 ? '' : 's'} from the latest active feed`
+                      : 'Landing feed updates from the brand social feed manager.'}
+                  </p>
+                </div>
+                {posts.length > 1 ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={previousPost}
+                      aria-label="Previous Instagram post"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextPost}
+                      aria-label="Next Instagram post"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : null}
               </div>
-              <div className="relative h-[320px] w-full overflow-hidden rounded-xl bg-slate-100">
-                {primaryPost ? (
+
+              {activePost ? (
+                <div className="p-4">
                   <a
-                    href={primaryPost.permalink}
+                    href={activePost.permalink}
                     target="_blank"
                     rel="noreferrer"
-                    className="group block h-full w-full"
+                    className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white"
                   >
-                    <Image
-                      src={primaryPost.imageUrl}
-                      alt={primaryPost.caption || 'Instagram post'}
-                      fill
-                      sizes="(min-width: 1024px) 360px, 100vw"
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                    />
+                    <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
+                      <Image
+                        src={activePost.imageUrl}
+                        alt={activePost.caption || 'Instagram post'}
+                        fill
+                        sizes="(min-width: 1280px) 420px, (min-width: 1024px) 34vw, 100vw"
+                        className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                        unoptimized={activePost.imageUrl.startsWith('http')}
+                      />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-transparent p-4">
+                        <div className="inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-900">
+                          Instagram
+                        </div>
+                        <p className="mt-3 line-clamp-3 text-sm font-medium text-white">
+                          {activePost.caption?.trim() || 'Open this post on Instagram'}
+                        </p>
+                      </div>
+                    </div>
                   </a>
-                ) : (
-                  <div className="flex h-full items-center justify-center px-6 text-center text-sm text-slate-500">
-                    Instagram feed will appear here once available.
-                  </div>
-                )}
-              </div>
-              <div className={componentsTheme.homeRegistration.instagramFooter}>
-                {primaryPost && (
-                  <div className="flex w-full flex-col items-center text-center">
-                    <p className="mb-1 line-clamp-2 text-xs text-slate-600">
-                      {primaryPost.caption}
-                    </p>
+
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      {posts.map((post, index) => (
+                        <button
+                          key={post.id}
+                          type="button"
+                          aria-label={`Show Instagram post ${index + 1}`}
+                          onClick={() => setActivePostIndex(index)}
+                          className={`h-2.5 rounded-full transition-all ${
+                            index === activePostIndex ? 'w-7 bg-primary' : 'w-2.5 bg-slate-300 hover:bg-slate-400'
+                          }`}
+                        />
+                      ))}
+                    </div>
                     <a
-                      href={primaryPost.permalink}
+                      href={activePost.permalink}
                       target="_blank"
                       rel="noreferrer"
-                      className={componentsTheme.homeRegistration.instagramLink}
+                      className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80"
                     >
-                      View post on Instagram
+                      View on Instagram
+                      <ExternalLink className="h-4 w-4" />
                     </a>
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="flex min-h-[420px] items-center justify-center px-6 text-center text-sm text-slate-500">
+                  Instagram feed will appear here once active posts are available.
+                </div>
+              )}
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              {guidelines && guidelines.length > 0 ? (
-                guidelines.slice(0, 2).map((guide, index) => (
+            <div className="grid gap-3">
+              {displayedGuidelines.length > 0 ? (
+                displayedGuidelines.map((guide, index) => (
                   <a
                     key={guide.id}
                     href={guide.url}
                     target="_blank"
                     rel="noreferrer"
-                    className={
+                    className={`group flex items-center justify-between rounded-2xl border px-4 py-3 text-left shadow-sm transition ${
                       index === 0
-                        ? componentsTheme.homeRegistration.guidePrimary
-                        : componentsTheme.homeRegistration.guideSecondary
-                    }
+                        ? 'border-primary/20 bg-primary/[0.04] hover:border-primary/35 hover:bg-primary/[0.06]'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    }`}
                   >
-                    {guide.title}
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        Guidebook
+                      </p>
+                      <p className="mt-1 truncate text-sm font-semibold text-slate-900">{guide.title}</p>
+                    </div>
+                    <ExternalLink className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-primary" />
                   </a>
                 ))
               ) : (
-                <>
-                  <a
-                    href="#guidebook-en"
-                    className={componentsTheme.homeRegistration.guidePrimary}
-                  >
-                    Download Guidebook (EN)
-                  </a>
-                  <a
-                    href="#guidebook-id"
-                    className={componentsTheme.homeRegistration.guideSecondary}
-                  >
-                    Download Guidebook (ID)
-                  </a>
-                </>
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-4 py-6 text-center text-sm text-slate-500">
+                  Guidebooks will appear here once program resources are published.
+                </div>
               )}
             </div>
           </div>
 
-          {/* Kanan: kartu Self Funded & Fully Funded */}
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Self Funded */}
             <div className={componentsTheme.applyRegistrationTypes.card}>
               <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
                 <div className={componentsTheme.applyRegistrationTypes.headerRow}>
@@ -201,9 +272,7 @@ export default function HomeRegistrationStrip({
                 </div>
                 <div className={componentsTheme.applyRegistrationTypes.feeRow}>
                   <span className={componentsTheme.applyRegistrationTypes.priceText}>
-                    {primaryType
-                      ? `${primaryType.currency} ${primaryType.price}`
-                      : '$15.00'}
+                    {primaryType ? `${primaryType.currency} ${primaryType.price}` : '$15.00'}
                   </span>
                   <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
                     Registration Fee
@@ -226,9 +295,7 @@ export default function HomeRegistrationStrip({
                     'Pay fees according to scheduled payment batches',
                   ].map((label, idx) => (
                     <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span
-                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                      >
+                      <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
                         <Check className="h-3 w-3" />
                       </span>
                       <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
@@ -243,9 +310,7 @@ export default function HomeRegistrationStrip({
                     'You pay all scheduled fee batches yourself',
                   ]).map((label, idx) => (
                     <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span
-                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                      >
+                      <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
                         <Check className="h-3 w-3" />
                       </span>
                       <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
@@ -275,7 +340,6 @@ export default function HomeRegistrationStrip({
               </div>
             </div>
 
-            {/* Fully Funded */}
             <div className={componentsTheme.applyRegistrationTypes.card}>
               <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
                 <div className={componentsTheme.applyRegistrationTypes.headerRowTopAligned}>
@@ -304,9 +368,7 @@ export default function HomeRegistrationStrip({
                 </div>
                 <div className={componentsTheme.applyRegistrationTypes.feeRow}>
                   <span className={componentsTheme.applyRegistrationTypes.priceText}>
-                    {secondaryType
-                      ? `${secondaryType.currency} ${secondaryType.price}`
-                      : '$10.00'}
+                    {secondaryType ? `${secondaryType.currency} ${secondaryType.price}` : '$10.00'}
                   </span>
                   <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
                     Registration Fee
@@ -329,9 +391,7 @@ export default function HomeRegistrationStrip({
                     'Participate in interviews and evaluations',
                   ].map((label, idx) => (
                     <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span
-                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                      >
+                      <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
                         <Check className="h-3 w-3" />
                       </span>
                       <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
@@ -348,9 +408,7 @@ export default function HomeRegistrationStrip({
                     'Access to exclusive fully funded activities',
                   ]).map((label, idx) => (
                     <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span
-                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                      >
+                      <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
                         <Check className="h-3 w-3" />
                       </span>
                       <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
