@@ -1,64 +1,60 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
-import { Download, AlertTriangle, CheckCircle } from "lucide-react";
-import { componentsTheme } from "@/lib/theme/components";
-import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { ArrowUpRight, Download, AlertTriangle, CheckCircle } from 'lucide-react';
+import { componentsTheme } from '@/lib/theme/components';
+import DashboardPageSkeleton from '@/components/dashboard/ui/DashboardPageSkeleton';
 import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
   readActiveProgramId,
-} from "@/lib/dashboard/activeProgram";
-import { getEnvelopeData, getErrorMessage, isRecord } from "@/lib/api/response";
+} from '@/lib/dashboard/activeProgram';
+import { getEnvelopeData, getErrorMessage, isRecord } from '@/lib/api/response';
+import {
+  type DocumentItem,
+  formatDocumentDateLabel,
+  getProgramResourceDetailHref,
+  toDocumentItem,
+} from '@/lib/dashboard/documents';
 
-const TABS = ["All", "Upload Required", "Can Generate", "Reference"] as const;
+const TABS = ['All', 'Upload Required', 'Can Generate', 'Reference'] as const;
 type TabKey = (typeof TABS)[number];
 
-type SortField = "name" | "description" | "type" | "actions";
-type SortDirection = "asc" | "desc";
-type CertSortField = "id" | "award" | "assignment" | "status" | "action";
+type SortField = 'name' | 'description' | 'type' | 'actions';
+type SortDirection = 'asc' | 'desc';
+type CertSortField = 'id' | 'award' | 'assignment' | 'status' | 'action';
 
 interface ProgramDocument {
   name: string;
   description: string;
   type: string;
-  category: "reference" | "upload_required" | "can_generate";
+  category: 'reference' | 'upload_required' | 'can_generate';
 }
 
 interface Certificate {
   id: string;
   award: string;
   assignment: string;
-  status: "Approved" | "Ongoing" | string;
+  status: 'Approved' | 'Ongoing' | string;
 }
 
-// New types added in Task 6 — present in backend API but not previously typed on frontend
-interface DocumentItem {
-  id: string;
-  title: string;
-  description?: string;
-  documentType: string;
-  fileUrl?: string;
-  submissionStatus?: string;
-  signedCopyUrl?: string;
-  rejectionReason?: string;
-}
-
-function normalizeDocumentCategory(value: unknown): ProgramDocument["category"] {
-  if (value === "upload_required" || value === "can_generate" || value === "reference") {
+function normalizeDocumentCategory(value: unknown): ProgramDocument['category'] {
+  if (value === 'upload_required' || value === 'can_generate' || value === 'reference') {
     return value;
   }
-  return "reference";
+  return 'reference';
 }
 
 function toProgramDocument(value: unknown): ProgramDocument | null {
   if (!isRecord(value)) return null;
 
   const name =
-    typeof value.name === "string"
+    typeof value.name === 'string'
       ? value.name
-      : typeof value.title === "string"
+      : typeof value.title === 'string'
         ? value.title
         : null;
 
@@ -66,42 +62,23 @@ function toProgramDocument(value: unknown): ProgramDocument | null {
 
   return {
     name,
-    description: typeof value.description === "string" ? value.description : "",
-    type: typeof value.type === "string" ? value.type : "Document",
+    description: typeof value.description === 'string' ? value.description : '',
+    type: typeof value.type === 'string' ? value.type : 'Document',
     category: normalizeDocumentCategory(value.category),
-  };
-}
-
-function toDocumentItem(value: unknown): DocumentItem | null {
-  if (!isRecord(value)) return null;
-
-  const id = typeof value.id === "string" ? value.id : null;
-  const title = typeof value.title === "string" ? value.title : null;
-  if (!id || !title) return null;
-
-  return {
-    id,
-    title,
-    description: typeof value.description === "string" ? value.description : undefined,
-    documentType: typeof value.documentType === "string" ? value.documentType : "document",
-    fileUrl: typeof value.fileUrl === "string" ? value.fileUrl : undefined,
-    submissionStatus: typeof value.submissionStatus === "string" ? value.submissionStatus : undefined,
-    signedCopyUrl: typeof value.signedCopyUrl === "string" ? value.signedCopyUrl : undefined,
-    rejectionReason: typeof value.rejectionReason === "string" ? value.rejectionReason : undefined,
   };
 }
 
 function toCertificate(value: unknown): Certificate | null {
   if (!isRecord(value)) return null;
 
-  const id = typeof value.id === "string" ? value.id : null;
+  const id = typeof value.id === 'string' ? value.id : null;
   if (!id) return null;
 
   return {
     id,
-    award: typeof value.award === "string" ? value.award : "-",
-    assignment: typeof value.assignment === "string" ? value.assignment : "-",
-    status: typeof value.status === "string" ? value.status : "Ongoing",
+    award: typeof value.award === 'string' ? value.award : '-',
+    assignment: typeof value.assignment === 'string' ? value.assignment : '-',
+    status: typeof value.status === 'string' ? value.status : 'Ongoing',
   };
 }
 
@@ -161,12 +138,13 @@ function CertificatesRowsSkeleton() {
 }
 
 export default function DocumentsSection() {
-  const [activeTab, setActiveTab] = useState<TabKey>("All");
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [activeCertificatesTab, setActiveCertificatesTab] = useState<TabKey>("All");
-  const [certSortField, setCertSortField] = useState<CertSortField>("id");
-  const [certSortDirection, setCertSortDirection] = useState<SortDirection>("asc");
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<TabKey>('All');
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [activeCertificatesTab, setActiveCertificatesTab] = useState<TabKey>('All');
+  const [certSortField, setCertSortField] = useState<CertSortField>('id');
+  const [certSortDirection, setCertSortDirection] = useState<SortDirection>('asc');
 
   const [programDocuments, setProgramDocuments] = useState<ProgramDocument[]>([]);
   const [programResources, setProgramResources] = useState<DocumentItem[]>([]);
@@ -184,17 +162,17 @@ export default function DocumentsSection() {
       setErrorDocs(null);
 
       const programId = readActiveProgramId();
-      const url = appendProgramId("/api/portal/documents", programId);
+      const url = appendProgramId('/api/portal/documents', programId);
 
       const response = await fetch(url, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        cache: "no-store",
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
       });
 
       const json = (await response.json().catch(() => null)) as unknown;
       if (!response.ok) {
-        throw new Error(getErrorMessage(json, "Failed to load documents"));
+        throw new Error(getErrorMessage(json, 'Failed to load documents'));
       }
 
       const payload = getEnvelopeData(json);
@@ -206,24 +184,24 @@ export default function DocumentsSection() {
           ? payloadRecord.items
               .map(toProgramDocument)
               .filter((item): item is ProgramDocument => item !== null)
-          : [],
+          : []
       );
       setProgramResources(
         Array.isArray(payloadRecord?.programResources)
           ? payloadRecord.programResources
               .map(toDocumentItem)
               .filter((item): item is DocumentItem => item !== null)
-          : [],
+          : []
       );
       setMyDocuments(
         Array.isArray(payloadRecord?.myDocuments)
           ? payloadRecord.myDocuments
               .map(toDocumentItem)
               .filter((item): item is DocumentItem => item !== null)
-          : [],
+          : []
       );
     } catch (err) {
-      setErrorDocs(err instanceof Error ? err.message : "Failed to load documents");
+      setErrorDocs(err instanceof Error ? err.message : 'Failed to load documents');
     } finally {
       setLoadingDocs(false);
     }
@@ -248,9 +226,12 @@ export default function DocumentsSection() {
 
     return () => {
       cancelled = true;
-      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleProgramChange as EventListener);
+      window.removeEventListener(
+        ACTIVE_PROGRAM_CHANGED_EVENT,
+        handleProgramChange as EventListener
+      );
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch certificates
@@ -262,15 +243,15 @@ export default function DocumentsSection() {
         setLoadingCerts(true);
         setErrorCerts(null);
 
-        const response = await fetch("/api/portal/certificates", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
+        const response = await fetch('/api/portal/certificates', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
         });
 
         const json = (await response.json().catch(() => null)) as unknown;
         if (!response.ok) {
-          throw new Error(getErrorMessage(json, "Failed to load certificates"));
+          throw new Error(getErrorMessage(json, 'Failed to load certificates'));
         }
 
         if (!cancelled) {
@@ -281,12 +262,12 @@ export default function DocumentsSection() {
               ? payloadRecord.items
                   .map(toCertificate)
                   .filter((item): item is Certificate => item !== null)
-              : [],
+              : []
           );
         }
       } catch (err) {
         if (!cancelled) {
-          setErrorCerts(err instanceof Error ? err.message : "Failed to load certificates");
+          setErrorCerts(err instanceof Error ? err.message : 'Failed to load certificates');
         }
       } finally {
         if (!cancelled) {
@@ -302,39 +283,39 @@ export default function DocumentsSection() {
 
   const handleSortClick = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(prev => (prev === "asc" ? "desc" : "asc"));
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortField(field);
-      setSortDirection("asc");
+      setSortDirection('asc');
     }
   };
 
   const filteredSortedDocuments = useMemo(() => {
     let items = programDocuments;
-    if (activeTab === "Upload Required") {
-      items = programDocuments.filter(d => d.category === "upload_required");
-    } else if (activeTab === "Can Generate") {
-      items = programDocuments.filter(d => d.category === "can_generate");
-    } else if (activeTab === "Reference") {
-      items = programDocuments.filter(d => d.category === "reference");
+    if (activeTab === 'Upload Required') {
+      items = programDocuments.filter(d => d.category === 'upload_required');
+    } else if (activeTab === 'Can Generate') {
+      items = programDocuments.filter(d => d.category === 'can_generate');
+    } else if (activeTab === 'Reference') {
+      items = programDocuments.filter(d => d.category === 'reference');
     }
 
     const sorted = [...items].sort((a, b) => {
-      const dir = sortDirection === "asc" ? 1 : -1;
+      const dir = sortDirection === 'asc' ? 1 : -1;
       let av: string;
       let bv: string;
-      if (sortField === "name") {
+      if (sortField === 'name') {
         av = a.name;
         bv = b.name;
-      } else if (sortField === "description") {
+      } else if (sortField === 'description') {
         av = a.description;
         bv = b.description;
-      } else if (sortField === "type") {
+      } else if (sortField === 'type') {
         av = a.type;
         bv = b.type;
       } else {
-        av = "Download";
-        bv = "Download";
+        av = 'Download';
+        bv = 'Download';
       }
       return av.localeCompare(bv) * dir;
     });
@@ -344,33 +325,33 @@ export default function DocumentsSection() {
 
   const filteredSortedCertificates = useMemo(() => {
     let items = certificates;
-    if (activeCertificatesTab === "Upload Required") {
+    if (activeCertificatesTab === 'Upload Required') {
       items = [];
-    } else if (activeCertificatesTab === "Can Generate") {
+    } else if (activeCertificatesTab === 'Can Generate') {
       items = [];
-    } else if (activeCertificatesTab === "Reference") {
+    } else if (activeCertificatesTab === 'Reference') {
       items = certificates;
     }
 
     const sorted = [...items].sort((a, b) => {
-      const dir = certSortDirection === "asc" ? 1 : -1;
+      const dir = certSortDirection === 'asc' ? 1 : -1;
       let av: string;
       let bv: string;
-      if (certSortField === "id") {
+      if (certSortField === 'id') {
         av = a.id;
         bv = b.id;
-      } else if (certSortField === "award") {
+      } else if (certSortField === 'award') {
         av = a.award;
         bv = b.award;
-      } else if (certSortField === "assignment") {
+      } else if (certSortField === 'assignment') {
         av = a.assignment;
         bv = b.assignment;
-      } else if (certSortField === "status") {
+      } else if (certSortField === 'status') {
         av = a.status;
         bv = b.status;
       } else {
-        av = "Download";
-        bv = "Download";
+        av = 'Download';
+        bv = 'Download';
       }
       return av.localeCompare(bv) * dir;
     });
@@ -380,10 +361,10 @@ export default function DocumentsSection() {
 
   const handleCertSortClick = (field: CertSortField) => {
     if (certSortField === field) {
-      setCertSortDirection(prev => (prev === "asc" ? "desc" : "asc"));
+      setCertSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setCertSortField(field);
-      setCertSortDirection("asc");
+      setCertSortDirection('asc');
     }
   };
 
@@ -396,8 +377,20 @@ export default function DocumentsSection() {
     certificates.length === 0;
 
   if (showInitialSkeleton) {
-    return <DashboardPageSkeleton variant="documents" className={componentsTheme.dashboardDocuments.sectionWrapper} />;
+    return (
+      <DashboardPageSkeleton
+        variant="documents"
+        className={componentsTheme.dashboardDocuments.sectionWrapper}
+      />
+    );
   }
+
+  const handleResourceRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, href: string) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      router.push(href);
+    }
+  };
 
   return (
     <div className={componentsTheme.dashboardDocuments.sectionWrapper}>
@@ -412,9 +405,7 @@ export default function DocumentsSection() {
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`${
-                    componentsTheme.dashboardDocuments.tabButton
-                  } ${
+                  className={`${componentsTheme.dashboardDocuments.tabButton} ${
                     activeTab === tab
                       ? componentsTheme.dashboardDocuments.tabButtonActive
                       : componentsTheme.dashboardDocuments.tabButtonInactive
@@ -434,42 +425,42 @@ export default function DocumentsSection() {
             >
               <button
                 type="button"
-                onClick={() => handleSortClick("name")}
+                onClick={() => handleSortClick('name')}
                 className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
               >
                 <span>Document Name</span>
                 <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                  {sortField === "name" ? (sortDirection === "asc" ? "↑" : "↓") : "↕"}
+                  {sortField === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                 </span>
               </button>
               <button
                 type="button"
-                onClick={() => handleSortClick("description")}
+                onClick={() => handleSortClick('description')}
                 className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
               >
                 <span>Description</span>
                 <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                  {sortField === "description" ? (sortDirection === "asc" ? "↑" : "↓") : "↕"}
+                  {sortField === 'description' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                 </span>
               </button>
               <button
                 type="button"
-                onClick={() => handleSortClick("type")}
+                onClick={() => handleSortClick('type')}
                 className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
               >
                 <span>Type</span>
                 <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                  {sortField === "type" ? (sortDirection === "asc" ? "↑" : "↓") : "↕"}
+                  {sortField === 'type' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                 </span>
               </button>
               <button
                 type="button"
-                onClick={() => handleSortClick("actions")}
+                onClick={() => handleSortClick('actions')}
                 className={componentsTheme.dashboardDocuments.tableHeaderSortButtonRight}
               >
                 <span>Actions</span>
                 <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                  {sortField === "actions" ? (sortDirection === "asc" ? "↑" : "↓") : "↕"}
+                  {sortField === 'actions' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                 </span>
               </button>
             </div>
@@ -489,7 +480,7 @@ export default function DocumentsSection() {
                     alt="No documents illustration"
                     width={260}
                     height={160}
-                    className="h-auto w-auto max-h-40"
+                    className="h-auto max-h-40 w-auto"
                   />
                 </div>
                 <p className={componentsTheme.dashboardDocuments.emptyStateTitle}>
@@ -530,42 +521,84 @@ export default function DocumentsSection() {
 
       {/* Program Resources section (new — complementary documents) */}
       {!loadingDocs && programResources.length > 0 && (
-        <div className="mt-6">
-          <h2 className={componentsTheme.dashboardDocuments.certificatesTitle}>Program Resources</h2>
-          <p className={componentsTheme.dashboardDocuments.certificatesSubtitle}>
-            Additional resources and complementary documents provided for your program.
-          </p>
+        <div className="mt-6 space-y-4">
+          <div className="space-y-2">
+            <h2 className={componentsTheme.dashboardDocuments.certificatesTitle}>
+              Program Resources
+            </h2>
+            <p className={componentsTheme.dashboardDocuments.certificatesSubtitle}>
+              Additional resources and complementary documents provided for your program.
+            </p>
+          </div>
           <div className={componentsTheme.dashboardDocuments.tableCard}>
+            <div
+              className={`grid grid-cols-[1.9fr,1.25fr,0.9fr,auto] ${componentsTheme.dashboardDocuments.tableHeader}`}
+            >
+              <div>Resource Name</div>
+              <div>Type</div>
+              <div>Updated</div>
+              <div className="text-right">Actions</div>
+            </div>
             <div className={componentsTheme.dashboardDocuments.tableBody}>
-              {programResources.map(item => (
-                <div
-                  key={item.id}
-                  className={`flex items-center justify-between gap-4 ${componentsTheme.dashboardDocuments.tableRow}`}
-                >
-                  <div>
-                    <p className={componentsTheme.dashboardDocuments.docNameCell}>{item.title}</p>
-                    {item.description && (
-                      <p className={componentsTheme.dashboardDocuments.docDescriptionCell}>
-                        {item.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className={componentsTheme.dashboardDocuments.actionCell}>
-                    {item.documentType === "complementary_document" && item.fileUrl && (
-                      <a
-                        href={item.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
-                        download
+              {programResources.map(item => {
+                const detailHref = getProgramResourceDetailHref(item.id);
+
+                return (
+                  <div
+                    key={item.id}
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => router.push(detailHref)}
+                    onKeyDown={event => handleResourceRowKeyDown(event, detailHref)}
+                    className={`grid cursor-pointer grid-cols-[1.9fr,1.25fr,0.9fr,auto] ${componentsTheme.dashboardDocuments.tableRow}`}
+                  >
+                    <div className={componentsTheme.dashboardDocuments.docNameCell}>
+                      <Link
+                        href={detailHref}
+                        onClick={event => event.stopPropagation()}
+                        className="inline-flex max-w-full items-center gap-2 truncate hover:text-primary"
                       >
-                        <Download className="h-3.5 w-3.5" />
-                        Download
-                      </a>
-                    )}
+                        <span className="truncate">{item.title}</span>
+                      </Link>
+                    </div>
+                    <div className={componentsTheme.dashboardDocuments.docTypeCell}>
+                      {item.documentType}
+                    </div>
+                    <div className={componentsTheme.dashboardDocuments.docTypeCell}>
+                      {formatDocumentDateLabel(item.updatedAt)}
+                    </div>
+                    <div className={componentsTheme.dashboardDocuments.actionCell}>
+                      <div className="flex flex-nowrap items-center gap-2 whitespace-nowrap">
+                        <Link
+                          href={detailHref}
+                          onClick={event => event.stopPropagation()}
+                          aria-label={`View details for ${item.title}`}
+                          title="View details"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
+                        >
+                          <ArrowUpRight className="h-4 w-4" />
+                        </Link>
+                        {item.fileUrl ? (
+                          <a
+                            href={item.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Download ${item.title}`}
+                            title="Download"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-sm transition hover:bg-primary"
+                            onClick={event => event.stopPropagation()}
+                            download
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-400">No file</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -576,15 +609,13 @@ export default function DocumentsSection() {
         <div className="mt-6">
           <h2 className={componentsTheme.dashboardDocuments.certificatesTitle}>My Documents</h2>
           <p className={componentsTheme.dashboardDocuments.certificatesSubtitle}>
-            Personal documents assigned to you, including agreement letters requiring your signature.
+            Personal documents assigned to you, including agreement letters requiring your
+            signature.
           </p>
           <div className={componentsTheme.dashboardDocuments.tableCard}>
             <div className={componentsTheme.dashboardDocuments.tableBody}>
               {myDocuments.map(item => (
-                <div
-                  key={item.id}
-                  className={`${componentsTheme.dashboardDocuments.tableRow}`}
-                >
+                <div key={item.id} className={`${componentsTheme.dashboardDocuments.tableRow}`}>
                   <p className={componentsTheme.dashboardDocuments.docNameCell}>{item.title}</p>
                   {item.description && (
                     <p className={componentsTheme.dashboardDocuments.docDescriptionCell}>
@@ -592,7 +623,7 @@ export default function DocumentsSection() {
                     </p>
                   )}
 
-                  {item.documentType === "agreement_letter" && (
+                  {item.documentType === 'agreement_letter' && (
                     <div className="mt-2 flex flex-col gap-2">
                       {item.fileUrl && (
                         <a
@@ -607,26 +638,24 @@ export default function DocumentsSection() {
                         </a>
                       )}
 
-                      {item.submissionStatus !== "verified" && (
+                      {item.submissionStatus !== 'verified' && (
                         <SignedCopyUpload
                           templateId={item.id}
-                          submissionStatus={item.submissionStatus ?? "pending_upload"}
+                          submissionStatus={item.submissionStatus ?? 'pending_upload'}
                           signedCopyUrl={item.signedCopyUrl}
                           onUploaded={fetchDocuments}
                         />
                       )}
 
-                      {item.submissionStatus === "verified" && (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+                      {item.submissionStatus === 'verified' && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600">
                           <CheckCircle className="h-3.5 w-3.5" />
                           Signed copy verified
                         </span>
                       )}
 
-                      {item.submissionStatus === "rejected" && item.rejectionReason && (
-                        <p className="text-[11px] text-red-600">
-                          Rejected: {item.rejectionReason}
-                        </p>
+                      {item.submissionStatus === 'rejected' && item.rejectionReason && (
+                        <p className="text-[11px] text-red-600">Rejected: {item.rejectionReason}</p>
                       )}
                     </div>
                   )}
@@ -640,10 +669,12 @@ export default function DocumentsSection() {
       {/* Certificates section */}
       <div className={componentsTheme.dashboardDocuments.certificatesSectionWrapper}>
         <div>
-          <h2 className={componentsTheme.dashboardDocuments.certificatesTitle}>Your Achievement Certificates</h2>
+          <h2 className={componentsTheme.dashboardDocuments.certificatesTitle}>
+            Your Achievement Certificates
+          </h2>
           <p className={componentsTheme.dashboardDocuments.certificatesSubtitle}>
-            View and download your earned certificates. These documents certify your successful completion of
-            program milestones and achievements.
+            View and download your earned certificates. These documents certify your successful
+            completion of program milestones and achievements.
           </p>
         </div>
 
@@ -655,9 +686,7 @@ export default function DocumentsSection() {
                 key={tab}
                 type="button"
                 onClick={() => setActiveCertificatesTab(tab)}
-                className={`${
-                  componentsTheme.dashboardDocuments.tabButton
-                } ${
+                className={`${componentsTheme.dashboardDocuments.tabButton} ${
                   activeCertificatesTab === tab
                     ? componentsTheme.dashboardDocuments.tabButtonActive
                     : componentsTheme.dashboardDocuments.tabButtonInactive
@@ -676,52 +705,52 @@ export default function DocumentsSection() {
           >
             <button
               type="button"
-              onClick={() => handleCertSortClick("id")}
+              onClick={() => handleCertSortClick('id')}
               className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
             >
               <span>Certificate ID</span>
               <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === "id" ? (certSortDirection === "asc" ? "↑" : "↓") : "↕"}
+                {certSortField === 'id' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
               </span>
             </button>
             <button
               type="button"
-              onClick={() => handleCertSortClick("award")}
+              onClick={() => handleCertSortClick('award')}
               className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
             >
               <span>Award Details</span>
               <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === "award" ? (certSortDirection === "asc" ? "↑" : "↓") : "↕"}
+                {certSortField === 'award' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
               </span>
             </button>
             <button
               type="button"
-              onClick={() => handleCertSortClick("assignment")}
+              onClick={() => handleCertSortClick('assignment')}
               className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
             >
               <span>Assignment Info</span>
               <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === "assignment" ? (certSortDirection === "asc" ? "↑" : "↓") : "↕"}
+                {certSortField === 'assignment' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
               </span>
             </button>
             <button
               type="button"
-              onClick={() => handleCertSortClick("status")}
+              onClick={() => handleCertSortClick('status')}
               className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
             >
               <span>Status</span>
               <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === "status" ? (certSortDirection === "asc" ? "↑" : "↓") : "↕"}
+                {certSortField === 'status' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
               </span>
             </button>
             <button
               type="button"
-              onClick={() => handleCertSortClick("action")}
+              onClick={() => handleCertSortClick('action')}
               className={componentsTheme.dashboardDocuments.tableHeaderSortButtonRight}
             >
               <span>Action</span>
               <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === "action" ? (certSortDirection === "asc" ? "↑" : "↓") : "↕"}
+                {certSortField === 'action' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
               </span>
             </button>
           </div>
@@ -742,7 +771,7 @@ export default function DocumentsSection() {
                   alt="No certificates illustration"
                   width={260}
                   height={160}
-                  className="h-auto w-auto max-h-40"
+                  className="h-auto max-h-40 w-auto"
                 />
               </div>
               <p className={componentsTheme.dashboardDocuments.emptyStateTitle}>
@@ -760,8 +789,12 @@ export default function DocumentsSection() {
                   className={`grid grid-cols-[1.4fr,2.4fr,2.2fr,1.4fr,1.4fr] ${componentsTheme.dashboardDocuments.tableRow}`}
                 >
                   <div className={componentsTheme.dashboardDocuments.docNameCell}>{cert.id}</div>
-                  <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>{cert.award}</div>
-                  <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>{cert.assignment}</div>
+                  <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+                    {cert.award}
+                  </div>
+                  <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+                    {cert.assignment}
+                  </div>
                   <div>
                     <span
                       className={`${componentsTheme.dashboardDocuments.statusBadgeBase} ${
@@ -815,18 +848,18 @@ function SignedCopyUpload({
     setError(null);
     try {
       const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch(
-        `/api/portal/documents/${templateId}/signed-copy`,
-        { method: "POST", body: formData },
-      );
+      formData.append('file', file);
+      const res = await fetch(`/api/portal/documents/${templateId}/signed-copy`, {
+        method: 'POST',
+        body: formData,
+      });
       if (!res.ok) {
         const data = (await res.json().catch(() => null)) as unknown;
-        throw new Error(getErrorMessage(data, "Upload failed"));
+        throw new Error(getErrorMessage(data, 'Upload failed'));
       }
       onUploaded();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
     }
@@ -834,9 +867,9 @@ function SignedCopyUpload({
 
   return (
     <div>
-      {submissionStatus === "uploaded" && signedCopyUrl ? (
+      {submissionStatus === 'uploaded' && signedCopyUrl ? (
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-amber-600 font-medium">
+          <span className="text-[11px] font-medium text-amber-600">
             Signed copy submitted — awaiting review
           </span>
           <button
@@ -854,7 +887,7 @@ function SignedCopyUpload({
           disabled={uploading}
           className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
         >
-          {uploading ? "Uploading…" : "Upload Signed Copy"}
+          {uploading ? 'Uploading…' : 'Upload Signed Copy'}
         </button>
       )}
       {error && <p className="mt-1 text-[11px] text-red-600">{error}</p>}
