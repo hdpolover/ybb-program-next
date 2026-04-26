@@ -1,5 +1,5 @@
-import AmbassadorDashboardSection from '@/components/dashboard/sections/AmbassadorDashboardSection';
+import { redirect } from 'next/navigation';
 
 export default function AmbassadorDashboardPage() {
-  return <AmbassadorDashboardSection />;
+  redirect('/dashboard');
 }

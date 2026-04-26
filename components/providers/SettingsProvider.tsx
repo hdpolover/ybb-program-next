@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect } from 'react';
+import { Toaster } from 'sonner';
 import type { SettingsData } from '@/types/settings';
 import { SETTINGS_LS_KEY, SETTINGS_LS_TTL_MS } from '@/lib/constants/cache';
 
@@ -49,6 +50,7 @@ export function SettingsProvider({
   return (
     <SettingsContext.Provider value={{ settings: initialSettings, isLoading: false }}>
       {children}
+      <Toaster position="bottom-right" richColors />
     </SettingsContext.Provider>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
+import type { AmbassadorData, AmbassadorReferral, AmbassadorReferralStatus } from '@/lib/dashboard/ambassador';
 
 export type PortalDashboardMoney = {
   amount: number;
@@ -84,15 +85,7 @@ export type ParticipantMeData = {
   profilePictureUrl?: string;
 };
 
-export type AmbassadorData = {
-  id: string;
-  referralCode: string;
-  shareLink: string;
-  totalReferrals: number;
-  successfulReferrals: number;
-  isActive: boolean;
-  programName: string;
-};
+export type { AmbassadorData, AmbassadorReferral, AmbassadorReferralStatus };
 
 type DashboardDataContextValue = {
   dashboardSummary: PortalDashboardSummary | null;
@@ -101,6 +94,7 @@ type DashboardDataContextValue = {
   onboarding: ParticipantOnboardingData | null;
   participantProfile: ParticipantMeData | null;
   ambassadorData: AmbassadorData | null;
+  isAmbassadorDataLoading: boolean;
 };
 
 const DashboardDataContext = createContext<DashboardDataContextValue>({
@@ -110,6 +104,7 @@ const DashboardDataContext = createContext<DashboardDataContextValue>({
   onboarding: null,
   participantProfile: null,
   ambassadorData: null,
+  isAmbassadorDataLoading: false,
 });
 
 export function DashboardDataProvider({
@@ -119,6 +114,7 @@ export function DashboardDataProvider({
   onboarding,
   participantProfile,
   ambassadorData,
+  isAmbassadorDataLoading,
   children,
 }: {
   dashboardSummary: PortalDashboardSummary | null;
@@ -127,10 +123,21 @@ export function DashboardDataProvider({
   onboarding: ParticipantOnboardingData | null;
   participantProfile: ParticipantMeData | null;
   ambassadorData: AmbassadorData | null;
+  isAmbassadorDataLoading: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <DashboardDataContext.Provider value={{ dashboardSummary, isDashboardSummaryLoading, me, onboarding, participantProfile, ambassadorData }}>
+    <DashboardDataContext.Provider
+      value={{
+        dashboardSummary,
+        isDashboardSummaryLoading,
+        me,
+        onboarding,
+        participantProfile,
+        ambassadorData,
+        isAmbassadorDataLoading,
+      }}
+    >
       {children}
     </DashboardDataContext.Provider>
   );

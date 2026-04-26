@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -13,28 +13,45 @@ import {
   Search,
   Printer,
   Eye,
-} from "lucide-react";
-import { componentsTheme } from "@/lib/theme/components";
-import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
+} from 'lucide-react';
+import { componentsTheme } from '@/lib/theme/components';
+import DashboardPageSkeleton from '@/components/dashboard/ui/DashboardPageSkeleton';
 import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
   readActiveProgramId,
-} from "@/lib/dashboard/activeProgram";
-import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
-import { getEnvelopeData, getMessage, isRecord } from "@/lib/api/response";
+} from '@/lib/dashboard/activeProgram';
+import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
+import { getEnvelopeData, getMessage, isRecord } from '@/lib/api/response';
+import {
+  storeCachedPaymentPreviews,
+  upsertCachedPaymentPreview,
+  type CachedPaymentPreview,
+} from '@/lib/dashboard/payments-cache';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
 interface PaymentItem {
   id: string;
   label: string;
-  status: "paid" | "unpaid" | "processing" | "failed";
+  status: 'paid' | 'unpaid' | 'processing' | 'failed';
   paymentType: string;
   period: string;
   amount: string;
   syncDate: string;
   hasInvoice?: boolean;
+}
+
+function toCachedPaymentPreview(payment: PaymentItem): CachedPaymentPreview {
+  return {
+    id: payment.id,
+    label: payment.label,
+    status: payment.status,
+    paymentType: payment.paymentType,
+    amountLabel: payment.amount,
+    syncDate: payment.syncDate,
+    hasInvoice: payment.hasInvoice,
+  };
 }
 
 interface PaymentsSummary {
@@ -45,12 +62,12 @@ interface PaymentsSummary {
 }
 
 function formatMoney(amount: number, currencyCode: string): string {
-  const normalizedCurrency = String(currencyCode || "USD").toUpperCase();
-  const fractionDigits = normalizedCurrency === "IDR" ? 0 : 2;
+  const normalizedCurrency = String(currencyCode || 'USD').toUpperCase();
+  const fractionDigits = normalizedCurrency === 'IDR' ? 0 : 2;
 
   try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
       currency: normalizedCurrency,
       minimumFractionDigits: fractionDigits,
       maximumFractionDigits: fractionDigits,
@@ -60,33 +77,33 @@ function formatMoney(amount: number, currencyCode: string): string {
   }
 }
 
-function toPaymentStatus(value: unknown): PaymentItem["status"] {
-  if (value === "paid" || value === "unpaid" || value === "processing" || value === "failed") {
+function toPaymentStatus(value: unknown): PaymentItem['status'] {
+  if (value === 'paid' || value === 'unpaid' || value === 'processing' || value === 'failed') {
     return value;
   }
-  return "unpaid";
+  return 'unpaid';
 }
 
 function toPaymentItem(value: unknown): PaymentItem | null {
   if (!isRecord(value)) return null;
 
-  const id = typeof value.id === "string" ? value.id : null;
+  const id = typeof value.id === 'string' ? value.id : null;
   if (!id) return null;
 
   return {
     id,
-    label: typeof value.label === "string" ? value.label : "Payment",
+    label: typeof value.label === 'string' ? value.label : 'Payment',
     status: toPaymentStatus(value.status),
-    paymentType: typeof value.paymentType === "string" ? value.paymentType : "General",
-    period: typeof value.period === "string" ? value.period : "-",
+    paymentType: typeof value.paymentType === 'string' ? value.paymentType : 'General',
+    period: typeof value.period === 'string' ? value.period : '-',
     amount:
-      typeof value.amount === "string"
+      typeof value.amount === 'string'
         ? value.amount
-        : typeof value.amount === "number" && Number.isFinite(value.amount)
+        : typeof value.amount === 'number' && Number.isFinite(value.amount)
           ? String(value.amount)
-          : "-",
-    syncDate: typeof value.syncDate === "string" ? value.syncDate : "-",
-    hasInvoice: typeof value.hasInvoice === "boolean" ? value.hasInvoice : undefined,
+          : '-',
+    syncDate: typeof value.syncDate === 'string' ? value.syncDate : '-',
+    hasInvoice: typeof value.hasInvoice === 'boolean' ? value.hasInvoice : undefined,
   };
 }
 
@@ -95,26 +112,32 @@ function toPaymentsSummary(value: unknown): PaymentsSummary {
     complete: 0,
     pending: 0,
     overdue: 0,
-    totalRequired: "$0",
+    totalRequired: '$0',
   };
 
   if (!isRecord(value)) return fallback;
 
   return {
     totalRequired:
-      typeof value.totalRequired === "string"
+      typeof value.totalRequired === 'string'
         ? value.totalRequired
         : isRecord(value.totalRequired)
           ? formatMoney(
-              typeof value.totalRequired.amount === "number" && Number.isFinite(value.totalRequired.amount)
+              typeof value.totalRequired.amount === 'number' &&
+                Number.isFinite(value.totalRequired.amount)
                 ? value.totalRequired.amount
                 : 0,
-              typeof value.totalRequired.currency === "string" ? value.totalRequired.currency : "USD",
+              typeof value.totalRequired.currency === 'string'
+                ? value.totalRequired.currency
+                : 'USD'
             )
-          : "$0",
-    complete: typeof value.complete === "number" && Number.isFinite(value.complete) ? value.complete : 0,
-    pending: typeof value.pending === "number" && Number.isFinite(value.pending) ? value.pending : 0,
-    overdue: typeof value.overdue === "number" && Number.isFinite(value.overdue) ? value.overdue : 0,
+          : '$0',
+    complete:
+      typeof value.complete === 'number' && Number.isFinite(value.complete) ? value.complete : 0,
+    pending:
+      typeof value.pending === 'number' && Number.isFinite(value.pending) ? value.pending : 0,
+    overdue:
+      typeof value.overdue === 'number' && Number.isFinite(value.overdue) ? value.overdue : 0,
   };
 }
 
@@ -124,9 +147,9 @@ export default function PaymentsListSection() {
   const activeApplication = dashboardSummary?.activeApplication ?? null;
   const canSwitchCategory = activeApplication?.canSwitchCategory ?? false;
   const currentCategory = activeApplication?.category;
-  const switchTarget = currentCategory === "self_funded" ? "fully_funded" : "self_funded";
-  const switchTargetLabel = switchTarget === "fully_funded" ? "Fully Funded" : "Self Funded";
-  const currentCategoryLabel = currentCategory === "fully_funded" ? "Fully Funded" : "Self Funded";
+  const switchTarget = currentCategory === 'self_funded' ? 'fully_funded' : 'self_funded';
+  const switchTargetLabel = switchTarget === 'fully_funded' ? 'Fully Funded' : 'Self Funded';
+  const currentCategoryLabel = currentCategory === 'fully_funded' ? 'Fully Funded' : 'Self Funded';
 
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [switchLoading, setSwitchLoading] = useState(false);
@@ -137,7 +160,7 @@ export default function PaymentsListSection() {
     complete: 0,
     pending: 0,
     overdue: 0,
-    totalRequired: "$0",
+    totalRequired: '$0',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,69 +172,73 @@ export default function PaymentsListSection() {
       return payment.id;
     }
 
-    const tierId = payment.id.startsWith("tier:") ? payment.id.slice(5) : "";
+    const tierId = payment.id.startsWith('tier:') ? payment.id.slice(5) : '';
     if (!tierId) {
-      throw new Error("Unable to resolve payment option ID.");
+      throw new Error('Unable to resolve payment option ID.');
     }
 
     const programId = readActiveProgramId();
     const response = await fetch(`/api/portal/payments/tiers/${tierId}/ensure-invoice`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ program_id: programId || undefined }),
     });
 
     const json = (await response.json().catch(() => null)) as unknown;
     if (!response.ok) {
-      throw new Error(getMessage(json) ?? "Failed to prepare payment invoice");
+      throw new Error(getMessage(json) ?? 'Failed to prepare payment invoice');
     }
 
     const payload = getEnvelopeData(json);
     const invoiceId =
-      isRecord(payload) && typeof payload.invoice_id === "string"
-        ? payload.invoice_id
-        : null;
+      isRecord(payload) && typeof payload.invoice_id === 'string' ? payload.invoice_id : null;
     if (!invoiceId) {
-      throw new Error("Invoice was not returned by the server");
+      throw new Error('Invoice was not returned by the server');
     }
 
-    setPayments((prev) =>
-      prev.map((row) =>
+    setPayments(prev =>
+      prev.map(row =>
         row.id === payment.id
           ? {
               ...row,
               id: invoiceId,
               hasInvoice: true,
             }
-          : row,
-      ),
+          : row
+      )
     );
+
+    upsertCachedPaymentPreview(programId, {
+      ...toCachedPaymentPreview(payment),
+      id: invoiceId,
+      hasInvoice: true,
+    });
 
     return invoiceId;
   };
 
   const handlePaymentAction = async (
     payment: PaymentItem,
-    target: "detail" | "make-payment" | "print",
+    target: 'detail' | 'make-payment' | 'print'
   ) => {
     try {
       setActionError(null);
       setRowActionLoadingId(payment.id);
       const invoiceId = await resolveInvoiceId(payment);
 
-      if (target === "make-payment") {
+      if (target === 'make-payment') {
         router.push(`/dashboard/payments/${invoiceId}/make-payment`);
         return;
       }
 
-      if (target === "print") {
-        window.open(`/dashboard/payments/${invoiceId}`, "_blank", "noopener,noreferrer");
+      if (target === 'print') {
+        window.open(`/dashboard/payments/${invoiceId}`, '_blank', 'noopener,noreferrer');
         return;
       }
 
       router.push(`/dashboard/payments/${invoiceId}`);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Failed to open payment action");
+      setActionError(err instanceof Error ? err.message : 'Failed to open payment action');
     } finally {
       setRowActionLoadingId(null);
     }
@@ -219,26 +246,26 @@ export default function PaymentsListSection() {
 
   async function handleSwitch() {
     if (!activeApplication?.id) {
-      setSwitchError("Application ID not found. Please refresh the page and try again.");
+      setSwitchError('Application ID not found. Please refresh the page and try again.');
       return;
     }
     setSwitchLoading(true);
     setSwitchError(null);
     try {
-      const res = await fetch("/api/portal/switch-category", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/portal/switch-category', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ applicationId: activeApplication.id, targetCategory: switchTarget }),
       });
       const json = (await res.json().catch(() => null)) as unknown;
       if (!res.ok) {
-        setSwitchError(getMessage(json) ?? "Failed to switch category. Please try again.");
+        setSwitchError(getMessage(json) ?? 'Failed to switch category. Please try again.');
         return;
       }
       setShowSwitchModal(false);
       router.refresh();
     } catch {
-      setSwitchError("Something went wrong. Please try again.");
+      setSwitchError('Something went wrong. Please try again.');
     } finally {
       setSwitchLoading(false);
     }
@@ -253,17 +280,17 @@ export default function PaymentsListSection() {
         setError(null);
 
         const programId = readActiveProgramId();
-        const url = appendProgramId("/api/portal/payments", programId);
+        const url = appendProgramId('/api/portal/payments', programId);
 
         const response = await fetch(url, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
         });
 
         const json = (await response.json().catch(() => null)) as unknown;
         if (!response.ok) {
-          throw new Error(getMessage(json) ?? "Failed to load payments");
+          throw new Error(getMessage(json) ?? 'Failed to load payments');
         }
 
         if (!cancelled) {
@@ -278,10 +305,11 @@ export default function PaymentsListSection() {
           setActionError(null);
           setPayments(items);
           setSummary(toPaymentsSummary(payloadRecord?.summary));
+          storeCachedPaymentPreviews(programId, items.map(toCachedPaymentPreview));
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load payments");
+          setError(err instanceof Error ? err.message : 'Failed to load payments');
         }
       } finally {
         if (!cancelled) {
@@ -300,12 +328,17 @@ export default function PaymentsListSection() {
 
     return () => {
       cancelled = true;
-      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleProgramChange as EventListener);
+      window.removeEventListener(
+        ACTIVE_PROGRAM_CHANGED_EVENT,
+        handleProgramChange as EventListener
+      );
     };
   }, []);
 
   if (loading) {
-    return <DashboardPageSkeleton variant="payments-list" className={paymentsTheme.sectionWrapper} />;
+    return (
+      <DashboardPageSkeleton variant="payments-list" className={paymentsTheme.sectionWrapper} />
+    );
   }
 
   if (error) {
@@ -323,9 +356,7 @@ export default function PaymentsListSection() {
     <section className={paymentsTheme.sectionWrapper}>
       {/* Payments summary (mirroring dashboard overview) */}
       <div className={paymentsTheme.summaryGrid}>
-        <div
-          className={`${paymentsTheme.summaryCardBase} ${paymentsTheme.summaryCompleteCard}`}
-        >
+        <div className={`${paymentsTheme.summaryCardBase} ${paymentsTheme.summaryCompleteCard}`}>
           <div className={paymentsTheme.summaryCardInner}>
             <div>
               <p
@@ -333,9 +364,7 @@ export default function PaymentsListSection() {
               >
                 Complete Payments
               </p>
-              <p
-                className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryCompleteValue}`}
-              >
+              <p className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryCompleteValue}`}>
                 {summary.complete}
               </p>
             </div>
@@ -347,9 +376,7 @@ export default function PaymentsListSection() {
           </div>
         </div>
 
-        <div
-          className={`${paymentsTheme.summaryCardBase} ${paymentsTheme.summaryPendingCard}`}
-        >
+        <div className={`${paymentsTheme.summaryCardBase} ${paymentsTheme.summaryPendingCard}`}>
           <div className={paymentsTheme.summaryCardInner}>
             <div>
               <p
@@ -357,9 +384,7 @@ export default function PaymentsListSection() {
               >
                 Pending Payments
               </p>
-              <p
-                className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryPendingValue}`}
-              >
+              <p className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryPendingValue}`}>
                 {summary.pending}
               </p>
             </div>
@@ -371,9 +396,7 @@ export default function PaymentsListSection() {
           </div>
         </div>
 
-        <div
-          className={`${paymentsTheme.summaryCardBase} ${paymentsTheme.summaryOverdueCard}`}
-        >
+        <div className={`${paymentsTheme.summaryCardBase} ${paymentsTheme.summaryOverdueCard}`}>
           <div className={paymentsTheme.summaryCardInner}>
             <div>
               <p
@@ -381,9 +404,7 @@ export default function PaymentsListSection() {
               >
                 Overdue Payments
               </p>
-              <p
-                className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryOverdueValue}`}
-              >
+              <p className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryOverdueValue}`}>
                 {summary.overdue}
               </p>
             </div>
@@ -395,19 +416,13 @@ export default function PaymentsListSection() {
           </div>
         </div>
 
-        <div
-          className={`${paymentsTheme.summaryCardBase} ${paymentsTheme.summaryTotalCard}`}
-        >
+        <div className={`${paymentsTheme.summaryCardBase} ${paymentsTheme.summaryTotalCard}`}>
           <div className={paymentsTheme.summaryCardInner}>
             <div>
-              <p
-                className={`${paymentsTheme.summaryEyebrow} ${paymentsTheme.summaryTotalEyebrow}`}
-              >
+              <p className={`${paymentsTheme.summaryEyebrow} ${paymentsTheme.summaryTotalEyebrow}`}>
                 Total Required
               </p>
-              <p
-                className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryTotalValue}`}
-              >
+              <p className={`${paymentsTheme.summaryValue} ${paymentsTheme.summaryTotalValue}`}>
                 {summary.totalRequired}
               </p>
             </div>
@@ -424,7 +439,9 @@ export default function PaymentsListSection() {
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Registration Category</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Registration Category
+              </p>
               <p className="mt-0.5 text-sm font-semibold text-slate-900">
                 {currentCategoryLabel}
                 <span className="mx-2 text-slate-300">|</span>
@@ -446,65 +463,79 @@ export default function PaymentsListSection() {
         </div>
       )}
 
-      {showSwitchModal && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
+      {showSwitchModal &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 px-4">
+            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                </div>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Switch to {switchTargetLabel}?
+                </h2>
               </div>
-              <h2 className="text-lg font-semibold text-slate-900">
-                Switch to {switchTargetLabel}?
-              </h2>
+
+              <p className="mb-4 text-sm text-slate-600">
+                You are about to switch your registration category from{' '}
+                <span className="font-medium">{currentCategoryLabel}</span> to{' '}
+                <span className="font-medium">{switchTargetLabel}</span>. This will change your
+                payment requirements and program participation terms.
+              </p>
+
+              {switchTarget === 'self_funded' && (
+                <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <p className="font-medium">Important: Switching to Self Funded</p>
+                  <p className="mt-1">
+                    You will be required to pay program fees in scheduled batches to confirm your
+                    participation. Any previous fully funded payments may be subject to program
+                    terms.
+                  </p>
+                </div>
+              )}
+              {switchTarget === 'fully_funded' && (
+                <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                  <p className="font-medium">Important: Switching to Fully Funded</p>
+                  <p className="mt-1">
+                    You will be eligible for program funding after completing evaluation. If
+                    selected, your payments will be reimbursed.
+                  </p>
+                </div>
+              )}
+
+              {switchError && (
+                <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
+                  {switchError}
+                </p>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  onClick={() => {
+                    setShowSwitchModal(false);
+                    setSwitchError(null);
+                  }}
+                  disabled={switchLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="hover:bg-primary/90 flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                  onClick={handleSwitch}
+                  disabled={switchLoading}
+                >
+                  <ArrowLeftRight className="h-4 w-4" />
+                  {switchLoading ? 'Switching…' : `Confirm Switch to ${switchTargetLabel}`}
+                </button>
+              </div>
             </div>
-
-            <p className="mb-4 text-sm text-slate-600">
-              You are about to switch your registration category from{" "}
-              <span className="font-medium">{currentCategoryLabel}</span> to{" "}
-              <span className="font-medium">{switchTargetLabel}</span>. This will change your payment
-              requirements and program participation terms.
-            </p>
-
-            {switchTarget === "self_funded" && (
-              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                <p className="font-medium">Important: Switching to Self Funded</p>
-                <p className="mt-1">You will be required to pay program fees in scheduled batches to confirm your participation. Any previous fully funded payments may be subject to program terms.</p>
-              </div>
-            )}
-            {switchTarget === "fully_funded" && (
-              <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-                <p className="font-medium">Important: Switching to Fully Funded</p>
-                <p className="mt-1">You will be eligible for program funding after completing evaluation. If selected, your payments will be reimbursed.</p>
-              </div>
-            )}
-
-            {switchError && (
-              <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">{switchError}</p>
-            )}
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                onClick={() => { setShowSwitchModal(false); setSwitchError(null); }}
-                disabled={switchLoading}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-                onClick={handleSwitch}
-                disabled={switchLoading}
-              >
-                <ArrowLeftRight className="h-4 w-4" />
-                {switchLoading ? "Switching…" : `Confirm Switch to ${switchTargetLabel}`}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
 
       <div className={paymentsTheme.tableCard}>
         {actionError && (
@@ -515,9 +546,7 @@ export default function PaymentsListSection() {
 
         <div className={paymentsTheme.tableHeaderRow}>
           <div>
-            <h2 className={paymentsTheme.tableTitle}>
-              Payment Details
-            </h2>
+            <h2 className={paymentsTheme.tableTitle}>Payment Details</h2>
             <p className={paymentsTheme.tableSubtitle}>
               Overview of your registration payments, status, and synchronization time.
             </p>
@@ -570,34 +599,41 @@ export default function PaymentsListSection() {
                       />
                       <p className="text-base font-extrabold text-slate-900">No payments yet</p>
                       <p className="mt-1 max-w-sm text-sm text-slate-500">
-                        Your payment records will appear here once payments are assigned to your account.
+                        Your payment records will appear here once payments are assigned to your
+                        account.
                       </p>
                     </div>
                   </td>
                 </tr>
               )}
               {payments.map(payment => {
-                const isPaid = payment.status === "paid";
-                const isProcessing = payment.status === "processing";
-                const isFailed = payment.status === "failed";
+                const isPaid = payment.status === 'paid';
+                const isProcessing = payment.status === 'processing';
+                const isFailed = payment.status === 'failed';
                 const isRowLoading = rowActionLoadingId === payment.id;
                 return (
                   <tr key={payment.id} className={paymentsTheme.tableRow}>
                     <td className={paymentsTheme.paymentInfoCell}>{payment.label}</td>
-                    <td className={paymentsTheme.periodCell}>{payment.paymentType || "General"}</td>
+                    <td className={paymentsTheme.periodCell}>{payment.paymentType || 'General'}</td>
                     <td className={paymentsTheme.statusCell}>
                       <span
                         className={`${paymentsTheme.statusBadgeBase} ${
                           isPaid
                             ? paymentsTheme.statusBadgePaid
                             : isProcessing
-                              ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                              ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
                               : isFailed
-                                ? "bg-red-50 text-red-700 ring-1 ring-red-200"
+                                ? 'bg-red-50 text-red-700 ring-1 ring-red-200'
                                 : paymentsTheme.statusBadgeUnpaid
                         }`}
                       >
-                        {isPaid ? "Paid" : isProcessing ? "Processing" : isFailed ? "Failed" : "Unpaid"}
+                        {isPaid
+                          ? 'Paid'
+                          : isProcessing
+                            ? 'Processing'
+                            : isFailed
+                              ? 'Failed'
+                              : 'Unpaid'}
                       </span>
                     </td>
                     <td className={paymentsTheme.periodCell}>{payment.period}</td>
@@ -607,28 +643,28 @@ export default function PaymentsListSection() {
                       <div className={paymentsTheme.actionsWrapper}>
                         <button
                           type="button"
-                          className={`${paymentsTheme.primaryIconButton} ${isRowLoading ? "cursor-wait opacity-70" : ""}`}
+                          className={`${paymentsTheme.primaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
                           aria-label="Pay now"
                           disabled={isRowLoading}
-                          onClick={() => handlePaymentAction(payment, "make-payment")}
+                          onClick={() => handlePaymentAction(payment, 'make-payment')}
                         >
                           <CreditCard className="h-3.5 w-3.5" />
                         </button>
                         <button
                           type="button"
-                          className={`${paymentsTheme.secondaryIconButton} ${isRowLoading ? "cursor-wait opacity-70" : ""}`}
+                          className={`${paymentsTheme.secondaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
                           aria-label="See details"
                           disabled={isRowLoading}
-                          onClick={() => handlePaymentAction(payment, "detail")}
+                          onClick={() => handlePaymentAction(payment, 'detail')}
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </button>
                         <button
                           type="button"
-                          className={`${paymentsTheme.tertiaryIconButton} ${isRowLoading ? "cursor-wait opacity-70" : ""}`}
+                          className={`${paymentsTheme.tertiaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
                           aria-label="Print invoice"
                           disabled={isRowLoading}
-                          onClick={() => handlePaymentAction(payment, "print")}
+                          onClick={() => handlePaymentAction(payment, 'print')}
                         >
                           <Printer className="h-3.5 w-3.5" />
                         </button>

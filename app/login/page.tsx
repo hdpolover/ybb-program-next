@@ -48,6 +48,7 @@ export default function LoginPage() {
   const [oauthError, setOauthError] = useState<string>('');
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string>('');
+  const [ambassadorMode, setAmbassadorMode] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string>('');
   const [legalModalOpen, setLegalModalOpen] = useState(false);
@@ -62,6 +63,7 @@ export default function LoginPage() {
   const [loginForm, setLoginForm] = useState({
     email: '',
     password: '',
+    referralCode: '',
   });
   const [signupForm, setSignupForm] = useState({
     email: '',
@@ -85,6 +87,27 @@ export default function LoginPage() {
       setLocalLoading(true);
       setLocalError('');
       try {
+        if (ambassadorMode) {
+          const res = await fetch('/api/auth/ambassador-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: loginForm.email,
+              referralCode: loginForm.referralCode,
+            }),
+          });
+          const json = (await res.json()) as {
+            statusCode?: number;
+            message?: string;
+            data?: { redirectTo?: string } | null;
+          };
+          if (!res.ok) {
+            throw new Error(json?.message || `Login failed: ${res.status} ${res.statusText}`);
+          }
+          router.push(json?.data?.redirectTo || '/dashboard/ambassador');
+          return;
+        }
+
         const res = await fetch('/api/auth/local-login', {
           method: 'POST',
           headers: {
@@ -248,7 +271,8 @@ export default function LoginPage() {
 
       const firebaseProvider = googleProvider;
 
-      const referralCode = searchParams?.get('referralCode') ?? undefined;
+      const referralCode =
+        searchParams?.get('referralCode') ?? searchParams?.get('t') ?? undefined;
       const result = await signInWithPopup(auth, firebaseProvider);
       const user = result.user;
       const idToken = await user.getIdToken();
@@ -444,11 +468,13 @@ export default function LoginPage() {
                 </p>
               )}
               <h1 className={componentsTheme.login.formHeading}>
-                {mode === 'login' ? 'Welcome back!' : 'Create your account'}
+                {ambassadorMode ? 'Ambassador Sign In' : mode === 'login' ? 'Welcome back!' : 'Create your account'}
               </h1>
             </div>
             <p className={componentsTheme.login.formSubheading}>
-              {mode === 'login'
+              {ambassadorMode
+                ? 'Sign in with your ambassador credentials.'
+                : mode === 'login'
                 ? 'Sign in to continue.'
                 : 'Fill in your details below to start your journey.'}
             </p>
@@ -476,42 +502,59 @@ export default function LoginPage() {
                     </div>
                     <div>
                       <label className={componentsTheme.login.fieldLabel}>
-                        Password
+                        {ambassadorMode ? 'Referral Code' : 'Password'}
                       </label>
                       <div className={componentsTheme.login.inputWrapper}>
                         <Lock className={componentsTheme.login.inputIcon} />
-                        <input
-                          name="password"
-                          value={loginForm.password}
-                          onChange={onChangeLogin}
-                          type={showPassword ? "text" : "password"}
-                          required
-                          className={`${componentsTheme.login.input} ${componentsTheme.login.inputPassword}`}
-                          placeholder="••••••••"
-                        />
-                        <button 
-                          type="button" 
-                          onClick={() => setShowPassword(!showPassword)} 
-                          className={componentsTheme.login.inputEyeBtn}
-                        >
-                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                        </button>
+                        {ambassadorMode ? (
+                          <input
+                            name="referralCode"
+                            value={loginForm.referralCode}
+                            onChange={onChangeLogin}
+                            type="text"
+                            required
+                            className={componentsTheme.login.input}
+                            placeholder="Enter your referral code"
+                            autoComplete="off"
+                          />
+                        ) : (
+                          <>
+                            <input
+                              name="password"
+                              value={loginForm.password}
+                              onChange={onChangeLogin}
+                              type={showPassword ? "text" : "password"}
+                              required
+                              className={`${componentsTheme.login.input} ${componentsTheme.login.inputPassword}`}
+                              placeholder="••••••••"
+                            />
+                            <button 
+                              type="button" 
+                              onClick={() => setShowPassword(!showPassword)} 
+                              className={componentsTheme.login.inputEyeBtn}
+                            >
+                              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <div className={componentsTheme.login.checkboxRow}>
-                      <label className="inline-flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          className={componentsTheme.login.checkbox}
-                          checked={keepSignedIn}
-                          onChange={e => setKeepSignedIn(e.target.checked)}
-                        />
-                        Keep me signed in
-                      </label>
-                      <a href="/auth/forgot-password" className={componentsTheme.login.forgotPasswordLink}>
-                        Forgot Password?
-                      </a>
-                    </div>
+                    {!ambassadorMode && (
+                      <div className={componentsTheme.login.checkboxRow}>
+                        <label className="inline-flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            className={componentsTheme.login.checkbox}
+                            checked={keepSignedIn}
+                            onChange={e => setKeepSignedIn(e.target.checked)}
+                          />
+                          Keep me signed in
+                        </label>
+                        <a href="/auth/forgot-password" className={componentsTheme.login.forgotPasswordLink}>
+                          Forgot Password?
+                        </a>
+                      </div>
+                    )}
                     {localError ? (
                       <p className="mt-3 text-xs font-medium text-primary">{localError}</p>
                     ) : null}
@@ -525,53 +568,76 @@ export default function LoginPage() {
                       </button>
                     </div>
 
-                    <div className={componentsTheme.login.dividerRow}>
-                      <span className={componentsTheme.login.dividerLine} aria-hidden="true" />
-                      <span>OR</span>
-                      <span className={componentsTheme.login.dividerLine} aria-hidden="true" />
-                    </div>
+                    {!ambassadorMode && (
+                      <>
+                        <div className={componentsTheme.login.dividerRow}>
+                          <span className={componentsTheme.login.dividerLine} aria-hidden="true" />
+                          <span>OR</span>
+                          <span className={componentsTheme.login.dividerLine} aria-hidden="true" />
+                        </div>
 
-                    <button
-                      type="button"
-                      className={componentsTheme.login.googleButton}
-                      onClick={() => onOAuthLogin('google')}
-                      disabled={oauthLoading.length > 0}
-                    >
-                      <Image
-                        src="/img/signwithgoogle.png"
-                        alt="Sign in with Google"
-                        width={20}
-                        height={20}
-                        className={componentsTheme.login.googleButtonIcon}
-                      />
-                      {oauthLoading === 'google' ? 'Signing in...' : 'Continue with Google'}
-                    </button>
+                        <button
+                          type="button"
+                          className={componentsTheme.login.googleButton}
+                          onClick={() => onOAuthLogin('google')}
+                          disabled={oauthLoading.length > 0}
+                        >
+                          <Image
+                            src="/img/signwithgoogle.png"
+                            alt="Sign in with Google"
+                            width={20}
+                            height={20}
+                            className={componentsTheme.login.googleButtonIcon}
+                          />
+                          {oauthLoading === 'google' ? 'Signing in...' : 'Continue with Google'}
+                        </button>
 
-                    {oauthError ? (
-                      <p className="mt-3 text-xs font-medium text-primary">{oauthError}</p>
-                    ) : null}
+                        {oauthError ? (
+                          <p className="mt-3 text-xs font-medium text-primary">{oauthError}</p>
+                        ) : null}
+                      </>
+                    )}
                   </div>
 
                   <p className={componentsTheme.login.helperText}>
-                    New here?{' '}
-                    <button
-                      type="button"
-                      onClick={() => setMode('signup')}
-                      className={componentsTheme.login.switchModeLink}
-                    >
-                      Create new account
-                    </button>
+                    {!ambassadorMode && (
+                      <>
+                        New here?{' '}
+                        <button
+                          type="button"
+                          onClick={() => { setMode('signup'); setAmbassadorMode(false); }}
+                          className={componentsTheme.login.switchModeLink}
+                        >
+                          Create new account
+                        </button>
+                      </>
+                    )}
                   </p>
 
                   <p className={componentsTheme.login.helperText}>
-                    Part of our program ambassadors?{' '}
-                    <button
-                      type="button"
-                      onClick={() => setMode('login')}
-                      className={componentsTheme.login.switchModeLink}
-                    >
-                      Sign in here
-                    </button>
+                    {ambassadorMode ? (
+                      <>
+                        Not an ambassador?{' '}
+                        <button
+                          type="button"
+                          onClick={() => setAmbassadorMode(false)}
+                          className={componentsTheme.login.switchModeLink}
+                        >
+                          Back to regular sign in
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        Part of our program ambassadors?{' '}
+                        <button
+                          type="button"
+                          onClick={() => setAmbassadorMode(true)}
+                          className={componentsTheme.login.switchModeLink}
+                        >
+                          Sign in here
+                        </button>
+                      </>
+                    )}
                   </p>
                 </>
               ) : (
@@ -772,4 +838,3 @@ export default function LoginPage() {
     </section>
   );
 }
-

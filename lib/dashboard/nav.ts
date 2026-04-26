@@ -13,5 +13,5 @@ export const dashboardNav: NavItem[] = [
 ];
 
 export const ambassadorNav: NavItem[] = [
-  { label: 'Overview', href: '/dashboard/ambassador' },
+  { label: 'Dashboard', href: '/dashboard' },
 ];

@@ -10,7 +10,7 @@ type AuthMeResponse = {
     email: string;
     brandId?: string;
     programCategoryId?: string;
-    identities?: Array<{ provider: string; lastUsedAt?: string }>;
+    identities?: Array<{ provider: string; displayName?: string; lastUsedAt?: string }>;
     participantId?: string;
     registeredPrograms?: Array<{
       programId: string;

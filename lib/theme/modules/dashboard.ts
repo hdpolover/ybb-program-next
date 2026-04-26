@@ -143,8 +143,7 @@ export const dashboardTheme = {
     agreementRowIndigo:
       'flex items-center gap-3 rounded-md bg-primary/5 px-3 py-2 text-xs text-slate-700 ring-1 ring-primary/20',
     agreementCheckboxBrand: 'h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/100',
-    agreementCheckboxIndigo:
-      'h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary',
+    agreementCheckboxIndigo: 'h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary',
     agreementRowInner: 'flex items-center gap-2',
     completeButtonWrapper: 'pt-2 flex justify-center',
     completeButtonBase:
@@ -512,8 +511,12 @@ export const dashboardTheme = {
     readSectionTitle: '',
     readSectionSubtitle: 'mt-1 text-xs text-slate-500',
     readGrid: 'grid gap-4 md:grid-cols-2',
-    readFieldLabelWrapper: 'space-y-1 text-xs font-medium text-slate-700',
+    readDetailsCard:
+      'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]',
+    readFieldLabelWrapper: 'space-y-2 text-xs font-medium text-slate-700',
     readFieldLabelText: 'block text-[11px] font-semibold uppercase tracking-wide text-slate-500',
+    readFieldValue: 'text-sm font-medium leading-6 text-slate-900 break-words',
+    readFieldValueMultiline: 'text-sm leading-6 text-slate-900 whitespace-pre-line break-words',
     readInputBase:
       'w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30 read-only:bg-slate-50 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-100',
     readInputWrapper: 'relative',

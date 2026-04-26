@@ -52,6 +52,70 @@ async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
   }
 }
 
+const REFERRAL_COOKIE_NAME = 'ybb_referral_code';
+
+const getDirectReferralCode = (request: NextRequest): string | null => {
+  const code =
+    request.nextUrl.searchParams.get('referralCode') || request.nextUrl.searchParams.get('t');
+  return code && code.trim().length > 0 ? code.trim() : null;
+};
+
+const resolveReferralCode = async (
+  request: NextRequest,
+  brandUrl: string,
+): Promise<string | null> => {
+  const directCode = getDirectReferralCode(request);
+  if (directCode) return directCode;
+
+  const shareToken = request.nextUrl.searchParams.get('r');
+  if (!shareToken || shareToken.trim().length === 0) return null;
+
+  try {
+    const url = new URL('/v1/participants/ambassador/share-token/resolve', API_BASE_URL);
+    url.searchParams.set('token', shareToken);
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-brand-domain': brandUrl,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) return null;
+
+    const json = (await response.json()) as {
+      data?: { referralCode?: string } | null;
+      referralCode?: string;
+    };
+
+    const referralCode = json?.data?.referralCode || json?.referralCode || null;
+    return referralCode && referralCode.trim().length > 0 ? referralCode.trim() : null;
+  } catch {
+    return null;
+  }
+};
+
+const attachReferralCookie = async (
+  request: NextRequest,
+  response: NextResponse,
+  brandUrl: string,
+): Promise<NextResponse> => {
+  const referralCode = await resolveReferralCode(request, brandUrl);
+  if (!referralCode) return response;
+
+  response.cookies.set(REFERRAL_COOKIE_NAME, referralCode, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30,
+  });
+
+  return response;
+};
+
 export async function proxy(request: NextRequest) {
   // Resolve brand URL dynamically from request (multi-brand support)
   const brandUrl = resolveBrandUrl(request);
@@ -81,15 +145,15 @@ export async function proxy(request: NextRequest) {
     if (maintenanceEnabled) {
       const url = request.nextUrl.clone();
       url.pathname = '/maintenance';
-      return NextResponse.redirect(url);
+      return attachReferralCookie(request, NextResponse.redirect(url), brandUrl);
     }
   }
   
-  return NextResponse.next({
+  return attachReferralCookie(request, NextResponse.next({
     request: {
       headers: requestHeaders,
     },
-  });
+  }), brandUrl);
 }
 
 export const config = {

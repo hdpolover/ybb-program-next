@@ -5,40 +5,32 @@ import {
   FileText,
   FolderClosed,
   LayoutDashboard,
-  LogOut,
-  Settings,
   Upload,
-  UserCircle2,
   Users,
 } from 'lucide-react';
 import { dashboardNav, ambassadorNav } from '@/lib/dashboard/nav';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { componentsTheme } from "@/lib/theme/components";
 import { useSettings } from "@/components/providers/SettingsProvider";
-import { useDashboardMode } from "@/components/dashboard/DashboardModeContext";
 
 const layoutTheme = componentsTheme.dashboardLayout;
 
 // Sidebar kiri buat navigasi dashboard — simple dan konsisten sama tema
 export default function Sidebar({
-  profileEmail,
-  profileImageUrl,
-  profileName,
+  isAmbassador = false,
+  isAmbassadorDataLoading = false,
 }: {
-  profileEmail?: string;
-  profileImageUrl?: string;
-  profileName?: string;
+  isAmbassador?: boolean;
+  isAmbassadorDataLoading?: boolean;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { settings } = useSettings();
-  const { mode } = useDashboardMode();
-  const activeNav = mode === 'ambassador' ? ambassadorNav : dashboardNav;
+  // Show dashboardNav immediately while loading — swap to ambassadorNav once we know the user is an ambassador
+  const activeNav = isAmbassador && !isAmbassadorDataLoading ? ambassadorNav : dashboardNav;
   // Pas SSR dibuat ketutup dulu biar ga bentrok hidrasi, ntar dibuka pas komponen udah kepasang
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [mounted, setMounted] = useState(false);
-  const [logoutLoading, setLogoutLoading] = useState(false);
 
   useEffect(() => {
     // Ambil state yang kependem di localStorage, abis itu auto-buka sesuai path yang lagi aktif
@@ -65,28 +57,13 @@ export default function Sidebar({
   }, [open, mounted]);
 
   const renderIcon = (href: string) => {
+    if (isAmbassador && href === "/dashboard") return <Users className="h-4 w-4" />;
     if (href === "/dashboard") return <LayoutDashboard className="h-4 w-4" />;
     if (href.startsWith("/dashboard/ambassador")) return <Users className="h-4 w-4" />;
     if (href.startsWith("/dashboard/submission")) return <Upload className="h-4 w-4" />;
     if (href.startsWith("/dashboard/documents")) return <FolderClosed className="h-4 w-4" />;
     if (href.startsWith("/dashboard/payments")) return <CreditCard className="h-4 w-4" />;
     return <FileText className="h-4 w-4" />;
-  };
-
-  const onLogout = async () => {
-    if (logoutLoading) return;
-    setLogoutLoading(true);
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-    } finally {
-      router.push('/login');
-      setLogoutLoading(false);
-    }
   };
 
   return (
@@ -196,52 +173,6 @@ export default function Sidebar({
           );
         })}
         </nav>
-
-        {/* Bottom profile + settings */}
-        <div className={layoutTheme.profileSectionWrapper}>
-          <div className={layoutTheme.profileRow}>
-            <div className={layoutTheme.profileAvatarWrapper}>
-              {profileImageUrl ? (
-                <Image
-                  src={profileImageUrl}
-                  alt={profileName ? `${profileName} profile photo` : "Dashboard profile"}
-                  fill
-                  className={layoutTheme.profileAvatarImage}
-                  sizes="36px"
-                  unoptimized
-                />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center text-sm font-bold text-primary">
-                  {(profileName || profileEmail || "P").charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <div>
-              <div className={layoutTheme.profileName}>{profileEmail || 'Participant'}</div>
-            </div>
-          </div>
-          <button
-            type="button"
-            className={layoutTheme.profileActionButton}
-          >
-            <span className={layoutTheme.profileActionLabelRow}>
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-white/90 transition hover:bg-white/10"
-            onClick={onLogout}
-            disabled={logoutLoading}
-          >
-            <span className="flex items-center gap-2">
-              <LogOut className="h-4 w-4" />
-              <span>{logoutLoading ? 'Logging out...' : 'Log out'}</span>
-            </span>
-          </button>
-        </div>
       </div>
     </aside>
   );

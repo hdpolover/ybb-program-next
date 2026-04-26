@@ -15,10 +15,10 @@ import {
   type PortalDashboardSummary,
   type AmbassadorData,
 } from '@/components/dashboard/DashboardDataContext';
-import { DashboardModeProvider } from '@/components/dashboard/DashboardModeContext';
 import NotificationsPopover from '@/components/dashboard/layout/NotificationsPopover';
 import UserMenuPopover from '@/components/dashboard/layout/UserMenuPopover';
 import { getEnvelopeData, isRecord } from '@/lib/api/response';
+import { toAmbassadorData } from '@/lib/dashboard/ambassador';
 import { componentsTheme } from '@/lib/theme/components';
 
 type DashboardSearchItem = {
@@ -65,46 +65,6 @@ function toParticipantMeData(payload: unknown): ParticipantMeData | null {
   };
 
   return Object.values(participant).some((value) => value !== undefined) ? participant : null;
-}
-
-function toAmbassadorData(payload: unknown): AmbassadorData | null {
-  if (!isRecord(payload)) return null;
-
-  const id = typeof payload.id === 'string' ? payload.id : null;
-  const referralCode = typeof payload.referralCode === 'string' ? payload.referralCode : null;
-  const shareLink = typeof payload.shareLink === 'string' ? payload.shareLink : null;
-  const totalReferrals =
-    typeof payload.totalReferrals === 'number' && Number.isFinite(payload.totalReferrals)
-      ? payload.totalReferrals
-      : null;
-  const successfulReferrals =
-    typeof payload.successfulReferrals === 'number' && Number.isFinite(payload.successfulReferrals)
-      ? payload.successfulReferrals
-      : null;
-  const isActive = typeof payload.isActive === 'boolean' ? payload.isActive : null;
-  const programName = typeof payload.programName === 'string' ? payload.programName : null;
-
-  if (
-    !id ||
-    !referralCode ||
-    !shareLink ||
-    totalReferrals === null ||
-    successfulReferrals === null ||
-    isActive === null ||
-    !programName
-  ) {
-    return null;
-  }
-
-  return {
-    id,
-    referralCode,
-    shareLink,
-    totalReferrals,
-    successfulReferrals,
-    isActive,
-    programName,
-  };
 }
 
 function toPortalDashboardSummary(payload: unknown): PortalDashboardSummary | null {
@@ -203,6 +163,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [dashboardSummary, setDashboardSummary] = useState<PortalDashboardSummary | null>(null);
   const [isDashboardSummaryLoading, setIsDashboardSummaryLoading] = useState(true);
   const [ambassadorData, setAmbassadorData] = useState<AmbassadorData | null>(null);
+  // Start as NOT loading if we have a cached ambassador status — avoids nav flicker on repeat visits
+  const [isAmbassadorDataLoading, setIsAmbassadorDataLoading] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('ybb_ambassador_status') === null;
+  });
+  const cachedIsAmbassador = typeof window !== 'undefined' && localStorage.getItem('ybb_ambassador_status') === 'true';
+  const isAmbassador = ambassadorData?.isActive ?? cachedIsAmbassador;
 
   let sectionLabel: string | null = null;
   let subLabel: string | null = null;
@@ -222,8 +189,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   let pageTitle = 'Dashboard';
   let pageSubtitle = 'Overview of your program, submissions, and payments.';
   if (pathname === '/dashboard') {
-    pageTitle = 'Dashboard Overview';
-    pageSubtitle = 'See your registration status, program details, and important guidebook info.';
+    if (isAmbassador) {
+      pageTitle = 'Ambassador Dashboard';
+      pageSubtitle = 'Track your referral link, code, and ambassador performance.';
+    } else {
+      pageTitle = 'Dashboard Overview';
+      pageSubtitle = 'See your registration status, program details, and important guidebook info.';
+    }
   } else if (pathname?.startsWith('/dashboard/submission')) {
     pageTitle = 'Submission';
     pageSubtitle = 'Review and manage your application submission details.';
@@ -331,15 +303,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             const ambassador = toAmbassadorData(ambassadorPayload);
             if (ambassador?.isActive) {
               setAmbassadorData(ambassador);
+              try { localStorage.setItem('ybb_ambassador_status', 'true'); } catch {}
+            } else {
+              try { localStorage.setItem('ybb_ambassador_status', 'false'); } catch {}
             }
+          } else if (!cancelled) {
+            try { localStorage.setItem('ybb_ambassador_status', 'false'); } catch {}
           }
         } catch {
           // ignore
+        } finally {
+          if (!cancelled) {
+            setIsAmbassadorDataLoading(false);
+          }
         }
       } catch {
         // ignore
         if (!cancelled) {
           setIsDashboardSummaryLoading(false);
+          setIsAmbassadorDataLoading(false);
         }
       }
     })();
@@ -353,6 +335,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setMobileSidebarOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (isAmbassadorDataLoading || !isAmbassador) return;
+    if (pathname !== '/dashboard') {
+      router.replace('/dashboard');
+    }
+  }, [isAmbassador, isAmbassadorDataLoading, pathname, router]);
+
   const greetingName =
     participantProfile?.displayName?.trim() ||
     participantProfile?.fullName?.trim() ||
@@ -361,14 +350,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     'Participant';
   // shell grid: sidebar kiri + konten kanan
   return (
-    <DashboardModeProvider>
     <main className="relative h-screen overflow-hidden bg-white">
       <div className="flex h-screen">
         {/* Sidebar nempel di kiri */}
         <Sidebar
-          profileEmail={me?.email ?? ''}
-          profileImageUrl={participantProfile?.profilePictureUrl}
-          profileName={greetingName}
+          isAmbassador={isAmbassador}
+          isAmbassadorDataLoading={isAmbassadorDataLoading}
         />
 
         {/* Kolom kanan: navbar atas + konten */}
@@ -379,6 +366,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           onboarding={onboarding}
           participantProfile={participantProfile}
           ambassadorData={ambassadorData}
+          isAmbassadorDataLoading={isAmbassadorDataLoading}
         >
           <div className="flex h-screen flex-1 flex-col overflow-y-auto">
           {/* Navbar dashboard */}
@@ -434,7 +422,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 profileName={greetingName}
                 profileEmail={me?.email}
                 profileImageUrl={participantProfile?.profilePictureUrl}
-                isAmbassador={!!ambassadorData?.isActive}
+                isAmbassador={isAmbassador}
               />
             </div>
           </header>
@@ -443,7 +431,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <section className="flex-1 px-6 py-6 lg:px-8">
             <div className="mx-auto max-w-6xl space-y-4">
               {/* Header halaman (disembunyiin kalau lagi di halaman payments atau saat sedang mencari) */}
-              {!pathname?.startsWith('/dashboard/payments') && !pathname?.startsWith('/dashboard/submission') && searchQuery.trim().length < 2 && (
+              {!pathname?.startsWith('/dashboard/payments') && !pathname?.startsWith('/dashboard/submission') && !pathname?.startsWith('/dashboard/settings') && searchQuery.trim().length < 2 && (
                 <div className="space-y-1">
                   <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
                     {pageTitle}
@@ -453,7 +441,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               )}
 
               {/* Greeting cuma nongol di halaman utama dashboard overview, dan disembunyikan saat sedang mencari */}
-              {pathname === '/dashboard' && searchQuery.trim().length < 2 && (
+              {pathname === '/dashboard' && !isAmbassador && searchQuery.trim().length < 2 && (
                 <GreetingWithClock name={greetingName} />
               )}
 
@@ -472,7 +460,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </DashboardDataProvider>
       </div>
     </main>
-    </DashboardModeProvider>
   );
 }
 
