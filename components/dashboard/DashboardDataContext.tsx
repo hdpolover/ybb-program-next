@@ -14,6 +14,11 @@ export type PortalDashboardStats = {
   totalRequired: PortalDashboardMoney;
 };
 
+export type PortalDashboardGuidebook = {
+  label?: string;
+  url?: string;
+};
+
 export type PortalDashboardSummary = {
   greeting?: string;
   activeApplication?: {
@@ -25,6 +30,7 @@ export type PortalDashboardSummary = {
     progress?: number;
     currentStep?: string;
     daysUntilDeadline?: number;
+    guidebooks?: PortalDashboardGuidebook[];
   };
   alerts?: Array<{
     id?: string;

@@ -111,11 +111,27 @@ function toPortalDashboardSummary(payload: unknown): PortalDashboardSummary | nu
   if (!payload || typeof payload !== 'object') return null;
 
   const raw = payload as Partial<PortalDashboardSummary>;
+  const rawActiveApplication = isRecord(raw.activeApplication) ? raw.activeApplication : null;
+  const guidebooks = Array.isArray(rawActiveApplication?.guidebooks)
+    ? rawActiveApplication.guidebooks
+        .filter(isRecord)
+        .map((guidebook) => ({
+          label: typeof guidebook.label === 'string' ? guidebook.label : undefined,
+          url: typeof guidebook.url === 'string' ? guidebook.url : undefined,
+        }))
+        .filter((guidebook) => typeof guidebook.url === 'string' && guidebook.url.trim().length > 0)
+    : undefined;
   const rawStats = raw.stats;
 
   if (!rawStats || typeof rawStats !== 'object') {
     return {
       ...raw,
+      activeApplication: rawActiveApplication
+        ? {
+            ...rawActiveApplication,
+            guidebooks,
+          }
+        : raw.activeApplication,
       stats: {
         applicationsCount: 0,
         completedProgramsCount: 0,
@@ -147,6 +163,12 @@ function toPortalDashboardSummary(payload: unknown): PortalDashboardSummary | nu
 
   return {
     ...raw,
+    activeApplication: rawActiveApplication
+      ? {
+          ...rawActiveApplication,
+          guidebooks,
+        }
+      : raw.activeApplication,
     stats: {
       applicationsCount:
         typeof stats.applicationsCount === 'number' && Number.isFinite(stats.applicationsCount)
