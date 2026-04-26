@@ -6,13 +6,17 @@ import DashboardOverviewSection from '@/components/dashboard/sections/DashboardO
 import DashboardPageSkeleton from '@/components/dashboard/ui/DashboardPageSkeleton';
 
 export default function DashboardOverviewPage() {
-  const { ambassadorData, isAmbassadorDataLoading } = useDashboardData();
+  const { ambassadorData, isAmbassador, isAmbassadorDataLoading } = useDashboardData();
+
+  if (isAmbassador && !ambassadorData) {
+    return <DashboardPageSkeleton variant="ambassador" className="space-y-6" />;
+  }
 
   if (isAmbassadorDataLoading) {
     return <DashboardPageSkeleton variant="overview-summary" className="space-y-6" />;
   }
 
-  if (ambassadorData?.isActive) {
+  if (isAmbassador) {
     return <AmbassadorDashboardSection />;
   }
 

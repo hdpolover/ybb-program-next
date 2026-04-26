@@ -379,6 +379,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           onboarding={onboarding}
           participantProfile={participantProfile}
           ambassadorData={ambassadorData}
+          isAmbassador={isAmbassador}
           isAmbassadorDataLoading={isAmbassadorDataLoading}
         >
           <div className="flex h-screen flex-1 flex-col overflow-y-auto">

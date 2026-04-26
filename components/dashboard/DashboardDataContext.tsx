@@ -94,6 +94,7 @@ type DashboardDataContextValue = {
   onboarding: ParticipantOnboardingData | null;
   participantProfile: ParticipantMeData | null;
   ambassadorData: AmbassadorData | null;
+  isAmbassador: boolean;
   isAmbassadorDataLoading: boolean;
 };
 
@@ -104,6 +105,7 @@ const DashboardDataContext = createContext<DashboardDataContextValue>({
   onboarding: null,
   participantProfile: null,
   ambassadorData: null,
+  isAmbassador: false,
   isAmbassadorDataLoading: false,
 });
 
@@ -114,6 +116,7 @@ export function DashboardDataProvider({
   onboarding,
   participantProfile,
   ambassadorData,
+  isAmbassador,
   isAmbassadorDataLoading,
   children,
 }: {
@@ -123,6 +126,7 @@ export function DashboardDataProvider({
   onboarding: ParticipantOnboardingData | null;
   participantProfile: ParticipantMeData | null;
   ambassadorData: AmbassadorData | null;
+  isAmbassador: boolean;
   isAmbassadorDataLoading: boolean;
   children: React.ReactNode;
 }) {
@@ -135,6 +139,7 @@ export function DashboardDataProvider({
         onboarding,
         participantProfile,
         ambassadorData,
+        isAmbassador,
         isAmbassadorDataLoading,
       }}
     >
