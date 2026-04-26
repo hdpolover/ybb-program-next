@@ -8,9 +8,10 @@ import RequireNowSection from '@/components/partners/RequireNow';
 // import PartnershipImpactSection from '@/components/partners/PartnershipImpact';
 import PartnershipJourneySection from '@/components/partners/PartnershipJourney';
 import PartnerFAQSection from '@/components/partners/PartnerFAQ';
+import CanvaEmbedSection from '@/components/partners/CanvaEmbed';
 import { getPartnersPageData } from '@/lib/api/partners';
 import { headers } from 'next/headers';
-import type { CtaBecomePartnerSection, PartnersGridSection, SponsorsGridSection } from '@/types/partners';
+import type { CanvaEmbedSection as CanvaEmbedSectionType, CtaBecomePartnerSection, PartnersGridSection, SponsorsGridSection } from '@/types/partners';
 import { SetPromoCTA } from '@/components/sections/PromoCTAContext';
 import { componentsTheme } from '@/lib/theme/components';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
@@ -25,6 +26,9 @@ export default async function PartnersSponsorsPage() {
   ]);
 
   const heroSection = partnersPage.sections.find(section => section.type === 'hero');
+  const canvaEmbedSection = partnersPage.sections.find(
+    (section): section is CanvaEmbedSectionType => section.type === 'canva_embed',
+  );
   const sponsorsGridSection = partnersPage.sections.find(
     (section): section is SponsorsGridSection => section.type === 'sponsors_grid',
   );
@@ -56,6 +60,10 @@ export default async function PartnersSponsorsPage() {
           { href: `/${partnersPage.slug}`, label: partnersPage.title },
         ]}
       />
+
+      {canvaEmbedSection && (
+        <CanvaEmbedSection url={canvaEmbedSection.content.url} />
+      )}
 
       {ctaBecomePartnerSection?.content.text && ctaBecomePartnerSection?.content.link ? (
         <SetPromoCTA>

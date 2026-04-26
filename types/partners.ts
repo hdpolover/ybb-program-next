@@ -1,12 +1,19 @@
 // Partners & Sponsors page API types
 
-export type PartnersSectionType = 'hero' | 'sponsors_grid' | 'partners_grid' | 'cta_become_partner';
+export type PartnersSectionType = 'hero' | 'sponsors_grid' | 'partners_grid' | 'cta_become_partner' | 'canva_embed';
 
 export type PartnersHeroSection = {
   type: 'hero';
   content: {
     headline: string;
     subheadline: string;
+  };
+};
+
+export type CanvaEmbedSection = {
+  type: 'canva_embed';
+  content: {
+    url: string;
   };
 };
 
@@ -50,6 +57,7 @@ export type CtaBecomePartnerSection = {
 
 export type PartnersSection =
   | PartnersHeroSection
+  | CanvaEmbedSection
   | SponsorsGridSection
   | PartnersGridSection
   | CtaBecomePartnerSection;
