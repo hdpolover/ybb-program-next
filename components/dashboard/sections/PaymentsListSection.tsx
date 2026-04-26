@@ -44,6 +44,22 @@ interface PaymentsSummary {
   totalRequired: string;
 }
 
+function formatMoney(amount: number, currencyCode: string): string {
+  const normalizedCurrency = String(currencyCode || "USD").toUpperCase();
+  const fractionDigits = normalizedCurrency === "IDR" ? 0 : 2;
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: normalizedCurrency,
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }).format(amount);
+  } catch {
+    return `${normalizedCurrency} ${amount.toFixed(fractionDigits)}`;
+  }
+}
+
 function toPaymentStatus(value: unknown): PaymentItem["status"] {
   if (value === "paid" || value === "unpaid" || value === "processing" || value === "failed") {
     return value;
@@ -85,10 +101,20 @@ function toPaymentsSummary(value: unknown): PaymentsSummary {
   if (!isRecord(value)) return fallback;
 
   return {
+    totalRequired:
+      typeof value.totalRequired === "string"
+        ? value.totalRequired
+        : isRecord(value.totalRequired)
+          ? formatMoney(
+              typeof value.totalRequired.amount === "number" && Number.isFinite(value.totalRequired.amount)
+                ? value.totalRequired.amount
+                : 0,
+              typeof value.totalRequired.currency === "string" ? value.totalRequired.currency : "USD",
+            )
+          : "$0",
     complete: typeof value.complete === "number" && Number.isFinite(value.complete) ? value.complete : 0,
     pending: typeof value.pending === "number" && Number.isFinite(value.pending) ? value.pending : 0,
     overdue: typeof value.overdue === "number" && Number.isFinite(value.overdue) ? value.overdue : 0,
-    totalRequired: typeof value.totalRequired === "string" ? value.totalRequired : "$0",
   };
 }
 
