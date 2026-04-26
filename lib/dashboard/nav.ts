@@ -14,4 +14,5 @@ export const dashboardNav: NavItem[] = [
 
 export const ambassadorNav: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Referral Funnel', href: '/dashboard/referrals' },
 ];

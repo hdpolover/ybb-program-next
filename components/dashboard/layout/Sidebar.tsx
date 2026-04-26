@@ -1,6 +1,8 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import {
+  BarChart3,
   CreditCard,
   FileText,
   FolderClosed,
@@ -26,8 +28,7 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const { settings } = useSettings();
-  // Show dashboardNav immediately while loading — swap to ambassadorNav once we know the user is an ambassador
-  const activeNav = isAmbassador && !isAmbassadorDataLoading ? ambassadorNav : dashboardNav;
+  const activeNav = isAmbassador ? ambassadorNav : dashboardNav;
   // Pas SSR dibuat ketutup dulu biar ga bentrok hidrasi, ntar dibuka pas komponen udah kepasang
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [mounted, setMounted] = useState(false);
@@ -58,6 +59,7 @@ export default function Sidebar({
 
   const renderIcon = (href: string) => {
     if (isAmbassador && href === "/dashboard") return <Users className="h-4 w-4" />;
+    if (href.startsWith("/dashboard/referrals")) return <BarChart3 className="h-4 w-4" />;
     if (href === "/dashboard") return <LayoutDashboard className="h-4 w-4" />;
     if (href.startsWith("/dashboard/ambassador")) return <Users className="h-4 w-4" />;
     if (href.startsWith("/dashboard/submission")) return <Upload className="h-4 w-4" />;
@@ -126,7 +128,7 @@ export default function Sidebar({
                   </svg>
                 </button>
               ) : (
-                <a
+                <Link
                   href={item.href}
                   className={`${layoutTheme.navLinkBase} ${
                     active
@@ -139,7 +141,7 @@ export default function Sidebar({
                     <span>{item.label}</span>
                   </span>
                   {active ? <span className={layoutTheme.navActiveDot} /> : null}
-                </a>
+                </Link>
               )}
 
               {hasChildren ? (
@@ -153,7 +155,7 @@ export default function Sidebar({
                     {item.children!.map(child => {
                       const childActive = pathname === child.href;
                       return (
-                        <a
+                        <Link
                           key={child.href}
                           href={child.href}
                           className={`${layoutTheme.navSubLinkBase} ${
@@ -163,7 +165,7 @@ export default function Sidebar({
                           }`}
                         >
                           {child.label}
-                        </a>
+                        </Link>
                       );
                     })}
                   </div>

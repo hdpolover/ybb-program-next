@@ -6,6 +6,7 @@ type DashboardPageSkeletonVariant =
   | "submission-read"
   | "submission-edit"
   | "ambassador"
+  | "ambassador-referrals"
   | "overview-summary"
   | "overview-registration"
   | "overview-program-details"
@@ -189,6 +190,43 @@ function AmbassadorSkeleton() {
   );
 }
 
+function AmbassadorReferralsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-2">
+            <SkeletonBlock className="h-5 w-80 max-w-full" />
+            <SkeletonBlock className="h-4 w-72 max-w-full" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <SkeletonBlock className="h-8 w-24 rounded-full" />
+            <SkeletonBlock className="h-8 w-24 rounded-full" />
+            <SkeletonBlock className="h-8 w-24 rounded-full" />
+            <SkeletonBlock className="h-8 w-24 rounded-full" />
+            <SkeletonBlock className="h-8 w-24 rounded-full" />
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-3 md:flex-row">
+          <SkeletonBlock className="h-11 flex-1" />
+          <SkeletonBlock className="h-11 md:w-52" />
+        </div>
+
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
+          <SkeletonBlock className="h-12 w-full rounded-none" />
+          <div className="space-y-2 bg-white p-3">
+            <SkeletonBlock className="h-14 w-full" />
+            <SkeletonBlock className="h-14 w-full" />
+            <SkeletonBlock className="h-14 w-full" />
+            <SkeletonBlock className="h-14 w-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OverviewSummarySkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -286,6 +324,7 @@ export default function DashboardPageSkeleton({
       {variant === "submission-read" ? <SubmissionReadSkeleton /> : null}
       {variant === "submission-edit" ? <SubmissionEditSkeleton /> : null}
       {variant === "ambassador" ? <AmbassadorSkeleton /> : null}
+      {variant === "ambassador-referrals" ? <AmbassadorReferralsSkeleton /> : null}
       {variant === "overview-summary" ? <OverviewSummarySkeleton /> : null}
       {variant === "overview-registration" ? <OverviewRegistrationSkeleton /> : null}
       {variant === "overview-program-details" ? <OverviewProgramDetailsSkeleton /> : null}

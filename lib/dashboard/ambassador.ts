@@ -25,6 +25,7 @@ export type AmbassadorReferral = {
 
 export type AmbassadorData = {
   id: string;
+  fullName: string;
   referralCode: string;
   shareLink: string;
   totalReferrals: number;
@@ -89,6 +90,10 @@ export function toAmbassadorData(payload: unknown): AmbassadorData | null {
   if (!isRecord(payload)) return null;
 
   const id = typeof payload.id === 'string' ? payload.id : null;
+  const fullName =
+    typeof payload.fullName === 'string' && payload.fullName.trim().length > 0
+      ? payload.fullName.trim()
+      : null;
   const referralCode = typeof payload.referralCode === 'string' ? payload.referralCode : null;
   const shareLink = typeof payload.shareLink === 'string' ? payload.shareLink : null;
   const totalReferrals =
@@ -107,6 +112,7 @@ export function toAmbassadorData(payload: unknown): AmbassadorData | null {
 
   if (
     !id ||
+    !fullName ||
     !referralCode ||
     !shareLink ||
     totalReferrals === null ||
@@ -119,6 +125,7 @@ export function toAmbassadorData(payload: unknown): AmbassadorData | null {
 
   return {
     id,
+    fullName,
     referralCode,
     shareLink,
     totalReferrals,

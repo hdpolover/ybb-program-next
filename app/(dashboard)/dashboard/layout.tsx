@@ -209,6 +209,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   } else if (pathname?.startsWith('/dashboard/documents')) {
     pageTitle = 'Available Program Documents';
     pageSubtitle = 'Access and download important program materials. These documents contain essential information to ensure your successful program completion.';
+  } else if (pathname?.startsWith('/dashboard/referrals')) {
+    pageTitle = 'Referral Funnel';
+    pageSubtitle = 'Track who used your ambassador link or code and how far they progressed.';
   }
 
   useEffect(() => {
@@ -337,10 +340,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (isAmbassadorDataLoading || !isAmbassador) return;
-    if (pathname !== '/dashboard') {
+    const ambassadorAllowed =
+      pathname === '/dashboard' ||
+      pathname?.startsWith('/dashboard/referrals') ||
+      pathname?.startsWith('/dashboard/settings');
+    if (!ambassadorAllowed) {
       router.replace('/dashboard');
     }
   }, [isAmbassador, isAmbassadorDataLoading, pathname, router]);
+
+  const isAmbassadorContentRoute =
+    isAmbassador && (pathname === '/dashboard' || pathname?.startsWith('/dashboard/referrals'));
 
   const greetingName =
     participantProfile?.displayName?.trim() ||
@@ -348,6 +358,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     onboarding?.displayName?.trim() ||
     onboarding?.fullName?.trim() ||
     'Participant';
+  const userMenuName =
+    (isAmbassador ? ambassadorData?.fullName?.trim() : '') ||
+    greetingName;
   // shell grid: sidebar kiri + konten kanan
   return (
     <main className="relative h-screen overflow-hidden bg-white">
@@ -419,7 +432,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <NotificationsPopover />
               <ProgramSelector programs={me?.registeredPrograms ?? []} />
               <UserMenuPopover
-                profileName={greetingName}
+                profileName={userMenuName}
                 profileEmail={me?.email}
                 profileImageUrl={participantProfile?.profilePictureUrl}
                 isAmbassador={isAmbassador}
@@ -429,12 +442,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Konten utama dashboard */}
           <section className="flex-1 px-6 py-6 lg:px-8">
-            <div className="mx-auto max-w-6xl space-y-4">
+            <div className={isAmbassadorContentRoute ? "w-full space-y-4" : "mx-auto max-w-6xl space-y-4"}>
               {/* Header halaman (disembunyiin kalau lagi di halaman payments atau saat sedang mencari) */}
-              {!pathname?.startsWith('/dashboard/payments') && !pathname?.startsWith('/dashboard/submission') && !pathname?.startsWith('/dashboard/settings') && searchQuery.trim().length < 2 && (
-                <div className="space-y-1">
-                  <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
-                    {pageTitle}
+               {!pathname?.startsWith('/dashboard/payments') && !pathname?.startsWith('/dashboard/submission') && !pathname?.startsWith('/dashboard/settings') && searchQuery.trim().length < 2 && (
+                 <div className="space-y-1">
+                   <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
+                     {pageTitle}
                   </h1>
                   <p className="text-xs text-slate-500 sm:text-sm">{pageSubtitle}</p>
                 </div>
