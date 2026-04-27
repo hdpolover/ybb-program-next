@@ -54,6 +54,10 @@ interface InvoiceData {
   currency?: string;
 }
 
+function hasHtmlMarkup(value: string): boolean {
+  return /<\/?[a-z][\s\S]*>/i.test(value);
+}
+
 function buildDefaultChecklistItems(programName?: string | null): string[] {
   return [
     "If I am not selected as a fully funded participant, I agree to continue as a self-funded participant, and the payment is non-refundable.",
@@ -696,7 +700,16 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       {selectedManualMethodObj.instructions && (
                         <div className="sm:col-span-2">
                           <dt className={paymentsTheme.bankDetailsTerm}>Instructions</dt>
-                          <dd className={`${paymentsTheme.bankDetailsValue} whitespace-pre-line`}>{selectedManualMethodObj.instructions}</dd>
+                          <dd className={paymentsTheme.bankDetailsValue}>
+                            {hasHtmlMarkup(selectedManualMethodObj.instructions) ? (
+                              <div
+                                className="prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
+                                dangerouslySetInnerHTML={{ __html: selectedManualMethodObj.instructions }}
+                              />
+                            ) : (
+                              <div className="whitespace-pre-line">{selectedManualMethodObj.instructions}</div>
+                            )}
+                          </dd>
                         </div>
                       )}
                     </dl>
