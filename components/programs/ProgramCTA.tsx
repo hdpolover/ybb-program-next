@@ -1,3 +1,5 @@
+import { normalizeLandingCtaHref } from '@/lib/landing/cta';
+
 export type ProgramCTAProps = {
   title?: string;
   body?: string;
@@ -19,6 +21,8 @@ export default function ProgramCTA({
   videoHeading,
   videoDescription,
 }: ProgramCTAProps) {
+  const resolvedPrimaryCtaHref = normalizeLandingCtaHref(primaryCtaHref);
+
   return (
     <section className="relative w-full overflow-hidden bg-[url('/img/programregist.png')] bg-cover bg-center bg-no-repeat py-12 text-[#172554] sm:py-16 lg:py-20">
       <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
@@ -35,7 +39,7 @@ export default function ProgramCTA({
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <a
-              href={primaryCtaHref}
+              href={resolvedPrimaryCtaHref}
               className="hover:bg-accent/90 inline-flex items-center justify-center rounded-md bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
             >
               {primaryCtaLabel}

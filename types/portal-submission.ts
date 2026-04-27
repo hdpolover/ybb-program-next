@@ -43,6 +43,8 @@ export type PortalSubmissionEssay = {
   isRequired: boolean;
   wordLimit?: number;
   order: number;
+  guidelineText?: string;
+  guidelineUrl?: string;
   answer?: string;
 };
 

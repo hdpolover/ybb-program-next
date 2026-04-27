@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, ChevronDown, Info, PencilLine } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronDown, ImageIcon, Info, PencilLine } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -15,8 +15,11 @@ import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
   readActiveProgramId,
+  resolveActiveProgramId,
+  syncActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
 import { getEnvelopeData, getErrorMessage } from "@/lib/api/response";
+import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import type {
   PortalSubmissionDetail,
   PortalSubmissionEssay,
@@ -29,6 +32,8 @@ import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkelet
 import { CountryField } from "@/components/dashboard/fields/CountryField";
 import { PhoneField } from "@/components/dashboard/fields/PhoneField";
 import { FieldHelpAssets } from "@/components/dashboard/sections/FieldHelpAssets";
+import { FieldAssetDrawer } from "@/components/dashboard/sections/FieldAssetDrawer";
+import { FieldHelpText, plainTextFromRichText } from "@/components/dashboard/sections/FieldHelpText";
 import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
@@ -332,7 +337,6 @@ function getPreviewDisplayValue(
 }
 
 function shouldSpanFullWidth(field: PortalSubmissionField) {
-  if (field.mediaUrl) return true;
   if (field.type === "textarea" || field.type === "file") return true;
 
   const normalized = normalizeFieldKey(field.name);
@@ -342,29 +346,31 @@ function shouldSpanFullWidth(field: PortalSubmissionField) {
 
 function FieldMedia({ field }: { field: PortalSubmissionField }) {
   if (!field.mediaUrl) return null;
-
-  const isRemote = /^https?:\/\//.test(field.mediaUrl);
+  const [assetDrawerOpen, setAssetDrawerOpen] = useState(false);
+  const assetLabel = field.mediaAlt?.trim() || `${field.label} reference`;
 
   return (
-    <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-      <div className="relative aspect-[4/3] w-full bg-white">
-        <Image
-          src={field.mediaUrl}
-          alt={field.mediaAlt || field.label}
-          fill
-          sizes="(min-width: 1024px) 420px, 100vw"
-          className="object-contain p-4"
-          unoptimized={isRemote}
-        />
-      </div>
-      <div className="border-t border-slate-200 px-4 py-2 text-xs text-slate-600">
-        {field.mediaAlt || `${field.label} guide`}
-      </div>
-    </div>
+    <>
+      <button
+        type="button"
+        onClick={() => setAssetDrawerOpen(true)}
+        className="border-primary/30 bg-primary/5 hover:bg-primary/10 mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium text-primary transition"
+      >
+        <ImageIcon className="h-3.5 w-3.5" />
+        <span>View Reference</span>
+      </button>
+      <FieldAssetDrawer
+        open={assetDrawerOpen}
+        onClose={() => setAssetDrawerOpen(false)}
+        src={field.mediaUrl}
+        alt={assetLabel}
+      />
+    </>
   );
 }
 
 export default function SubmissionEditSection() {
+  const { me } = useDashboardData();
   const [detail, setDetail] = useState<PortalSubmissionDetail | null>(null);
   const [sectionValues, setSectionValues] = useState<Record<string, Record<string, string>>>({});
   const [essayValues, setEssayValues] = useState<Record<string, string>>({});
@@ -381,7 +387,9 @@ export default function SubmissionEditSection() {
 
   useEffect(() => {
     const syncSelectedProgram = () => {
-      setSelectedProgramId(readActiveProgramId());
+      setSelectedProgramId(
+        resolveActiveProgramId(me?.registeredPrograms ?? [], readActiveProgramId()),
+      );
       setProgramSelectionReady(true);
     };
 
@@ -391,7 +399,7 @@ export default function SubmissionEditSection() {
     return () => {
       window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, syncSelectedProgram as EventListener);
     };
-  }, []);
+  }, [me?.registeredPrograms]);
 
   useEffect(() => {
     if (!programSelectionReady) return;
@@ -414,6 +422,10 @@ export default function SubmissionEditSection() {
 
         const nextDetail = toPortalSubmissionDetail(getEnvelopeData(json));
         if (!cancelled && nextDetail) {
+          if (nextDetail.programId && nextDetail.programId !== selectedProgramId) {
+            syncActiveProgramId(nextDetail.programId);
+            setSelectedProgramId(nextDetail.programId);
+          }
           setDetail(nextDetail);
           setActiveSectionId(nextDetail.sections[0]?.id ?? null);
           setSectionValues(
@@ -558,7 +570,7 @@ export default function SubmissionEditSection() {
           className={`${submissionTheme.essayTextarea} min-h-[140px]`}
           value={value}
           onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
-          placeholder={field.placeholder || field.helpText || ""}
+          placeholder={field.placeholder || plainTextFromRichText(field.helpText) || ""}
         />
       );
     }
@@ -630,7 +642,7 @@ export default function SubmissionEditSection() {
         className={submissionTheme.editInputBase}
         value={value}
         onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
-        placeholder={field.placeholder || field.helpText || ""}
+        placeholder={field.placeholder || plainTextFromRichText(field.helpText) || ""}
       />
     );
   };
@@ -923,9 +935,7 @@ export default function SubmissionEditSection() {
                         {selectedDescription ? (
                           <p className={submissionTheme.readSectionSubtitle}>{selectedDescription}</p>
                         ) : null}
-                        {field.helpText ? (
-                          <p className={submissionTheme.readSectionSubtitle}>{field.helpText}</p>
-                        ) : null}
+                        <FieldHelpText html={field.helpText} className="mt-1" />
                         <FieldMedia field={field} />
                         <FieldHelpAssets items={field.helpAssets} className="mt-2" />
                       </label>
@@ -946,6 +956,21 @@ export default function SubmissionEditSection() {
                       <div key={essay.id} className="space-y-2">
                         <label className={submissionTheme.editFieldLabelWrapper}>
                           <span className={submissionTheme.editFieldLabelText}>{essay.question}</span>
+                          {(essay.guidelineText || essay.guidelineUrl) && (
+                            <div className="mb-2 flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5 text-[13px] text-blue-800">
+                              {essay.guidelineText && <p>{essay.guidelineText}</p>}
+                              {essay.guidelineUrl && (
+                                <a
+                                  href={essay.guidelineUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 font-semibold text-blue-600 underline-offset-2 hover:underline"
+                                >
+                                  View Essay Guidelines →
+                                </a>
+                              )}
+                            </div>
+                          )}
                           <textarea
                             className={submissionTheme.essayTextarea}
                             value={essayValues[essay.id] || ""}

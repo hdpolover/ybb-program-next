@@ -1,5 +1,6 @@
 import { componentsTheme } from '@/lib/theme/components';
 import Image from 'next/image';
+import { normalizeLandingCtaHref } from '@/lib/landing/cta';
 
 export type PromoCTAProps = {
   eyebrow?: string;
@@ -22,6 +23,8 @@ export default function PromoCTA({
   videoTitle,
   videoDescription,
 }: PromoCTAProps) {
+  const resolvedPrimaryCtaHref = normalizeLandingCtaHref(primaryCtaHref);
+
   return (
     <section className={componentsTheme.promoCta.sectionWrapper}>
       <div className="absolute inset-0 sm:hidden">
@@ -53,7 +56,7 @@ export default function PromoCTA({
           </p>
           <div className={componentsTheme.promoCta.actionsRow}>
             <a
-              href={primaryCtaHref}
+              href={resolvedPrimaryCtaHref}
               className={componentsTheme.promoCta.primaryButton}
             >
               {primaryCtaLabel}

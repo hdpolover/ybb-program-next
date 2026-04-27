@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   AlertCircle,
@@ -23,10 +23,15 @@ import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
   readActiveProgramId,
+  resolveActiveProgramId,
+  syncActiveProgramId,
 } from '@/lib/dashboard/activeProgram';
 import { getEnvelopeData, getMessage } from '@/lib/api/response';
 import { toPortalSubmissionDetail } from '@/lib/dashboard/submissionParser';
 import { FieldHelpAssets } from '@/components/dashboard/sections/FieldHelpAssets';
+import { FieldAssetDrawer } from '@/components/dashboard/sections/FieldAssetDrawer';
+import { FieldHelpText } from '@/components/dashboard/sections/FieldHelpText';
+import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
 import type {
   PortalSubmissionDetail,
   PortalSubmissionField,
@@ -333,93 +338,6 @@ function ProgressDrawer({
   );
 }
 
-function FieldAssetDrawer({
-  open,
-  onClose,
-  src,
-  alt,
-}: {
-  open: boolean;
-  onClose: () => void;
-  src: string;
-  alt: string;
-}) {
-  const isRemote = /^https?:\/\//.test(src);
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-
-    document.addEventListener('keydown', handleKey);
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', handleKey);
-      document.body.style.overflow = '';
-    };
-  }, [open, onClose]);
-
-  if (!open || typeof document === 'undefined') return null;
-
-  return createPortal(
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-end justify-end sm:items-start"
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Reference: ${alt}`}
-    >
-      {/* backdrop */}
-      <div
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* drawer panel */}
-      <div className="relative z-10 flex h-full w-full max-w-lg flex-col bg-white shadow-2xl sm:h-screen sm:rounded-none">
-        {/* header */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-          <div className="flex items-center gap-2 text-slate-800">
-            <ImageIcon className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold">{alt}</span>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="focus:ring-primary/40 inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2"
-            aria-label="Close reference drawer"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* image area */}
-        <div className="flex flex-1 items-center justify-center overflow-auto bg-slate-50 p-6">
-          <div className="relative w-full">
-            <Image
-              src={src}
-              alt={alt}
-              width={800}
-              height={600}
-              className="h-auto w-full rounded-xl object-contain shadow-sm"
-              unoptimized={isRemote}
-            />
-          </div>
-        </div>
-
-        {/* caption */}
-        <div className="border-t border-slate-200 px-5 py-3 text-xs text-slate-500">{alt}</div>
-      </div>
-    </div>,
-    document.body
-  );
-}
-
 function FieldRow({
   field,
   value,
@@ -454,9 +372,7 @@ function FieldRow({
       ) : (
         <div className={submissionTheme.readFieldValue}>{rendered}</div>
       )}
-      {field.helpText ? (
-        <p className={submissionTheme.readSectionSubtitle}>{field.helpText}</p>
-      ) : null}
+      <FieldHelpText html={field.helpText} className="mt-1" />
       {field.mediaUrl ? (
         <>
           <button
@@ -481,6 +397,7 @@ function FieldRow({
 }
 
 export default function SubmissionReadSection() {
+  const { me } = useDashboardData();
   const [detail, setDetail] = useState<PortalSubmissionDetail | null>(null);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [showProgressDrawer, setShowProgressDrawer] = useState(false);
@@ -491,7 +408,9 @@ export default function SubmissionReadSection() {
 
   useEffect(() => {
     const syncSelectedProgram = () => {
-      setSelectedProgramId(readActiveProgramId());
+      setSelectedProgramId(
+        resolveActiveProgramId(me?.registeredPrograms ?? [], readActiveProgramId()),
+      );
       setProgramSelectionReady(true);
     };
 
@@ -504,7 +423,7 @@ export default function SubmissionReadSection() {
         syncSelectedProgram as EventListener
       );
     };
-  }, []);
+  }, [me?.registeredPrograms]);
 
   useEffect(() => {
     if (!programSelectionReady) return;
@@ -530,6 +449,10 @@ export default function SubmissionReadSection() {
 
         const nextDetail = toPortalSubmissionDetail(getEnvelopeData(json));
         if (!cancelled) {
+          if (nextDetail?.programId && nextDetail.programId !== selectedProgramId) {
+            syncActiveProgramId(nextDetail.programId);
+            setSelectedProgramId(nextDetail.programId);
+          }
           setDetail(nextDetail);
           setActiveSectionId(nextDetail?.sections?.[0]?.id ?? null);
         }

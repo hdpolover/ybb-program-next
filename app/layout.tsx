@@ -136,10 +136,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     getHomePageData(host),
   ]);
 
+  let gaId: string | null = null;
+
   if (settingsResult.status === 'fulfilled') {
     settingsData = settingsResult.value;
     const rawColor = settingsResult.value?.brand?.primary_color;
     brandAccent = normalizeHex(rawColor);
+    gaId = settingsResult.value?.brand?.google_analytics_id || null;
   } else {
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
   }
@@ -189,6 +192,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ClientFooterGate />
           </PromoCTAProvider>
         </SettingsProvider>
+
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}');
+              `}
+            </Script>
+          </>
+        )}
 
         <Script
           src="https://aksamu.com/chat-widget.js"

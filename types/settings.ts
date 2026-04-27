@@ -19,6 +19,8 @@ export type SettingsBrand = {
   contact_whatsapp: string | null;
   address: string | null;
   social_media: SettingsSocialMedia;
+  google_analytics_id?: string | null;
+  pixel_id?: string | null;
 };
 
 export type SettingsFooterNavItem = {

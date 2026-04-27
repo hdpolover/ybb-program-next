@@ -80,6 +80,28 @@ export default function LoginPage() {
     setSignupForm(prev => ({ ...prev, [name]: value }));
   };
 
+  useEffect(() => {
+    const requestedMode = searchParams.get('mode');
+    const requestedRole = searchParams.get('role');
+
+    if (requestedRole === 'ambassador') {
+      setAmbassadorMode(true);
+      setMode('login');
+      return;
+    }
+
+    if (requestedMode === 'signup') {
+      setMode('signup');
+      setAmbassadorMode(false);
+      return;
+    }
+
+    if (requestedMode === 'login') {
+      setMode('login');
+      setAmbassadorMode(false);
+    }
+  }, [searchParams]);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 

@@ -8,6 +8,7 @@ import type { PersonalDetails } from "../SubmissionEditSection";
 import { getCities, getCountries, getGenders, getShirtSizes, getStates } from "@/lib/api/metadata";
 import type { CityMetadata, CountryMetadata, ShirtSizeMetadata, StateMetadata } from "@/types/metadata";
 import StyledSelect from "@/components/ui/StyledSelect";
+import { FieldAssetDrawer } from "@/components/dashboard/sections/FieldAssetDrawer";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -713,30 +714,12 @@ export default function SubmissionEditPersonalDetailsSection({
       </div>
  
       {showShirtSizeModal && (
-        <div className={submissionTheme.modalOverlay}>
-          <div className={submissionTheme.modalCard}>
-            <h2 className={submissionTheme.modalTitle}>Shirt Size Guide</h2>
-            <div className={submissionTheme.modalBody}>
-              <Image
-                src="/img/shirtSize.webp"
-                alt="Shirt size guide"
-                width={800}
-                height={600}
-                className={submissionTheme.modalImage}
-              />
-            </div>
-
-            <div className={submissionTheme.modalButtonRow}>
-              <button
-                type="button"
-                className={submissionTheme.modalSecondaryButton}
-                onClick={() => setShowShirtSizeModal(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <FieldAssetDrawer
+          open={showShirtSizeModal}
+          onClose={() => setShowShirtSizeModal(false)}
+          src="/img/shirtSize.webp"
+          alt="Shirt size guide"
+        />
       )}
     </div>
   );

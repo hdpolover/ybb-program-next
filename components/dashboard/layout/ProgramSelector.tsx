@@ -6,7 +6,8 @@ import { useSettings } from "@/components/providers/SettingsProvider";
 import { useEffect, useRef, useState } from "react";
 import {
   ACTIVE_PROGRAM_STORAGE_KEY,
-  announceActiveProgramChange,
+  resolveActiveProgramId,
+  syncActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
 
 type RegisteredProgram = {
@@ -78,20 +79,13 @@ export default function ProgramSelector({
       // ignore
     }
 
-    const exists = stored && normalizedPrograms.some(p => p.id === stored);
-    const nextId = exists ? stored : normalizedPrograms[0]!.id;
-    setActiveId(nextId);
+    const nextId = resolveActiveProgramId(normalizedPrograms, stored);
+    setActiveId(nextId ?? '');
   }, [normalizedPrograms]);
 
   useEffect(() => {
     if (!activeId) return;
-    try {
-      window.localStorage.setItem(ACTIVE_PROGRAM_STORAGE_KEY, activeId);
-    } catch {
-      // ignore
-    }
-
-    announceActiveProgramChange(activeId);
+    syncActiveProgramId(activeId);
   }, [activeId]);
 
   const active = normalizedPrograms.find(p => p.id === activeId) ?? normalizedPrograms[0] ?? null;

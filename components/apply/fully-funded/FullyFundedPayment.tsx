@@ -1,5 +1,6 @@
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
+import { getSignupHref } from '@/lib/landing/cta';
 
 export default function FullyFundedPaymentSection() {
   return (
@@ -86,7 +87,7 @@ export default function FullyFundedPaymentSection() {
               *All fees are non-refundable.
             </span>
           </p>
-          <a href="#apply" className={componentsTheme.applyPayment.footerCta}>
+          <a href={getSignupHref()} className={componentsTheme.applyPayment.footerCta}>
             Register Now
           </a>
         </div>

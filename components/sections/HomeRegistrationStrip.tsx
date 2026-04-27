@@ -24,6 +24,7 @@ type RegistrationType = {
   price: string;
   currency: string;
   benefits: string[];
+  requirements?: string[];
   validity_periods?: ValidityPeriod[];
 };
 
@@ -289,11 +290,14 @@ export default function HomeRegistrationStrip({
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
                 <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
                 <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {[
-                    'Complete registration form and documentation',
-                    'Submit required documents on time',
-                    'Pay fees according to scheduled payment batches',
-                  ].map((label, idx) => (
+                  {(primaryType?.requirements?.length
+                    ? primaryType.requirements
+                    : [
+                        'Complete registration form and documentation',
+                        'Submit required documents on time',
+                        'Pay fees according to scheduled payment batches',
+                      ]
+                  ).map((label, idx) => (
                     <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
                       <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
                         <Check className="h-3 w-3" />
@@ -322,7 +326,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {primaryOpen ? (
                     <a
-                      href="/apply#self-funded"
+                      href="/apply/self-funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                     >
                       Register as Self Funded
@@ -385,11 +389,14 @@ export default function HomeRegistrationStrip({
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
                 <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
                 <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {[
-                    'Complete registration form and documentation',
-                    'Submit detailed essays and applications',
-                    'Participate in interviews and evaluations',
-                  ].map((label, idx) => (
+                  {(secondaryType?.requirements?.length
+                    ? secondaryType.requirements
+                    : [
+                        'Complete registration form and documentation',
+                        'Submit detailed essays and applications',
+                        'Participate in interviews and evaluations',
+                      ]
+                  ).map((label, idx) => (
                     <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
                       <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
                         <Check className="h-3 w-3" />
@@ -420,7 +427,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {secondaryOpen ? (
                     <a
-                      href="/apply#fully-funded"
+                      href="/apply/fully-funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                     >
                       Register as Fully Funded
