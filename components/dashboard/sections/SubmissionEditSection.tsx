@@ -478,6 +478,18 @@ export default function SubmissionEditSection() {
     return [...(detail?.essays ?? [])].sort((left, right) => left.order - right.order);
   }, [activeSection, detail?.essays]);
 
+  const sectionEssayGuideline = useMemo(() => {
+    if (!detail) return null;
+    const text = detail.essayGuidelineText?.trim() || "";
+    const url = detail.essayGuidelineUrl?.trim() || "";
+    if (!text && !url) return null;
+
+    return {
+      text,
+      url,
+    };
+  }, [detail]);
+
   const updateFieldValue = (sectionId: string, fieldName: string, value: string) => {
     setSectionValues(current => ({
       ...current,
@@ -952,25 +964,26 @@ export default function SubmissionEditSection() {
                       </p>
                     </div>
 
+                    {sectionEssayGuideline ? (
+                      <div className="flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5 text-[13px] text-blue-800">
+                        {sectionEssayGuideline.text ? <p>{sectionEssayGuideline.text}</p> : null}
+                        {sectionEssayGuideline.url ? (
+                          <a
+                            href={sectionEssayGuideline.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 font-semibold text-blue-600 underline-offset-2 hover:underline"
+                          >
+                            View Essay Guidelines →
+                          </a>
+                        ) : null}
+                      </div>
+                    ) : null}
+
                     {sectionEssays.map((essay: PortalSubmissionEssay) => (
                       <div key={essay.id} className="space-y-2">
                         <label className={submissionTheme.editFieldLabelWrapper}>
                           <span className={submissionTheme.editFieldLabelText}>{essay.question}</span>
-                          {(essay.guidelineText || essay.guidelineUrl) && (
-                            <div className="mb-2 flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5 text-[13px] text-blue-800">
-                              {essay.guidelineText && <p>{essay.guidelineText}</p>}
-                              {essay.guidelineUrl && (
-                                <a
-                                  href={essay.guidelineUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 font-semibold text-blue-600 underline-offset-2 hover:underline"
-                                >
-                                  View Essay Guidelines →
-                                </a>
-                              )}
-                            </div>
-                          )}
                           <textarea
                             className={submissionTheme.essayTextarea}
                             value={essayValues[essay.id] || ""}

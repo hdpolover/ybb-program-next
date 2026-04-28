@@ -43,8 +43,6 @@ export type PortalSubmissionEssay = {
   isRequired: boolean;
   wordLimit?: number;
   order: number;
-  guidelineText?: string;
-  guidelineUrl?: string;
   answer?: string;
 };
 
@@ -72,6 +70,8 @@ export type PortalSubmissionDetail = {
   sections: PortalSubmissionSection[];
   essays: PortalSubmissionEssay[];
   requirements: PortalSubmissionRequirement[];
+  essayGuidelineText?: string;
+  essayGuidelineUrl?: string;
   programs?: PortalProgramOption[];
   participantName?: string;
   participantId?: string;

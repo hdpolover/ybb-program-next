@@ -172,6 +172,10 @@ export function toPortalSubmissionDetail(payload: unknown): PortalSubmissionDeta
     sections,
     essays,
     requirements,
+    essayGuidelineText:
+      typeof payload.essayGuidelineText === "string" ? payload.essayGuidelineText : undefined,
+    essayGuidelineUrl:
+      typeof payload.essayGuidelineUrl === "string" ? payload.essayGuidelineUrl : undefined,
     programs: programs.length > 0 ? programs : undefined,
     participantName: typeof payload.participantName === "string" ? payload.participantName : undefined,
     participantId: typeof payload.participantId === "string" ? payload.participantId : undefined,
