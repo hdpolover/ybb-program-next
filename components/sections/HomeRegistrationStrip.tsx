@@ -23,6 +23,8 @@ type RegistrationType = {
   name: string;
   price: string;
   currency: string;
+  fee_type?: string;
+  allowed_categories?: Array<'self_funded' | 'fully_funded' | string>;
   benefits: string[];
   requirements?: string[];
   validity_periods?: ValidityPeriod[];
@@ -60,6 +62,54 @@ function getActivePeriodLabel(periods: ValidityPeriod[] | undefined): string {
   return `${fmt(last.start_date)} - ${fmt(last.end_date)}`;
 }
 
+function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | null {
+  const normalized = category.trim().toLowerCase();
+  if (normalized === 'self_funded' || normalized === 'self-funded') return 'self_funded';
+  if (normalized === 'fully_funded' || normalized === 'fully-funded') return 'fully_funded';
+  return null;
+}
+
+function hasCategory(
+  tier: RegistrationType,
+  target: 'self_funded' | 'fully_funded',
+): boolean {
+  return (tier.allowed_categories ?? [])
+    .map((item) => normalizeCategory(String(item)))
+    .some((item) => item === target);
+}
+
+function isRegistrationFeeTier(tier: RegistrationType): boolean {
+  const feeType = (tier.fee_type ?? '').toLowerCase();
+  return feeType === 'registration_fee' || tier.name.toLowerCase().includes('registration');
+}
+
+function pickRegistrationTier(
+  tiers: RegistrationType[],
+  target: 'self_funded' | 'fully_funded',
+  excludeId?: string,
+): RegistrationType | undefined {
+  const candidates = tiers.filter((tier) => tier.id !== excludeId);
+  const exact = candidates.find(
+    (tier) => hasCategory(tier, target) && !hasCategory(tier, target === 'self_funded' ? 'fully_funded' : 'self_funded'),
+  );
+  if (exact) return exact;
+
+  const inclusive = candidates.find((tier) => hasCategory(tier, target));
+  if (inclusive) return inclusive;
+
+  const byName = candidates.find((tier) => tier.name.toLowerCase().includes(target === 'self_funded' ? 'self funded' : 'fully funded'));
+  if (byName) return byName;
+
+  if (candidates.length === 0) return undefined;
+
+  const toPrice = (tier: RegistrationType) => {
+    const value = Number(String(tier.price).replace(/[^0-9.-]/g, ''));
+    return Number.isFinite(value) ? value : 0;
+  };
+
+  return [...candidates].sort((a, b) => toPrice(a) - toPrice(b))[target === 'self_funded' ? candidates.length - 1 : 0];
+}
+
 export default function HomeRegistrationStrip({
   igFeed,
   registrationTypes,
@@ -92,8 +142,10 @@ export default function HomeRegistrationStrip({
   }, [posts.length]);
 
   const activePost = posts[activePostIndex] ?? null;
-  const primaryType = registrationTypes[0];
-  const secondaryType = registrationTypes[1];
+  const registrationFeeTypes = registrationTypes.filter(isRegistrationFeeTier);
+  const fallbackTypes = registrationFeeTypes.length > 0 ? registrationFeeTypes : registrationTypes;
+  const primaryType = pickRegistrationTier(fallbackTypes, 'self_funded');
+  const secondaryType = pickRegistrationTier(fallbackTypes, 'fully_funded', primaryType?.id);
 
   const primaryOpen = isRegistrationOpen(primaryType?.validity_periods);
   const secondaryOpen = isRegistrationOpen(secondaryType?.validity_periods);

@@ -45,6 +45,9 @@ export type RegistrationOverviewSection = {
       name: string;
       price: string;
       currency: string;
+      fee_type?: string;
+      allowed_categories?: Array<'self_funded' | 'fully_funded' | string>;
+      requirements?: string[];
       benefits: string[];
       validity_periods?: {
         start_date: string;
