@@ -13,6 +13,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [pinned, setPinned] = useState(false);
@@ -127,6 +128,35 @@ export function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    let alive = true;
+
+    const checkAuthState = async () => {
+      try {
+        const res = await fetch('/api/auth/me', {
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        if (alive) setIsAuthenticated(res.ok);
+      } catch {
+        if (alive) setIsAuthenticated(false);
+      }
+    };
+
+    checkAuthState();
+
+    return () => {
+      alive = false;
+      controller.abort();
+    };
+  }, []);
+
+  const ctaHref = isAuthenticated ? '/dashboard' : '/login';
+  const ctaLabel = isAuthenticated ? 'DASHBOARD' : 'REGISTER NOW';
+
 
 
   const logoSrc = settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
@@ -190,10 +220,10 @@ export function Navbar() {
               </button>
 
               <a
-                href="/login"
+                href={ctaHref}
                 className="hidden min-h-11 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 md:inline-flex"
               >
-                REGISTER NOW
+                {ctaLabel}
               </a>
 
               <button
@@ -233,11 +263,11 @@ export function Navbar() {
                 </div>
                 <div className="my-3 h-px w-full bg-gray-200" />
                 <a
-                  href="/login"
+                  href={ctaHref}
                   className="mt-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
-                  REGISTER NOW
+                  {ctaLabel}
                 </a>
               </div>
             </div>

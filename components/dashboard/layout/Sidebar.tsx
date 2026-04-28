@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  House,
   BarChart3,
   CreditCard,
   FileText,
@@ -175,6 +176,18 @@ export default function Sidebar({
           );
         })}
         </nav>
+
+        <div className="w-full pt-4">
+          <Link
+            href="/"
+            className="flex w-full items-center justify-between rounded-xl border border-white/20 px-3 py-2 text-sm font-semibold text-white/90 transition hover:border-white/35 hover:bg-white/10"
+          >
+            <span className={layoutTheme.navParentLabelRow}>
+              <House className="h-4 w-4" />
+              <span>Back to Landing Page</span>
+            </span>
+          </Link>
+        </div>
       </div>
     </aside>
   );

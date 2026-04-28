@@ -28,6 +28,25 @@ type RegistrationTypeProgramsProps = {
   } | null;
 };
 
+function normalizeDisplayValue(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'bigint') {
+    return String(value);
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (typeof value === 'object') {
+    const candidate = value as Record<string, unknown>;
+    const nested = candidate.$date ?? candidate.date ?? candidate.value ?? candidate.iso;
+    if (nested !== undefined) {
+      return normalizeDisplayValue(nested);
+    }
+  }
+  const text = String(value);
+  return text === '[object Object]' ? '' : text;
+}
+
 export default function RegistrationTypePrograms({
   pricingTiers,
   instructions,
@@ -46,27 +65,32 @@ export default function RegistrationTypePrograms({
 
   const isOpen = (status || '').toLowerCase() === 'open';
 
-  const formatDateRange = (open?: string | null, close?: string | null): string | null => {
+  const formatDateRange = (open?: unknown, close?: unknown): string | null => {
     if (!open && !close) return null;
 
-    const safeFormat = (value: string | null | undefined) => {
-      if (!value) return '';
-      try {
-        return new Date(value).toLocaleDateString('en-US', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        });
-      } catch {
-        return value;
-      }
+    const safeFormat = (value: unknown) => {
+      const normalized = normalizeDisplayValue(value);
+      if (!normalized) return '';
+      const parsed = new Date(normalized);
+      if (Number.isNaN(parsed.getTime())) return normalized;
+      return parsed.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
     };
 
-    const openLabel = safeFormat(open ?? null);
-    const closeLabel = safeFormat(close ?? null);
+    const openLabel = safeFormat(open);
+    const closeLabel = safeFormat(close);
 
     if (openLabel && closeLabel) return `${openLabel} – ${closeLabel}`;
     return openLabel || closeLabel || null;
+  };
+
+  const formatTierPrice = (currency: string | undefined, price: unknown): string => {
+    const normalizedCurrency = normalizeDisplayValue(currency ?? '');
+    const normalizedPrice = normalizeDisplayValue(price);
+    return `${normalizedCurrency} ${normalizedPrice}`.trim();
   };
 
   const registrationPeriodLabel = formatDateRange(
@@ -150,7 +174,7 @@ export default function RegistrationTypePrograms({
                 {primaryType && (
                   <div className={componentsTheme.applyRegistrationTypes.feeRow}>
                     <span className={componentsTheme.applyRegistrationTypes.priceText}>
-                      {`${primaryType.currency} ${primaryType.price}`}
+                      {formatTierPrice(primaryType.currency, primaryType.price)}
                     </span>
                     <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
                       Registration Fee
@@ -245,7 +269,7 @@ export default function RegistrationTypePrograms({
                 {secondaryType && (
                   <div className={componentsTheme.applyRegistrationTypes.feeRow}>
                     <span className={componentsTheme.applyRegistrationTypes.priceText}>
-                      {`${secondaryType.currency} ${secondaryType.price}`}
+                      {formatTierPrice(secondaryType.currency, secondaryType.price)}
                     </span>
                     <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
                       Registration Fee

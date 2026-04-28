@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { Calendar, Check, ChevronLeft, ChevronRight, CreditCard, ExternalLink, MapPin } from 'lucide-react';
+import { Calendar, Check, CreditCard, ExternalLink, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
@@ -98,14 +98,6 @@ export default function HomeRegistrationStrip({
   const primaryOpen = isRegistrationOpen(primaryType?.validity_periods);
   const secondaryOpen = isRegistrationOpen(secondaryType?.validity_periods);
 
-  const previousPost = () => {
-    setActivePostIndex((current) => (current - 1 + posts.length) % posts.length);
-  };
-
-  const nextPost = () => {
-    setActivePostIndex((current) => (current + 1) % posts.length);
-  };
-
   const displayedGuidelines = (guidelines ?? []).filter((guide) => Boolean(guide.url)).slice(0, 2);
 
   return (
@@ -122,37 +114,6 @@ export default function HomeRegistrationStrip({
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.6fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.7fr)]">
           <div className="flex flex-col gap-4">
             <div className={`${componentsTheme.homeRegistration.instagramCard} p-0`}>
-              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-                <div>
-                  <p className={componentsTheme.homeRegistration.instagramHeader}>Official Instagram Feed</p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {posts.length > 0
-                      ? `${posts.length} post${posts.length === 1 ? '' : 's'} from the latest active feed`
-                      : 'Landing feed updates from the brand social feed manager.'}
-                  </p>
-                </div>
-                {posts.length > 1 ? (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={previousPost}
-                      aria-label="Previous Instagram post"
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={nextPost}
-                      aria-label="Next Instagram post"
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-
               {activePost ? (
                 <div className="p-4">
                   <a
