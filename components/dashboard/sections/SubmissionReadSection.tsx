@@ -30,7 +30,6 @@ import { getEnvelopeData, getMessage } from '@/lib/api/response';
 import { toPortalSubmissionDetail } from '@/lib/dashboard/submissionParser';
 import { FieldHelpAssets } from '@/components/dashboard/sections/FieldHelpAssets';
 import { FieldAssetDrawer } from '@/components/dashboard/sections/FieldAssetDrawer';
-import { FieldHelpText } from '@/components/dashboard/sections/FieldHelpText';
 import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
 import type {
   PortalSubmissionDetail,
@@ -81,6 +80,33 @@ function isProfilePhotoField(field: PortalSubmissionField) {
     normalized === 'profilephotourl' ||
     normalized === 'profilepictureurl'
   );
+}
+
+function isViewOnlyMetaField(field: PortalSubmissionField) {
+  const normalized = normalizeFieldKey(field.name);
+  return normalized.includes('labeltext') || normalized.includes('helptext');
+}
+
+function isLegacyEssayField(field: PortalSubmissionField) {
+  const normalized = normalizeFieldKey(field.name);
+  return (
+    normalized.includes('essay') ||
+    normalized.includes('keyword') ||
+    normalized.includes('reference')
+  );
+}
+
+function shouldRenderReadOnlyField(
+  section: PortalSubmissionSection,
+  field: PortalSubmissionField,
+  hasEssayQuestions: boolean
+) {
+  if (isProfilePhotoField(field)) return false;
+  if (isViewOnlyMetaField(field)) return false;
+  if (hasEssayQuestions && section.id === 'entry_information' && isLegacyEssayField(field)) {
+    return false;
+  }
+  return true;
 }
 
 function isCategoryField(field: PortalSubmissionField) {
@@ -372,7 +398,6 @@ function FieldRow({
       ) : (
         <div className={submissionTheme.readFieldValue}>{rendered}</div>
       )}
-      <FieldHelpText html={field.helpText} className="mt-1" />
       {field.mediaUrl ? (
         <>
           <button
@@ -591,7 +616,13 @@ export default function SubmissionReadSection() {
               <div className={submissionTheme.readDetailsCard}>
                 <div className={`${submissionTheme.readGrid} items-start gap-x-8 gap-y-6`}>
                   {activeSection.fields
-                    .filter(field => !isProfilePhotoField(field))
+                    .filter(field =>
+                      shouldRenderReadOnlyField(
+                        activeSection,
+                        field,
+                        (detail?.essays.length ?? 0) > 0
+                      )
+                    )
                     .map(field => (
                       <FieldRow
                         key={field.id}
