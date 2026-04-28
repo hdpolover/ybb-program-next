@@ -5,6 +5,7 @@ import { ChevronDown, Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { FaqItem } from '@/types/faqs';
+import { formatTokenLabel } from '@/lib/utils';
 
 export type FaqGroup = {
   label: string;
@@ -30,7 +31,10 @@ function groupFaqsByCategory(items: FaqItem[]): FaqGroup[] {
     if (!grouped.has(cat)) grouped.set(cat, []);
     grouped.get(cat)!.push({ q: item.question, a: item.answer });
   }
-  return Array.from(grouped.entries()).map(([label, faqs]) => ({ label, faqs }));
+  return Array.from(grouped.entries()).map(([label, faqs]) => ({
+    label: formatTokenLabel(label, 'General'),
+    faqs,
+  }));
 }
 
 export default function FAQ({ title, subtitle, apiItems, groups: groupsProp }: FAQProps) {

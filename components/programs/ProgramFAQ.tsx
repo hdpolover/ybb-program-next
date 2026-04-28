@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { ChevronDown, Search } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
+import { formatTokenLabel } from '@/lib/utils';
 import type { ProgramFaqsSection } from '@/types/programs';
 
 type FAQ = { q: string; a: string };
@@ -37,7 +38,10 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
       list.push({ q: item.question, a: item.answer });
       byCategory.set(key, list);
     }
-    return Array.from(byCategory.entries()).map(([label, faqs]) => ({ label, fqs: faqs }));
+    return Array.from(byCategory.entries()).map(([label, faqs]) => ({
+      label: formatTokenLabel(label, 'General'),
+      fqs: faqs,
+    }));
   }, [items]);
 
   if (!fqs && !groupsOverride) return null;

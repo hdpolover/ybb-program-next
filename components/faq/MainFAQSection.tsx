@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
+import { formatTokenLabel } from '@/lib/utils';
 type FAQItem = { q: string; a: string };
 
 type FAQGroup = {
@@ -56,7 +57,10 @@ export default function MainFAQSection({ title, subtitle, items }: MainFAQSectio
       byCategory.set(category, bucket);
     }
 
-    return Array.from(byCategory.entries()).map(([label, faqs]) => ({ label, faqs }));
+    return Array.from(byCategory.entries()).map(([label, faqs]) => ({
+      label: formatTokenLabel(label, 'General'),
+      faqs,
+    }));
   }, [items]);
 
   const groups = apiGroups.length > 0 ? apiGroups : [];

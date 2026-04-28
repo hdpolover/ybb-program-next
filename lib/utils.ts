@@ -35,3 +35,16 @@ export function formatNumber(number: number, locale: string = 'en-US'): string {
   return new Intl.NumberFormat(locale).format(number);
 }
 
+/**
+ * Format tokenized values like `event_details` into user-friendly labels.
+ */
+export function formatTokenLabel(value: string | null | undefined, fallback = '-'): string {
+  if (!value) return fallback;
+
+  return value
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}

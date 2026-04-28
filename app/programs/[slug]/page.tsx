@@ -8,6 +8,7 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { getProgramDetail } from '@/lib/api/programs';
+import { formatTokenLabel } from '@/lib/utils';
 import { headers } from 'next/headers';
 
 function formatDateRange(start: string | null, end: string | null): string {
@@ -97,7 +98,10 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
       list.push({ q: faq.question, a: faq.answer });
       byCategory.set(key, list);
     }
-    return Array.from(byCategory.entries()).map(([label, fqs]) => ({ label, fqs }));
+    return Array.from(byCategory.entries()).map(([label, fqs]) => ({
+      label: formatTokenLabel(label, 'General'),
+      fqs,
+    }));
   })();
 
   return (
@@ -282,4 +286,3 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
     </main>
   );
 }
-
