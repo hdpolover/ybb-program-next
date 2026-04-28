@@ -68,16 +68,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = `${protocol}://${host}`;
 
   try {
-    const [data, settings] = await Promise.all([
-      getHomePageData(host),
-      getSettingsForBrandDomain(host).catch(() => null),
-    ]);
-
-    const iconUrl =
-      settings?.active_program?.logo_icon_url ||
-      settings?.brand?.logo_icon_url ||
-      settings?.brand?.logo_url ||
-      '/img/ybb-logo.png';
+    const data = await getHomePageData(host);
 
     return {
       metadataBase: new URL(baseUrl),
@@ -90,9 +81,9 @@ export async function generateMetadata(): Promise<Metadata> {
       authors: [{ name: 'YBB Team' }],
       creator: 'YBB Team',
       icons: {
-        icon: iconUrl,
-        shortcut: iconUrl,
-        apple: iconUrl,
+        icon: '/icon',
+        shortcut: '/icon',
+        apple: '/apple-icon',
       },
       openGraph: {
         type: 'website',
