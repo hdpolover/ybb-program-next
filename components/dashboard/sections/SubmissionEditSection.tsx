@@ -966,7 +966,12 @@ export default function SubmissionEditSection() {
 
                     {sectionEssayGuideline ? (
                       <div className="flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5 text-[13px] text-blue-800">
-                        {sectionEssayGuideline.text ? <p>{sectionEssayGuideline.text}</p> : null}
+                        {sectionEssayGuideline.text ? (
+                          <div
+                            className="prose prose-sm max-w-none text-blue-800 prose-headings:text-blue-900 prose-p:my-0 prose-a:text-blue-700"
+                            dangerouslySetInnerHTML={{ __html: sectionEssayGuideline.text }}
+                          />
+                        ) : null}
                         {sectionEssayGuideline.url ? (
                           <a
                             href={sectionEssayGuideline.url}
