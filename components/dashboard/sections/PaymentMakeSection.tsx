@@ -289,6 +289,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
 
   const amountUsd = invoice?.amount ?? 0;
   const amountIdr = amountUsd * rateToIdr;
+  const normalizedInvoiceStatus = String(invoice?.status ?? '').toLowerCase();
 
   const currencyUsd = (v: number) => `$${v.toFixed(2)}`;
   const currencyIdr = (v: number) =>
@@ -399,6 +400,20 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
           <p className="mt-2 text-sm text-red-600">{error || "Payment not found"}</p>
           <Link href="/dashboard/payments" className="mt-4 text-sm text-primary underline">
             Back to Payments
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (normalizedInvoiceStatus === 'paid') {
+    return (
+      <section className={paymentsTheme.sectionWrapper}>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+          <p className="mt-2 text-sm text-slate-700">This invoice has already been paid.</p>
+          <Link href={`/dashboard/payments/${paymentId}`} className="mt-4 text-sm text-primary underline">
+            Back to Payment Details
           </Link>
         </div>
       </section>

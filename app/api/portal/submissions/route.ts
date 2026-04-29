@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 export async function GET(request: Request) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: Request) {
     const requestUrl = new URL(request.url);
     const programId = requestUrl.searchParams.get('programId');
 
-    const apiUrl = new URL('/v1/portal/submissions', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
+    const apiUrl = new URL('/v1/portal/submissions', getServerApiBaseUrl());
     if (programId) {
       apiUrl.searchParams.set('programId', programId);
     }

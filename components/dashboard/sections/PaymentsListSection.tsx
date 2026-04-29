@@ -42,9 +42,11 @@ interface PaymentItem {
   status: 'paid' | 'unpaid' | 'processing' | 'failed';
   paymentType: string;
   period: string;
+  deadline: string;
   amount: string;
   syncDate: string;
   hasInvoice?: boolean;
+  canPay?: boolean;
 }
 
 function toCachedPaymentPreview(payment: PaymentItem): CachedPaymentPreview {
@@ -101,6 +103,7 @@ function toPaymentItem(value: unknown): PaymentItem | null {
     status: toPaymentStatus(value.status),
     paymentType: typeof value.paymentType === 'string' ? value.paymentType : 'General',
     period: typeof value.period === 'string' ? value.period : '-',
+    deadline: typeof value.deadline === 'string' ? value.deadline : '-',
     amount:
       typeof value.amount === 'string'
         ? value.amount
@@ -109,7 +112,13 @@ function toPaymentItem(value: unknown): PaymentItem | null {
           : '-',
     syncDate: typeof value.syncDate === 'string' ? value.syncDate : '-',
     hasInvoice: typeof value.hasInvoice === 'boolean' ? value.hasInvoice : undefined,
+    canPay: typeof value.canPay === 'boolean' ? value.canPay : undefined,
   };
+}
+
+function isPaymentPayable(payment: PaymentItem): boolean {
+  if (typeof payment.canPay === 'boolean') return payment.canPay;
+  return payment.status === 'unpaid' || payment.status === 'failed';
 }
 
 function toPaymentsSummary(value: unknown): PaymentsSummary {
@@ -230,6 +239,16 @@ export default function PaymentsListSection() {
     payment: PaymentItem,
     target: 'detail' | 'make-payment' | 'print'
   ) => {
+    if (target === 'make-payment' && !isPaymentPayable(payment)) {
+      toast.info('This payment is already settled or not payable yet.');
+      return;
+    }
+
+    if (target === 'print' && payment.hasInvoice === false) {
+      toast.info('Invoice is not available yet for this payment.');
+      return;
+    }
+
     try {
       setActionError(null);
       setRowActionLoadingId(payment.id);
@@ -604,16 +623,17 @@ export default function PaymentsListSection() {
                 <th className={paymentsTheme.tableHeadCell}>Payment Information</th>
                 <th className={paymentsTheme.tableHeadCell}>Payment Type</th>
                 <th className={paymentsTheme.tableHeadCell}>Payment Status</th>
-                <th className={paymentsTheme.tableHeadCell}>Period</th>
+                <th className={paymentsTheme.tableHeadCell}>Payment Window</th>
+                <th className={paymentsTheme.tableHeadCell}>Deadline</th>
                 <th className={paymentsTheme.tableHeadCell}>Amount</th>
                 <th className={paymentsTheme.tableHeadCell}>Sync Date</th>
                 <th className={paymentsTheme.tableHeadCellRight}>Actions</th>
               </tr>
             </thead>
             <tbody className={paymentsTheme.tableBody}>
-              {payments.length === 0 && (
-                <tr>
-                  <td colSpan={7}>
+                {payments.length === 0 && (
+                  <tr>
+                    <td colSpan={8}>
                     <div className="flex flex-col items-center justify-center bg-slate-50 px-6 py-10 text-center">
                       <img
                         src="/img/tablenotfounds.png"
@@ -634,6 +654,8 @@ export default function PaymentsListSection() {
                 const isProcessing = payment.status === 'processing';
                 const isFailed = payment.status === 'failed';
                 const isRowLoading = rowActionLoadingId === payment.id;
+                const canPayNow = isPaymentPayable(payment);
+                const canPrintInvoice = payment.hasInvoice !== false;
                 return (
                   <tr key={payment.id} className={paymentsTheme.tableRow}>
                     <td className={paymentsTheme.paymentInfoCell}>{payment.label}</td>
@@ -659,20 +681,39 @@ export default function PaymentsListSection() {
                               : 'Unpaid'}
                       </span>
                     </td>
-                    <td className={paymentsTheme.periodCell}>{payment.period}</td>
+                    <td className={paymentsTheme.periodCell}>
+                      <p className="text-sm font-medium text-slate-700">{payment.period}</p>
+                    </td>
+                    <td className={paymentsTheme.periodCell}>
+                      <span
+                        className={`text-sm font-semibold ${
+                          isPaid
+                            ? 'text-emerald-700'
+                            : isFailed
+                              ? 'text-red-700'
+                              : isProcessing
+                                ? 'text-amber-700'
+                                : 'text-slate-700'
+                        }`}
+                      >
+                        {payment.deadline}
+                      </span>
+                    </td>
                     <td className={paymentsTheme.amountCell}>{payment.amount}</td>
                     <td className={paymentsTheme.syncDateCell}>{payment.syncDate}</td>
                     <td className={paymentsTheme.actionsCell}>
                       <div className={paymentsTheme.actionsWrapper}>
-                        <button
-                          type="button"
-                          className={`${paymentsTheme.primaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
-                          aria-label="Pay now"
-                          disabled={isRowLoading}
-                          onClick={() => handlePaymentAction(payment, 'make-payment')}
-                        >
-                          <CreditCard className="h-3.5 w-3.5" />
-                        </button>
+                        {canPayNow ? (
+                          <button
+                            type="button"
+                            className={`${paymentsTheme.primaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
+                            aria-label="Pay now"
+                            disabled={isRowLoading}
+                            onClick={() => handlePaymentAction(payment, 'make-payment')}
+                          >
+                            <CreditCard className="h-3.5 w-3.5" />
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           className={`${paymentsTheme.secondaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
@@ -682,15 +723,17 @@ export default function PaymentsListSection() {
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </button>
-                        <button
-                          type="button"
-                          className={`${paymentsTheme.tertiaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
-                          aria-label="Print invoice"
-                          disabled={isRowLoading}
-                          onClick={() => handlePaymentAction(payment, 'print')}
-                        >
-                          <Printer className="h-3.5 w-3.5" />
-                        </button>
+                        {canPrintInvoice ? (
+                          <button
+                            type="button"
+                            className={`${paymentsTheme.tertiaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
+                            aria-label="Print invoice"
+                            disabled={isRowLoading}
+                            onClick={() => handlePaymentAction(payment, 'print')}
+                          >
+                            <Printer className="h-3.5 w-3.5" />
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>

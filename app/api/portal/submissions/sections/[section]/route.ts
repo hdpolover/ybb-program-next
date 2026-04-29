@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 type RouteContext = {
   params: Promise<{ section: string }>;
@@ -23,7 +24,7 @@ export async function PUT(request: Request, context: RouteContext) {
 
     const apiUrl = new URL(
       `/v1/portal/submissions/sections/${section}`,
-      (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''),
+      getServerApiBaseUrl(),
     );
 
     if (programId) {
