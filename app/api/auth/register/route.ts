@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 
 type RegisterBody = {
   email: string;
@@ -49,47 +50,41 @@ export async function POST(request: Request) {
       ?.split('=')[1] ?? null;
     const resolvedReferralCode = body.referralCode || cookieReferralCode || null;
 
+    // Resolve brand+program+localProvider directly from the backend. The previous
+    // version called the local /api/auth/context proxy and silently swallowed
+    // any failure — leaving "Missing auth context" with no clue why. Now any
+    // backend or network error propagates with its real message and step tag.
     let ctxBrandId = '';
     let ctxProgramId = '';
     let ctxProviderId = '';
     let ctxProgramSlug: string | null = null;
     let ctxRequireEmailVerification: boolean | null = null;
+    let ctxError: string | null = null;
 
     try {
       step = 'fetch_auth_context';
-      const ctxRes = await fetch(new URL('/api/auth/context', request.url).toString(), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const ctx = await apiGetWithEnvelope<{
+        brandId: string | null;
+        requireEmailVerification: boolean;
+        programId: string | null;
+        programSlug: string | null;
+        localProviderId: string | null;
+      }>('/v1/auth/context', {
+        headers: { 'x-brand-domain': brandDomain },
+        cache: 'no-store',
       });
 
-      step = 'parse_auth_context';
-      const ctxJson = (await ctxRes.json()) as {
-        statusCode: number;
-        message: string;
-        data:
-          | {
-              brandId: string;
-              requireEmailVerification?: boolean;
-              programId: string;
-              programSlug?: string | null;
-              localProviderId: string;
-            }
-          | null;
-      };
-
-      if (ctxRes.ok && ctxJson?.statusCode === 200 && ctxJson?.data) {
-        ctxBrandId = ctxJson.data.brandId || '';
-        ctxProgramId = ctxJson.data.programId || '';
-        ctxProgramSlug = ctxJson.data.programSlug ?? null;
-        ctxProviderId = ctxJson.data.localProviderId || '';
-        if (typeof ctxJson.data.requireEmailVerification === 'boolean') {
-          ctxRequireEmailVerification = ctxJson.data.requireEmailVerification;
-        }
-      }
-    } catch {
-      // ignore
+      ctxBrandId = ctx.brandId ?? '';
+      ctxProgramId = ctx.programId ?? '';
+      ctxProgramSlug = ctx.programSlug ?? null;
+      ctxProviderId = ctx.localProviderId ?? '';
+      ctxRequireEmailVerification = ctx.requireEmailVerification;
+    } catch (err) {
+      ctxError = err instanceof Error ? err.message : 'Unknown auth-context error';
+      console.error('[api/auth/register] auth-context fetch failed', {
+        brandDomain,
+        error: ctxError,
+      });
     }
 
     const brandId = envBrandId || ctxBrandId;
@@ -99,15 +94,31 @@ export async function POST(request: Request) {
     const needsEmailVerification = ctxRequireEmailVerification ?? true;
 
     if (!brandId || !programId || !providerId) {
+      const missing = [
+        !brandId && 'brandId',
+        !programId && 'programId',
+        !providerId && 'providerId',
+      ].filter(Boolean).join(', ');
+      const detail = ctxError
+        ? `auth-context fetch failed: ${ctxError}`
+        : `domain "${brandDomain}" did not resolve to a brand+program with a local provider`;
       return NextResponse.json(
-        { statusCode: 500, message: 'Missing auth context (brandId/programId/providerId)', data: null },
+        {
+          statusCode: 500,
+          message: `Missing auth context (${missing}) — ${detail}`,
+          data: null,
+        },
         { status: 500 },
       );
     }
 
     if (!programSlug) {
       return NextResponse.json(
-        { statusCode: 500, message: 'Missing auth context (programSlug)', data: null },
+        {
+          statusCode: 500,
+          message: `Missing auth context (programSlug) — brand resolved but no published+active program found for "${brandDomain}"`,
+          data: null,
+        },
         { status: 500 },
       );
     }
