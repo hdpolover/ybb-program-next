@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { fetchAuthContext } from '@/lib/api/authContext';
 
 
 type FirebaseLoginBody = {
@@ -48,36 +49,23 @@ export async function POST(request: Request) {
     const url = new URL('/v1/auth/firebase-login', apiBaseUrl);
     console.log('[firebase-login] API URL:', url.toString());
 
-    const contextUrl = new URL(
-      '/api/auth/context',
-      // Server-side self-fetch must use localhost — the container cannot reach
-      // its own public domain. Use the internal port Next.js listens on (default 3000).
-      process.env.NEXT_INTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`,
-    ).toString();
-    console.log('[firebase-login] Fetching auth context:', contextUrl);
-    const ctxRes = await fetch(contextUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    console.log('[firebase-login] Auth context status:', ctxRes.status);
-
-    const ctxJson = (await ctxRes.json().catch((e) => {
-      console.error('[firebase-login] Failed to parse auth context:', e);
-      return {};
-    })) as {
-      data?: {
-        brandId?: string;
-        programId?: string;
-        programSlug?: string | null;
-      } | null;
-    };
-    console.log('[firebase-login] Auth context data:', ctxJson?.data);
-
-    const brandId = ctxJson?.data?.brandId || undefined;
-    const programId = ctxJson?.data?.programId || undefined;
-    const programSlug = ctxJson?.data?.programSlug || undefined;
+    let brandId: string | undefined;
+    let programId: string | undefined;
+    let programSlug: string | undefined;
+    try {
+      const ctx = await fetchAuthContext(brandDomain);
+      brandId = ctx.brandId ?? undefined;
+      programId = ctx.programId ?? undefined;
+      programSlug = ctx.programSlug ?? undefined;
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Unknown auth-context error';
+      console.error('[firebase-login] auth-context fetch failed', { brandDomain, error: errMsg });
+      return NextResponse.json(
+        { statusCode: 500, message: `auth-context fetch failed: ${errMsg}`, data: null },
+        { status: 500 },
+      );
+    }
+    console.log('[firebase-login] Auth context resolved:', { brandId, programId, programSlug });
 
     // Resolve referral code: explicit body value takes priority, then fall back to cookie
     const cookieHeader = request.headers.get('cookie') ?? '';

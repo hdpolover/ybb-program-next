@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
-import { apiGetWithEnvelope } from '@/lib/api/httpClient';
+import { fetchAuthContext } from '@/lib/api/authContext';
 
 type RegisterBody = {
   email: string;
@@ -63,16 +63,7 @@ export async function POST(request: Request) {
 
     try {
       step = 'fetch_auth_context';
-      const ctx = await apiGetWithEnvelope<{
-        brandId: string | null;
-        requireEmailVerification: boolean;
-        programId: string | null;
-        programSlug: string | null;
-        localProviderId: string | null;
-      }>('/v1/auth/context', {
-        headers: { 'x-brand-domain': brandDomain },
-        cache: 'no-store',
-      });
+      const ctx = await fetchAuthContext(brandDomain);
 
       ctxBrandId = ctx.brandId ?? '';
       ctxProgramId = ctx.programId ?? '';

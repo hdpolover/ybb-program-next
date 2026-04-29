@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { fetchAuthContext } from '@/lib/api/authContext';
 
 type AmbassadorLoginBody = {
   email: string;
@@ -32,21 +33,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const ctxRes = await fetch(new URL('/api/auth/context', request.url).toString(), {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    let ctxBrandId: string | null = null;
+    try {
+      const ctx = await fetchAuthContext(brandDomain);
+      ctxBrandId = ctx.brandId;
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Unknown auth-context error';
+      console.error('[api/auth/ambassador-login] auth-context fetch failed', { brandDomain, error: errMsg });
+      return NextResponse.json(
+        { statusCode: 500, message: `auth-context fetch failed: ${errMsg}`, data: null },
+        { status: 500 },
+      );
+    }
 
-    const ctxJson = (await ctxRes.json()) as {
-      statusCode: number;
-      message: string;
-      data: { brandId: string } | null;
-    };
-
-    const brandId = envBrandId || ctxJson?.data?.brandId;
+    const brandId = envBrandId || ctxBrandId;
     if (!brandId) {
       return NextResponse.json(
-        { statusCode: 500, message: 'Missing brandId', data: null },
+        {
+          statusCode: 500,
+          message: `Missing brandId — domain "${brandDomain}" did not resolve to a brand`,
+          data: null,
+        },
         { status: 500 },
       );
     }
