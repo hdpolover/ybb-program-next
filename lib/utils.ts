@@ -27,11 +27,24 @@ export function formatDate(date: Date | string, locale: string = 'en-US'): strin
 }
 
 /** Parse backend date values consistently before local rendering. */
-export function parseApiDate(date: Date | string | null | undefined): Date {
-  if (!date) return new Date('');
+export function parseApiDate(date: unknown): Date {
+  if (date === null || date === undefined) return new Date('');
   if (date instanceof Date) return date;
 
-  const raw = date.trim();
+  if (typeof date === 'number') {
+    return new Date(date);
+  }
+
+  if (typeof date === 'object') {
+    const candidate = date as Record<string, unknown>;
+    const nested = candidate.$date ?? candidate.date ?? candidate.value ?? candidate.iso;
+    if (nested !== undefined && nested !== date) {
+      return parseApiDate(nested);
+    }
+    return new Date('');
+  }
+
+  const raw = String(date).trim();
   if (!raw) return new Date('');
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
