@@ -180,6 +180,7 @@ export async function GET(request: Request) {
       const rawType = String(inv.type ?? '').toLowerCase();
       const fallbackSequenceOrder = getFeeTypePriority(rawType) * 1000;
       const paidAt = inv.paidAt ? new Date(inv.paidAt) : null;
+      const explicitCanPay = typeof inv.canPay === 'boolean' ? inv.canPay : undefined;
       const paidAtLabel =
         paidAt && !Number.isNaN(paidAt.getTime())
           ? paidAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -202,7 +203,7 @@ export async function GET(request: Request) {
         amountValue,
         currency,
         dueDate: dueDate?.toISOString(),
-        canPay: (status === 'unpaid' || status === 'failed') && amountValue > 0,
+        canPay: explicitCanPay ?? ((status === 'unpaid' || status === 'failed') && amountValue > 0),
       };
     };
 
