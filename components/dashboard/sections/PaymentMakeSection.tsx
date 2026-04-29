@@ -211,12 +211,24 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
           const firstManual = methods.find((method) => method.type?.toLowerCase() === "manual");
           const firstGateway = methods.find((method) => method.type?.toLowerCase() === "automatic");
 
+          if (firstGateway && firstManual) {
+            setPaymentType("gateway");
+          } else if (firstManual) {
+            setPaymentType("manual");
+          } else if (firstGateway) {
+            setPaymentType("gateway");
+          }
+
           if (firstManual) {
             setManualMethod(firstManual.code);
+          } else {
+            setManualMethod("");
           }
 
           if (firstGateway) {
             setGatewayMethod(firstGateway.code);
+          } else {
+            setGatewayMethod("");
           }
         }
       } catch {
@@ -298,6 +310,11 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const normalizeMethodType = (method: PaymentMethodData) => method.type?.trim().toLowerCase() ?? "";
   const manualMethods = paymentMethods.filter((method) => normalizeMethodType(method) === "manual");
   const gatewayMethods = paymentMethods.filter((method) => normalizeMethodType(method) === "automatic");
+  const hasManualMethods = manualMethods.length > 0;
+  const hasGatewayMethods = gatewayMethods.length > 0;
+  const hasAnyMethods = hasManualMethods || hasGatewayMethods;
+  const gatewayOptionDisabled = !methodsLoading && !hasGatewayMethods;
+  const manualOptionDisabled = !methodsLoading && !hasManualMethods;
 
   const selectedManualMethodObj = manualMethods.find((method) => method.code === manualMethod) ?? null;
   const selectedGatewayMethodObj = gatewayMethods.find((method) => method.code === gatewayMethod) ?? null;
@@ -498,9 +515,17 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                   type="button"
                   role="radio"
                   aria-checked={paymentType === "gateway"}
-                  onClick={() => setPaymentType("gateway")}
+                  onClick={() => {
+                    if (!gatewayOptionDisabled) setPaymentType("gateway");
+                  }}
+                  disabled={gatewayOptionDisabled}
+                  aria-disabled={gatewayOptionDisabled}
                   className={`rounded-2xl border p-4 text-left transition-all ${
-                    paymentType === "gateway"
+                    gatewayOptionDisabled
+                      ? "cursor-not-allowed border-dashed border-slate-200 bg-slate-100/60 opacity-60"
+                      : ""
+                  } ${
+                    paymentType === "gateway" && !gatewayOptionDisabled
                       ? "border-primary bg-primary/5 shadow-[0_10px_30px_rgba(37,99,235,0.12)]"
                       : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                   }`}
@@ -516,6 +541,9 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{paymentTypeOptionMeta.gateway.title}</p>
                       <p className="mt-0.5 text-xs text-slate-600">{paymentTypeOptionMeta.gateway.subtitle}</p>
+                      {gatewayOptionDisabled && (
+                        <p className="mt-1 text-[11px] font-medium text-slate-500">Unavailable right now</p>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -524,9 +552,17 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                   type="button"
                   role="radio"
                   aria-checked={paymentType === "manual"}
-                  onClick={() => setPaymentType("manual")}
+                  onClick={() => {
+                    if (!manualOptionDisabled) setPaymentType("manual");
+                  }}
+                  disabled={manualOptionDisabled}
+                  aria-disabled={manualOptionDisabled}
                   className={`rounded-2xl border p-4 text-left transition-all ${
-                    paymentType === "manual"
+                    manualOptionDisabled
+                      ? "cursor-not-allowed border-dashed border-slate-200 bg-slate-100/60 opacity-60"
+                      : ""
+                  } ${
+                    paymentType === "manual" && !manualOptionDisabled
                       ? "border-primary bg-primary/5 shadow-[0_10px_30px_rgba(37,99,235,0.12)]"
                       : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                   }`}
@@ -542,6 +578,9 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{paymentTypeOptionMeta.manual.title}</p>
                       <p className="mt-0.5 text-xs text-slate-600">{paymentTypeOptionMeta.manual.subtitle}</p>
+                      {manualOptionDisabled && (
+                        <p className="mt-1 text-[11px] font-medium text-slate-500">Unavailable right now</p>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -550,12 +589,30 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
               <div className={paymentsTheme.selectionSummaryRow}>
                 <CheckCircle2 className="h-4 w-4 text-primary" />
                 <span>
-                  Selected: <span className="font-semibold">{paymentTypeOptionMeta[paymentType].title}</span>. {paymentTypeOptionMeta[paymentType].helper}
+                  {!methodsLoading && !hasAnyMethods ? (
+                    <>No payment type is currently available.</>
+                  ) : (
+                    <>
+                      Selected: <span className="font-semibold">{paymentTypeOptionMeta[paymentType].title}</span>. {paymentTypeOptionMeta[paymentType].helper}
+                    </>
+                  )}
                 </span>
               </div>
             </div>
 
-            {paymentType === "gateway" ? (
+            {!methodsLoading && !hasAnyMethods ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-5 text-sm text-amber-800">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div>
+                    <p className="font-semibold">No payment methods are available yet</p>
+                    <p className="mt-1 text-amber-700">
+                      Our team has not configured payment methods for this program yet. Please contact support or check back later.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : paymentType === "gateway" ? (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="space-y-1">
@@ -568,6 +625,11 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     {gatewayMethods.length} method{gatewayMethods.length === 1 ? "" : "s"}
                   </span>
                 </div>
+                {!methodsLoading && !hasGatewayMethods && hasManualMethods && (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                    Automatic methods are currently unavailable. Please use Manual Transfer instead.
+                  </p>
+                )}
 
                 <div className={paymentsTheme.bankMethodGrid} id="gateway-method-select">
                   {methodsLoading ? (
@@ -637,13 +699,18 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                         Choose a transfer method and submit payment proof for manual verification.
                       </p>
                     </div>
-                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                      {manualMethods.length} method{manualMethods.length === 1 ? "" : "s"}
-                    </span>
-                  </div>
+                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    {manualMethods.length} method{manualMethods.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+                {!methodsLoading && !hasManualMethods && hasGatewayMethods && (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                    Manual transfer is currently unavailable. Please use Payment Gateway instead.
+                  </p>
+                )}
 
-                  <div className={paymentsTheme.bankMethodGrid} id="manual-method-select">
-                    {methodsLoading ? (
+                <div className={paymentsTheme.bankMethodGrid} id="manual-method-select">
+                  {methodsLoading ? (
                       renderMethodCardSkeletons("manual-method-skeleton")
                     ) : manualMethods.length === 0 ? (
                       <p className="col-span-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
@@ -853,6 +920,11 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
               <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
                 <AlertTriangle className="h-4 w-4 flex-shrink-0" />
                 <span>{submitError}</span>
+              </div>
+            )}
+            {!methodsLoading && !hasAnyMethods && !submitError && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+                Payment cannot be submitted because no method is currently available.
               </div>
             )}
             <button
