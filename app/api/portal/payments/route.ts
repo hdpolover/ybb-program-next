@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
-import { parseApiDate } from '@/lib/utils';
+import { getCalendarDayDifference, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
 
 export async function GET(request: Request) {
   try {
@@ -126,18 +126,16 @@ export async function GET(request: Request) {
         year: 'numeric',
       });
 
-    const formatRemaining = (ms: number): string => {
-      const totalMinutes = Math.max(0, Math.floor(ms / (1000 * 60)));
-      const totalHours = Math.floor(totalMinutes / 60);
-      const days = Math.floor(totalHours / 24);
-      const hours = totalHours % 24;
-      const minutes = totalMinutes % 60;
+    const formatDaysLeft = (dueDate: Date): string => {
+      const days = getInclusiveCalendarDaySpan(now, dueDate);
+      if (!days || days <= 0) return 'Expired';
+      return `${days} day${days === 1 ? '' : 's'} left`;
+    };
 
-      if (days >= 2) return `${days} days left`;
-      if (days >= 1) return `${days} day ${hours}h left`;
-      if (totalHours >= 1) return `${totalHours}h ${minutes}m left`;
-      if (minutes >= 1) return `${minutes}m left`;
-      return '<1m left';
+    const formatDaysOverdue = (dueDate: Date): string => {
+      const dayDiff = getCalendarDayDifference(dueDate, now);
+      const days = dayDiff && dayDiff > 0 ? dayDiff : 1;
+      return `${days} day${days === 1 ? '' : 's'} overdue`;
     };
 
     const toWindowLabel = (startDate: Date | null, dueDate: Date | null): string => {
@@ -167,11 +165,11 @@ export async function GET(request: Request) {
 
       if (!dueDate) return 'No deadline';
 
-      const diff = dueDate.getTime() - now.getTime();
-      if (diff < 0) {
-        return `${formatShortDate(dueDate)} • ${formatRemaining(Math.abs(diff)).replace('left', 'overdue')}`;
+      const dayDiff = getCalendarDayDifference(now, dueDate);
+      if (dayDiff !== null && dayDiff < 0) {
+        return `${formatShortDate(dueDate)} • ${formatDaysOverdue(dueDate)}`;
       }
-      return `${formatShortDate(dueDate)} • ${formatRemaining(diff)}`;
+      return `${formatShortDate(dueDate)} • ${formatDaysLeft(dueDate)}`;
     };
 
     const toItem = (inv: any, fallbackStatus: ItemStatus): MergedItem => {
@@ -278,7 +276,13 @@ export async function GET(request: Request) {
     const complete = stagedItems.filter((item) => item.status === 'paid').length;
     const pending = stagedItems.filter((item) => item.status !== 'paid').length;
     const overdue = stagedItems.filter(
-      (item) => item.status === 'unpaid' && item.dueDate && parseApiDate(item.dueDate) < now,
+      (item) =>
+        item.status === 'unpaid' &&
+        item.dueDate &&
+        (() => {
+          const dayDiff = getCalendarDayDifference(now, parseApiDate(item.dueDate));
+          return dayDiff !== null && dayDiff < 0;
+        })(),
     ).length;
 
     const items = stagedItems.map(({ sequenceOrder, startTime, hasStarted, amountValue, currency, dueDate, rawType, ...rest }) => rest);

@@ -33,7 +33,7 @@ import {
   type CachedPaymentPreview,
 } from '@/lib/dashboard/payments-cache';
 import { toast } from 'sonner';
-import { parseApiDate } from '@/lib/utils';
+import { getCalendarDayDifference, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -119,18 +119,16 @@ function formatLocalDateTime(value: Date): string {
   }).format(value);
 }
 
-function formatRemaining(ms: number): string {
-  const totalMinutes = Math.max(0, Math.floor(ms / (1000 * 60)));
-  const totalHours = Math.floor(totalMinutes / 60);
-  const days = Math.floor(totalHours / 24);
-  const hours = totalHours % 24;
-  const minutes = totalMinutes % 60;
+function formatDaysLeft(dueDate: Date): string {
+  const days = getInclusiveCalendarDaySpan(new Date(), dueDate);
+  if (!days || days <= 0) return 'Expired';
+  return `${days} day${days === 1 ? '' : 's'} left`;
+}
 
-  if (days >= 2) return `${days} days left`;
-  if (days >= 1) return `${days} day ${hours}h left`;
-  if (totalHours >= 1) return `${totalHours}h ${minutes}m left`;
-  if (minutes >= 1) return `${minutes}m left`;
-  return '<1m left';
+function formatDaysOverdue(dueDate: Date): string {
+  const dayDiff = getCalendarDayDifference(dueDate, new Date());
+  const days = dayDiff && dayDiff > 0 ? dayDiff : 1;
+  return `${days} day${days === 1 ? '' : 's'} overdue`;
 }
 
 function toWindowLabel(startDate: Date | null, dueDate: Date | null): string {
@@ -157,11 +155,11 @@ function toDeadlineLabel(
 
   if (!dueDate) return 'No deadline';
 
-  const diff = dueDate.getTime() - Date.now();
-  if (diff < 0) {
-    return `${formatLocalDate(dueDate)} • ${formatRemaining(Math.abs(diff)).replace('left', 'overdue')}`;
+  const dayDiff = getCalendarDayDifference(new Date(), dueDate);
+  if (dayDiff !== null && dayDiff < 0) {
+    return `${formatLocalDate(dueDate)} • ${formatDaysOverdue(dueDate)}`;
   }
-  return `${formatLocalDate(dueDate)} • ${formatRemaining(diff)}`;
+  return `${formatLocalDate(dueDate)} • ${formatDaysLeft(dueDate)}`;
 }
 
 function toPaymentItem(value: unknown): PaymentItem | null {
@@ -237,7 +235,7 @@ function toPaymentsSummary(value: unknown): PaymentsSummary {
 }
 
 function summarizeByLocalTime(items: PaymentItem[], totalRequired: string): PaymentsSummary {
-  const now = Date.now();
+  const now = new Date();
   const complete = items.filter((item) => item.status === 'paid').length;
   const pending = items.filter((item) => item.status !== 'paid').length;
   const overdue = items.filter((item) => {
@@ -245,7 +243,8 @@ function summarizeByLocalTime(items: PaymentItem[], totalRequired: string): Paym
     if (!item.dueDate) return false;
     const dueDate = parseApiDate(item.dueDate);
     if (Number.isNaN(dueDate.getTime())) return false;
-    return dueDate.getTime() < now;
+    const dayDiff = getCalendarDayDifference(now, dueDate);
+    return dayDiff !== null && dayDiff < 0;
   }).length;
 
   return {

@@ -59,6 +59,43 @@ export function toLocalDatetimeInputValue(value: Date | string | null | undefine
   return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
 }
 
+function toLocalDayStart(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/**
+ * Inclusive calendar day span (counts both start and end dates).
+ * Example: May 1 -> May 5 = 5 days.
+ */
+export function getInclusiveCalendarDaySpan(
+  start: Date | string | null | undefined,
+  end: Date | string | null | undefined,
+): number | null {
+  const startDate = parseApiDate(start);
+  const endDate = parseApiDate(end);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return null;
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  const startDay = toLocalDayStart(startDate).getTime();
+  const endDay = toLocalDayStart(endDate).getTime();
+  return Math.floor((endDay - startDay) / dayMs) + 1;
+}
+
+/** Calendar day difference without inclusivity (today->tomorrow = 1). */
+export function getCalendarDayDifference(
+  from: Date | string | null | undefined,
+  to: Date | string | null | undefined,
+): number | null {
+  const fromDate = parseApiDate(from);
+  const toDate = parseApiDate(to);
+  if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) return null;
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  const fromDay = toLocalDayStart(fromDate).getTime();
+  const toDay = toLocalDayStart(toDate).getTime();
+  return Math.floor((toDay - fromDay) / dayMs);
+}
+
 /**
  * Format number to readable string
  * @param number - Number to format

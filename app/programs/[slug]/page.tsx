@@ -8,7 +8,7 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { getProgramDetail } from '@/lib/api/programs';
-import { formatTokenLabel, parseApiDate } from '@/lib/utils';
+import { formatTokenLabel, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
 import { headers } from 'next/headers';
 
 function parseValidDate(value: unknown): Date | null {
@@ -43,11 +43,8 @@ function formatDateRange(start: string | null, end: string | null): string {
 }
 
 function calcDuration(start: string | null, end: string | null): string {
-  const startDate = parseValidDate(start);
-  const endDate = parseValidDate(end);
-  if (!startDate || !endDate) return 'TBA';
-  const days = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-  if (!Number.isFinite(days) || days <= 0) return 'TBA';
+  const days = getInclusiveCalendarDaySpan(start, end);
+  if (days === null || !Number.isFinite(days) || days <= 0) return 'TBA';
   return `${days} Days`;
 }
 
