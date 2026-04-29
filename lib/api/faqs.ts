@@ -13,7 +13,9 @@ function resolveBrand(host: string): string {
 export async function getFaqsPageData(host: string): Promise<FaqsPageData> {
   const brandUrl = resolveBrand(host);
   return apiGetWithEnvelope<FaqsPageData>('/v1/landing/faqs', {
-    query: { url: brandUrl },
+    // Fetch a broad first page so category tabs (e.g., Payment) are not dropped
+    // by the backend pagination default on program FAQ pages.
+    query: { url: brandUrl, page: 1, limit: 200 },
     headers: {
       'x-brand-domain': brandUrl,
     },
