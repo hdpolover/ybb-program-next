@@ -15,8 +15,6 @@ type Testimonial = {
   photo?: string;
 };
 
-const DIRECTIONS: Array<'left' | 'right'> = ['left', 'right', 'left'];
-
 interface Props {
   section?: DelegateTestimonialsSection;
 }
@@ -44,13 +42,6 @@ export default function Testimonials({ section }: Props) {
     photo: t.photo || undefined,
   }));
 
-  // Split into 3 rows of roughly equal chunks
-  const chunkSize = Math.ceil(allItems.length / 3);
-  const rows: Array<{ direction: 'left' | 'right'; items: Testimonial[] }> = DIRECTIONS.map((dir, i) => ({
-    direction: dir,
-    items: allItems.slice(i * chunkSize, (i + 1) * chunkSize),
-  })).filter(r => r.items.length > 0);
-
   return (
     <section className={componentsTheme.testimonialsHome.sectionWrapper}>
       <div className={componentsTheme.testimonialsHome.container}>
@@ -63,47 +54,43 @@ export default function Testimonials({ section }: Props) {
         {/* Full card dari ujung kanan ke kiri ( animasi geser ) */}
       </div>
       <div className={componentsTheme.testimonialsHome.rowsWrapper}>
-        {rows.map((row, i) => (
-          <div key={i} className={componentsTheme.testimonialsHome.rowOuter}>
-            {/* fade mask kiri/kanan biar ga keliatan 'mentok' */}
-            <div className={componentsTheme.testimonialsHome.fadeLeft} />
-            <div className={componentsTheme.testimonialsHome.fadeRight} />
-            <div
-              className={`${componentsTheme.testimonialsHome.marqueeRowBase} ${
-                row.direction === 'left' ? 'animate-marquee' : 'animate-marquee-reverse'
-              }`}
-              style={MARQUEE_STYLE}
-            >
-              {[...row.items, ...row.items].map((t, idx) => (
-                <div
-                  key={idx}
-                  className={componentsTheme.testimonialsHome.card}
-                  onClick={() => setActive(t)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setActive(t);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <p className={componentsTheme.testimonialsHome.quote}>“{t.quote}”</p>
-                  <div className={componentsTheme.testimonialsHome.metaRow}>
-                    <div>
-                      <p className={componentsTheme.testimonialsHome.nameRow}>
-                        <span className={componentsTheme.testimonialsHome.nameFlag}>{t.flag}</span>
-                        <span>{t.name}</span>
-                      </p>
-                      <p className={componentsTheme.testimonialsHome.roleText}>{t.role}</p>
-                    </div>
-                    <span className={componentsTheme.testimonialsHome.badge}>{t.country || 'Alumni'}</span>
+        <div className={componentsTheme.testimonialsHome.rowOuter}>
+          {/* fade mask kiri/kanan biar ga keliatan 'mentok' */}
+          <div className={componentsTheme.testimonialsHome.fadeLeft} />
+          <div className={componentsTheme.testimonialsHome.fadeRight} />
+          <div
+            className={`${componentsTheme.testimonialsHome.marqueeRowBase} animate-marquee`}
+            style={MARQUEE_STYLE}
+          >
+            {[...allItems, ...allItems].map((t, idx) => (
+              <div
+                key={idx}
+                className={componentsTheme.testimonialsHome.card}
+                onClick={() => setActive(t)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActive(t);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <p className={componentsTheme.testimonialsHome.quote}>“{t.quote}”</p>
+                <div className={componentsTheme.testimonialsHome.metaRow}>
+                  <div>
+                    <p className={componentsTheme.testimonialsHome.nameRow}>
+                      <span className={componentsTheme.testimonialsHome.nameFlag}>{t.flag}</span>
+                      <span>{t.name}</span>
+                    </p>
+                    <p className={componentsTheme.testimonialsHome.roleText}>{t.role}</p>
                   </div>
+                  <span className={componentsTheme.testimonialsHome.badge}>{t.country || 'Alumni'}</span>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
       {/* Modal Pop Up detail testimoninya */}

@@ -99,8 +99,7 @@ function hasCategory(
 }
 
 function isRegistrationFeeTier(tier: RegistrationType): boolean {
-  const feeType = (tier.fee_type ?? '').toLowerCase();
-  return feeType === 'registration_fee' || tier.name.toLowerCase().includes('registration');
+  return (tier.fee_type ?? '').toLowerCase() === 'registration_fee';
 }
 
 function pickRegistrationTier(
@@ -116,9 +115,6 @@ function pickRegistrationTier(
 
   const inclusive = candidates.find((tier) => hasCategory(tier, target));
   if (inclusive) return inclusive;
-
-  const byName = candidates.find((tier) => tier.name.toLowerCase().includes(target === 'self_funded' ? 'self funded' : 'fully funded'));
-  if (byName) return byName;
 
   if (candidates.length === 0) return undefined;
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { fetchAuthContext } from '@/lib/api/authContext';
 
 type ForgotPasswordBody = {
   email: string;
@@ -25,20 +26,14 @@ export async function POST(request: Request) {
 
     let brandId: string | undefined;
     try {
-      const ctxRes = await fetch(new URL('/api/auth/context', request.url).toString(), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const ctxJson = (await ctxRes.json().catch(() => ({}))) as {
-        data?: { brandId?: string } | null;
-      };
-
-      brandId = ctxJson?.data?.brandId || undefined;
-    } catch {
-      // Keep request functional even if auth context fetch fails.
+      const ctx = await fetchAuthContext(brandDomain);
+      brandId = ctx.brandId ?? undefined;
+    } catch (err) {
+      // Forgot-password tolerates missing brand — backend can still send the
+      // generic email when given just an address. Log so we know if the auth
+      // context call is consistently failing in production.
+      const errMsg = err instanceof Error ? err.message : 'Unknown auth-context error';
+      console.warn('[api/auth/forgot-password] auth-context fetch failed', { brandDomain, error: errMsg });
     }
 
     const apiUrl = new URL(

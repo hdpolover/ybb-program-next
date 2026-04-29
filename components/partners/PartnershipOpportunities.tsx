@@ -14,8 +14,8 @@ export default function PartnershipOpportunitiesSection({
 }: {
   affiliateCommission?: AffiliateCommission;
 }) {
-  const fullyFundedPct = affiliateCommission?.fullyFundedPct ?? 20;
-  const selfFundedPct = affiliateCommission?.selfFundedPct ?? 5;
+  const fullyFundedPct = affiliateCommission?.fullyFundedPct ?? 5;
+  const selfFundedPct = affiliateCommission?.selfFundedPct ?? 20;
   return (
     <section className={componentsTheme.partnersOpportunities.sectionWrapper}>
       <div className={componentsTheme.partnersOpportunities.container}>

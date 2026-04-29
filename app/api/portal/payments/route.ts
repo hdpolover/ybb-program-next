@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
-import { getCalendarDayDifference, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
+import { getCalendarDayDifference, parseApiDate } from '@/lib/utils';
 
 export async function GET(request: Request) {
   try {
@@ -58,8 +58,6 @@ export async function GET(request: Request) {
       status: ItemStatus;
       rawType: string;
       paymentType: string;
-      period: string;
-      deadline: string;
       amount: string;
       syncDate: string;
       hasInvoice: boolean;
@@ -110,67 +108,6 @@ export async function GET(request: Request) {
       return Number.isNaN(date.getTime()) ? null : date;
     };
 
-    const formatDateTime = (value: Date): string =>
-      value.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-
-    const formatShortDate = (value: Date): string =>
-      value.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-
-    const formatDaysLeft = (dueDate: Date): string => {
-      const days = getInclusiveCalendarDaySpan(now, dueDate);
-      if (!days || days <= 0) return 'Expired';
-      return `${days} day${days === 1 ? '' : 's'} left`;
-    };
-
-    const formatDaysOverdue = (dueDate: Date): string => {
-      const dayDiff = getCalendarDayDifference(dueDate, now);
-      const days = dayDiff && dayDiff > 0 ? dayDiff : 1;
-      return `${days} day${days === 1 ? '' : 's'} overdue`;
-    };
-
-    const toWindowLabel = (startDate: Date | null, dueDate: Date | null): string => {
-      if (startDate && dueDate) {
-        return `${formatShortDate(startDate)} - ${formatShortDate(dueDate)}`;
-      }
-      if (startDate) return `Starts ${formatShortDate(startDate)}`;
-      if (dueDate) return `Until ${formatShortDate(dueDate)}`;
-      return '—';
-    };
-
-    const toDeadlineLabel = (
-      dueDate: Date | null,
-      status: ItemStatus,
-      paidAt: unknown,
-    ): string => {
-      const paidDate = paidAt ? parseApiDate(String(paidAt)) : null;
-      if (status === 'paid') {
-        return paidDate && !Number.isNaN(paidDate.getTime())
-          ? `Paid ${formatDateTime(paidDate)}`
-          : 'Completed';
-      }
-
-      if (status === 'processing') {
-        return 'Awaiting verification';
-      }
-
-      if (!dueDate) return 'No deadline';
-
-      const dayDiff = getCalendarDayDifference(now, dueDate);
-      if (dayDiff !== null && dayDiff < 0) {
-        return `${formatShortDate(dueDate)} • ${formatDaysOverdue(dueDate)}`;
-      }
-      return `${formatShortDate(dueDate)} • ${formatDaysLeft(dueDate)}`;
-    };
 
     const toItem = (inv: any, fallbackStatus: ItemStatus): MergedItem => {
       const startDate = toStartDate(inv.startDate);
@@ -193,8 +130,6 @@ export async function GET(request: Request) {
         status,
         rawType,
         paymentType: formatPaymentType(inv.type),
-        period: toWindowLabel(startDate, dueDate),
-        deadline: toDeadlineLabel(dueDate, status, inv.paidAt),
         amount: `${currency} ${amountValue.toFixed(2)}`,
         syncDate: paidAtLabel,
         hasInvoice: true,
@@ -229,8 +164,6 @@ export async function GET(request: Request) {
         status: 'unpaid',
         rawType,
         paymentType: formatPaymentType(method.type),
-        period: toWindowLabel(startDate, dueDate),
-        deadline: toDeadlineLabel(dueDate, 'unpaid', null),
         amount: `${currency} ${amountValue.toFixed(2)}`,
         syncDate: 'Not paid yet',
         hasInvoice: false,
@@ -285,7 +218,7 @@ export async function GET(request: Request) {
         })(),
     ).length;
 
-    const items = stagedItems.map(({ sequenceOrder, startTime, hasStarted, amountValue, currency, dueDate, rawType, ...rest }) => rest);
+    const items = stagedItems.map(({ sequenceOrder, startTime, hasStarted, amountValue, currency, rawType, ...rest }) => rest);
 
     const summary = {
       complete,

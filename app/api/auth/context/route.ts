@@ -1,36 +1,25 @@
 import { NextResponse } from 'next/server';
-import { apiGet } from '@/lib/api/httpClient';
+import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 import { resolveBrandDomain } from '@/lib/server/envContext';
-type ProvidersResponse = {
-  statusCode: number;
-  message: string;
-  data: Array<{ id: string; name: string; displayName: string; isOAuth: boolean }>;
+
+type AuthProvider = {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string;
+  isOAuth: boolean;
+  icon: string;
+  buttonColor: string;
 };
 
-type BrandsResponse = {
-  statusCode: number;
-  message: string;
-  data: Array<{
-    id: string;
-    slug: string;
-    websiteUrl?: string | null;
-    requireEmailVerification?: boolean;
-  }>;
-};
-
-type ProgramsResponse = {
-  statusCode: number;
-  message: string;
-  data: Array<{
-    id: string;
-    brandId?: string | null;
-    slug?: string | null;
-    programSlug?: string | null;
-    programCategoryId?: string | null;
-    isPublished: boolean;
-    year?: number | null;
-    createdAt?: string;
-  }>;
+type BackendAuthContext = {
+  brandDomain: string;
+  brandId: string | null;
+  requireEmailVerification: boolean;
+  programId: string | null;
+  programSlug: string | null;
+  localProviderId: string | null;
+  providers: AuthProvider[];
 };
 
 export async function GET() {
@@ -42,79 +31,25 @@ export async function GET() {
 
     const brandDomain = await resolveBrandDomain();
 
-    const [providersJson, brandsJson, programsJson] = await Promise.all([
-      apiGet<ProvidersResponse>('/v1/auth/providers'),
-      apiGet<BrandsResponse>('/v1/brands'),
-      apiGet<ProgramsResponse>('/v1/programs'),
-    ]);
-
-    const providers = Array.isArray(providersJson.data) ? providersJson.data : [];
-    const brands = Array.isArray(brandsJson.data) ? brandsJson.data : [];
-    const programs = Array.isArray(programsJson.data) ? programsJson.data : [];
-
-    const localProvider = providers.find(p => p.name === 'local') ?? null;
-
-    const brandNeedle = brandDomain.replace(/^https?:\/\//, '').toLowerCase();
-    const brand =
-      brands.find(b => (b.websiteUrl ?? '').toLowerCase().includes(brandNeedle)) ??
-      null;
-
-    const brandId = envBrandId || brand?.id;
-    const brandById =
-      (brandId ? brands.find(b => b.id === brandId) : null) ??
-      brand ??
-      null;
-    const requireEmailVerification =
-      typeof brandById?.requireEmailVerification === 'boolean'
-        ? brandById.requireEmailVerification
-        : true;
-
-    const candidates = programs.filter(p => (p.brandId ?? p.programCategoryId) === brandId && p.isPublished);
-    candidates.sort((a, b) => {
-      const yearA = a.year ?? -1;
-      const yearB = b.year ?? -1;
-      if (yearA !== yearB) return yearB - yearA;
-      const createdA = a.createdAt ? Date.parse(a.createdAt) : 0;
-      const createdB = b.createdAt ? Date.parse(b.createdAt) : 0;
-      return createdB - createdA;
+    // Single backend call resolves brand + active program + local provider in one
+    // query — replaces the previous client-side fan-out (/v1/brands + /v1/programs
+    // + /v1/auth/providers) which broke once the global program list paginated past 10.
+    const ctx = await apiGetWithEnvelope<BackendAuthContext>('/v1/auth/context', {
+      headers: { 'x-brand-domain': brandDomain },
+      cache: 'no-store',
     });
-
-    const programId = envProgramId || candidates[0]?.id;
-    const programFromId = programs.find(p => p.id === programId) ?? null;
-    const programSlug =
-      envProgramSlug ||
-      programFromId?.slug ||
-      programFromId?.programSlug ||
-      candidates[0]?.slug ||
-      candidates[0]?.programSlug ||
-      null;
-
-    const localProviderId = envLocalProviderId || localProvider?.id || '';
-
-    const debugPayload =
-      process.env.NODE_ENV !== 'production'
-        ? {
-            programSlugResolved: Boolean(programSlug),
-            sampleProgramKeys: programs[0] ? Object.keys(programs[0] as Record<string, unknown>) : [],
-            sampleCandidateKeys: candidates[0]
-              ? Object.keys(candidates[0] as Record<string, unknown>)
-              : [],
-            programFromIdExists: Boolean(programFromId),
-          }
-        : undefined;
 
     return NextResponse.json({
       statusCode: 200,
       message: 'Success',
       data: {
         brandDomain,
-        brandId,
-        requireEmailVerification,
-        programId,
-        programSlug,
-        providers,
-        localProviderId: localProviderId,
-        ...(debugPayload ? { debug: debugPayload } : {}),
+        brandId: envBrandId || ctx.brandId,
+        requireEmailVerification: ctx.requireEmailVerification,
+        programId: envProgramId || ctx.programId,
+        programSlug: envProgramSlug || ctx.programSlug,
+        providers: ctx.providers,
+        localProviderId: envLocalProviderId || ctx.localProviderId || '',
       },
     });
   } catch (error) {
