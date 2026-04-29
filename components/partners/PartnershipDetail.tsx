@@ -104,8 +104,8 @@ export default function PartnershipDetailSection({
           ? sponsorshipTiers.diamond
           : pkg.price;
 
-  const fullyFundedPct = affiliateCommission?.fully_funded_pct ?? 20;
-  const selfFundedPct = affiliateCommission?.self_funded_pct ?? 5;
+  const fullyFundedPct = affiliateCommission?.fully_funded_pct ?? 5;
+  const selfFundedPct = affiliateCommission?.self_funded_pct ?? 20;
 
    const gradientVariant =
     slug === 'community-partner'
