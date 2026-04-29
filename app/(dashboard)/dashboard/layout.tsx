@@ -72,8 +72,9 @@ function toPortalDashboardSummary(payload: unknown): PortalDashboardSummary | nu
 
   const raw = payload as Partial<PortalDashboardSummary>;
   const rawActiveApplication = isRecord(raw.activeApplication) ? raw.activeApplication : null;
-  const guidebooks = Array.isArray(rawActiveApplication?.guidebooks)
-    ? rawActiveApplication.guidebooks
+  const rawGuidebooks = rawActiveApplication && 'guidebooks' in rawActiveApplication ? (rawActiveApplication as { guidebooks?: unknown }).guidebooks : undefined;
+  const guidebooks = Array.isArray(rawGuidebooks)
+    ? rawGuidebooks
         .filter(isRecord)
         .map((guidebook) => ({
           label: typeof guidebook.label === 'string' ? guidebook.label : undefined,
@@ -364,11 +365,52 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // shell grid: sidebar kiri + konten kanan
   return (
     <main className="relative h-screen overflow-hidden bg-white">
+      {/* Mobile drawer sidebar */}
+      <div
+        className={
+          mobileSidebarOpen
+            ? 'fixed inset-0 z-40 md:hidden'
+            : 'pointer-events-none fixed inset-0 z-40 opacity-0 md:hidden'
+        }
+        aria-hidden={!mobileSidebarOpen}
+      >
+        <button
+          type="button"
+          className={
+            mobileSidebarOpen
+              ? 'absolute inset-0 bg-slate-900/40 transition-opacity'
+              : 'absolute inset-0 bg-slate-900/0 transition-opacity'
+          }
+          aria-label="Close sidebar"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+
+        <Sidebar
+          isAmbassador={isAmbassador}
+          isAmbassadorDataLoading={isAmbassadorDataLoading}
+          className={
+            mobileSidebarOpen
+              ? 'fixed left-0 top-0 z-50 h-screen w-[260px] translate-x-0 shadow-2xl transition-transform duration-200'
+              : 'fixed left-0 top-0 z-50 h-screen w-[260px] -translate-x-full shadow-2xl transition-transform duration-200'
+          }
+        />
+
+        <button
+          type="button"
+          className="absolute right-3 top-3 z-50 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-slate-700 ring-1 ring-slate-200"
+          aria-label="Close sidebar"
+          onClick={() => setMobileSidebarOpen(false)}
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
       <div className="flex h-screen">
         {/* Sidebar nempel di kiri */}
         <Sidebar
           isAmbassador={isAmbassador}
           isAmbassadorDataLoading={isAmbassadorDataLoading}
+          className="hidden md:flex"
         />
 
         {/* Kolom kanan: navbar atas + konten */}

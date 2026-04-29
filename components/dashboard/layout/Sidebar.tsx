@@ -23,9 +23,11 @@ const layoutTheme = componentsTheme.dashboardLayout;
 export default function Sidebar({
   isAmbassador = false,
   isAmbassadorDataLoading = false,
+  className,
 }: {
   isAmbassador?: boolean;
   isAmbassadorDataLoading?: boolean;
+  className?: string;
 }) {
   const pathname = usePathname();
   const { settings } = useSettings();
@@ -70,7 +72,7 @@ export default function Sidebar({
   };
 
   return (
-    <aside className={layoutTheme.sidebarWrapper}>
+    <aside className={`${layoutTheme.sidebarWrapper}${className ? ` ${className}` : ''}`}>
       {/* Logo header */}
       <div className={layoutTheme.sidebarLogoRow}>
         <div className={layoutTheme.sidebarLogoImageWrapper}>

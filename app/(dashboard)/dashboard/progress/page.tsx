@@ -4,6 +4,7 @@ import { buildProgressSteps, type ProgressStep } from "@/components/dashboard/se
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { usePortalSubmissionProgress } from "@/hooks/usePortalSubmissionProgress";
 import { componentsTheme } from "@/lib/theme/components";
+import { useMemo } from "react";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
@@ -47,12 +48,13 @@ export default function DashboardProgressPage() {
   const progressRatio = totalSteps > 0 ? completedCount / totalSteps : 0;
   const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
 
-  const progressPercentage =
-    typeof submissionProgress?.overallProgress === "number" && !Number.isNaN(submissionProgress.overallProgress)
-      ? Math.min(100, Math.max(0, Math.round(submissionProgress.overallProgress)))
-      : typeof activeApplication?.progress === "number" && !Number.isNaN(activeApplication.progress)
-      ? Math.min(100, Math.max(0, Math.round(activeApplication.progress)))
-      : fallbackProgressPercentage;
+  const progressPercentage = useMemo(() => {
+    const pct = submissionProgress?.overallProgress;
+    if (typeof pct !== "number" || Number.isNaN(pct)) return fallbackProgressPercentage;
+    return Math.min(100, Math.max(0, Math.round(pct)));
+  }, [fallbackProgressPercentage, submissionProgress?.overallProgress]);
+
+  const chipTranslateX = progressPercentage <= 5 ? '0%' : progressPercentage >= 95 ? '-100%' : '-50%';
 
   const resolvedCurrentStep = progressSteps[currentIndex];
   const currentStepTitle = resolvedCurrentStep?.title || activeApplication?.currentStep?.trim() || "Application Progress";
@@ -100,7 +102,7 @@ export default function DashboardProgressPage() {
                   </div>
                   <div
                     className={overviewTheme.progressStepChipFloating}
-                    style={{ left: `${progressPercentage}%` }}
+                    style={{ left: `${progressPercentage}%`, transform: `translateX(${chipTranslateX})` }}
                   >
                     <span className={overviewTheme.progressStepChip}>
                       {progressPercentage}%

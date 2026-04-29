@@ -142,13 +142,13 @@ export default function SubmissionReadProfileHeaderSection() {
             </button>
           </div>
 
-          <div className="space-y-1.5">
-            <p className={submissionTheme.profileName} style={{ textTransform: 'capitalize' }}>{displayName}</p>
+          <div className="min-w-0 space-y-1.5">
+            <p className={`${submissionTheme.profileName} truncate`} style={{ textTransform: 'capitalize' }}>{displayName}</p>
             <p className={submissionTheme.profileRole}>Participant Account</p>
             <p className={submissionTheme.profileMeta}>
               <span className={submissionTheme.profileMetaLabel}>Account ID:</span>{" "}
-              <span className="inline-flex items-center gap-2">
-                <span className="font-mono">
+              <span className="inline-flex min-w-0 items-center gap-2">
+                <span className="min-w-0 truncate font-mono">
                   {showAccountId ? accountId : maskedAccountId}
                 </span>
                 {accountId !== "-" && (
@@ -166,7 +166,7 @@ export default function SubmissionReadProfileHeaderSection() {
           </div>
         </div>
 
-        <div className={submissionTheme.profileRightWrapper}>
+        <div className={`${submissionTheme.profileRightWrapper} w-full border-t border-slate-100 pt-4 md:w-auto md:border-t-0 md:pt-0`}>
           <p className={submissionTheme.profileRightLabel}>Primary Address</p>
           {hasOrigin ? (
             <p className={submissionTheme.profileRightText}>
