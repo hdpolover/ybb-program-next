@@ -33,6 +33,7 @@ import {
   type CachedPaymentPreview,
 } from '@/lib/dashboard/payments-cache';
 import { toast } from 'sonner';
+import { parseApiDate } from '@/lib/utils';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -47,6 +48,9 @@ interface PaymentItem {
   syncDate: string;
   hasInvoice?: boolean;
   canPay?: boolean;
+  startDate?: string;
+  dueDate?: string;
+  paidAt?: string;
 }
 
 function toCachedPaymentPreview(payment: PaymentItem): CachedPaymentPreview {
@@ -91,28 +95,105 @@ function toPaymentStatus(value: unknown): PaymentItem['status'] {
   return 'unpaid';
 }
 
+function toDate(value: unknown): Date | null {
+  if (typeof value !== 'string' || value.trim().length === 0) return null;
+  const parsed = parseApiDate(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatLocalDate(value: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(value);
+}
+
+function formatLocalDateTime(value: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(value);
+}
+
+function formatRemaining(ms: number): string {
+  const totalMinutes = Math.max(0, Math.floor(ms / (1000 * 60)));
+  const totalHours = Math.floor(totalMinutes / 60);
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  const minutes = totalMinutes % 60;
+
+  if (days >= 2) return `${days} days left`;
+  if (days >= 1) return `${days} day ${hours}h left`;
+  if (totalHours >= 1) return `${totalHours}h ${minutes}m left`;
+  if (minutes >= 1) return `${minutes}m left`;
+  return '<1m left';
+}
+
+function toWindowLabel(startDate: Date | null, dueDate: Date | null): string {
+  if (startDate && dueDate) {
+    return `${formatLocalDate(startDate)} - ${formatLocalDate(dueDate)}`;
+  }
+  if (startDate) return `Starts ${formatLocalDate(startDate)}`;
+  if (dueDate) return `Until ${formatLocalDate(dueDate)}`;
+  return '—';
+}
+
+function toDeadlineLabel(
+  dueDate: Date | null,
+  status: PaymentItem['status'],
+  paidAt: Date | null,
+): string {
+  if (status === 'paid') {
+    return paidAt ? `Paid ${formatLocalDateTime(paidAt)}` : 'Completed';
+  }
+
+  if (status === 'processing') {
+    return 'Awaiting verification';
+  }
+
+  if (!dueDate) return 'No deadline';
+
+  const diff = dueDate.getTime() - Date.now();
+  if (diff < 0) {
+    return `${formatLocalDate(dueDate)} • ${formatRemaining(Math.abs(diff)).replace('left', 'overdue')}`;
+  }
+  return `${formatLocalDate(dueDate)} • ${formatRemaining(diff)}`;
+}
+
 function toPaymentItem(value: unknown): PaymentItem | null {
   if (!isRecord(value)) return null;
 
   const id = typeof value.id === 'string' ? value.id : null;
   if (!id) return null;
 
+  const status = toPaymentStatus(value.status);
+  const startDate = toDate(value.startDate);
+  const dueDate = toDate(value.dueDate);
+  const paidAt = toDate(value.paidAt) ?? toDate(value.syncDate);
+
   return {
     id,
     label: typeof value.label === 'string' ? value.label : 'Payment',
-    status: toPaymentStatus(value.status),
+    status,
     paymentType: typeof value.paymentType === 'string' ? value.paymentType : 'General',
-    period: typeof value.period === 'string' ? value.period : '-',
-    deadline: typeof value.deadline === 'string' ? value.deadline : '-',
+    period: toWindowLabel(startDate, dueDate),
+    deadline: toDeadlineLabel(dueDate, status, paidAt),
     amount:
       typeof value.amount === 'string'
         ? value.amount
         : typeof value.amount === 'number' && Number.isFinite(value.amount)
           ? String(value.amount)
           : '-',
-    syncDate: typeof value.syncDate === 'string' ? value.syncDate : '-',
+    syncDate: paidAt ? formatLocalDate(paidAt) : 'Not paid yet',
     hasInvoice: typeof value.hasInvoice === 'boolean' ? value.hasInvoice : undefined,
     canPay: typeof value.canPay === 'boolean' ? value.canPay : undefined,
+    startDate: startDate?.toISOString(),
+    dueDate: dueDate?.toISOString(),
+    paidAt: paidAt?.toISOString(),
   };
 }
 
@@ -152,6 +233,26 @@ function toPaymentsSummary(value: unknown): PaymentsSummary {
       typeof value.pending === 'number' && Number.isFinite(value.pending) ? value.pending : 0,
     overdue:
       typeof value.overdue === 'number' && Number.isFinite(value.overdue) ? value.overdue : 0,
+  };
+}
+
+function summarizeByLocalTime(items: PaymentItem[], totalRequired: string): PaymentsSummary {
+  const now = Date.now();
+  const complete = items.filter((item) => item.status === 'paid').length;
+  const pending = items.filter((item) => item.status !== 'paid').length;
+  const overdue = items.filter((item) => {
+    if (item.status !== 'unpaid') return false;
+    if (!item.dueDate) return false;
+    const dueDate = parseApiDate(item.dueDate);
+    if (Number.isNaN(dueDate.getTime())) return false;
+    return dueDate.getTime() < now;
+  }).length;
+
+  return {
+    complete,
+    pending,
+    overdue,
+    totalRequired,
   };
 }
 
@@ -343,10 +444,11 @@ export default function PaymentsListSection() {
                 .map(toPaymentItem)
                 .filter((item): item is PaymentItem => item !== null)
             : [];
+          const serverSummary = toPaymentsSummary(payloadRecord?.summary);
 
           setActionError(null);
           setPayments(items);
-          setSummary(toPaymentsSummary(payloadRecord?.summary));
+          setSummary(summarizeByLocalTime(items, serverSummary.totalRequired));
           storeCachedPaymentPreviews(programId, items.map(toCachedPaymentPreview));
         }
       } catch (err) {

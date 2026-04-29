@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { parseApiDate } from '@/lib/utils';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object';
@@ -13,7 +14,7 @@ function getEnvelopeData(payload: unknown): unknown {
 
 function toIsoString(value: unknown): string | undefined {
   if (typeof value !== 'string' || value.trim().length === 0) return undefined;
-  const date = new Date(value);
+  const date = parseApiDate(value);
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 

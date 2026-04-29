@@ -3,12 +3,13 @@
 import { AlertTriangle, Bell, Megaphone } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
+import { parseApiDate } from "@/lib/utils";
 
 type TabKey = "alerts" | "announcements";
 
 function formatDateLabel(iso?: string): string {
   if (!iso) return "";
-  const d = new Date(iso);
+  const d = parseApiDate(iso);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString("en-US", {
     year: "numeric",

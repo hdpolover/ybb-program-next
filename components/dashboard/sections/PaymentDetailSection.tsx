@@ -25,6 +25,7 @@ import {
   upsertCachedPaymentPreview,
   type CachedPaymentPreview,
 } from '@/lib/dashboard/payments-cache';
+import { parseApiDate } from '@/lib/utils';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -153,7 +154,7 @@ function formatCurrencyValue(amount: number, currencyCode = 'USD'): string {
 
 function formatDateLabel(value?: string | null): string {
   if (!value) return 'No due date';
-  const date = new Date(value);
+  const date = parseApiDate(value);
   if (Number.isNaN(date.getTime())) return 'No due date';
 
   return new Intl.DateTimeFormat('en-GB', {
@@ -165,13 +166,24 @@ function formatDateLabel(value?: string | null): string {
 
 function formatDateTimeLabel(value?: string | null): string {
   if (!value) return '-';
-  const date = new Date(value);
+  const date = parseApiDate(value);
   if (Number.isNaN(date.getTime())) return value;
 
   return new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+function formatTimeLabel(value?: string | null): string {
+  if (!value) return '-';
+  const date = parseApiDate(value);
+  if (Number.isNaN(date.getTime())) return '-';
+
+  return new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
@@ -364,7 +376,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   const paymentName = invoice?.label?.trim() || paymentPreview?.label?.trim() || 'Program Payment';
   const invoiceStatusLabel = toTitleCaseFromToken(effectiveStatus);
   const paymentDescription = `Payment for ${paymentName} (${categoryLabel}). Current status: ${invoiceStatusLabel}.`;
-  const dueDateValue = invoice?.dueDate ? new Date(invoice.dueDate) : null;
+  const dueDateValue = invoice?.dueDate ? parseApiDate(invoice.dueDate) : null;
   const overdue = Boolean(
     dueDateValue &&
       !Number.isNaN(dueDateValue.getTime()) &&
@@ -383,7 +395,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
       `Amount: ${amountLabel}`,
       `Status: ${invoiceStatusLabel}`,
       `Due Date: ${dueDateLabel}`,
-      `Generated At: ${new Date().toISOString()}`,
+      `Generated At: ${new Date().toLocaleString()}`,
     ].join('\n');
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -410,8 +422,8 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
               : 'Payment Created',
     method: toMethodDisplayLabel(h.method),
     amountLabel: h.amountLabel ?? formatInvoiceAmount(h.amount),
-    date: formatDateLabel(h.date),
-    time: h.time,
+    date: h.dateTime ? formatDateLabel(h.dateTime) : formatDateLabel(h.date),
+    time: h.dateTime ? formatTimeLabel(h.dateTime) : h.time,
     badge:
       h.status === 'cancelled'
         ? { label: 'Cancelled', tone: 'red' as const }

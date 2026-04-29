@@ -8,7 +8,7 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { getProgramDetail } from '@/lib/api/programs';
-import { formatTokenLabel } from '@/lib/utils';
+import { formatTokenLabel, parseApiDate } from '@/lib/utils';
 import { headers } from 'next/headers';
 
 function parseValidDate(value: unknown): Date | null {
@@ -27,7 +27,7 @@ function parseValidDate(value: unknown): Date | null {
   const raw = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
   if (!raw.trim()) return null;
 
-  const parsed = new Date(raw);
+  const parsed = parseApiDate(raw);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 

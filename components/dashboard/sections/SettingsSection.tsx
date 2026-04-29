@@ -12,10 +12,11 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { parseApiDate } from "@/lib/utils";
 
 function formatLastUsedAt(value?: string | null): string | null {
   if (!value) return null;
-  const parsed = new Date(value);
+  const parsed = parseApiDate(value);
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }

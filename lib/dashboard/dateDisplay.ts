@@ -1,3 +1,5 @@
+import { parseApiDate } from '@/lib/utils';
+
 export function formatSubmissionDateValue(value: string): string {
   const raw = value.trim();
   if (!raw) return value;
@@ -6,7 +8,7 @@ export function formatSubmissionDateValue(value: string): string {
   const isIsoDateTime = /^\d{4}-\d{2}-\d{2}T/.test(raw);
   if (!isIsoDateOnly && !isIsoDateTime) return value;
 
-  const parsed = new Date(isIsoDateOnly ? `${raw}T00:00:00` : raw);
+  const parsed = parseApiDate(raw);
   if (Number.isNaN(parsed.getTime())) return value;
 
   return parsed.toLocaleDateString("en-US", {

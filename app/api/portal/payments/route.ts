@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { parseApiDate } from '@/lib/utils';
 
 export async function GET(request: Request) {
   try {
@@ -67,7 +68,9 @@ export async function GET(request: Request) {
       hasStarted: boolean;
       amountValue: number;
       currency: string;
+      startDate?: string;
       dueDate?: string;
+      paidAt?: string;
       canPay: boolean;
     };
 
@@ -103,7 +106,7 @@ export async function GET(request: Request) {
 
     const toStartDate = (value: unknown): Date | null => {
       if (!value) return null;
-      const date = new Date(String(value));
+      const date = parseApiDate(String(value));
       return Number.isNaN(date.getTime()) ? null : date;
     };
 
@@ -151,7 +154,7 @@ export async function GET(request: Request) {
       status: ItemStatus,
       paidAt: unknown,
     ): string => {
-      const paidDate = paidAt ? new Date(String(paidAt)) : null;
+      const paidDate = paidAt ? parseApiDate(String(paidAt)) : null;
       if (status === 'paid') {
         return paidDate && !Number.isNaN(paidDate.getTime())
           ? `Paid ${formatDateTime(paidDate)}`
@@ -179,7 +182,7 @@ export async function GET(request: Request) {
       const currency = String(inv.currency ?? stats.currency ?? 'USD');
       const rawType = String(inv.type ?? '').toLowerCase();
       const fallbackSequenceOrder = getFeeTypePriority(rawType) * 1000;
-      const paidAt = inv.paidAt ? new Date(inv.paidAt) : null;
+      const paidAt = inv.paidAt ? parseApiDate(inv.paidAt) : null;
       const explicitCanPay = typeof inv.canPay === 'boolean' ? inv.canPay : undefined;
       const paidAtLabel =
         paidAt && !Number.isNaN(paidAt.getTime())
@@ -202,7 +205,9 @@ export async function GET(request: Request) {
         hasStarted: !startDate || startDate <= now,
         amountValue,
         currency,
+        startDate: startDate?.toISOString(),
         dueDate: dueDate?.toISOString(),
+        paidAt: paidAt && !Number.isNaN(paidAt.getTime()) ? paidAt.toISOString() : undefined,
         canPay: explicitCanPay ?? ((status === 'unpaid' || status === 'failed') && amountValue > 0),
       };
     };
@@ -236,6 +241,7 @@ export async function GET(request: Request) {
         hasStarted: !startDate || startDate <= now,
         amountValue,
         currency,
+        startDate: startDate?.toISOString(),
         dueDate: dueDate?.toISOString(),
         canPay: amountValue > 0 && (!startDate || startDate <= now),
       };
@@ -272,7 +278,7 @@ export async function GET(request: Request) {
     const complete = stagedItems.filter((item) => item.status === 'paid').length;
     const pending = stagedItems.filter((item) => item.status !== 'paid').length;
     const overdue = stagedItems.filter(
-      (item) => item.status === 'unpaid' && item.dueDate && new Date(item.dueDate) < now,
+      (item) => item.status === 'unpaid' && item.dueDate && parseApiDate(item.dueDate) < now,
     ).length;
 
     const items = stagedItems.map(({ sequenceOrder, startTime, hasStarted, amountValue, currency, dueDate, rawType, ...rest }) => rest);

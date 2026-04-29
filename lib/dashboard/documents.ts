@@ -1,4 +1,5 @@
 import { isRecord } from '@/lib/api/response';
+import { parseApiDate } from '@/lib/utils';
 
 export interface DocumentItem {
   id: string;
@@ -61,7 +62,7 @@ export function formatDocumentCategoryLabel(value?: string): string {
 export function formatDocumentDateLabel(value?: string): string {
   if (!value) return 'Not available';
 
-  const parsed = new Date(value);
+  const parsed = parseApiDate(value);
   if (Number.isNaN(parsed.getTime())) {
     return 'Not available';
   }

@@ -5,6 +5,7 @@ import { AlertTriangle, Clock3, Search, UserRound } from "lucide-react";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 import type { AmbassadorReferral, AmbassadorReferralStatus } from "@/lib/dashboard/ambassador";
 import { useAmbassadorSectionData } from "@/components/dashboard/sections/useAmbassadorSectionData";
+import { parseApiDate } from "@/lib/utils";
 
 const STATUS_LABELS: Record<AmbassadorReferralStatus, string> = {
   referred: "Referred",
@@ -42,7 +43,7 @@ const FUNNEL_STATUS_OPTIONS: Array<{ value: AmbassadorReferralStatus; label: str
 function formatDate(value?: string): string {
   if (!value) return "-";
 
-  const date = new Date(value);
+  const date = parseApiDate(value);
   if (Number.isNaN(date.getTime())) return "-";
 
   return new Intl.DateTimeFormat("en-US", {

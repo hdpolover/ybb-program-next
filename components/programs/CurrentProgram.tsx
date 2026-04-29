@@ -5,6 +5,7 @@ import { CalendarDays, Calendar, MapPin, Square } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramOverviewSection } from '@/types/programs';
+import { parseApiDate } from '@/lib/utils';
 
 type CurrentProgramProps = {
   overview?: ProgramOverviewSection['content'];
@@ -27,7 +28,7 @@ function parseValidDate(value: unknown): Date | null {
   const raw = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
   if (!raw.trim()) return null;
 
-  const parsed = new Date(raw);
+  const parsed = parseApiDate(raw);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 

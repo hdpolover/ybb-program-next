@@ -3,6 +3,7 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramActivitiesSection } from '@/types/programs';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
+import { parseApiDate } from '@/lib/utils';
 
 type ProgramActivitiesProps = {
   activities?: ProgramActivitiesSection['content'];
@@ -11,7 +12,7 @@ type ProgramActivitiesProps = {
 function formatDate(date: string | null | undefined): string {
   if (!date) return DATA_NOT_ADDED;
 
-  const parsed = new Date(date);
+  const parsed = parseApiDate(date);
   if (Number.isNaN(parsed.getTime())) return DATA_NOT_ADDED;
 
   return parsed.toLocaleDateString('en-US', {
