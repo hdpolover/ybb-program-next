@@ -98,7 +98,12 @@ export type ProgramGallerySection = {
 	content: {
 		title: string;
 		description: string;
-		images: {
+		gallery?: {
+			id: string;
+			url: string;
+			caption: string;
+		}[];
+		images?: {
 			id: string;
 			url: string;
 			caption: string;
@@ -148,7 +153,11 @@ export type ProgramObjectivesSection = {
 			description: string;
 			order: number;
 		}[];
-		images: {
+		gallery?: {
+			url: string;
+			caption: string;
+		}[];
+		images?: {
 			url: string;
 			caption: string;
 		}[];
@@ -315,6 +324,11 @@ export type HomeSection =
 export type ProgramHighlightsSection = {
   type: 'program_highlights';
   content: {
+    gallery?: {
+      url: string;
+      caption: string;
+      type: string;
+    }[];
     image_gallery: {
       url: string;
       caption: string;

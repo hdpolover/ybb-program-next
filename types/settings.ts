@@ -38,6 +38,21 @@ export type SettingsCurrency = {
   rate_to_idr: number;
 };
 
+export type SettingsAvailableBrand = {
+  id: string;
+  slug: string;
+  name: string;
+  website_url?: string | null;
+  landing_url?: string | null;
+  logo_icon_url?: string | null;
+  tagline?: string | null;
+  description?: string | null;
+  location?: string | null;
+  city?: string | null;
+  country?: string | null;
+  address?: string | null;
+};
+
 export type SettingsData = {
   maintenance: {
     is_maintenance_mode: boolean;
@@ -55,4 +70,5 @@ export type SettingsData = {
     logo_color_url?: string | null;
     logo_icon_url?: string | null;
   };
+  available_brands?: SettingsAvailableBrand[];
 };

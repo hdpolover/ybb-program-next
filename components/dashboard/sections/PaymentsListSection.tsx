@@ -24,10 +24,15 @@ import {
 import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
 import { getEnvelopeData, getMessage, isRecord } from '@/lib/api/response';
 import {
+  flushSwitchCategoryFeedback,
+  queueSwitchCategoryFeedback,
+} from '@/lib/dashboard/switchCategoryFeedback';
+import {
   storeCachedPaymentPreviews,
   upsertCachedPaymentPreview,
   type CachedPaymentPreview,
 } from '@/lib/dashboard/payments-cache';
+import { toast } from 'sonner';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -167,6 +172,10 @@ export default function PaymentsListSection() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [rowActionLoadingId, setRowActionLoadingId] = useState<string | null>(null);
 
+  useEffect(() => {
+    flushSwitchCategoryFeedback();
+  }, []);
+
   const resolveInvoiceId = async (payment: PaymentItem): Promise<string> => {
     if (payment.hasInvoice !== false) {
       return payment.id;
@@ -246,7 +255,9 @@ export default function PaymentsListSection() {
 
   async function handleSwitch() {
     if (!activeApplication?.id) {
-      setSwitchError('Application ID not found. Please refresh the page and try again.');
+      const message = 'Application ID not found. Please refresh the page and try again.';
+      setSwitchError(message);
+      toast.error(message);
       return;
     }
     setSwitchLoading(true);
@@ -259,13 +270,25 @@ export default function PaymentsListSection() {
       });
       const json = (await res.json().catch(() => null)) as unknown;
       if (!res.ok) {
-        setSwitchError(getMessage(json) ?? 'Failed to switch category. Please try again.');
+        const message = getMessage(json) ?? 'Failed to switch category. Please try again.';
+        const normalized = message.toLowerCase();
+        if (normalized.includes('already in the target category')) {
+          queueSwitchCategoryFeedback('info', 'Category already switched. Dashboard has been synced.');
+          setShowSwitchModal(false);
+          window.location.reload();
+          return;
+        }
+        setSwitchError(message);
+        toast.error(message);
         return;
       }
+      queueSwitchCategoryFeedback('success', `Switched to ${switchTargetLabel}.`);
       setShowSwitchModal(false);
-      router.refresh();
+      window.location.reload();
     } catch {
-      setSwitchError('Something went wrong. Please try again.');
+      const fallback = 'Something went wrong. Please try again.';
+      setSwitchError(fallback);
+      toast.error(fallback);
     } finally {
       setSwitchLoading(false);
     }

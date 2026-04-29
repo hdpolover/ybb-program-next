@@ -41,6 +41,7 @@ import Breadcrumb from '@/components/dashboard/ui/Breadcrumb';
 import DashboardPageSkeleton from '@/components/dashboard/ui/DashboardPageSkeleton';
 import { CountryDisplay } from '@/components/dashboard/fields/CountryDisplay';
 import { PhoneDisplay } from '@/components/dashboard/fields/PhoneDisplay';
+import { formatSubmissionDateValue, isDateLikeField } from '@/lib/dashboard/dateDisplay';
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -135,6 +136,10 @@ function renderFieldValue(field: PortalSubmissionField, value: unknown) {
       .map(v => getOptionLabel(field.options, v))
       .filter(Boolean)
       .join(', ');
+  }
+
+  if (typeof value === 'string' && isDateLikeField(field.name, field.type)) {
+    return formatSubmissionDateValue(value);
   }
 
   return String(value);

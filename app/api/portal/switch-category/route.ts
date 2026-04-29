@@ -2,13 +2,21 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
+export const dynamic = 'force-dynamic';
+
+const noStoreHeaders = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  Pragma: 'no-cache',
+  Expires: '0',
+};
+
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
     if (!accessToken) {
-      return NextResponse.json({ statusCode: 401, message: 'Unauthorized', data: null }, { status: 401 });
+      return NextResponse.json({ statusCode: 401, message: 'Unauthorized', data: null }, { status: 401, headers: noStoreHeaders });
     }
 
     const brandDomain = resolveBrandDomainFromRequest(request);
@@ -18,7 +26,7 @@ export async function POST(request: Request) {
     if (!applicationId || !targetCategory) {
       return NextResponse.json(
         { statusCode: 400, message: 'applicationId and targetCategory are required', data: null },
-        { status: 400 },
+        { status: 400, headers: noStoreHeaders },
       );
     }
 
@@ -47,13 +55,13 @@ export async function POST(request: Request) {
           message: (json as any)?.message ?? 'Failed to switch category',
           data: (json as any)?.data ?? null,
         },
-        { status: res.status },
+        { status: res.status, headers: noStoreHeaders },
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json ?? null });
+    return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json ?? null }, { headers: noStoreHeaders });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ statusCode: 500, message, data: null }, { status: 500 });
+    return NextResponse.json({ statusCode: 500, message, data: null }, { status: 500, headers: noStoreHeaders });
   }
 }

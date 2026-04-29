@@ -2,47 +2,20 @@ import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
-// Foto-foto program lain (biar ga lorem, pake aset yang ada di /public/img)
 export type ProgramGalleryItem = {
   title: string;
   photos: string[]; // 4 gambar per kartu
   href?: string;
 };
 
-const defaultItems: ProgramGalleryItem[] = [
-  {
-    title: 'Middle East Youth Summit 2026',
-    photos: ['/img/galeri1.png', '/img/galeri2.png', '/img/galeri3.png', '/img/galeri4.png'],
-    href: '#',
-  },
-  {
-    title: 'Youth Academic Forum 2025',
-    photos: ['/img/galeri5.png', '/img/galeri6.png', '/img/galeri7.png', '/img/galeri8.png'],
-    href: '#',
-  },
-  {
-    title: 'World Youth Fest 2025',
-    photos: [
-      '/img/programoverview.png',
-      '/img/programhighlight1.jpg',
-      '/img/osaka.jpg',
-      '/img/galeri5.png',
-    ],
-    href: '#',
-  },
-  {
-    title: 'Istanbul Youth Summit 2026',
-    photos: ['/img/galeri2.png', '/img/galeri3.png', '/img/galeri7.png', '/img/galeri8.png'],
-    href: '#',
-  },
-];
-
 type OtherProgramsGalleryProps = {
   programs?: ProgramGalleryItem[];
 };
 
 export default function OtherProgramsGallery({ programs }: OtherProgramsGalleryProps) {
-  const items = programs && programs.length > 0 ? programs : defaultItems;
+  const items = (programs || []).filter((item) => item.photos.length > 0);
+  if (items.length === 0) return null;
+
   return (
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
       <div className="mx-auto max-w-7xl">

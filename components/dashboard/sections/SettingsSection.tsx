@@ -13,6 +13,13 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+function formatLastUsedAt(value?: string | null): string | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 function SettingsSkeleton() {
   return (
     <div className="px-4 py-8 animate-pulse">
@@ -218,13 +225,10 @@ export default function SettingsSection() {
                           <p className="text-sm font-medium text-slate-700">
                             {identity.displayName || providerLabel(identity.provider)}
                           </p>
-                          {identity.lastUsedAt && new Date(identity.lastUsedAt).toString() !== 'Invalid Date' && (
+                          {formatLastUsedAt(identity.lastUsedAt) && (
                             <p className="text-xs text-slate-400">
                               Last used{" "}
-                              {new Date(identity.lastUsedAt).toLocaleDateString(
-                                "en-US",
-                                { month: "short", day: "numeric", year: "numeric" }
-                              )}
+                              {formatLastUsedAt(identity.lastUsedAt)}
                             </p>
                           )}
                         </div>

@@ -53,7 +53,8 @@ function extractHomeGalleryImages(homeData: Awaited<ReturnType<typeof getHomePag
     (section): section is ProgramGallerySection => section.type === 'program_gallery',
   );
 
-  return collectUniqueUrls(gallerySection?.content.images.map((image) => image.url) ?? []);
+  const galleryItems = gallerySection?.content.gallery ?? gallerySection?.content.images ?? [];
+  return collectUniqueUrls(galleryItems.map((image) => image.url));
 }
 
 export async function getLandingHeroMedia(

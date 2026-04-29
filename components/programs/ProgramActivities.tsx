@@ -11,15 +11,14 @@ type ProgramActivitiesProps = {
 function formatDate(date: string | null | undefined): string {
   if (!date) return DATA_NOT_ADDED;
 
-  try {
-    return new Date(date).toLocaleDateString('en-US', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return date;
-  }
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return DATA_NOT_ADDED;
+
+  return parsed.toLocaleDateString('en-US', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 export default function ProgramActivities({ activities }: ProgramActivitiesProps) {

@@ -46,17 +46,37 @@ type HomeRegistrationStripProps = {
 function isRegistrationOpen(periods: ValidityPeriod[] | undefined): boolean {
   if (!periods || periods.length === 0) return false;
   const now = new Date();
-  return periods.some((p) => new Date(p.start_date) <= now && now <= new Date(p.end_date));
+
+  return periods.some((p) => {
+    const start = new Date(p.start_date);
+    const end = new Date(p.end_date);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+    return start <= now && now <= end;
+  });
 }
 
 function getActivePeriodLabel(periods: ValidityPeriod[] | undefined): string {
   if (!periods || periods.length === 0) return 'TBD';
   const now = new Date();
-  const fmt = (d: string) =>
-    new Date(d).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-  const active = periods.find((p) => new Date(p.start_date) <= now && now <= new Date(p.end_date));
+  const parse = (d: string) => {
+    const parsed = new Date(d);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+  const fmt = (d: string) => {
+    const parsed = parse(d);
+    if (!parsed) return 'TBD';
+    return parsed.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+  };
+  const active = periods.find((p) => {
+    const start = parse(p.start_date);
+    const end = parse(p.end_date);
+    return Boolean(start && end && start <= now && now <= end);
+  });
   if (active) return `${fmt(active.start_date)} - ${fmt(active.end_date)}`;
-  const upcoming = periods.find((p) => new Date(p.start_date) > now);
+  const upcoming = periods.find((p) => {
+    const start = parse(p.start_date);
+    return Boolean(start && start > now);
+  });
   if (upcoming) return `${fmt(upcoming.start_date)} - ${fmt(upcoming.end_date)}`;
   const last = periods[periods.length - 1];
   return `${fmt(last.start_date)} - ${fmt(last.end_date)}`;

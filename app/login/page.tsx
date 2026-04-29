@@ -372,12 +372,12 @@ export default function LoginPage() {
           data?: {
             sections?: Array<{
               type: string;
-              content?: { images?: Array<{ url: string }> };
+              content?: { gallery?: Array<{ url: string }>; images?: Array<{ url: string }> };
             }>;
           };
         };
         const gallerySection = json?.data?.sections?.find(s => s.type === 'program_gallery');
-        const images = gallerySection?.content?.images
+        const images = (gallerySection?.content?.gallery ?? gallerySection?.content?.images)
           ?.map(img => img.url)
           .filter(Boolean);
         if (images && images.length > 0) {

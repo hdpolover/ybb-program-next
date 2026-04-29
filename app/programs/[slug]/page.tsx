@@ -11,11 +11,31 @@ import { getProgramDetail } from '@/lib/api/programs';
 import { formatTokenLabel } from '@/lib/utils';
 import { headers } from 'next/headers';
 
+function parseValidDate(value: unknown): Date | null {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value === 'object') {
+    const candidate = value as Record<string, unknown>;
+    const nested = candidate.$date ?? candidate.date ?? candidate.value ?? candidate.iso;
+    if (nested !== undefined) return parseValidDate(nested);
+  }
+
+  const raw = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  if (!raw.trim()) return null;
+
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function formatDateRange(start: string | null, end: string | null): string {
-  if (!start) return 'TBA';
-  const s = new Date(start);
-  if (!end) return s.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const e = new Date(end);
+  const s = parseValidDate(start);
+  if (!s) return 'TBA';
+  const e = parseValidDate(end);
+  if (!e) return s.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
     return `${s.toLocaleDateString('en-US', { month: 'long' })} ${s.getDate()} - ${e.getDate()}, ${e.getFullYear()}`;
   }
@@ -23,8 +43,11 @@ function formatDateRange(start: string | null, end: string | null): string {
 }
 
 function calcDuration(start: string | null, end: string | null): string {
-  if (!start || !end) return 'TBA';
-  const days = Math.round((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const startDate = parseValidDate(start);
+  const endDate = parseValidDate(end);
+  if (!startDate || !endDate) return 'TBA';
+  const days = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  if (!Number.isFinite(days) || days <= 0) return 'TBA';
   return `${days} Days`;
 }
 

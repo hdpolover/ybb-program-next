@@ -121,12 +121,12 @@ export default async function Home() {
   );
 
   const objectivesImageGallery = programObjectivesSection
-    ? programObjectivesSection.content.images.map(img => ({
+    ? (programObjectivesSection.content.gallery ?? programObjectivesSection.content.images ?? []).map(img => ({
         url: img.url,
         caption: img.caption,
         type: 'objective',
       }))
-    : programHighlightsSection?.content.image_gallery;
+    : (programHighlightsSection?.content.gallery ?? programHighlightsSection?.content.image_gallery);
 
   const objectivesTitle =
     programObjectivesSection?.content.title ?? programHighlightsSection?.content.content.title;
@@ -148,7 +148,7 @@ export default async function Home() {
 
   const galleryTitle = programGallerySection?.content.title;
   const galleryDescription = programGallerySection?.content.description;
-  const galleryImages = programGallerySection?.content.images.map(img => ({
+  const galleryImages = (programGallerySection?.content.gallery ?? programGallerySection?.content.images ?? []).map(img => ({
     id: img.id,
     src: img.url,
     caption: img.caption,
@@ -174,7 +174,7 @@ export default async function Home() {
         about={programOverviewSection?.content.about_us}
         vision={programOverviewSection?.content.vision_mission.vision}
         mission={programOverviewSection?.content.vision_mission.mission}
-        images={programHighlightsSection?.content.image_gallery?.slice(0, 3).map(img => ({ url: img.url, caption: img.caption }))}
+        images={(programHighlightsSection?.content.gallery ?? programHighlightsSection?.content.image_gallery)?.slice(0, 3).map(img => ({ url: img.url, caption: img.caption }))}
       />
       <ProgramHighlights
         imageGallery={objectivesImageGallery}

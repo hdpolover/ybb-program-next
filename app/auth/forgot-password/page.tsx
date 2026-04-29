@@ -38,13 +38,13 @@ export default function ForgotPasswordPage() {
           data?: {
             sections?: Array<{
               type: string;
-              content?: { images?: Array<{ url: string }> };
+              content?: { gallery?: Array<{ url: string }>; images?: Array<{ url: string }> };
             }>;
           };
         };
 
         const gallerySection = json?.data?.sections?.find(section => section.type === 'program_gallery');
-        const images = gallerySection?.content?.images?.map(img => img.url).filter(Boolean);
+        const images = (gallerySection?.content?.gallery ?? gallerySection?.content?.images)?.map(img => img.url).filter(Boolean);
 
         if (images && images.length > 0) {
           setLoginImages(images);

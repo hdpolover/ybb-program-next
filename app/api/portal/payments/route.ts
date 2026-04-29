@@ -127,6 +127,11 @@ export async function GET(request: Request) {
       const currency = String(inv.currency ?? stats.currency ?? 'USD');
       const rawType = String(inv.type ?? '').toLowerCase();
       const fallbackSequenceOrder = getFeeTypePriority(rawType) * 1000;
+      const paidAt = inv.paidAt ? new Date(inv.paidAt) : null;
+      const paidAtLabel =
+        paidAt && !Number.isNaN(paidAt.getTime())
+          ? paidAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : '—';
 
       return {
         id: inv.id,
@@ -136,9 +141,7 @@ export async function GET(request: Request) {
         paymentType: formatPaymentType(inv.type),
         period: toPeriodLabel(startDate, inv.paidAt),
         amount: `${currency} ${amountValue.toFixed(2)}`,
-        syncDate: inv.paidAt
-          ? new Date(inv.paidAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : '—',
+        syncDate: paidAtLabel,
         hasInvoice: true,
         sequenceOrder: Number(inv.sequenceOrder ?? fallbackSequenceOrder),
         startTime: startDate?.getTime() ?? 0,

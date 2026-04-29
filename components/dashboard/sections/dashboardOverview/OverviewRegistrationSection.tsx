@@ -1,24 +1,31 @@
 "use client";
 
 import { ArrowLeftRight, GraduationCap, AlertTriangle } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
-import { getErrorMessage } from "@/lib/api/response";
+import { getErrorMessage, getMessage } from "@/lib/api/response";
+import {
+  flushSwitchCategoryFeedback,
+  queueSwitchCategoryFeedback,
+} from "@/lib/dashboard/switchCategoryFeedback";
 import { componentsTheme } from "@/lib/theme/components";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
+import { toast } from "sonner";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
 export default function OverviewRegistrationSection() {
   const { dashboardSummary, isDashboardSummaryLoading } = useDashboardData();
-  const router = useRouter();
   const activeApplication = dashboardSummary?.activeApplication ?? null;
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    flushSwitchCategoryFeedback();
+  }, []);
 
   const categoryUi = useMemo(() => {
     const category = activeApplication?.category;
@@ -71,13 +78,25 @@ export default function OverviewRegistrationSection() {
       });
       const json = (await res.json().catch(() => null)) as unknown;
       if (!res.ok) {
+        const message = getMessage(json) ?? "Failed to switch category. Please try again.";
+        const normalized = message.toLowerCase();
+        if (normalized.includes("already in the target category")) {
+          queueSwitchCategoryFeedback("info", "Category already switched. Dashboard has been synced.");
+          setShowModal(false);
+          window.location.reload();
+          return;
+        }
         setError(getErrorMessage(json, "Failed to switch category. Please try again."));
+        toast.error(message);
         return;
       }
+      queueSwitchCategoryFeedback("success", `Switched to ${switchTargetLabel}.`);
       setShowModal(false);
-      router.refresh();
+      window.location.reload();
     } catch {
-      setError("Something went wrong. Please try again.");
+      const fallback = "Something went wrong. Please try again.";
+      setError(fallback);
+      toast.error(fallback);
     } finally {
       setLoading(false);
     }

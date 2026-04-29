@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, ChevronDown, ImageIcon, Info, PencilLine } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { toast } from "sonner";
 import {
   getCountryCallingCode,
   isSupportedCountry,
@@ -35,6 +36,7 @@ import { FieldHelpAssets } from "@/components/dashboard/sections/FieldHelpAssets
 import { FieldAssetDrawer } from "@/components/dashboard/sections/FieldAssetDrawer";
 import { FieldHelpText, plainTextFromRichText } from "@/components/dashboard/sections/FieldHelpText";
 import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
+import { formatSubmissionDateValue, isDateLikeField } from "@/lib/dashboard/dateDisplay";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -333,6 +335,10 @@ function getPreviewDisplayValue(
     if (option) return fieldOptionLabel(option);
   }
 
+  if (isDateLikeField(field.name, field.type)) {
+    return formatSubmissionDateValue(value);
+  }
+
   return value;
 }
 
@@ -380,7 +386,6 @@ export default function SubmissionEditSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingSectionId, setSavingSectionId] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [expandedPreviewSections, setExpandedPreviewSections] = useState<Set<string>>(new Set());
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
@@ -505,7 +510,6 @@ export default function SubmissionEditSection() {
 
     setSavingSectionId(activeSection.id);
     setError(null);
-    setSuccessMessage(null);
 
     try {
       const sectionPayload = sectionValues[activeSection.id] || {};
@@ -535,9 +539,11 @@ export default function SubmissionEditSection() {
         throw new Error(getErrorMessage(results[failed], "Failed to save submission section"));
       }
 
-      setSuccessMessage(`${activeSection.title} saved successfully.`);
+      toast.success(`${activeSection.title} saved successfully.`);
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Failed to save submission section");
+      const message = saveError instanceof Error ? saveError.message : "Failed to save submission section";
+      setError(message);
+      toast.error(message);
     } finally {
       setSavingSectionId(null);
     }
@@ -670,12 +676,6 @@ export default function SubmissionEditSection() {
           {error}
         </div>
       ) : null}
-      {successMessage ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {successMessage}
-        </div>
-      ) : null}
-
       {!loading && detail ? (
         <>
           {/* Breadcrumb */}
@@ -780,9 +780,11 @@ export default function SubmissionEditSection() {
                 });
                 const json = (await res.json().catch(() => null)) as unknown;
                 if (!res.ok) throw new Error(getErrorMessage(json, "Failed to submit application"));
-                setSuccessMessage("Application submitted successfully.");
+                toast.success("Application submitted successfully.");
               } catch (submitError) {
-                setError(submitError instanceof Error ? submitError.message : "Failed to submit application");
+                const message = submitError instanceof Error ? submitError.message : "Failed to submit application";
+                setError(message);
+                toast.error(message);
               } finally {
                 setSubmitting(false);
               }

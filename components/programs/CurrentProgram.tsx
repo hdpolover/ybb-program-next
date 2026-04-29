@@ -11,33 +11,44 @@ type CurrentProgramProps = {
   coverImage?: string;
 };
 
-function formatDateRange(start?: string | null, end?: string | null): string | null {
-  if (!start && !end) return null;
+function parseValidDate(value: unknown): Date | null {
+  if (!value) return null;
 
-  try {
-    const startDate = start ? new Date(start) : null;
-    const endDate = end ? new Date(end) : null;
-
-    const format = (d: Date | null) =>
-      d?.toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      }) ?? '';
-
-    if (startDate && endDate) {
-      return `${format(startDate)} – ${format(endDate)}`;
-    }
-
-    if (startDate) return format(startDate);
-    if (endDate) return format(endDate);
-  } catch {
-    if (start && end) return `${start} – ${end}`;
-    if (start) return start;
-    if (end) return end;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
   }
 
-  return null;
+  if (typeof value === 'object') {
+    const candidate = value as Record<string, unknown>;
+    const nested = candidate.$date ?? candidate.date ?? candidate.value ?? candidate.iso;
+    if (nested !== undefined) return parseValidDate(nested);
+  }
+
+  const raw = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  if (!raw.trim()) return null;
+
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatDateRange(start?: string | null, end?: string | null): string | null {
+  const startDate = parseValidDate(start);
+  const endDate = parseValidDate(end);
+  if (!startDate && !endDate) return null;
+
+  const format = (d: Date) =>
+    d.toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+
+  if (startDate && endDate) {
+    return `${format(startDate)} – ${format(endDate)}`;
+  }
+
+  if (startDate) return format(startDate);
+  return endDate ? format(endDate) : null;
 }
 
 export default function CurrentProgram({ overview, coverImage }: CurrentProgramProps) {
