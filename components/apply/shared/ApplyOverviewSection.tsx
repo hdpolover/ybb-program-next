@@ -9,6 +9,71 @@ type ApplyOverviewSectionProps = {
   data: ApplyOverviewData;
 };
 
+function decodePossiblyEncodedHtml(value: string): string {
+  if (!value.includes('&lt;')) return value;
+  return value
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&amp;/gi, '&');
+}
+
+function sanitizeRichHtml(value: string): string {
+  return value
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
+    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, '')
+    .replace(/\son\w+="[^"]*"/gi, '')
+    .replace(/\son\w+='[^']*'/gi, '')
+    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, '');
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function markdownToHtml(value: string): string {
+  const escaped = escapeHtml(value);
+  const withBlocks = escaped
+    .replace(/^### (.*)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.*)$/gm, '<h1>$1</h1>')
+    .replace(/^\s*[-*] (.*)$/gm, '<li>$1</li>');
+
+  const withInline = withBlocks
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+
+  const groupedLists = withInline.replace(/(?:<li>.*<\/li>\n?)+/g, (chunk) => `<ul>${chunk}</ul>`);
+  const paragraphs = groupedLists
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => {
+      if (block.startsWith('<h') || block.startsWith('<ul>')) return block;
+      return `<p>${block.replace(/\n/g, '<br />')}</p>`;
+    })
+    .join('');
+
+  return paragraphs || `<p>${escaped}</p>`;
+}
+
+function toRichHtml(value: string): string {
+  const raw = decodePossiblyEncodedHtml((value ?? '').trim());
+  if (!raw) return '';
+  const hasHtml = /<\/?[a-z][\s\S]*>/i.test(raw);
+  const html = hasHtml ? raw : markdownToHtml(raw);
+  return sanitizeRichHtml(html);
+}
+
 export default function ApplyOverviewSection({ data }: ApplyOverviewSectionProps) {
   const [tab, setTab] = useState<'details' | 'benefits'>('details');
 
@@ -53,7 +118,10 @@ export default function ApplyOverviewSection({ data }: ApplyOverviewSectionProps
                 <div className={componentsTheme.applyOverview.detailsContentWrapper}>
                   <div className={componentsTheme.applyOverview.descriptionBlock}>
                     <h3 className={componentsTheme.applyOverview.sectionHeading}>Description</h3>
-                    <p>{data.description}</p>
+                    <div
+                      className="prose prose-sm max-w-none text-slate-700 prose-headings:my-2 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-a:text-primary"
+                      dangerouslySetInnerHTML={{ __html: toRichHtml(data.description) }}
+                    />
                   </div>
 
                   <div className={componentsTheme.applyOverview.descriptionBlock}>
@@ -63,7 +131,7 @@ export default function ApplyOverviewSection({ data }: ApplyOverviewSectionProps
                         data.requirements.map((item, idx) => (
                           <li key={`${item}-${idx}`} className={componentsTheme.applyOverview.requirementItem}>
                             <CheckCircle2 className={componentsTheme.applyOverview.requirementIcon} />
-                            <span>{item}</span>
+                            <span dangerouslySetInnerHTML={{ __html: toRichHtml(item) }} />
                           </li>
                         ))
                       ) : (
@@ -84,7 +152,7 @@ export default function ApplyOverviewSection({ data }: ApplyOverviewSectionProps
                       data.benefits.map((item, idx) => (
                         <li key={`${item}-${idx}`} className={componentsTheme.applyOverview.benefitsItem}>
                           <Star className={componentsTheme.applyOverview.benefitsIcon} />
-                          <span>{item}</span>
+                          <span dangerouslySetInnerHTML={{ __html: toRichHtml(item) }} />
                         </li>
                       ))
                     ) : (
