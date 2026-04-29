@@ -26,8 +26,14 @@ export type ProgramDetail = {
   slug: string;
   description: string | null;
   shortDescription: string | null;
+  theme?: string | null;
+  year?: number | null;
+  programFormat?: 'in_person' | 'hybrid' | 'online' | null;
   startDate: string | null;
   endDate: string | null;
+  applicationDeadline?: string | null;
+  registrationOpenDate?: string | null;
+  registrationCloseDate?: string | null;
   location: string | null;
   thumbnailUrl: string | null;
   bannerUrl: string | null;
@@ -56,6 +62,22 @@ export type ProgramDetail = {
   announcements: { id: string; title: string; content: string; isActive: boolean }[];
 };
 
+export type ProgramPricingTier = {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: number | string;
+  currency: string;
+  benefits?: string[] | null;
+  requirements?: string[] | null;
+  feeType?: string | null;
+  allowedCategories?: string[] | null;
+  validityPeriods?: Array<{
+    startDate: string | null;
+    endDate: string | null;
+  }> | null;
+};
+
 export async function getProgramDetail(slug: string, host: string = ''): Promise<ProgramDetail | null> {
   const brandUrl = resolveBrand(host);
   try {
@@ -74,4 +96,16 @@ export type ProgramSpeaker = ProgramDetail['speakers'][number];
 export async function getProgramSpeakers(programSlug: string, host: string = ''): Promise<ProgramSpeaker[]> {
   const detail = await getProgramDetail(programSlug, host);
   return detail?.speakers ?? [];
+}
+
+export async function getProgramPricingTiers(
+  programId: string,
+  host: string = '',
+): Promise<ProgramPricingTier[]> {
+  const brandUrl = resolveBrand(host);
+  return apiGetWithEnvelope<ProgramPricingTier[]>(`/v1/programs/${programId}/pricing-tiers`, {
+    headers: {
+      'x-brand-domain': brandUrl,
+    },
+  });
 }

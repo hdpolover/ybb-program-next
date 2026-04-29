@@ -11,6 +11,12 @@ type Countdown = {
   seconds: number;
 };
 
+type EarlyBidCTAProps = {
+  deadlineIso?: string | null;
+  registrantsCount?: number | null;
+  seatsLeftCount?: number | null;
+};
+
 function getTimeRemaining(target: Date): Countdown {
   const total = target.getTime() - new Date().getTime();
   if (total <= 0) {
@@ -23,16 +29,29 @@ function getTimeRemaining(target: Date): Countdown {
   return { days, hours, minutes, seconds };
 }
 
-export default function EarlyBidCTA() {
-  const targetDate = new Date('2025-12-31T23:59:59Z');
-  const [timeLeft, setTimeLeft] = useState<Countdown>(() => getTimeRemaining(targetDate));
+export default function EarlyBidCTA({
+  deadlineIso,
+  registrantsCount = null,
+  seatsLeftCount = null,
+}: EarlyBidCTAProps) {
+  const targetMs = deadlineIso ? new Date(deadlineIso).getTime() : Date.now();
+  const getCountdown = () => getTimeRemaining(new Date(targetMs));
+  const [timeLeft, setTimeLeft] = useState<Countdown>(() => getCountdown());
+  const deadlineLabel = deadlineIso
+    ? new Intl.DateTimeFormat('en-GB', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date(deadlineIso))
+    : 'to be announced';
 
   useEffect(() => {
+    setTimeLeft(getCountdown());
     const id = setInterval(() => {
-      setTimeLeft(getTimeRemaining(targetDate));
+      setTimeLeft(getCountdown());
     }, 1000);
     return () => clearInterval(id);
-  }, [targetDate]);
+  }, [targetMs]);
   return (
     <section className={componentsTheme.applyEarlyBidCta.sectionWrapper}>
       {/* Shape buat background */}
@@ -45,7 +64,7 @@ export default function EarlyBidCTA() {
         <div className={componentsTheme.applyEarlyBidCta.leftCol}>
           <h2 className={componentsTheme.applyEarlyBidCta.title}>Early Bird Deadline</h2>
           <p className={componentsTheme.applyEarlyBidCta.subtitle}>
-            Limited! Only Until 27 January 2025
+            Limited! Only Until {deadlineLabel}
           </p>
 
           <div className={componentsTheme.applyEarlyBidCta.statsRow}>
@@ -54,7 +73,9 @@ export default function EarlyBidCTA() {
                 <Users className={componentsTheme.applyEarlyBidCta.statIcon} />
               </div>
               <div>
-                <p className={componentsTheme.applyEarlyBidCta.statValue}>187</p>
+                <p className={componentsTheme.applyEarlyBidCta.statValue}>
+                  {registrantsCount ?? '--'}
+                </p>
                 <p className={componentsTheme.applyEarlyBidCta.statLabel}>Registrants</p>
               </div>
             </div>
@@ -66,7 +87,9 @@ export default function EarlyBidCTA() {
                 <Hourglass className={componentsTheme.applyEarlyBidCta.statIcon} />
               </div>
               <div>
-                <p className={componentsTheme.applyEarlyBidCta.statValue}>23</p>
+                <p className={componentsTheme.applyEarlyBidCta.statValue}>
+                  {seatsLeftCount ?? '--'}
+                </p>
                 <p className={componentsTheme.applyEarlyBidCta.statLabel}>Seats Left Available</p>
               </div>
             </div>
