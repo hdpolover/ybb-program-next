@@ -11,7 +11,7 @@ import {
   Info,
   CalendarClock,
   CreditCard,
-  Printer,
+  Download,
   AlertTriangle,
 } from 'lucide-react';
 import { type HistoryItem } from '@/components/dashboard/payments/HistoryList';
@@ -110,6 +110,16 @@ function toTitleCaseFromToken(value: string | null | undefined): string {
       return lower.charAt(0).toUpperCase() + lower.slice(1);
     })
     .join(' ');
+}
+
+function isUnknownMethod(value: string | null | undefined): boolean {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  return !normalized || normalized === 'unknown' || normalized === 'n/a' || normalized === '-';
+}
+
+function toMethodDisplayLabel(value: string | null | undefined): string {
+  if (isUnknownMethod(value)) return '';
+  return toTitleCaseFromToken(value);
 }
 
 function normalizeInvoiceStatus(value: unknown): InvoiceData['status'] {
@@ -364,6 +374,27 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   const amountLabel = invoice
     ? formatInvoiceAmount(invoice.amount)
     : paymentPreview?.amountLabel || 'Loading amount...';
+  const handleDownloadInvoice = () => {
+    const invoiceId = invoice?.id ?? paymentId;
+    const content = [
+      `Invoice ID: ${invoiceId}`,
+      `Payment Name: ${paymentName}`,
+      `Category: ${categoryLabel}`,
+      `Amount: ${amountLabel}`,
+      `Status: ${invoiceStatusLabel}`,
+      `Due Date: ${dueDateLabel}`,
+      `Generated At: ${new Date().toISOString()}`,
+    ].join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `invoice-${invoiceId}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   const items: HistoryItem[] = history.map(h => ({
     id: h.id,
@@ -377,7 +408,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
             : h.status === 'processing'
               ? 'Payment Update'
               : 'Payment Created',
-    method: toTitleCaseFromToken(h.method),
+    method: toMethodDisplayLabel(h.method),
     amountLabel: h.amountLabel ?? formatInvoiceAmount(h.amount),
     date: formatDateLabel(h.date),
     time: h.time,
@@ -390,7 +421,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     note: h.note?.trim() || 'No additional notes.',
     details: {
       code: h.code ?? `TR-${h.id}`,
-      paymentMethod: toTitleCaseFromToken(h.paymentMethod ?? h.method),
+      paymentMethod: toMethodDisplayLabel(h.paymentMethod ?? h.method) || 'Not specified',
       dateTime: h.dateTime
         ? formatDateTimeLabel(h.dateTime)
         : `${formatDateLabel(h.date)} ${h.time}`,
@@ -542,10 +573,20 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
               <p className={paymentsTheme.detailSideCardTitle}>Quick Actions</p>
             </div>
             <div className={paymentsTheme.detailQuickActionsBody}>
-              <button className={paymentsTheme.detailQuickPrimaryButton}>
-                <Printer className="h-4 w-4" />
-                <span>Print Details</span>
+              <button type="button" className={paymentsTheme.detailQuickPrimaryButton} onClick={handleDownloadInvoice}>
+                <Download className="h-4 w-4" />
+                <span>Download Invoice</span>
               </button>
+
+              {effectiveStatus === 'paid' ? (
+                <a
+                  href={`/api/portal/payments/${paymentId}/receipt`}
+                  className={paymentsTheme.detailQuickSecondaryLink}
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Download Receipt</span>
+                </a>
+              ) : null}
 
               <a
                 href="mailto:support@ybbfoundation.org?subject=Payment%20Assistance"

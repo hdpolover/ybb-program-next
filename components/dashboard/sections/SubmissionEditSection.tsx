@@ -40,6 +40,15 @@ import { formatSubmissionDateValue, isDateLikeField } from "@/lib/dashboard/date
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
+function sanitizeInlineHtml(value: string): string {
+  return value
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+    .replace(/\son\w+="[^"]*"/gi, "")
+    .replace(/\son\w+='[^']*'/gi, "")
+    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, "");
+}
+
 export type PersonalDetails = {
   fullName: string;
   nickName: string;
@@ -162,6 +171,11 @@ function normalizeFieldKey(name: string) {
 function isCategoryField(field: PortalSubmissionField) {
   const normalized = normalizeFieldKey(field.name);
   return normalized === "category" || normalized === "applicationcategory" || normalized === "participationcategory" || normalized === "participationcategoryid";
+}
+
+function isDropdownLikeField(field: PortalSubmissionField) {
+  const normalized = normalizeFieldKey(field.name);
+  return normalized === "tshirtsize" || normalized === "shirtsize";
 }
 
 function getFieldInputType(field: PortalSubmissionField) {
@@ -302,6 +316,7 @@ function splitE164ToDialAndNumber(value: string) {
 function shouldRenderField(section: PortalSubmissionSection, field: PortalSubmissionField) {
   if (isProfilePhotoField(field)) return false;
   if (isEmailField(field)) return false;
+  if (section.id === "entry_information" && isLegacyEssayField(field)) return false;
 
   const kind = getPhonePairKind(field);
   if (kind === "primary_country" || kind === "emergency_country") {
@@ -350,6 +365,11 @@ function shouldSpanFullWidth(field: PortalSubmissionField) {
   return isAddressField || /(experience|achievement|organization|portfolio|resume|medical|disease|specialneed|essay|twibbon|requirement|originaddress|currentaddress)/.test(normalized);
 }
 
+function isLegacyEssayField(field: PortalSubmissionField) {
+  const normalized = normalizeFieldKey(field.name);
+  return normalized.includes("essay") || normalized.includes("keyword") || normalized.includes("reference");
+}
+
 function FieldMedia({ field }: { field: PortalSubmissionField }) {
   if (!field.mediaUrl) return null;
   const [assetDrawerOpen, setAssetDrawerOpen] = useState(false);
@@ -386,7 +406,7 @@ export default function SubmissionEditSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingSectionId, setSavingSectionId] = useState<string | null>(null);
-  const [expandedPreviewSections, setExpandedPreviewSections] = useState<Set<string>>(new Set());
+  const [isPreviewSectionsExpanded, setIsPreviewSectionsExpanded] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
 
@@ -559,7 +579,11 @@ export default function SubmissionEditSection() {
     const value = sectionValues[section.id]?.[field.name] ?? "";
     const fieldType = field.type.toLowerCase();
     const isRadioField = fieldType === "radio";
-    const treatAsSelect = field.type === "select" || isCategoryField(field);
+    const treatAsSelect =
+      fieldType === "select" ||
+      getFieldInputType(field) === "select" ||
+      isCategoryField(field) ||
+      isDropdownLikeField(field);
     const phonePairKind = getPhonePairKind(field);
 
     if (phonePairKind === "primary_number" || phonePairKind === "emergency_number") {
@@ -593,7 +617,7 @@ export default function SubmissionEditSection() {
       );
     }
 
-    if (isRadioField && (field.options?.length ?? 0) > 0) {
+    if (isRadioField && !treatAsSelect && (field.options?.length ?? 0) > 0) {
       return (
         <div className="space-y-2">
           {(field.options || []).map(option => {
@@ -756,12 +780,7 @@ export default function SubmissionEditSection() {
             const isPaymentSettled = detail.isRegistrationPaymentSettled ?? true;
             const canSubmit = allChecked && isPaymentSettled;
 
-            const toggleSection = (id: string) =>
-              setExpandedPreviewSections(prev => {
-                const next = new Set(prev);
-                if (next.has(id)) next.delete(id); else next.add(id);
-                return next;
-              });
+            const toggleSection = () => setIsPreviewSectionsExpanded(prev => !prev);
 
             const toggleItem = (item: string) =>
               setCheckedItems(prev => {
@@ -801,62 +820,64 @@ export default function SubmissionEditSection() {
                   </div>
 
                   <div className={submissionTheme.previewWrapper}>
-                    {detail.sections.map(section => {
-                      const isExpanded = expandedPreviewSections.has(section.id);
-                      return (
-                        <div key={section.id} className={submissionTheme.previewCard}>
-                          <button
-                            type="button"
-                            className="flex w-full items-center justify-between gap-2"
-                            onClick={() => toggleSection(section.id)}
-                          >
-                            <h3 className={submissionTheme.previewCardTitle}>{section.title}</h3>
-                            <div className="flex items-center gap-3">
-                              <span
-                                className={submissionTheme.previewEditButton}
-                                onClick={e => { e.stopPropagation(); setActiveSectionId(section.id); }}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={e => { if (e.key === "Enter") { e.stopPropagation(); setActiveSectionId(section.id); } }}
-                              >
-                                <PencilLine className={submissionTheme.previewEditIcon} />
-                                <span>Edit</span>
-                              </span>
-                              <ChevronDown
-                                className={`h-4 w-4 text-slate-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                              />
-                            </div>
-                          </button>
+                    <div className={submissionTheme.previewCard}>
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-between gap-2"
+                        onClick={toggleSection}
+                      >
+                        <h3 className={submissionTheme.previewCardTitle}>
+                          Application Sections ({detail.sections.length})
+                        </h3>
+                        <ChevronDown
+                          className={`h-4 w-4 text-slate-400 transition-transform ${isPreviewSectionsExpanded ? "rotate-180" : ""}`}
+                        />
+                      </button>
 
-                          {isExpanded ? (
-                            <dl className={`${submissionTheme.previewDefinitionList} mt-3`}>
-                              {section.fields
-                                .filter(field => shouldRenderField(section, field))
-                                .map(field => {
-                                  const rawValue = sectionValues[section.id]?.[field.name] ?? "";
-                                  const displayValue = getPreviewDisplayValue(section, field, rawValue, sectionValues[section.id] ?? {});
-                                  return (
-                                    <div key={field.id}>
-                                      <dt className={submissionTheme.previewDt}>{field.label}</dt>
-                                      <dd className={submissionTheme.previewDd}>{displayValue || "-"}</dd>
-                                    </div>
-                                  );
-                                })}
-                              {section.id === "entry_information" && detail.essays.length > 0
-                                ? [...detail.essays]
-                                    .sort((a, b) => a.order - b.order)
-                                    .map(essay => (
-                                      <div key={essay.id} className="md:col-span-2">
-                                        <dt className={submissionTheme.previewDt}>{essay.question}</dt>
-                                        <dd className={submissionTheme.previewDdMultiline}>{essayValues[essay.id] || "-"}</dd>
+                      {isPreviewSectionsExpanded ? (
+                        <div className="mt-3 space-y-3">
+                          {detail.sections.map(section => (
+                            <div key={section.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                              <div className="mb-2 flex items-center justify-between gap-2">
+                                <h4 className={submissionTheme.previewCardTitle}>{section.title}</h4>
+                                <button
+                                  type="button"
+                                  className={submissionTheme.previewEditButton}
+                                  onClick={() => setActiveSectionId(section.id)}
+                                >
+                                  <PencilLine className={submissionTheme.previewEditIcon} />
+                                  <span>Edit</span>
+                                </button>
+                              </div>
+                              <dl className={submissionTheme.previewDefinitionList}>
+                                {section.fields
+                                  .filter(field => shouldRenderField(section, field))
+                                  .map(field => {
+                                    const rawValue = sectionValues[section.id]?.[field.name] ?? "";
+                                    const displayValue = getPreviewDisplayValue(section, field, rawValue, sectionValues[section.id] ?? {});
+                                    return (
+                                      <div key={field.id}>
+                                        <dt className={submissionTheme.previewDt}>{field.label}</dt>
+                                        <dd className={submissionTheme.previewDd}>{displayValue || "-"}</dd>
                                       </div>
-                                    ))
-                                : null}
-                            </dl>
-                          ) : null}
+                                    );
+                                  })}
+                                {section.id === "entry_information" && detail.essays.length > 0
+                                  ? [...detail.essays]
+                                      .sort((a, b) => a.order - b.order)
+                                      .map(essay => (
+                                        <div key={essay.id} className="md:col-span-2">
+                                          <dt className={submissionTheme.previewDt}>{essay.question}</dt>
+                                          <dd className={submissionTheme.previewDdMultiline}>{essayValues[essay.id] || "-"}</dd>
+                                        </div>
+                                      ))
+                                  : null}
+                              </dl>
+                            </div>
+                          ))}
                         </div>
-                      );
-                    })}
+                      ) : null}
+                    </div>
                   </div>
 
                   {detail.termsAndConditions ? (
@@ -935,16 +956,16 @@ export default function SubmissionEditSection() {
                     const selectedDescription = getSelectedOptionDescription(field, currentValue);
 
                     return (
-                      <label
+                      <div
                         key={field.id}
                         className={`${submissionTheme.editFieldLabelWrapper} rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${
                           shouldSpanFullWidth(field) ? "md:col-span-2" : ""
                         }`}
                       >
-                        <span className={submissionTheme.editFieldLabelText}>
-                          {field.label}
+                        <div className={submissionTheme.editFieldLabelText}>
+                          <span dangerouslySetInnerHTML={{ __html: sanitizeInlineHtml(field.label) }} />
                           {field.isRequired ? " *" : ""}
-                        </span>
+                        </div>
                         {renderFieldInput(activeSection, field)}
                         {selectedDescription ? (
                           <p className={submissionTheme.readSectionSubtitle}>{selectedDescription}</p>
@@ -952,7 +973,7 @@ export default function SubmissionEditSection() {
                         <FieldHelpText html={field.helpText} className="mt-1" />
                         <FieldMedia field={field} />
                         <FieldHelpAssets items={field.helpAssets} className="mt-2" />
-                      </label>
+                      </div>
                     );
                   })}
                 </div>

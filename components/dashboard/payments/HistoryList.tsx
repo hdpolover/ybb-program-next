@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { Clock, XCircle, CheckCircle2 } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Clock, XCircle, CheckCircle2, X } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
@@ -28,6 +29,11 @@ export type HistoryItem = {
     proofUrl?: string; // url gambar bukti
   };
 };
+
+function isUnknownMethod(value?: string | null) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return !normalized || normalized === "unknown" || normalized === "n/a" || normalized === "-";
+}
 
 export default function HistoryList({
   items,
@@ -66,9 +72,9 @@ export default function HistoryList({
 
   return (
     <div className={paymentsTheme.historyListWrapper}>
-      {/* state modal sederhana */}
+      {/* transaction details drawer */}
       {active && (
-        <Modal onClose={() => setActive(null)}>
+        <Drawer onClose={() => setActive(null)} title={active.title}>
           <div className="space-y-4">
             <p className="text-base font-extrabold text-slate-900">Transaction Details</p>
 
@@ -84,7 +90,9 @@ export default function HistoryList({
                   </div>
                   <div>
                     <span className="font-semibold">Payment Method:</span>{" "}
-                    {active.details?.paymentMethod ?? active.method}
+                    {isUnknownMethod(active.details?.paymentMethod ?? active.method)
+                      ? "Not specified"
+                      : (active.details?.paymentMethod ?? active.method)}
                   </div>
                   <div>
                     <span className="font-semibold">Date:</span>{" "}
@@ -150,7 +158,7 @@ export default function HistoryList({
               )}
             </div>
           </div>
-        </Modal>
+        </Drawer>
       )}
 
       <ul className={paymentsTheme.historyList}>
@@ -178,9 +186,11 @@ export default function HistoryList({
                   ) : null}
                 </p>
                 <div className={paymentsTheme.historyMetaRow}>
-                  <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
-                    {it.method}
-                  </span>
+                  {!isUnknownMethod(it.method) ? (
+                    <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                      {it.method}
+                    </span>
+                  ) : null}
                   <span className="rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[11px] font-semibold text-primary">
                     {it.amountLabel}
                   </span>
@@ -236,29 +246,38 @@ export default function HistoryList({
   );
 }
 
-// Modal super ringan (tanpa lib) — klik backdrop buat nutup
-function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  // bikin animasi masuk/keluar yang halus
+function Drawer({
+  children,
+  onClose,
+  title,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  title: string;
+}) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && handleClose();
-    document.addEventListener('keydown', onKey);
-    // next tick biar transition kepicu
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
     const t = setTimeout(() => setVisible(true), 0);
     return () => {
       clearTimeout(t);
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
     };
   }, []);
 
   const handleClose = () => {
     setVisible(false);
-    // kasih waktu transition selesai baru unmount
     setTimeout(() => onClose(), 200);
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div className={paymentsTheme.historyModalOverlay}>
       <div
         className={`${paymentsTheme.historyModalBackdrop} ${
@@ -267,21 +286,26 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
         onClick={handleClose}
       />
       <div
-        className={`${paymentsTheme.historyModalCard} ${
-          visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-2 scale-95 opacity-0"
+        className={`fixed inset-y-0 right-0 z-[101] h-screen w-full max-w-2xl transform bg-white p-5 shadow-2xl ring-1 ring-slate-200 transition-all duration-200 ${
+          visible ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0"
         }`}
       >
         <div className={paymentsTheme.historyModalHeaderRow}>
-          <span className={paymentsTheme.historyModalHeaderTitle}>Detail Transactions</span>
+          <span className={paymentsTheme.historyModalHeaderTitle}>{title}</span>
           <button
+            type="button"
             onClick={handleClose}
             className={paymentsTheme.historyModalHeaderCloseButton}
+            aria-label="Close transaction details"
           >
-            Close
+            <X className="h-4 w-4" />
           </button>
         </div>
-        {children}
+        <div className="h-[calc(100vh-72px)] overflow-y-auto pr-1">
+          {children}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

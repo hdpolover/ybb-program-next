@@ -99,12 +99,11 @@ function isLegacyEssayField(field: PortalSubmissionField) {
 
 function shouldRenderReadOnlyField(
   section: PortalSubmissionSection,
-  field: PortalSubmissionField,
-  hasEssayQuestions: boolean
+  field: PortalSubmissionField
 ) {
   if (isProfilePhotoField(field)) return false;
   if (isViewOnlyMetaField(field)) return false;
-  if (hasEssayQuestions && section.id === 'entry_information' && isLegacyEssayField(field)) {
+  if (section.id === 'entry_information' && isLegacyEssayField(field)) {
     return false;
   }
   return true;
@@ -621,13 +620,7 @@ export default function SubmissionReadSection() {
               <div className={submissionTheme.readDetailsCard}>
                 <div className={`${submissionTheme.readGrid} items-start gap-x-8 gap-y-6`}>
                   {activeSection.fields
-                    .filter(field =>
-                      shouldRenderReadOnlyField(
-                        activeSection,
-                        field,
-                        (detail?.essays.length ?? 0) > 0
-                      )
-                    )
+                    .filter(field => shouldRenderReadOnlyField(activeSection, field))
                     .map(field => (
                       <FieldRow
                         key={field.id}
