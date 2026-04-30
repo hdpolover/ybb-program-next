@@ -9,11 +9,12 @@ import AdditionalPrograms from '@/components/programs/AdditionalPrograms';
 import MissionVision from '@/components/programs/MissionVision';
 import Objectives from '@/components/programs/Objectives';
 import Benefits from '@/components/programs/Benefits';
-import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
 import { getProgramsPageData } from '@/lib/api/programs';
+import { getFaqsPageData } from '@/lib/api/faqs';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
+import MainFAQSection from '@/components/faq/MainFAQSection';
 import { headers } from 'next/headers';
 import type {
   ProgramActivitiesSection,
@@ -25,15 +26,17 @@ import type {
   ProgramFaqsSection,
   OtherProgramsSection,
 } from '@/types/programs';
+import type { FaqListSection } from '@/types/faqs';
 
 export default async function ProgramOverviewPage() {
   const host = (await headers()).get('host') || '';
-  const [programsPage, heroMedia] = await Promise.all([
+  const [programsPage, heroMedia, faqsPage] = await Promise.all([
     getProgramsPageData(host),
     getLandingHeroMedia(host, 'programs', {
       preferredImages: [],
       fallbackImage: '/img/programsbackground.png',
     }),
+    getFaqsPageData(host).catch(() => null),
   ]);
 
   const heroSection = programsPage.sections.find(
@@ -67,6 +70,10 @@ export default async function ProgramOverviewPage() {
 
   const programFaqsSection = programsPage.sections.find(
     (section): section is ProgramFaqsSection => section.type === 'program_faqs',
+  );
+
+  const faqListSection = faqsPage?.sections.find(
+    (section): section is FaqListSection => section.type === 'faq_list',
   );
 
   const otherProgramsSection = programsPage.sections.find(
@@ -116,7 +123,24 @@ export default async function ProgramOverviewPage() {
       <Objectives />
       <Benefits /> */}
       <AdditionalPrograms otherPrograms={otherProgramsSection?.content} />
-      <ProgramFAQ fqs={programFaqsSection?.content} />
+      <MainFAQSection
+        items={
+          faqListSection?.content.items ??
+          programFaqsSection?.content.items
+            ?.map((item, index) => ({
+              id: `program-faq-${index}`,
+              question: item.question,
+              answer: item.answer,
+              category: item.category ?? null,
+            }))
+            .filter(
+              (item) =>
+                item.question.trim().length > 0 &&
+                item.answer.trim().length > 0 &&
+                item.question.trim() !== '...',
+            )
+        }
+      />
       <ProgramsFurtherInformationSection />
     </main>
   );

@@ -156,9 +156,6 @@ export default function RegistrationTypePrograms({
                       <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
                         {primaryType?.name ?? 'Self Funded'}
                       </h3>
-                      <p className={componentsTheme.applyRegistrationTypes.headerSubtitle}>
-                        Registration
-                      </p>
                     </div>
                   </div>
                   <span
@@ -257,13 +254,16 @@ export default function RegistrationTypePrograms({
                       <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
                         {secondaryType?.name ?? 'Fully Funded'}
                       </h3>
-                      <p className={componentsTheme.applyRegistrationTypes.headerSubtitle}>
-                        Reimbursement System
-                      </p>
                     </div>
                   </div>
-                  <span className={componentsTheme.applyRegistrationTypes.statusBadgeClosed}>
-                    Closed
+                  <span
+                    className={
+                      isOpen
+                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
+                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
+                    }
+                  >
+                    {isOpen ? 'Open' : 'Closed'}
                   </span>
                 </div>
                 {secondaryType && (
@@ -326,13 +326,24 @@ export default function RegistrationTypePrograms({
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
-                  <button
-                    type="button"
-                    aria-disabled
-                    className={componentsTheme.applyRegistrationTypes.ctaButtonDisabled}
-                  >
-                    See Details
-                  </button>
+                  {isOpen ? (
+                    <a
+                      href="/apply/fully-funded"
+                      className={`${
+                        componentsTheme.applyRegistrationTypes.ctaButton
+                      } ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
+                    >
+                      See Details
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-disabled
+                      className={componentsTheme.applyRegistrationTypes.ctaButtonDisabled}
+                    >
+                      See Details
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

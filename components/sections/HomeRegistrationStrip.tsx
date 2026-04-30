@@ -285,9 +285,6 @@ export default function HomeRegistrationStrip({
                       <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
                         {primaryType?.name ?? 'Self Funded'}
                       </h3>
-                      <p className={componentsTheme.applyRegistrationTypes.headerSubtitle}>
-                        Standard Registration
-                      </p>
                     </div>
                   </div>
                   <span
@@ -384,9 +381,6 @@ export default function HomeRegistrationStrip({
                       <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
                         {secondaryType?.name ?? 'Fully Funded'}
                       </h3>
-                      <p className={componentsTheme.applyRegistrationTypes.headerSubtitle}>
-                        Reimbursement System
-                      </p>
                     </div>
                   </div>
                   <span
