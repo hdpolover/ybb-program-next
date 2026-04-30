@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Calendar, Check, CreditCard, ExternalLink, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
@@ -9,8 +9,8 @@ import { componentsTheme } from '@/lib/theme/components';
 type InstagramFeedItem = {
   id: string;
   permalink: string;
-  imageUrl: string;
-  caption: string;
+  imageUrl?: string | null;
+  caption?: string | null;
 };
 
 type ValidityPeriod = {
@@ -42,6 +42,64 @@ type HomeRegistrationStripProps = {
   registrationTypes?: RegistrationType[];
   guidelines?: Guideline[];
 };
+
+declare global {
+  interface Window {
+    instgrm?: {
+      Embeds?: {
+        process: () => void;
+      };
+    };
+  }
+}
+
+function toInstagramEmbedPermalink(permalink: string): string {
+  const normalized = permalink.trim();
+  if (!normalized) return normalized;
+
+  try {
+    const url = new URL(normalized);
+    url.search = '';
+    url.hash = '';
+    const base = url.toString().replace(/\/+$/, '');
+    return `${base}/?utm_source=ig_embed&utm_campaign=loading`;
+  } catch {
+    const base = normalized.split('?')[0]?.split('#')[0] ?? normalized;
+    return `${base.replace(/\/+$/, '')}/?utm_source=ig_embed&utm_campaign=loading`;
+  }
+}
+
+function ensureInstagramEmbedScript(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (window.instgrm?.Embeds?.process) return Promise.resolve();
+
+  const scriptId = 'instagram-embed-js';
+  const existing = document.getElementById(scriptId) as HTMLScriptElement | null;
+  if (existing) {
+    if (window.instgrm?.Embeds?.process || existing.dataset.loaded === 'true') {
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      const onLoad = () => resolve();
+      const onError = () => reject(new Error('Failed to load Instagram embed script.'));
+      existing.addEventListener('load', onLoad, { once: true });
+      existing.addEventListener('error', onError, { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.async = true;
+    script.src = 'https://www.instagram.com/embed.js';
+    script.onload = () => {
+      script.dataset.loaded = 'true';
+      resolve();
+    };
+    script.onerror = () => reject(new Error('Failed to load Instagram embed script.'));
+    document.body.appendChild(script);
+  });
+}
 
 function isRegistrationOpen(periods: ValidityPeriod[] | undefined): boolean {
   if (!periods || periods.length === 0) return false;
@@ -137,14 +195,18 @@ export default function HomeRegistrationStrip({
     () =>
       (igFeed ?? []).filter(
         (item): item is InstagramFeedItem =>
-          Boolean(item?.id && item?.permalink && item?.imageUrl),
+          Boolean(item?.id && item?.permalink),
       ),
     [igFeed],
   );
   const [activePostIndex, setActivePostIndex] = useState(0);
+  const [embedFailed, setEmbedFailed] = useState(false);
+  const [fallbackImageFailed, setFallbackImageFailed] = useState(false);
+  const embedContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setActivePostIndex(0);
+    setFallbackImageFailed(false);
   }, [posts.length]);
 
   useEffect(() => {
@@ -156,6 +218,43 @@ export default function HomeRegistrationStrip({
 
     return () => window.clearInterval(timer);
   }, [posts.length]);
+
+  useEffect(() => {
+    const post = posts[activePostIndex] ?? null;
+    if (!post) return;
+
+    let alive = true;
+    let fallbackTimer: number | null = null;
+    setEmbedFailed(false);
+
+    ensureInstagramEmbedScript()
+      .then(() => {
+        if (!alive) return;
+        window.instgrm?.Embeds?.process();
+        fallbackTimer = window.setTimeout(() => {
+          if (!alive) return;
+          const container = embedContainerRef.current;
+          const hasRenderedIframe = Boolean(container?.querySelector("iframe"));
+          if (!hasRenderedIframe) {
+            setEmbedFailed(true);
+          }
+        }, 1500);
+      })
+      .catch(() => {
+        if (alive) setEmbedFailed(true);
+      });
+
+    return () => {
+      alive = false;
+      if (fallbackTimer !== null) {
+        window.clearTimeout(fallbackTimer);
+      }
+    };
+  }, [activePostIndex, posts]);
+
+  useEffect(() => {
+    setFallbackImageFailed(false);
+  }, [activePostIndex, posts]);
 
   const activePost = posts[activePostIndex] ?? null;
   const registrationFeeTypes = registrationTypes.filter(isRegistrationFeeTier);
@@ -184,31 +283,64 @@ export default function HomeRegistrationStrip({
             <div className={`${componentsTheme.homeRegistration.instagramCard} p-0`}>
               {activePost ? (
                 <div className="p-4">
-                  <a
-                    href={activePost.permalink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white"
-                  >
-                    <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
-                      <Image
-                        src={activePost.imageUrl}
-                        alt={activePost.caption || 'Instagram post'}
-                        fill
-                        sizes="(min-width: 1280px) 420px, (min-width: 1024px) 34vw, 100vw"
-                        className="object-cover transition duration-500 group-hover:scale-[1.03]"
-                        unoptimized={activePost.imageUrl.startsWith('http')}
-                      />
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-transparent p-4">
-                        <div className="inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-900">
+                  {embedFailed ? (
+                    activePost.imageUrl?.trim() && !fallbackImageFailed ? (
+                      <a
+                        href={activePost.permalink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                      >
+                        <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
+                          <Image
+                            src={activePost.imageUrl}
+                            alt={activePost.caption || 'Instagram post'}
+                            fill
+                            sizes="(min-width: 1280px) 420px, (min-width: 1024px) 34vw, 100vw"
+                            className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                            unoptimized={activePost.imageUrl.startsWith('http')}
+                            onError={() => setFallbackImageFailed(true)}
+                          />
+                          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-transparent p-4">
+                            <div className="inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-900">
+                              Instagram
+                            </div>
+                            <p className="mt-3 line-clamp-3 text-sm font-medium text-white">
+                              {activePost.caption?.trim() || 'Open this post on Instagram'}
+                            </p>
+                          </div>
+                        </div>
+                      </a>
+                    ) : (
+                      <a
+                        href={activePost.permalink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group block rounded-2xl border border-slate-200 bg-white p-6"
+                      >
+                        <div className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
                           Instagram
                         </div>
-                        <p className="mt-3 line-clamp-3 text-sm font-medium text-white">
+                        <p className="mt-4 line-clamp-4 text-sm font-medium text-slate-800">
                           {activePost.caption?.trim() || 'Open this post on Instagram'}
                         </p>
-                      </div>
+                      </a>
+                    )
+                  ) : (
+                    <div ref={embedContainerRef} className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2">
+                      <blockquote
+                        key={activePost.id}
+                        className="instagram-media !m-0 !max-w-none !min-w-0"
+                        data-instgrm-captioned
+                        data-instgrm-permalink={toInstagramEmbedPermalink(activePost.permalink)}
+                        data-instgrm-version="14"
+                      >
+                        <a href={activePost.permalink} target="_blank" rel="noreferrer">
+                          View this post on Instagram
+                        </a>
+                      </blockquote>
                     </div>
-                  </a>
+                  )}
 
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">

@@ -341,8 +341,6 @@ export function Navbar() {
                               <div className="grid grid-cols-2 gap-2">
                                 <a
                                   href="/programs"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
                                   onClick={() => setProgramMenuOpen(false)}
                                   className="group flex items-center justify-between gap-2 rounded-xl border border-[var(--brand-accent)] bg-[var(--brand-accent-soft)] px-3 py-2.5 text-sm font-semibold text-[var(--brand-accent)] transition-colors"
                                 >
@@ -539,8 +537,6 @@ export function Navbar() {
                         <div key={item} className="space-y-2">
                           <a
                             href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
                             aria-current={isActive ? 'page' : undefined}
                             className={
                               isActive
