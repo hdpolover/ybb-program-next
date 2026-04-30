@@ -50,11 +50,11 @@ export default function GreetingWithClock({ name }: { name: string }) {
   if (!mounted) {
     return (
       <div className="flex flex-col">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-extrabold text-[var(--brand-primary)] animate-pulse">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <h1 className="text-2xl font-extrabold text-[var(--brand-primary)] animate-pulse sm:text-3xl">
             Loading...
           </h1>
-          <span className="ml-auto rounded-full bg-gray-200 px-3 py-1 text-sm font-medium text-gray-400">
+          <span className="w-fit rounded-full bg-gray-200 px-3 py-1 text-sm font-medium text-gray-400 sm:ml-auto">
             --:--:-- --
           </span>
         </div>
@@ -65,11 +65,11 @@ export default function GreetingWithClock({ name }: { name: string }) {
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-extrabold text-[var(--brand-primary)]">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <h1 className="text-2xl font-extrabold text-[var(--brand-primary)] sm:text-3xl">
           {getGreeting()}, {name.toUpperCase()}!
         </h1>
-        <span className="ml-auto rounded-full bg-primary px-3 py-1 text-sm font-medium text-white">
+        <span className="w-fit rounded-full bg-primary px-3 py-1 text-sm font-medium text-white sm:ml-auto">
           {formatTime(currentTime)}
         </span>
       </div>

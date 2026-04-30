@@ -61,20 +61,22 @@ export const dashboardTheme = {
   dashboardDocuments: {
     sectionWrapper: 'space-y-6',
     tabsWrapper:
-      'inline-flex rounded-full border border-slate-200 bg-slate-50 p-1 text-sm font-medium text-slate-600',
+      'inline-flex max-w-full overflow-x-auto rounded-full border border-slate-200 bg-slate-50 p-1 text-sm font-medium text-slate-600',
     tabButton:
-      'rounded-full px-4 py-1.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/100 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50',
+      'shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/100 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 sm:px-4 sm:text-sm',
     tabButtonActive: 'bg-white text-primary shadow-sm',
     tabButtonInactive: 'text-slate-600 hover:text-slate-900 hover:bg-white/60',
     tableCard:
       'overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
+    tableOuter: 'overflow-x-auto',
+    tableInner: 'min-w-[820px]',
     tableHeader:
-      'items-center gap-4 bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white',
+      'items-center gap-4 whitespace-nowrap bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white',
     tableHeaderSortButton: 'flex items-center gap-1 text-left',
     tableHeaderSortButtonRight: 'ml-auto flex items-center gap-1 text-right',
     tableHeaderSortIcon: 'text-[10px] leading-none',
     tableBody: 'divide-y divide-slate-100 bg-white',
-    tableRow: 'items-center gap-4 px-6 py-3 text-sm text-slate-700 hover:bg-slate-50/80',
+    tableRow: 'items-center gap-4 whitespace-nowrap px-6 py-3 text-sm text-slate-700 hover:bg-slate-50/80',
     docNameCell: 'truncate font-semibold text-slate-900',
     docDescriptionCell: 'truncate text-slate-600',
     docTypeCell: 'text-slate-700',
@@ -177,7 +179,7 @@ export const dashboardTheme = {
       'inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800',
     detailQuickSecondaryLink:
       'inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20 transition hover:bg-primary/20',
-    summaryGrid: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4',
+    summaryGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4',
     summaryCardBase: 'flex flex-col justify-between rounded-2xl p-4 text-sm shadow-sm',
     summaryCompleteCard: 'border border-emerald-100 bg-emerald-50/60',
     summaryPendingCard: 'border border-amber-100 bg-amber-50/70',
@@ -194,7 +196,8 @@ export const dashboardTheme = {
     summaryPendingValue: 'text-amber-900',
     summaryOverdueValue: 'text-rose-900',
     summaryTotalValue: 'text-slate-900',
-    summaryIconCircle: 'flex h-9 w-9 items-center justify-center rounded-full text-white shadow-sm',
+    summaryIconCircle:
+      'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm',
     summaryCompleteIconCircle: 'bg-emerald-600',
     summaryPendingIconCircle: 'bg-amber-500',
     summaryOverdueIconCircle: 'bg-rose-500',
@@ -233,11 +236,11 @@ export const dashboardTheme = {
       'flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-600',
     tableSearchInput:
       'w-40 border-none bg-transparent text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:w-52',
-    tableOuter: 'overflow-x-auto',
-    table: 'min-w-full text-left text-sm',
+    tableOuter: 'overflow-x-auto -mx-5 px-5 sm:mx-0 sm:px-0',
+    table: 'w-full min-w-[900px] text-left text-sm',
     tableHeadRow: 'bg-primary text-xs font-semibold uppercase tracking-wide text-white',
-    tableHeadCell: 'px-4 py-3',
-    tableHeadCellRight: 'px-4 py-3 text-right',
+    tableHeadCell: 'px-4 py-3 whitespace-nowrap',
+    tableHeadCellRight: 'px-4 py-3 text-right whitespace-nowrap',
     tableBody: 'divide-y divide-slate-100 bg-white text-slate-800',
     tableRow: '',
     paymentInfoCell: 'px-4 py-3 text-sm font-medium text-slate-900',
@@ -297,7 +300,7 @@ export const dashboardTheme = {
     sectionWrapper: 'space-y-6',
 
     // top summary
-    summaryGrid: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4',
+    summaryGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4',
     summaryCardBase: 'flex flex-col justify-between rounded-2xl p-4 text-sm shadow-sm',
     summaryCompleteCard: 'border border-emerald-100 bg-emerald-50/60',
     summaryPendingCard: 'border border-amber-100 bg-amber-50/70',
@@ -315,7 +318,7 @@ export const dashboardTheme = {
     summaryValueOverdue: 'text-rose-900',
     summaryValueTotal: 'text-slate-900',
     summaryIconCircleBase:
-      'flex h-9 w-9 items-center justify-center rounded-full text-white shadow-sm',
+      'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm',
     summaryIconCircleComplete: 'bg-emerald-600',
     summaryIconCirclePending: 'bg-amber-500',
     summaryIconCircleOverdue: 'bg-rose-500',
@@ -365,7 +368,7 @@ export const dashboardTheme = {
     progressBarFill:
       'h-full rounded-full bg-gradient-to-r from-primary to-primary/60 shadow-[0_0_0_1px_rgba(248,250,252,0.8)]',
     progressStepLabelRow: 'flex items-center justify-between text-xs',
-    progressStepChipFloating: 'absolute -top-5 translate-x-[-50%]',
+    progressStepChipFloating: 'absolute -top-5',
     progressStepChip:
       'inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary ring-1 ring-primary/30',
 
@@ -479,10 +482,10 @@ export const dashboardTheme = {
 
     // read-only profile header
     profileCard:
-      'rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_10px_40px_rgba(15,23,42,0.08)]',
-    profileRow: 'flex flex-col gap-6 md:flex-row md:items-center md:justify-between',
-    profileLeft: 'flex items-start gap-5',
-    profileAvatarWrapper: 'relative h-20 w-20',
+      'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.08)] sm:p-7',
+    profileRow: 'flex flex-col gap-5 md:flex-row md:items-center md:justify-between',
+    profileLeft: 'flex items-start gap-4 sm:gap-5',
+    profileAvatarWrapper: 'relative h-20 w-20 shrink-0 aspect-square',
     profileAvatarInner:
       'absolute inset-0 overflow-hidden rounded-full bg-primary shadow-lg ring-4 ring-primary/20',
     profileAvatarImage: 'object-cover',

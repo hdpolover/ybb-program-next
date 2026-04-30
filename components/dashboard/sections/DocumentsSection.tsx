@@ -419,102 +419,106 @@ export default function DocumentsSection() {
 
           {/* Program documents table */}
           <div className={componentsTheme.dashboardDocuments.tableCard}>
-            {/* Table header */}
-            <div
-              className={`grid grid-cols-[2fr,3fr,1.5fr,1.5fr] ${componentsTheme.dashboardDocuments.tableHeader}`}
-            >
-              <button
-                type="button"
-                onClick={() => handleSortClick('name')}
-                className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
-              >
-                <span>Document Name</span>
-                <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                  {sortField === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSortClick('description')}
-                className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
-              >
-                <span>Description</span>
-                <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                  {sortField === 'description' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSortClick('type')}
-                className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
-              >
-                <span>Type</span>
-                <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                  {sortField === 'type' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSortClick('actions')}
-                className={componentsTheme.dashboardDocuments.tableHeaderSortButtonRight}
-              >
-                <span>Actions</span>
-                <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                  {sortField === 'actions' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                </span>
-              </button>
-            </div>
-
-            {loadingDocs ? (
-              <DocumentsRowsSkeleton />
-            ) : errorDocs ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
-                <p className="mt-2 text-sm text-red-600">{errorDocs}</p>
-              </div>
-            ) : filteredSortedDocuments.length === 0 ? (
-              <div className={componentsTheme.dashboardDocuments.emptyStateWrapper}>
-                <div className={componentsTheme.dashboardDocuments.emptyStateImageWrapper}>
-                  <Image
-                    src="/img/tablenotfounds.png"
-                    alt="No documents illustration"
-                    width={260}
-                    height={160}
-                    className="h-auto max-h-40 w-auto"
-                  />
-                </div>
-                <p className={componentsTheme.dashboardDocuments.emptyStateTitle}>
-                  No documents available yet
-                </p>
-                <p className={componentsTheme.dashboardDocuments.emptyStateText}>
-                  Program documents will be available here when published.
-                </p>
-              </div>
-            ) : (
-              <div className={componentsTheme.dashboardDocuments.tableBody}>
-                {filteredSortedDocuments.map(doc => (
-                  <div
-                    key={doc.name}
-                    className={`grid grid-cols-[2fr,3fr,1.5fr,1.5fr] ${componentsTheme.dashboardDocuments.tableRow}`}
+            <div className={componentsTheme.dashboardDocuments.tableOuter}>
+              <div className={componentsTheme.dashboardDocuments.tableInner}>
+                {/* Table header */}
+                <div
+                  className={`grid grid-cols-[2fr,3fr,1.5fr,1.5fr] ${componentsTheme.dashboardDocuments.tableHeader}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleSortClick('name')}
+                    className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
                   >
-                    <div className={componentsTheme.dashboardDocuments.docNameCell}>{doc.name}</div>
-                    <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
-                      {doc.description}
-                    </div>
-                    <div className={componentsTheme.dashboardDocuments.docTypeCell}>{doc.type}</div>
-                    <div className={componentsTheme.dashboardDocuments.actionCell}>
-                      <button
-                        type="button"
-                        className={componentsTheme.dashboardDocuments.downloadButton}
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                        <span>Download</span>
-                      </button>
-                    </div>
+                    <span>Document Name</span>
+                    <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
+                      {sortField === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSortClick('description')}
+                    className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
+                  >
+                    <span>Description</span>
+                    <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
+                      {sortField === 'description' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSortClick('type')}
+                    className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
+                  >
+                    <span>Type</span>
+                    <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
+                      {sortField === 'type' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSortClick('actions')}
+                    className={componentsTheme.dashboardDocuments.tableHeaderSortButtonRight}
+                  >
+                    <span>Actions</span>
+                    <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
+                      {sortField === 'actions' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                    </span>
+                  </button>
+                </div>
+
+                {loadingDocs ? (
+                  <DocumentsRowsSkeleton />
+                ) : errorDocs ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <AlertTriangle className="h-5 w-5 text-red-500" />
+                    <p className="mt-2 text-sm text-red-600">{errorDocs}</p>
                   </div>
-                ))}
+                ) : filteredSortedDocuments.length === 0 ? (
+                  <div className={componentsTheme.dashboardDocuments.emptyStateWrapper}>
+                    <div className={componentsTheme.dashboardDocuments.emptyStateImageWrapper}>
+                      <Image
+                        src="/img/tablenotfounds.png"
+                        alt="No documents illustration"
+                        width={260}
+                        height={160}
+                        className="h-auto max-h-40 w-auto"
+                      />
+                    </div>
+                    <p className={componentsTheme.dashboardDocuments.emptyStateTitle}>
+                      No documents available yet
+                    </p>
+                    <p className={componentsTheme.dashboardDocuments.emptyStateText}>
+                      Program documents will be available here when published.
+                    </p>
+                  </div>
+                ) : (
+                  <div className={componentsTheme.dashboardDocuments.tableBody}>
+                    {filteredSortedDocuments.map(doc => (
+                      <div
+                        key={doc.name}
+                        className={`grid grid-cols-[2fr,3fr,1.5fr,1.5fr] ${componentsTheme.dashboardDocuments.tableRow}`}
+                      >
+                        <div className={componentsTheme.dashboardDocuments.docNameCell}>{doc.name}</div>
+                        <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+                          {doc.description}
+                        </div>
+                        <div className={componentsTheme.dashboardDocuments.docTypeCell}>{doc.type}</div>
+                        <div className={componentsTheme.dashboardDocuments.actionCell}>
+                          <button
+                            type="button"
+                            className={componentsTheme.dashboardDocuments.downloadButton}
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                            <span>Download</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </>
       )}
@@ -531,74 +535,78 @@ export default function DocumentsSection() {
             </p>
           </div>
           <div className={componentsTheme.dashboardDocuments.tableCard}>
-            <div
-              className={`grid grid-cols-[1.9fr,1.25fr,0.9fr,auto] ${componentsTheme.dashboardDocuments.tableHeader}`}
-            >
-              <div>Resource Name</div>
-              <div>Type</div>
-              <div>Updated</div>
-              <div className="text-right">Actions</div>
-            </div>
-            <div className={componentsTheme.dashboardDocuments.tableBody}>
-              {programResources.map(item => {
-                const detailHref = getProgramResourceDetailHref(item.id);
+            <div className={componentsTheme.dashboardDocuments.tableOuter}>
+              <div className={componentsTheme.dashboardDocuments.tableInner}>
+                <div
+                  className={`grid grid-cols-[1.9fr,1.25fr,0.9fr,auto] ${componentsTheme.dashboardDocuments.tableHeader}`}
+                >
+                  <div>Resource Name</div>
+                  <div>Type</div>
+                  <div>Updated</div>
+                  <div className="text-right">Actions</div>
+                </div>
+                <div className={componentsTheme.dashboardDocuments.tableBody}>
+                  {programResources.map(item => {
+                    const detailHref = getProgramResourceDetailHref(item.id);
 
-                return (
-                  <div
-                    key={item.id}
-                    role="link"
-                    tabIndex={0}
-                    onClick={() => router.push(detailHref)}
-                    onKeyDown={event => handleResourceRowKeyDown(event, detailHref)}
-                    className={`grid cursor-pointer grid-cols-[1.9fr,1.25fr,0.9fr,auto] ${componentsTheme.dashboardDocuments.tableRow}`}
-                  >
-                    <div className={componentsTheme.dashboardDocuments.docNameCell}>
-                      <Link
-                        href={detailHref}
-                        onClick={event => event.stopPropagation()}
-                        className="inline-flex max-w-full items-center gap-2 truncate hover:text-primary"
+                    return (
+                      <div
+                        key={item.id}
+                        role="link"
+                        tabIndex={0}
+                        onClick={() => router.push(detailHref)}
+                        onKeyDown={event => handleResourceRowKeyDown(event, detailHref)}
+                        className={`grid cursor-pointer grid-cols-[1.9fr,1.25fr,0.9fr,auto] ${componentsTheme.dashboardDocuments.tableRow}`}
                       >
-                        <span className="truncate">{item.title}</span>
-                      </Link>
-                    </div>
-                    <div className={componentsTheme.dashboardDocuments.docTypeCell}>
-                      {item.documentType}
-                    </div>
-                    <div className={componentsTheme.dashboardDocuments.docTypeCell}>
-                      {formatDocumentDateLabel(item.updatedAt)}
-                    </div>
-                    <div className={componentsTheme.dashboardDocuments.actionCell}>
-                      <div className="flex flex-nowrap items-center gap-2 whitespace-nowrap">
-                        <Link
-                          href={detailHref}
-                          onClick={event => event.stopPropagation()}
-                          aria-label={`View details for ${item.title}`}
-                          title="View details"
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
-                        >
-                          <ArrowUpRight className="h-4 w-4" />
-                        </Link>
-                        {item.fileUrl ? (
-                          <a
-                            href={item.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`Download ${item.title}`}
-                            title="Download"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-sm transition hover:bg-primary"
+                        <div className={componentsTheme.dashboardDocuments.docNameCell}>
+                          <Link
+                            href={detailHref}
                             onClick={event => event.stopPropagation()}
-                            download
+                            className="inline-flex max-w-full items-center gap-2 truncate hover:text-primary"
                           >
-                            <Download className="h-4 w-4" />
-                          </a>
-                        ) : (
-                          <span className="text-xs text-slate-400">No file</span>
-                        )}
+                            <span className="truncate">{item.title}</span>
+                          </Link>
+                        </div>
+                        <div className={componentsTheme.dashboardDocuments.docTypeCell}>
+                          {item.documentType}
+                        </div>
+                        <div className={componentsTheme.dashboardDocuments.docTypeCell}>
+                          {formatDocumentDateLabel(item.updatedAt)}
+                        </div>
+                        <div className={componentsTheme.dashboardDocuments.actionCell}>
+                          <div className="flex flex-nowrap items-center gap-2 whitespace-nowrap">
+                            <Link
+                              href={detailHref}
+                              onClick={event => event.stopPropagation()}
+                              aria-label={`View details for ${item.title}`}
+                              title="View details"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
+                            >
+                              <ArrowUpRight className="h-4 w-4" />
+                            </Link>
+                            {item.fileUrl ? (
+                              <a
+                                href={item.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={`Download ${item.title}`}
+                                title="Download"
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-sm transition hover:bg-primary"
+                                onClick={event => event.stopPropagation()}
+                                download
+                              >
+                                <Download className="h-4 w-4" />
+                              </a>
+                            ) : (
+                              <span className="text-xs text-slate-400">No file</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -700,126 +708,130 @@ export default function DocumentsSection() {
 
         {/* Certificates table */}
         <div className={componentsTheme.dashboardDocuments.tableCard}>
-          <div
-            className={`grid grid-cols-[1.4fr,2.4fr,2.2fr,1.4fr,1.4fr] ${componentsTheme.dashboardDocuments.tableHeader}`}
-          >
-            <button
-              type="button"
-              onClick={() => handleCertSortClick('id')}
-              className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
-            >
-              <span>Certificate ID</span>
-              <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === 'id' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleCertSortClick('award')}
-              className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
-            >
-              <span>Award Details</span>
-              <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === 'award' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleCertSortClick('assignment')}
-              className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
-            >
-              <span>Assignment Info</span>
-              <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === 'assignment' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleCertSortClick('status')}
-              className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
-            >
-              <span>Status</span>
-              <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === 'status' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleCertSortClick('action')}
-              className={componentsTheme.dashboardDocuments.tableHeaderSortButtonRight}
-            >
-              <span>Action</span>
-              <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
-                {certSortField === 'action' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
-              </span>
-            </button>
-          </div>
-
-          {/* Empty state / rows certificates */}
-          {loadingCerts ? (
-            <CertificatesRowsSkeleton />
-          ) : errorCerts ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <p className="mt-2 text-sm text-red-600">{errorCerts}</p>
-            </div>
-          ) : filteredSortedCertificates.length === 0 ? (
-            <div className={componentsTheme.dashboardDocuments.emptyStateWrapper}>
-              <div className={componentsTheme.dashboardDocuments.emptyStateImageWrapper}>
-                <Image
-                  src="/img/tablenotfounds.png"
-                  alt="No certificates illustration"
-                  width={260}
-                  height={160}
-                  className="h-auto max-h-40 w-auto"
-                />
-              </div>
-              <p className={componentsTheme.dashboardDocuments.emptyStateTitle}>
-                No certificates available yet
-              </p>
-              <p className={componentsTheme.dashboardDocuments.emptyStateText}>
-                Your certificates will appear here once they are issued for your achievements.
-              </p>
-            </div>
-          ) : (
-            <div className={componentsTheme.dashboardDocuments.tableBody}>
-              {filteredSortedCertificates.map(cert => (
-                <div
-                  key={cert.id}
-                  className={`grid grid-cols-[1.4fr,2.4fr,2.2fr,1.4fr,1.4fr] ${componentsTheme.dashboardDocuments.tableRow}`}
+          <div className={componentsTheme.dashboardDocuments.tableOuter}>
+            <div className={componentsTheme.dashboardDocuments.tableInner}>
+              <div
+                className={`grid grid-cols-[1.4fr,2.4fr,2.2fr,1.4fr,1.4fr] ${componentsTheme.dashboardDocuments.tableHeader}`}
+              >
+                <button
+                  type="button"
+                  onClick={() => handleCertSortClick('id')}
+                  className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
                 >
-                  <div className={componentsTheme.dashboardDocuments.docNameCell}>{cert.id}</div>
-                  <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
-                    {cert.award}
-                  </div>
-                  <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
-                    {cert.assignment}
-                  </div>
-                  <div>
-                    <span
-                      className={`${componentsTheme.dashboardDocuments.statusBadgeBase} ${
-                        {
-                          Approved: componentsTheme.dashboardDocuments.statusApproved,
-                          Ongoing: componentsTheme.dashboardDocuments.statusOngoing,
-                        }[cert.status] || componentsTheme.dashboardDocuments.statusDefault
-                      }`}
-                    >
-                      {cert.status}
-                    </span>
-                  </div>
-                  <div className={componentsTheme.dashboardDocuments.actionCell}>
-                    <button
-                      type="button"
-                      className={componentsTheme.dashboardDocuments.downloadButton}
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      <span>Download</span>
-                    </button>
-                  </div>
+                  <span>Certificate ID</span>
+                  <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
+                    {certSortField === 'id' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCertSortClick('award')}
+                  className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
+                >
+                  <span>Award Details</span>
+                  <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
+                    {certSortField === 'award' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCertSortClick('assignment')}
+                  className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
+                >
+                  <span>Assignment Info</span>
+                  <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
+                    {certSortField === 'assignment' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCertSortClick('status')}
+                  className={componentsTheme.dashboardDocuments.tableHeaderSortButton}
+                >
+                  <span>Status</span>
+                  <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
+                    {certSortField === 'status' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCertSortClick('action')}
+                  className={componentsTheme.dashboardDocuments.tableHeaderSortButtonRight}
+                >
+                  <span>Action</span>
+                  <span className={componentsTheme.dashboardDocuments.tableHeaderSortIcon}>
+                    {certSortField === 'action' ? (certSortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                  </span>
+                </button>
+              </div>
+
+              {/* Empty state / rows certificates */}
+              {loadingCerts ? (
+                <CertificatesRowsSkeleton />
+              ) : errorCerts ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                  <p className="mt-2 text-sm text-red-600">{errorCerts}</p>
                 </div>
-              ))}
+              ) : filteredSortedCertificates.length === 0 ? (
+                <div className={componentsTheme.dashboardDocuments.emptyStateWrapper}>
+                  <div className={componentsTheme.dashboardDocuments.emptyStateImageWrapper}>
+                    <Image
+                      src="/img/tablenotfounds.png"
+                      alt="No certificates illustration"
+                      width={260}
+                      height={160}
+                      className="h-auto max-h-40 w-auto"
+                    />
+                  </div>
+                  <p className={componentsTheme.dashboardDocuments.emptyStateTitle}>
+                    No certificates available yet
+                  </p>
+                  <p className={componentsTheme.dashboardDocuments.emptyStateText}>
+                    Your certificates will appear here once they are issued for your achievements.
+                  </p>
+                </div>
+              ) : (
+                <div className={componentsTheme.dashboardDocuments.tableBody}>
+                  {filteredSortedCertificates.map(cert => (
+                    <div
+                      key={cert.id}
+                      className={`grid grid-cols-[1.4fr,2.4fr,2.2fr,1.4fr,1.4fr] ${componentsTheme.dashboardDocuments.tableRow}`}
+                    >
+                      <div className={componentsTheme.dashboardDocuments.docNameCell}>{cert.id}</div>
+                      <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+                        {cert.award}
+                      </div>
+                      <div className={componentsTheme.dashboardDocuments.docDescriptionCell}>
+                        {cert.assignment}
+                      </div>
+                      <div>
+                        <span
+                          className={`${componentsTheme.dashboardDocuments.statusBadgeBase} ${
+                            {
+                              Approved: componentsTheme.dashboardDocuments.statusApproved,
+                              Ongoing: componentsTheme.dashboardDocuments.statusOngoing,
+                            }[cert.status] || componentsTheme.dashboardDocuments.statusDefault
+                          }`}
+                        >
+                          {cert.status}
+                        </span>
+                      </div>
+                      <div className={componentsTheme.dashboardDocuments.actionCell}>
+                        <button
+                          type="button"
+                          className={componentsTheme.dashboardDocuments.downloadButton}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          <span>Download</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
