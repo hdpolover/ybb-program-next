@@ -13,6 +13,20 @@ type AppVersionResponse = {
   version?: string;
 };
 
+function normalizeVersion(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function isLocalBuildVersion(value: string): boolean {
+  const normalized = normalizeVersion(value);
+  return normalized === 'development' || normalized === 'local-dev';
+}
+
+function isLocalHostRuntime(): boolean {
+  const host = window.location.hostname.toLowerCase();
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+}
+
 async function fetchLiveVersion(): Promise<string | null> {
   const response = await fetch('/api/app-version', {
     method: 'GET',
@@ -50,9 +64,13 @@ export default function AppVersionWatcher({ currentVersion }: AppVersionWatcherP
     if (process.env.NODE_ENV !== 'production' || !currentVersion) {
       return;
     }
+    if (isLocalHostRuntime() || isLocalBuildVersion(currentVersion)) {
+      return;
+    }
 
     let isDisposed = false;
     let isChecking = false;
+    const normalizedCurrentVersion = normalizeVersion(currentVersion);
 
     const reloadIntoLatestBuild = async (nextVersion: string) => {
       const lastReloadTarget = window.sessionStorage.getItem(RELOAD_TARGET_STORAGE_KEY);
@@ -77,15 +95,16 @@ export default function AppVersionWatcher({ currentVersion }: AppVersionWatcherP
         if (!liveVersion || isDisposed) {
           return;
         }
+        const normalizedLiveVersion = normalizeVersion(liveVersion);
 
-        if (liveVersion === currentVersion) {
-          if (window.sessionStorage.getItem(RELOAD_TARGET_STORAGE_KEY) === liveVersion) {
+        if (normalizedLiveVersion === normalizedCurrentVersion) {
+          if (window.sessionStorage.getItem(RELOAD_TARGET_STORAGE_KEY) === normalizedLiveVersion) {
             window.sessionStorage.removeItem(RELOAD_TARGET_STORAGE_KEY);
           }
           return;
         }
 
-        await reloadIntoLatestBuild(liveVersion);
+        await reloadIntoLatestBuild(normalizedLiveVersion);
       } catch (error) {
         console.error('[AppVersionWatcher] Failed to check live version:', error);
       } finally {
