@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ComposableMap, Geographies, Geography } from '@vnedyalk0v/react19-simple-maps';
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
