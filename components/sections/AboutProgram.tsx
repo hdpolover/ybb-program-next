@@ -13,7 +13,7 @@ type AboutProgramProps = {
 };
 
 export default function AboutProgram({ about, vision, mission, images }: AboutProgramProps) {
-  const [activeTab, setActiveTab] = useState<'about' | 'vision'>('about');
+  const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
 
   const imageMain = images?.[0]?.url ?? '/img/programoverview.png';
   const imageSecondary = images?.[1]?.url ?? '/img/bgprogramoverview.png';
@@ -23,6 +23,33 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
     if (!value) return false;
     const trimmed = value.trim();
     return trimmed.startsWith('<') && trimmed.includes('</');
+  };
+
+  const decodePossiblyEncodedHtml = (value: string): string => {
+    if (!value.includes("&lt;")) return value;
+    return value
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/&amp;/gi, "&");
+  };
+
+  const sanitizeRichHtml = (value: string): string => {
+    return value
+      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+      .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, "")
+      .replace(/\son\w+="[^"]*"/gi, "")
+      .replace(/\son\w+='[^']*'/gi, "")
+      .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, "");
+  };
+
+  const renderContent = (value?: string) => {
+    if (!value) return null;
+    if (!isHtmlContent(value)) return <p>{value}</p>;
+    const safeHtml = sanitizeRichHtml(decodePossiblyEncodedHtml(value));
+    return <div className={componentsTheme.aboutProgram.richText} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
   };
 
   return (
@@ -35,19 +62,15 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
           <div className={componentsTheme.aboutProgram.leftCol}>
             <SectionHeader align="left" eyebrow="Program Overview" title="About Our Program" />
 
-            {/* Tabs */}
+            <div className={`hidden sm:block ${componentsTheme.aboutProgram.contentWrapper}`}>
+              {renderContent(about)}
+            </div>
+            <div className={`sm:hidden ${componentsTheme.aboutProgram.contentWrapper} min-h-0`}>
+              {renderContent(about)}
+            </div>
+
+            {/* Tabs for Vision / Mission */}
             <div className={componentsTheme.aboutProgram.tabContainer}>
-              <button
-                type="button"
-                onClick={() => setActiveTab('about')}
-                className={`${componentsTheme.aboutProgram.tabButtonBase} ${
-                  activeTab === 'about'
-                    ? componentsTheme.aboutProgram.tabButtonActive
-                    : componentsTheme.aboutProgram.tabButtonInactive
-                }`}
-              >
-                About Us
-              </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('vision')}
@@ -57,7 +80,18 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
                     : componentsTheme.aboutProgram.tabButtonInactive
                 }`}
               >
-                Vision &amp; Mission
+                Vision
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('mission')}
+                className={`${componentsTheme.aboutProgram.tabButtonBase} ${
+                  activeTab === 'mission'
+                    ? componentsTheme.aboutProgram.tabButtonActive
+                    : componentsTheme.aboutProgram.tabButtonInactive
+                }`}
+              >
+                Mission
               </button>
             </div>
 
@@ -103,43 +137,7 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
             </div>
 
             <div className={`hidden sm:block ${componentsTheme.aboutProgram.contentWrapper}`}>
-              {activeTab === 'about' ? (
-                <>
-                  {isHtmlContent(about) ? (
-                    <div
-                      className={componentsTheme.aboutProgram.richText}
-                      dangerouslySetInnerHTML={{ __html: about ?? '' }}
-                    />
-                  ) : (
-                    <p>{about}</p>
-                  )}
-                </>
-              ) : (
-                <>
-                  {isHtmlContent(vision) ? (
-                    <div
-                      className={componentsTheme.aboutProgram.richText}
-                      dangerouslySetInnerHTML={{ __html: vision ?? '' }}
-                    />
-                  ) : (
-                    <p>
-                      <span className={componentsTheme.aboutProgram.visionLabel}>Vision.</span>{' '}
-                      {vision}
-                    </p>
-                  )}
-                  {isHtmlContent(mission) ? (
-                    <div
-                      className={componentsTheme.aboutProgram.richText}
-                      dangerouslySetInnerHTML={{ __html: mission ?? '' }}
-                    />
-                  ) : (
-                    <p>
-                      <span className={componentsTheme.aboutProgram.visionLabel}>Mission.</span>{' '}
-                      {mission}
-                    </p>
-                  )}
-                </>
-              )}
+              {activeTab === 'vision' ? renderContent(vision) : renderContent(mission)}
             </div>
 
             <div className={`hidden sm:block ${componentsTheme.aboutProgram.ctaWrapper}`}>
@@ -197,43 +195,7 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
           </div>
 
           <div className={`sm:hidden ${componentsTheme.aboutProgram.contentWrapper}`}>
-            {activeTab === 'about' ? (
-              <>
-                {isHtmlContent(about) ? (
-                  <div
-                    className={componentsTheme.aboutProgram.richText}
-                    dangerouslySetInnerHTML={{ __html: about ?? '' }}
-                  />
-                ) : (
-                  <p>{about}</p>
-                )}
-              </>
-            ) : (
-              <>
-                {isHtmlContent(vision) ? (
-                  <div
-                    className={componentsTheme.aboutProgram.richText}
-                    dangerouslySetInnerHTML={{ __html: vision ?? '' }}
-                  />
-                ) : (
-                  <p>
-                    <span className={componentsTheme.aboutProgram.visionLabel}>Vision.</span>{' '}
-                    {vision}
-                  </p>
-                )}
-                {isHtmlContent(mission) ? (
-                  <div
-                    className={componentsTheme.aboutProgram.richText}
-                    dangerouslySetInnerHTML={{ __html: mission ?? '' }}
-                  />
-                ) : (
-                  <p>
-                    <span className={componentsTheme.aboutProgram.visionLabel}>Mission.</span>{' '}
-                    {mission}
-                  </p>
-                )}
-              </>
-            )}
+            <div>{activeTab === 'vision' ? renderContent(vision) : renderContent(mission)}</div>
 
             <div className={componentsTheme.aboutProgram.ctaWrapper}>
               <a
