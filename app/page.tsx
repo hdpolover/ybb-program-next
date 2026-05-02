@@ -43,9 +43,6 @@ import type {
   PromoCTASection,
 } from '@/types/home';
 
-export const dynamic = 'force-dynamic';
-
-
 export default async function Home() {
   const host = await resolveBrandDomain();
   let homeData: Awaited<ReturnType<typeof getHomePageData>>;

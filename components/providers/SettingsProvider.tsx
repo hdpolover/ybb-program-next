@@ -23,10 +23,10 @@ export function SettingsProvider({
   initialSettings: SettingsData | null;
 }) {
   // Keep localStorage in sync with whatever the server provided.
-  // Since getSettingsForBrandDomain uses unstable_cache (1 hr TTL) server-side,
+  // Since getSettingsForBrandDomain uses unstable_cache server-side,
   // initialSettings is already the cached/fresh version from Next.js Data Cache.
   // Writing it here means client-side calls to getSettings() will hit localStorage
-  // instead of the network for the next hour, even after a browser reload.
+  // instead of the network for the configured TTL window, even after a browser reload.
   useEffect(() => {
     if (!initialSettings) return;
     try {

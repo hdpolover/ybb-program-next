@@ -1,4 +1,4 @@
-import { HeroImage } from '@/components/common/OptimizedImage';
+import OptimizedImage, { HeroImage } from '@/components/common/OptimizedImage';
 import { componentsTheme } from '@/lib/theme/components';
 
 type HeroProps = {
@@ -25,9 +25,16 @@ export default function Hero({ imageUrl, title, subtitle }: HeroProps) {
         />
       </div>
       <div
-        className={componentsTheme.heroHome.desktopWrapper}
-        style={{ backgroundImage: `url('${src}')` }}
+        className={`${componentsTheme.heroHome.desktopWrapper} relative`}
       >
+        <OptimizedImage
+          src={src}
+          alt={alt}
+          fill
+          type="content"
+          customSizes="100vw"
+          className="object-cover"
+        />
         <div className={componentsTheme.heroHome.desktopOverlay} />
         <div className={componentsTheme.heroHome.desktopInner}></div>
       </div>

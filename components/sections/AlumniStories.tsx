@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
@@ -162,9 +163,11 @@ export default function AlumniStoriesSection({
 						{activeItem && (
 							<div className="mt-4 flex items-start gap-3">
 								{activeItem.avatar_url && (
-									<img
+									<Image
 										src={activeItem.avatar_url}
 										alt={activeItem.name}
+										width={40}
+										height={40}
 										className="h-10 w-10 flex-shrink-0 rounded-full object-cover ring-2 ring-accent/30"
 									/>
 								)}
@@ -227,9 +230,11 @@ export default function AlumniStoriesSection({
 											<div className={componentsTheme.alumniStories.reelSkeleton} />
 										)}
 										{item.type === 'video' && (item.thumbnail_url || toYouTubeThumbnail(item.video_url)) ? (
-											<img
+											<Image
 												src={item.thumbnail_url || toYouTubeThumbnail(item.video_url) || ''}
 												alt={item.testimonial || item.name}
+												fill
+												sizes="(max-width: 640px) 100vw, 25vw"
 												className={componentsTheme.alumniStories.reelVideo}
 												onLoad={() => markLoaded(item.id)}
 											/>

@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const brandDomain = await resolveBrandDomain();
     // Uses the same unstable_cache-backed fetch as the SSR layout —
-    // so repeated calls within the 1-hour window hit Next.js Data Cache, not the backend.
+    // so repeated calls within the configured TTL window hit Next.js Data Cache, not the backend.
     const data = await getSettingsForBrandDomain(brandDomain);
     return NextResponse.json({ statusCode: 200, message: 'Success', data });
   } catch (error) {

@@ -60,8 +60,6 @@ function pickForeground(hex: string): string {
   return relativeLuminance(hex) > 0.6 ? '#020617' : '#ffffff';
 }
 
-export const dynamic = 'force-dynamic';
-
 export async function generateMetadata(): Promise<Metadata> {
   const host = await resolveBrandDomain();
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
@@ -205,7 +203,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           src="https://aksamu.com/chat-widget.js"
           data-bot-id="4a9ea369-4638-413f-92d4-9c4600f7c6be"
           data-primary-color={accent || "#16a34a"}
-          defer
+          strategy="lazyOnload"
         />
       </body>
     </html>

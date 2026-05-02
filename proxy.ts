@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
+const MAINTENANCE_CACHE_TTL_MS = 30_000;
+const maintenanceModeCache = new Map<string, { value: boolean; expiresAt: number }>();
 
 // Get default brand URL from env (optional for multi-brand)
 const getDefaultBrandUrl = (): string | null => {
@@ -23,6 +25,12 @@ const resolveBrandUrl = (request: NextRequest): string => {
 };
 
 async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
+  const now = Date.now();
+  const cached = maintenanceModeCache.get(brandUrl);
+  if (cached && cached.expiresAt > now) {
+    return cached.value;
+  }
+
   try {
     const url = new URL('/v1/landing/settings', API_BASE_URL);
 
@@ -34,7 +42,13 @@ async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
       },
     });
 
-    if (!res.ok) return false;
+    if (!res.ok) {
+      maintenanceModeCache.set(brandUrl, {
+        value: false,
+        expiresAt: now + MAINTENANCE_CACHE_TTL_MS,
+      });
+      return false;
+    }
 
     const json = (await res.json()) as {
       statusCode: number;
@@ -46,8 +60,16 @@ async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
       } | null;
     };
 
-    return Boolean(json?.data?.maintenance?.is_maintenance_mode);
+    const isEnabled = Boolean(json?.data?.maintenance?.is_maintenance_mode);
+    maintenanceModeCache.set(brandUrl, {
+      value: isEnabled,
+      expiresAt: now + MAINTENANCE_CACHE_TTL_MS,
+    });
+    return isEnabled;
   } catch {
+    if (cached) {
+      return cached.value;
+    }
     return false;
   }
 }

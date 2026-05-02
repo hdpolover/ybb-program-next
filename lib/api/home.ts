@@ -1,6 +1,8 @@
+import { unstable_cache } from 'next/cache';
 import type { HomePageData } from '@/types/home';
 import { apiGetWithEnvelope, ApiRequestError } from '@/lib/api/httpClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
+import { HOME_CACHE_TAG, HOME_CACHE_TTL } from '@/lib/constants/cache';
 
 function buildBrandUrlVariants(normalizedUrl: string): string[] {
   const noScheme = normalizedUrl.replace(/^https?:\/\//, '');
@@ -13,6 +15,20 @@ function buildBrandUrlVariants(normalizedUrl: string): string[] {
 const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
 let homeRateLimitUntil = 0;
+
+const fetchHomePageFromBackend = unstable_cache(
+  async (brandUrl: string, url: string): Promise<HomePageData> => {
+    return apiGetWithEnvelope<HomePageData>('/v1/landing/home', {
+      query: { url },
+      headers: {
+        'x-brand-domain': brandUrl,
+      },
+      cache: 'no-store',
+    });
+  },
+  [HOME_CACHE_TAG],
+  { revalidate: HOME_CACHE_TTL, tags: [HOME_CACHE_TAG] },
+);
 
 function buildHomeFallback(): HomePageData {
   return {
@@ -43,13 +59,7 @@ async function fetchHomePageData(host: string): Promise<HomePageData> {
   for (let i = 0; i < urlVariants.length; i += 1) {
     const url = urlVariants[i];
     try {
-      return await apiGetWithEnvelope<HomePageData>('/v1/landing/home', {
-        query: { url },
-        headers: {
-          'x-brand-domain': brandUrl,
-        },
-        next: { revalidate: 0 },
-      });
+      return await fetchHomePageFromBackend(brandUrl, url);
     } catch (e) {
       lastError = e;
 

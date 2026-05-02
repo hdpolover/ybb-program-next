@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
@@ -175,12 +176,12 @@ export default function VideoSection({ title, subtitle, tabs }: ProgramHighlight
                   >
                     <div className={componentsTheme.videoSection.thumbnailWrapper}>
                       {video.thumbnailUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={video.thumbnailUrl}
                           alt={video.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 320px"
                           className="h-full w-full object-cover"
-                          loading="lazy"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-slate-200 text-xs text-slate-400">
