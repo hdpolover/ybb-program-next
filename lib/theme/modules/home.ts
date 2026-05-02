@@ -208,10 +208,14 @@ export const homeTheme = {
     tabButtonBase: 'rounded-full px-4 py-2 text-xs font-semibold transition',
     tabButtonActive: 'bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-sm',
     tabButtonInactive: 'text-slate-600 hover:text-slate-900',
-    contentWrapper:
-      'mt-5 min-h-[220px] space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base',
+    contentWrapper: 'mt-5 space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base',
+    aboutPreviewWrapper: 'relative',
+    contentPreviewClamp:
+      'max-h-[220px] overflow-hidden [-webkit-mask-image:linear-gradient(to_bottom,black_72%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_72%,transparent_100%)]',
+    readMoreButton:
+      'inline-flex items-center text-sm font-semibold text-[var(--brand-accent)] underline decoration-[var(--brand-accent)]/35 underline-offset-4 transition hover:decoration-[var(--brand-accent)]',
     richText:
-      '[&_p]:text-slate-600 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4',
+      "[&_p]:text-slate-600 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4 [&_ul]:mt-4 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ol]:mt-4 [&_ol]:space-y-2.5 [&_ol]:pl-0 [&_ul>li]:flex [&_ul>li]:items-start [&_ul>li]:gap-3 [&_ul>li]:text-slate-700 [&_ol>li]:flex [&_ol>li]:items-start [&_ol>li]:gap-3 [&_ol>li]:text-slate-700 [&_li>p]:m-0 [&_ul>li::before]:mt-[2px] [&_ul>li::before]:inline-grid [&_ul>li::before]:h-7 [&_ul>li::before]:w-7 [&_ul>li::before]:shrink-0 [&_ul>li::before]:place-items-center [&_ul>li::before]:rounded-full [&_ul>li::before]:bg-primary [&_ul>li::before]:text-[13px] [&_ul>li::before]:font-semibold [&_ul>li::before]:leading-none [&_ul>li::before]:text-white [&_ul>li::before]:content-['✓'] [&_ol>li::before]:mt-[2px] [&_ol>li::before]:inline-grid [&_ol>li::before]:h-7 [&_ol>li::before]:w-7 [&_ol>li::before]:shrink-0 [&_ol>li::before]:place-items-center [&_ol>li::before]:rounded-full [&_ol>li::before]:bg-primary [&_ol>li::before]:text-[13px] [&_ol>li::before]:font-semibold [&_ol>li::before]:leading-none [&_ol>li::before]:text-white [&_ol>li::before]:content-['✓']",
     visionLabel: 'font-semibold text-slate-900',
     ctaWrapper: 'mt-6',
     rightCol: 'flex items-center justify-center',
@@ -222,6 +226,14 @@ export const homeTheme = {
     collageSmallCard:
       'relative aspect-[4/3] overflow-hidden rounded-2xl bg-white/40 shadow-[0_8px_30px_rgba(31,41,55,0.12)] ring-1 ring-slate-200/80',
     collageImage: 'object-cover',
+    modalOverlay: 'fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4',
+    modalCard:
+      'w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-[0_20px_70px_rgba(2,6,23,0.28)] ring-1 ring-slate-200',
+    modalHeader: 'flex items-center justify-between border-b border-slate-200 px-5 py-4',
+    modalTitle: 'text-base font-extrabold text-slate-900 sm:text-lg',
+    modalCloseButton:
+      'rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-200',
+    modalBody: 'max-h-[75vh] overflow-y-auto px-5 py-4 text-sm leading-relaxed text-slate-600 sm:text-base',
   },
   programHighlights: {
     card: 'hover:ring-accent/30 group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',

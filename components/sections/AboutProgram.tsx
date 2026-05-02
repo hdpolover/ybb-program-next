@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
@@ -14,10 +14,12 @@ type AboutProgramProps = {
 
 export default function AboutProgram({ about, vision, mission, images }: AboutProgramProps) {
   const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
   const imageMain = images?.[0]?.url ?? '/img/programoverview.png';
   const imageSecondary = images?.[1]?.url ?? '/img/bgprogramoverview.png';
   const imageThird = images?.[2]?.url ?? '/img/programoverview.png';
+  const ABOUT_PREVIEW_MAX_CHARS = 520;
 
   const isHtmlContent = (value?: string) => {
     if (!value) return false;
@@ -52,6 +54,32 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
     return <div className={componentsTheme.aboutProgram.richText} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
   };
 
+  const aboutPlainText = about
+    ? decodePossiblyEncodedHtml(about)
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    : '';
+  const shouldShowReadMore = aboutPlainText.length > ABOUT_PREVIEW_MAX_CHARS;
+
+  useEffect(() => {
+    if (!isAboutModalOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsAboutModalOpen(false);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isAboutModalOpen]);
+
   return (
     <section className={componentsTheme.aboutProgram.sectionWrapper}>
       <div className={componentsTheme.aboutProgram.blurTop} />
@@ -62,11 +90,27 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
           <div className={componentsTheme.aboutProgram.leftCol}>
             <SectionHeader align="left" eyebrow="Program Overview" title="About Our Program" />
 
-            <div className={`hidden sm:block ${componentsTheme.aboutProgram.contentWrapper}`}>
-              {renderContent(about)}
-            </div>
-            <div className={`sm:hidden ${componentsTheme.aboutProgram.contentWrapper} min-h-0`}>
-              {renderContent(about)}
+            <div className={componentsTheme.aboutProgram.contentWrapper}>
+              <div
+                className={shouldShowReadMore ? componentsTheme.aboutProgram.aboutPreviewWrapper : undefined}
+              >
+                <div
+                  className={
+                    shouldShowReadMore ? componentsTheme.aboutProgram.contentPreviewClamp : undefined
+                  }
+                >
+                  {renderContent(about)}
+                </div>
+              </div>
+              {shouldShowReadMore && (
+                <button
+                  type="button"
+                  onClick={() => setIsAboutModalOpen(true)}
+                  className={componentsTheme.aboutProgram.readMoreButton}
+                >
+                  Read more
+                </button>
+              )}
             </div>
 
             {/* Tabs for Vision / Mission */}
@@ -208,6 +252,30 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
           </div>
         </div>
       </div>
+      {isAboutModalOpen && (
+        <div
+          className={componentsTheme.aboutProgram.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label="About Our Program"
+          onClick={() => setIsAboutModalOpen(false)}
+        >
+          <div className={componentsTheme.aboutProgram.modalCard} onClick={e => e.stopPropagation()}>
+            <div className={componentsTheme.aboutProgram.modalHeader}>
+              <h3 className={componentsTheme.aboutProgram.modalTitle}>About Our Program</h3>
+              <button
+                type="button"
+                onClick={() => setIsAboutModalOpen(false)}
+                className={componentsTheme.aboutProgram.modalCloseButton}
+                aria-label="Close"
+              >
+                Close
+              </button>
+            </div>
+            <div className={componentsTheme.aboutProgram.modalBody}>{renderContent(about)}</div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
