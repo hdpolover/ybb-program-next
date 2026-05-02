@@ -294,7 +294,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const [manualAccountName, setManualAccountName] = useState("");
   const [manualSourceName, setManualSourceName] = useState("");
   const [manualPaymentDate, setManualPaymentDate] = useState("");
-  const [manualProofUploaded, setManualProofUploaded] = useState(false);
+  const [manualProofFile, setManualProofFile] = useState<File | null>(null);
   const [manualNotes, setManualNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -346,7 +346,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     manualAccountName.trim() !== "" &&
     manualSourceName.trim() !== "" &&
     manualPaymentDate.trim() !== "" &&
-    manualProofUploaded;
+    manualProofFile !== null;
   const isFormComplete = isGatewayComplete || isManualComplete;
 
   const handleSubmit = useCallback(async () => {
@@ -357,6 +357,10 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     try {
       if (paymentType === "manual" && !manualMethod) {
         throw new Error("Please select a manual payment method");
+      }
+
+      if (paymentType === "manual" && !manualProofFile) {
+        throw new Error("Please upload payment proof before completing a manual payment");
       }
 
       if (paymentType === "gateway" && !gatewayMethod) {
@@ -403,7 +407,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     } finally {
       setSubmitting(false);
     }
-  }, [isFormComplete, submitting, paymentType, manualMethod, gatewayMethod, manualAccountName, manualSourceName, manualPaymentDate, manualNotes, paymentId, router]);
+  }, [isFormComplete, submitting, paymentType, manualMethod, manualProofFile, gatewayMethod, manualAccountName, manualSourceName, manualPaymentDate, manualNotes, paymentId, router]);
 
   if (loading) {
     return <PaymentPageSkeleton variant="make-payment" />;
@@ -861,7 +865,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                         id="manual-payment-proof"
                         type="file"
                         className="block w-full text-xs text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
-                        onChange={(e) => setManualProofUploaded(!!e.target.files && e.target.files.length > 0)}
+                        onChange={(e) => setManualProofFile(e.target.files?.[0] ?? null)}
                       />
                     </div>
                     <div className="space-y-1 sm:col-span-2">

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowLeft,
-  Clock,
   Mail,
   Tag,
   Info,
@@ -453,6 +452,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
               ? 'rejected'
               : 'created',
   }));
+  const hasPaymentActivity = effectiveStatus !== 'unpaid' || items.length > 0;
 
   return (
     <div className={paymentsTheme.sectionWrapper}>
@@ -509,29 +509,14 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
           {/* Payment history section */}
           {historyLoading ? (
             <HistorySectionSkeleton />
-          ) : items.length === 0 ? (
-            <div className={paymentsTheme.detailEmptyStateCard}>
-              <div className={paymentsTheme.detailEmptyStateIconWrapper}>
-                <Clock className="h-10 w-10" />
-              </div>
-              <p className={paymentsTheme.detailEmptyStateTitle}>No Payment History Found</p>
-              <p className={paymentsTheme.detailEmptyStateBody}>
-                There is no payment history available for this payment yet. Once you complete a
-                payment, it will appear here.
-              </p>
-              <button className={paymentsTheme.detailEmptyStateButton}>
-                <CreditCard className="h-4 w-4" />
-                <span>Make First Payment</span>
-              </button>
-            </div>
-          ) : (
+          ) : items.length > 0 ? (
             <div className={paymentsTheme.detailPrimaryCard}>
               <p className="text-sm font-extrabold text-slate-900">Payment History</p>
               <div className="mt-3">
                 <HistoryPanel items={items} pageSize={1} />
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Kolom kanan */}
@@ -567,15 +552,15 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
                 </p>
               </div>
               {effectiveStatus !== 'paid' ? (
-                <button type="button" className={paymentsTheme.detailMakePaymentButton}>
-                  <Link
-                    href={`/dashboard/payments/${paymentId}/make-payment`}
-                    className={paymentsTheme.detailMakePaymentInner}
-                  >
+                <Link
+                  href={`/dashboard/payments/${paymentId}/make-payment`}
+                  className={paymentsTheme.detailMakePaymentButton}
+                >
+                  <span className={paymentsTheme.detailMakePaymentInner}>
                     <CreditCard className="h-4 w-4" />
                     <span>Make Payment</span>
-                  </Link>
-                </button>
+                  </span>
+                </Link>
               ) : null}
             </div>
           </div>
@@ -585,10 +570,12 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
               <p className={paymentsTheme.detailSideCardTitle}>Quick Actions</p>
             </div>
             <div className={paymentsTheme.detailQuickActionsBody}>
-              <button type="button" className={paymentsTheme.detailQuickPrimaryButton} onClick={handleDownloadInvoice}>
-                <Download className="h-4 w-4" />
-                <span>Download Invoice</span>
-              </button>
+              {hasPaymentActivity ? (
+                <button type="button" className={paymentsTheme.detailQuickPrimaryButton} onClick={handleDownloadInvoice}>
+                  <Download className="h-4 w-4" />
+                  <span>Download Invoice</span>
+                </button>
+              ) : null}
 
               {effectiveStatus === 'paid' ? (
                 <a

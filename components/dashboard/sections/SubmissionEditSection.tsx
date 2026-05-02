@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ImageIcon, Info, PencilLine } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   getCountryCallingCode,
@@ -396,6 +397,9 @@ function FieldMedia({ field }: { field: PortalSubmissionField }) {
 }
 
 export default function SubmissionEditSection() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { me } = useDashboardData();
   const stepperScrollRef = useRef<HTMLDivElement | null>(null);
   const [detail, setDetail] = useState<PortalSubmissionDetail | null>(null);
@@ -500,6 +504,31 @@ export default function SubmissionEditSection() {
   const activeSectionIndex = useMemo(() => {
     return stepperItems.findIndex(step => step.id === activeSectionId);
   }, [activeSectionId, stepperItems]);
+
+  const requestedStepId = useMemo(() => {
+    const rawStep = searchParams.get("step")?.trim();
+    if (!rawStep) return null;
+    return rawStep === "preview" ? PREVIEW_STEP_ID : rawStep;
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!requestedStepId || stepperItems.length === 0) return;
+    const hasRequestedStep = stepperItems.some(step => step.id === requestedStepId);
+    if (!hasRequestedStep) return;
+
+    setActiveSectionId(current => (current === requestedStepId ? current : requestedStepId));
+  }, [requestedStepId, stepperItems]);
+
+  useEffect(() => {
+    if (!activeSectionId) return;
+
+    const stepParamValue = activeSectionId === PREVIEW_STEP_ID ? "preview" : activeSectionId;
+    if (searchParams.get("step") === stepParamValue) return;
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.set("step", stepParamValue);
+    router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false });
+  }, [activeSectionId, pathname, router, searchParams]);
 
   const sectionEssays = useMemo(() => {
     if (!activeSection || activeSection.id !== "entry_information") return [];

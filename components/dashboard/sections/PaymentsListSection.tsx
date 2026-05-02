@@ -579,24 +579,24 @@ export default function PaymentsListSection() {
       </div>
 
       {canSwitchCategory && (
-        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <div className={paymentsTheme.categoryCard}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <p className={paymentsTheme.categoryTitle}>
                 Registration Category
               </p>
-              <p className="mt-0.5 text-sm font-semibold text-slate-900">
+              <p className="mt-0.5 text-[13px] font-semibold text-slate-900 sm:text-sm">
                 {currentCategoryLabel}
                 <span className="mx-2 text-slate-300">|</span>
                 <span className="text-primary">Eligible to switch to {switchTargetLabel}</span>
               </p>
-              <p className="mt-0.5 text-xs text-slate-600">
+              <p className={paymentsTheme.categoryDescription}>
                 Payment options will follow your selected category and payment stage.
               </p>
             </div>
             <button
               type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary"
+              className={paymentsTheme.categoryPrimaryCta}
               onClick={() => setShowSwitchModal(true)}
             >
               <ArrowLeftRight className="h-4 w-4" />
@@ -696,7 +696,7 @@ export default function PaymentsListSection() {
           </div>
 
           <div className={paymentsTheme.tableControlsWrapper}>
-            <div className={paymentsTheme.tableShowWrapper}>
+            <div className={`${paymentsTheme.tableShowWrapper} hidden sm:flex`}>
               <span>Show</span>
               <select className={paymentsTheme.tableShowSelect}>
                 <option value="5">5</option>
@@ -718,7 +718,97 @@ export default function PaymentsListSection() {
         </div>
 
         <div className={paymentsTheme.tableOuter}>
-          <table className={paymentsTheme.table}>
+          <div className="space-y-2 md:hidden">
+            {payments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 px-5 py-8 text-center">
+                <img
+                  src="/img/tablenotfounds.png"
+                  alt="No payments"
+                  className="mb-3 h-auto max-h-28 w-auto"
+                />
+                <p className="text-sm font-extrabold text-slate-900">No payments yet</p>
+                <p className="mt-1 max-w-sm text-xs text-slate-500">
+                  Your payment records will appear here once payments are assigned to your account.
+                </p>
+              </div>
+            ) : (
+              payments.map(payment => {
+                const isPaid = payment.status === 'paid';
+                const isProcessing = payment.status === 'processing';
+                const isFailed = payment.status === 'failed';
+                const isRowLoading = rowActionLoadingId === payment.id;
+                const canPayNow = isPaymentPayable(payment);
+                const canPrintInvoice = payment.hasInvoice !== false;
+                return (
+                  <article key={`mobile-${payment.id}`} className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-semibold text-slate-900">{payment.label}</p>
+                      <span
+                        className={`${paymentsTheme.statusBadgeBase} ${
+                          isPaid
+                            ? paymentsTheme.statusBadgePaid
+                            : isProcessing
+                              ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
+                              : isFailed
+                                ? 'bg-red-50 text-red-700 ring-1 ring-red-200'
+                                : paymentsTheme.statusBadgeUnpaid
+                        }`}
+                      >
+                        {isPaid ? 'Paid' : isProcessing ? 'Processing' : isFailed ? 'Failed' : 'Unpaid'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+                      <p className="text-slate-500">Type</p>
+                      <p className="text-right text-slate-700">{payment.paymentType || 'General'}</p>
+                      <p className="text-slate-500">Window</p>
+                      <p className="text-right text-slate-700">{payment.period}</p>
+                      <p className="text-slate-500">Deadline</p>
+                      <p className="text-right font-medium text-slate-700">{payment.deadline}</p>
+                      <p className="text-slate-500">Amount</p>
+                      <p className="text-right font-semibold text-slate-900">{payment.amount}</p>
+                      <p className="text-slate-500">Synced</p>
+                      <p className="text-right text-slate-700">{payment.syncDate}</p>
+                    </div>
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      {canPayNow ? (
+                        <button
+                          type="button"
+                          className={`${paymentsTheme.primaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
+                          aria-label="Pay now"
+                          disabled={isRowLoading}
+                          onClick={() => handlePaymentAction(payment, 'make-payment')}
+                        >
+                          <CreditCard className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className={`${paymentsTheme.secondaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
+                        aria-label="See details"
+                        disabled={isRowLoading}
+                        onClick={() => handlePaymentAction(payment, 'detail')}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      {canPrintInvoice ? (
+                        <button
+                          type="button"
+                          className={`${paymentsTheme.tertiaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
+                          aria-label="Print invoice"
+                          disabled={isRowLoading}
+                          onClick={() => handlePaymentAction(payment, 'print')}
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })
+            )}
+          </div>
+
+          <table className={`${paymentsTheme.table} hidden md:table`}>
             <thead>
               <tr className={paymentsTheme.tableHeadRow}>
                 <th className={paymentsTheme.tableHeadCell}>Payment Information</th>
