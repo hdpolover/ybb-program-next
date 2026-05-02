@@ -306,19 +306,19 @@ export const dashboardTheme = {
     summaryPendingCard: 'border border-amber-100 bg-amber-50/70',
     summaryOverdueCard: 'border border-rose-100 bg-rose-50/70',
     summaryTotalCard: 'border border-slate-200 bg-slate-50',
-    summaryInnerRow: 'flex items-center justify-between gap-3',
-    summaryEyebrowBase: 'text-xs font-semibold uppercase tracking-wide',
+    summaryInnerRow: 'flex items-center justify-between gap-2 sm:gap-3',
+    summaryEyebrowBase: 'text-[11px] font-semibold uppercase tracking-wide leading-tight sm:text-xs',
     summaryEyebrowComplete: 'text-emerald-700',
     summaryEyebrowPending: 'text-amber-700',
     summaryEyebrowOverdue: 'text-rose-700',
     summaryEyebrowTotal: 'text-slate-600',
-    summaryValueBase: 'mt-1 text-2xl font-extrabold',
+    summaryValueBase: 'mt-0.5 text-[2rem] font-extrabold leading-none sm:mt-1 sm:text-2xl',
     summaryValueComplete: 'text-emerald-900',
     summaryValuePending: 'text-amber-900',
     summaryValueOverdue: 'text-rose-900',
     summaryValueTotal: 'text-slate-900',
     summaryIconCircleBase:
-      'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm',
+      'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white shadow-sm sm:h-9 sm:w-9',
     summaryIconCircleComplete: 'bg-emerald-600',
     summaryIconCirclePending: 'bg-amber-500',
     summaryIconCircleOverdue: 'bg-rose-500',
@@ -331,14 +331,16 @@ export const dashboardTheme = {
 
     // registration card
     registrationCard:
-      'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)]',
+      'rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:p-5',
     registrationIconCircle:
-      'flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/30',
-    registrationBodyWrapper: 'flex-1 space-y-3',
+      'flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/30 sm:h-11 sm:w-11',
+    registrationBodyWrapper: 'flex-1 space-y-2 sm:space-y-3',
     registrationHeaderRow: 'flex flex-wrap items-baseline justify-between gap-3',
-    registrationTitle: 'text-sm font-extrabold uppercase tracking-wide text-slate-700',
-    registrationSubtitle: 'mt-1 text-xs font-semibold uppercase tracking-wide text-primary',
+    registrationTitle: 'text-xs font-extrabold uppercase tracking-wide text-slate-700 sm:text-sm',
+    registrationSubtitle: 'mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary sm:mt-1 sm:text-xs',
     registrationDescription: 'text-sm leading-relaxed text-slate-700',
+    registrationDescriptionToggle:
+      'inline-flex text-xs font-semibold text-primary underline-offset-2 transition hover:underline',
     registrationFooterRow:
       'mt-3 flex flex-col items-start gap-3 border-t border-slate-100 pt-3 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between',
     registrationSwitchIconCircle:
@@ -349,8 +351,8 @@ export const dashboardTheme = {
 
     // program details + progress overview
     programCard:
-      'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)]',
-    programHeaderRow: 'mb-4 flex items-center justify-between gap-3',
+      'rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:p-5',
+    programHeaderRow: 'mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between',
     programTitle: 'text-sm font-extrabold uppercase tracking-wide text-slate-700',
     programSubtitle: 'mt-1 text-xs text-slate-500',
     programGrid: 'grid gap-4 md:grid-cols-2',
@@ -454,12 +456,12 @@ export const dashboardTheme = {
     guideBodyText: 'text-xs leading-relaxed text-slate-700',
     guideLinksWrapper: 'space-y-2',
     guideLink:
-      'flex items-center justify-between gap-2 rounded-full border border-primary/80 bg-transparent px-3 py-2 text-xs font-semibold text-primary shadow-sm transition hover:border-primary hover:text-primary',
-    guideLeftLinkInner: 'inline-flex items-center gap-2',
+      'flex w-full min-w-0 items-center justify-between gap-2 rounded-full border border-primary/80 bg-transparent px-3 py-2 text-xs font-semibold text-primary shadow-sm transition hover:border-primary hover:text-primary',
+    guideLeftLinkInner: 'inline-flex min-w-0 flex-1 items-center gap-2',
     guideBadgeCircle:
       'flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white shadow-sm',
     guideBadgeText: 'leading-none',
-    guideFileType: 'text-[10px] font-semibold uppercase tracking-wide text-primary',
+    guideFileType: 'shrink-0 text-[10px] font-semibold uppercase tracking-wide text-primary',
 
     // notification alert
     notificationCard:

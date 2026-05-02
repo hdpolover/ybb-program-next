@@ -58,7 +58,7 @@ export default function OverviewSummarySection() {
           <div
             className={`${overviewTheme.summaryIconCircleBase} ${overviewTheme.summaryIconCircleComplete}`}
           >
-            <CheckCircle2 className="h-5 w-5" />
+            <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function OverviewSummarySection() {
           <div
             className={`${overviewTheme.summaryIconCircleBase} ${overviewTheme.summaryIconCirclePending}`}
           >
-            <Clock4 className="h-5 w-5" />
+            <Clock4 className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </div>
       </div>
@@ -102,7 +102,7 @@ export default function OverviewSummarySection() {
           <div
             className={`${overviewTheme.summaryIconCircleBase} ${overviewTheme.summaryIconCircleOverdue}`}
           >
-            <AlertTriangle className="h-5 w-5" />
+            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@ export default function OverviewSummarySection() {
           <div
             className={`${overviewTheme.summaryIconCircleBase} ${overviewTheme.summaryIconCircleTotal}`}
           >
-            <Wallet2 className="h-5 w-5" />
+            <Wallet2 className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </div>
       </div>

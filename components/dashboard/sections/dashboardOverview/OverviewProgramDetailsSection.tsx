@@ -205,6 +205,7 @@ export default function OverviewProgramDetailsSection({
     return Math.min(100, Math.max(0, Math.round(pct)));
 
   }, [activeApplication?.progress, fallbackProgressPercentage, submissionProgress?.overallProgress]);
+  const progressChipPosition = Math.min(96, Math.max(4, progressPercentage));
 
 
 
@@ -334,7 +335,7 @@ export default function OverviewProgramDetailsSection({
 
                 className={overviewTheme.progressStepChipFloating}
 
-                style={{ left: `${progressPercentage}%` }}
+                style={{ left: `${progressChipPosition}%`, transform: "translateX(-50%)" }}
 
               >
 
@@ -397,4 +398,3 @@ export default function OverviewProgramDetailsSection({
   );
 
 }
-

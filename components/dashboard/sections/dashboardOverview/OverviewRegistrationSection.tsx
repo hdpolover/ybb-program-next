@@ -22,10 +22,15 @@ export default function OverviewRegistrationSection() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     flushSwitchCategoryFeedback();
   }, []);
+
+  useEffect(() => {
+    setIsDescriptionExpanded(false);
+  }, [activeApplication?.category]);
 
   const categoryUi = useMemo(() => {
     const category = activeApplication?.category;
@@ -55,6 +60,8 @@ export default function OverviewRegistrationSection() {
   const currentCategory = activeApplication?.category;
   const switchTarget = currentCategory === "self_funded" ? "fully_funded" : "self_funded";
   const switchTargetLabel = switchTarget === "fully_funded" ? "Fully Funded" : "Self Funded";
+  const shouldCollapseDescription = categoryUi.description.length > 150;
+  const collapsedDescription = `${categoryUi.description.slice(0, 150).trimEnd()}...`;
 
   if (isDashboardSummaryLoading) {
     return <DashboardPageSkeleton variant="overview-registration" className="w-full" />;
@@ -107,7 +114,7 @@ export default function OverviewRegistrationSection() {
       <div className={overviewTheme.registrationCard}>
         <div className="flex flex-wrap items-start gap-4">
           <div className={overviewTheme.registrationIconCircle}>
-            <GraduationCap className="h-5 w-5" />
+            <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <div className={overviewTheme.registrationBodyWrapper}>
             <div className={overviewTheme.registrationHeaderRow}>
@@ -118,8 +125,23 @@ export default function OverviewRegistrationSection() {
             </div>
 
             <p className={overviewTheme.registrationDescription}>
-              {categoryUi.description}
+              <span className="hidden md:inline">{categoryUi.description}</span>
+              <span className="md:hidden">
+                {shouldCollapseDescription && !isDescriptionExpanded
+                  ? collapsedDescription
+                  : categoryUi.description}
+              </span>
             </p>
+            {shouldCollapseDescription ? (
+              <button
+                type="button"
+                className={`${overviewTheme.registrationDescriptionToggle} md:hidden`}
+                onClick={() => setIsDescriptionExpanded(prev => !prev)}
+                aria-expanded={isDescriptionExpanded}
+              >
+                {isDescriptionExpanded ? "Show less" : "Read more"}
+              </button>
+            ) : null}
 
             {canSwitchCategory ? (
               <div className={overviewTheme.registrationFooterRow}>

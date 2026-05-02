@@ -270,20 +270,20 @@ export default function SubmissionEditEntryInformationSection({
                   {/* Left: title */}
                   <div className={submissionTheme.essayGuidebookTitle}>
                     <p>More Information?</p>
-                    <p className="text-primary">Check this Guidebook!</p>
+                    <p className="text-primary">Check this Guideline!</p>
                   </div>
 
                   {/* Center: description + button */}
                   <div className="text-center md:text-left">
                     <p className={submissionTheme.essayGuidebookSubtitle}>
-                      The complete information regarding this program can be seen <br/>in the guidebook below.
+                      The complete information regarding this program can be seen <br/>in the guideline below.
                     </p>
                     <button
                       type="button"
                       className={`${submissionTheme.primaryButton} mt-3 inline-flex items-center gap-2 px-6 py-2 text-xs`}
                     >
                       <BookOpen className="h-4 w-4" />
-                      <span>View Essay Guidebook</span>
+                      <span>View Essay Guideline</span>
                     </button>
                   </div>
 

@@ -469,7 +469,7 @@ export default function HomeRegistrationStrip({
                 </div>
               </div>
               <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
-                <div ref={primaryContentRef} className="h-[360px] overflow-hidden">
+                <div ref={primaryContentRef} className="relative h-[360px] overflow-hidden">
                   {hasRichTextContent(primaryType?.description) && (
                     <div
                       className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
@@ -498,6 +498,12 @@ export default function HomeRegistrationStrip({
                       </li>
                     ))}
                   </ul>
+                  {showPrimaryReadDetails && (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/95 to-transparent"
+                    />
+                  )}
                 </div>
                 {showPrimaryReadDetails && (
                   <div className="mt-auto pt-3 flex justify-end">
@@ -581,7 +587,7 @@ export default function HomeRegistrationStrip({
                 </div>
               </div>
               <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
-                <div ref={secondaryContentRef} className="h-[360px] overflow-hidden">
+                <div ref={secondaryContentRef} className="relative h-[360px] overflow-hidden">
                   {hasRichTextContent(secondaryType?.description) && (
                     <div
                       className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
@@ -612,6 +618,12 @@ export default function HomeRegistrationStrip({
                       </li>
                     ))}
                   </ul>
+                  {showSecondaryReadDetails && (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/95 to-transparent"
+                    />
+                  )}
                 </div>
                 {showSecondaryReadDetails && (
                   <div className="mt-auto pt-3 flex justify-end">

@@ -195,7 +195,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       pageSubtitle = 'Track your referral link, code, and ambassador performance.';
     } else {
       pageTitle = 'Dashboard Overview';
-      pageSubtitle = 'See your registration status, program details, and important guidebook info.';
+      pageSubtitle = 'See your registration status, program details, and important guideline info.';
     }
   } else if (pathname?.startsWith('/dashboard/submission')) {
     pageTitle = 'Submission';
@@ -426,9 +426,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         >
           <div className="flex h-screen flex-1 flex-col overflow-y-auto">
           {/* Navbar dashboard */}
-          <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-slate-100 bg-white px-4 py-4 sm:px-6 lg:px-8">
+          <header className="sticky top-0 z-10 flex items-center gap-3 overflow-x-clip border-b border-slate-100 bg-white px-4 py-4 sm:px-6 lg:px-8">
             {/* Left: mobile menu + collapsible search */}
-            <div className="flex flex-1 items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <button
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-700 ring-1 ring-slate-200 md:hidden"
@@ -471,7 +471,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             {/* Right: notifications + program selector + user menu */}
-            <div className="flex items-center gap-3">
+            <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
               <NotificationsPopover />
               <ProgramSelector programs={me?.registeredPrograms ?? []} />
               <UserMenuPopover

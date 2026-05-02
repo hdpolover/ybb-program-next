@@ -96,18 +96,18 @@ export default function ProgramSelector({
   const displayedLogo = active?.logo ?? settings?.brand?.logo_url ?? settings?.active_program?.logo_url ?? '/img/ybb-logo.png';
 
   return (
-    <div ref={ref} className="relative inline-block text-xs font-semibold tracking-wide">
+    <div ref={ref} className="relative inline-block max-w-full text-xs font-semibold tracking-wide">
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
-        className="inline-flex max-w-[20rem] items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 shadow-sm transition hover:border-primary/100 hover:text-primary"
+        className="inline-flex max-w-[10rem] items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700 shadow-sm transition hover:border-primary/100 hover:text-primary sm:max-w-[20rem]"
       >
         <span className="relative h-6 w-6 overflow-hidden rounded-full bg-slate-100">
           <Image src={displayedLogo} alt={displayedLabel} fill className="object-contain" priority unoptimized />
         </span>
-        <span className="truncate text-left normal-case">{displayedLabel}</span>
+        <span className="min-w-0 truncate text-left normal-case">{displayedLabel}</span>
         <ChevronDown
-          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : "rotate-0"}`}
+          className={`h-3 w-3 shrink-0 transition-transform ${open ? "rotate-180" : "rotate-0"}`}
         />
       </button>
 
