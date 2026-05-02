@@ -145,7 +145,7 @@ export default function RegistrationTypePrograms({
           {/* Kiri: kartu tipe registrasi (replikasi dari Registration Types di homepage) */}
           <div className={componentsTheme.homeRegistration.cardsGrid}>
             {/* Self Funded */}
-            <div className={componentsTheme.applyRegistrationTypes.card}>
+            <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.5rem)] snap-start lg:min-w-0`}>
               <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
                 <div className={componentsTheme.applyRegistrationTypes.headerRow}>
                   <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
@@ -243,7 +243,7 @@ export default function RegistrationTypePrograms({
             </div>
 
             {/* Fully Funded */}
-            <div className={componentsTheme.applyRegistrationTypes.card}>
+            <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.5rem)] snap-start lg:min-w-0`}>
               <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
                 <div className={componentsTheme.applyRegistrationTypes.headerRowTopAligned}>
                   <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>

@@ -68,6 +68,45 @@ export default function ProgramSteps({ journey }: ProgramStepsProps) {
           align="center"
         />
 
+        <div className={componentsTheme.programsSteps.mobileList}>
+          {items.map((item, index) => {
+            const iconType = inferStepIcon(item.title || '');
+            const stepNumber = item.step_number || '';
+            const descriptionLines = (item.description || DATA_NOT_ADDED).split(/\n+/);
+            const dateDisplay = item.date_display || DATA_NOT_ADDED;
+
+            return (
+              <article
+                key={`mobile-${item.step_number}-${item.title}`}
+                className={componentsTheme.programsSteps.mobileStepCard}
+              >
+                <div className={componentsTheme.programsSteps.mobileStepHeader}>
+                  <div className={componentsTheme.programsSteps.stepIconCircle}>
+                    <StepIcon type={iconType} />
+                  </div>
+                  <div>
+                    <p className={componentsTheme.programsSteps.stepLabel}>
+                      Step {stepNumber || index + 1}
+                    </p>
+                    <h3 className={componentsTheme.programsSteps.stepTitle}>{item.title}</h3>
+                    <p className="mt-1 text-xs font-semibold text-primary">{dateDisplay}</p>
+                  </div>
+                </div>
+                <ul className={componentsTheme.programsSteps.stepList}>
+                  {descriptionLines.map(line => (
+                    <li key={`mobile-line-${line}`} className={componentsTheme.programsSteps.stepListItem}>
+                      <span className="mt-1 inline text-emerald-500">
+                        <CheckCircle2 className={componentsTheme.programsSteps.stepListBulletIconInner} />
+                      </span>
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            );
+          })}
+        </div>
+
         {/* wrapper timeline perjalanan program */}
         <div className={componentsTheme.programsSteps.timelineGrid}>
           {/* Garis vertikal di samping step */}

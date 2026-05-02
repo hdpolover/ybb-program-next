@@ -10,9 +10,10 @@ export const programsTheme = {
     themeBlock: 'mt-4 space-y-3',
     themeHeading: 'text-sm font-semibold uppercase tracking-wide text-primary',
     themeTitle: 'mt-1 text-sm font-semibold text-slate-900 sm:text-base',
-    subthemesGrid: 'mt-2 grid gap-3 sm:grid-cols-2',
+    subthemesGrid:
+      'mt-2 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pt-1 px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-2 sm:overflow-visible sm:p-0',
     subthemeCard:
-      'rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-[0_10px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80',
+      'min-w-[calc(100%-2.5rem)] snap-start rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-[0_10px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80 sm:min-w-0',
     rightCol: 'mx-auto w-fit',
     rightCard:
       'w-[340px] sm:w-[380px] rounded-3xl bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80 sm:p-5',
@@ -65,8 +66,9 @@ export const programsTheme = {
     sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8',
     container: 'mx-auto max-w-7xl',
     subtitle: '-mt-6 mb-8 text-center text-sm text-primary sm:text-base',
-    cardsWrapper: 'flex flex-wrap justify-center gap-6',
-    card: 'group w-[320px] overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200 transition hover:shadow-md sm:w-[360px]',
+    cardsWrapper:
+      'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pt-1 pl-1 pr-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:justify-center sm:gap-6 sm:overflow-visible sm:pb-0 sm:pt-0 sm:pr-0',
+    card: 'group min-w-[calc(100%-2.5rem)] snap-start overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200 transition hover:shadow-md sm:w-[360px] sm:min-w-0',
     coverWrapper: 'relative aspect-[16/9] overflow-hidden',
     coverImage: 'object-cover transition group-hover:scale-105',
     logoBadgesWrapper: 'absolute left-3 top-3 flex items-center gap-2',
@@ -96,8 +98,9 @@ export const programsTheme = {
       "relative w-full bg-[url('/img/bgshorts60.jpg')] bg-cover bg-center bg-no-repeat py-10 sm:py-14 lg:py-16",
     overlay: 'absolute inset-0 bg-white/80',
     container: 'relative mx-auto max-w-7xl px-6 lg:px-8',
-    cardsGrid: 'mt-8 grid gap-6 md:grid-cols-2',
-    card: 'flex h-full flex-col rounded-3xl bg-white px-5 py-5 shadow-[0_18px_50px_rgba(15,23,42,0.24)] ring-1 ring-slate-200/80 sm:px-6 sm:py-6',
+    cardsGrid:
+      'mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pt-1 pl-1 pr-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-2 md:overflow-visible md:pb-0 md:pt-0 md:pr-0',
+    card: 'flex h-full min-w-[calc(100%-2.5rem)] snap-start flex-col rounded-3xl bg-white px-5 py-5 shadow-[0_18px_50px_rgba(15,23,42,0.24)] ring-1 ring-slate-200/80 sm:px-6 sm:py-6 md:min-w-0',
     metaRow: 'flex flex-wrap items-center gap-3 text-xs font-medium text-slate-600 sm:text-[13px]',
     metaItem: 'flex items-center gap-1.5',
     metaIcon: 'h-4 w-4 text-primary',
@@ -116,7 +119,12 @@ export const programsTheme = {
     sectionWrapper:
       'relative w-full bg-gradient-to-b from-white to-primary/10/50 py-10 sm:py-14 lg:py-16',
     container: 'relative mx-auto max-w-5xl px-6 lg:px-8',
-    timelineGrid: 'mt-8 grid grid-cols-[auto,1fr] gap-x-5 sm:gap-x-7',
+    mobileList:
+      'mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pt-1 pl-1 pr-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden',
+    mobileStepCard:
+      'min-w-[calc(100%-2.5rem)] snap-start rounded-2xl bg-white/95 px-4 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/70',
+    mobileStepHeader: 'flex items-center gap-3',
+    timelineGrid: 'mt-8 hidden grid-cols-[auto,1fr] gap-x-5 sm:gap-x-7 md:grid',
     lineCol: 'relative col-span-1 row-span-full',
     line: 'mx-auto h-full w-px bg-gradient-to-b from-primary/60 via-primary/40 to-transparent',
     stepsCol: 'space-y-6',

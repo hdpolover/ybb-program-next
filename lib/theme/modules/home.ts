@@ -333,7 +333,8 @@ export const homeTheme = {
     introText: 'mx-auto -mt-6 mb-8 max-w-3xl text-center text-sm text-slate-600 sm:text-base',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
     mainGrid: 'mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1.1fr)]',
-    cardsGrid: 'grid gap-6 lg:grid-cols-2',
+    cardsGrid:
+      'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pt-1 pl-1 pr-8 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-2 lg:overflow-visible lg:pb-0 lg:pt-0 lg:pr-0',
     instagramCard:
       'overflow-hidden rounded-2xl bg-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     instagramHeader:
