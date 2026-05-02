@@ -224,6 +224,8 @@ export default async function Home() {
           subtitle={promoCTASection.content.subtitle}
           primaryCtaLabel={promoCTASection.content.primary_cta_label}
           primaryCtaHref={promoCTASection.content.primary_cta_href}
+          backgroundImageUrl={promoCTASection.content.background_image_url ?? undefined}
+          backgroundImageMobileUrl={promoCTASection.content.background_image_mobile_url ?? undefined}
           videoUrl={promoCTASection.content.video_url ?? undefined}
           videoTitle={promoCTASection.content.video_title ?? undefined}
           videoDescription={promoCTASection.content.video_description ?? undefined}

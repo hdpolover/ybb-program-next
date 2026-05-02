@@ -90,11 +90,31 @@ function isViewOnlyMetaField(field: PortalSubmissionField) {
 
 function isLegacyEssayField(field: PortalSubmissionField) {
   const normalized = normalizeFieldKey(field.name);
-  return (
+  if (
     normalized.includes('essay') ||
     normalized.includes('keyword') ||
     normalized.includes('reference')
-  );
+  ) {
+    return true;
+  }
+
+  if (field.type !== 'textarea') return false;
+
+  const label = field.label.trim().toLowerCase().replace(/\s+/g, ' ');
+  const placeholder = (field.placeholder || '').trim().toLowerCase();
+  const rules = field.validationRules;
+  const hasWordLimitRule =
+    rules &&
+    typeof rules === 'object' &&
+    ['wordLimit', 'maxWords', 'minWords'].some(key =>
+      Object.prototype.hasOwnProperty.call(rules, key)
+    );
+  const looksLikeEssayPrompt =
+    label.endsWith('?') ||
+    label.includes('word limit') ||
+    placeholder.includes('word limit');
+
+  return Boolean(hasWordLimitRule || looksLikeEssayPrompt);
 }
 
 function shouldRenderReadOnlyField(

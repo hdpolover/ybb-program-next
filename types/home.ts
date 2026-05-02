@@ -295,6 +295,8 @@ export type PromoCTASection = {
     subtitle: string;
     primary_cta_label: string;
     primary_cta_href: string;
+    background_image_url: string | null;
+    background_image_mobile_url: string | null;
     video_url: string | null;
     video_title: string | null;
     video_description: string | null;

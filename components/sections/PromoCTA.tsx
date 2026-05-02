@@ -1,5 +1,4 @@
 import { componentsTheme } from '@/lib/theme/components';
-import Image from 'next/image';
 import { normalizeLandingCtaHref } from '@/lib/landing/cta';
 
 export type PromoCTAProps = {
@@ -8,6 +7,8 @@ export type PromoCTAProps = {
   subtitle?: string;
   primaryCtaLabel?: string;
   primaryCtaHref?: string;
+  backgroundImageUrl?: string;
+  backgroundImageMobileUrl?: string;
   videoUrl?: string;
   videoTitle?: string;
   videoDescription?: string;
@@ -19,24 +20,29 @@ export default function PromoCTA({
   subtitle = 'Be part of a global community of young leaders and innovators who are creating real impact through international programs.',
   primaryCtaLabel = 'Apply Now',
   primaryCtaHref = '/apply',
+  backgroundImageUrl,
+  backgroundImageMobileUrl,
   videoUrl,
   videoTitle,
   videoDescription,
 }: PromoCTAProps) {
   const resolvedPrimaryCtaHref = normalizeLandingCtaHref(primaryCtaHref);
+  const resolvedDesktopBackground = backgroundImageUrl?.trim() || '/img/ctabekground.png';
+  const resolvedMobileBackground =
+    backgroundImageMobileUrl?.trim() ||
+    backgroundImageUrl?.trim() ||
+    '/img/ctabackgroundformobile.png';
 
   return (
-    <section className={componentsTheme.promoCta.sectionWrapper}>
-      <div className="absolute inset-0 sm:hidden">
-        <Image
-          src="/img/ctabackgroundformobile.png"
-          alt=""
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover object-center"
-        />
-      </div>
+    <section
+      className={componentsTheme.promoCta.sectionWrapper}
+      style={{ backgroundImage: `url(${resolvedDesktopBackground})` }}
+    >
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
+        style={{ backgroundImage: `url(${resolvedMobileBackground})` }}
+        aria-hidden="true"
+      />
 
       <div className={componentsTheme.promoCta.glowLeft} />
       <div className={componentsTheme.promoCta.glowRight} />
@@ -45,20 +51,20 @@ export default function PromoCTA({
       <div className={componentsTheme.promoCta.container}>
         <div className={componentsTheme.promoCta.leftCol}>
           {eyebrow && (
-            <p className={componentsTheme.promoCta.eyebrow}>
+            <p className={`${componentsTheme.promoCta.eyebrow} break-words`}>
               {eyebrow}
             </p>
           )}
-          <h2 className={componentsTheme.promoCta.title}>
+          <h2 className={`${componentsTheme.promoCta.title} break-words`}>
             {title}
           </h2>
-          <p className={componentsTheme.promoCta.subtitle}>
+          <p className={`${componentsTheme.promoCta.subtitle} break-words`}>
             {subtitle}
           </p>
           <div className={componentsTheme.promoCta.actionsRow}>
             <a
               href={resolvedPrimaryCtaHref}
-              className={componentsTheme.promoCta.primaryButton}
+              className={`${componentsTheme.promoCta.primaryButton} max-w-full break-words text-center whitespace-normal`}
             >
               {primaryCtaLabel}
             </a>
@@ -80,12 +86,12 @@ export default function PromoCTA({
               {(videoTitle || videoDescription) && (
                 <div className="mt-3">
                   {videoTitle && (
-                    <h3 className={componentsTheme.promoCta.videoTitle}>
+                    <h3 className={`${componentsTheme.promoCta.videoTitle} break-words`}>
                       {videoTitle}
                     </h3>
                   )}
                   {videoDescription && (
-                    <p className={componentsTheme.promoCta.videoDescription}>
+                    <p className={`${componentsTheme.promoCta.videoDescription} break-words`}>
                       {videoDescription}
                     </p>
                   )}

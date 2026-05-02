@@ -46,7 +46,7 @@ export default function FeaturedSpeakers({
           <div className="relative">
             <div
               ref={listRef}
-              className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 pl-1 pr-1 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {speakers.map(sp => (
                 <SpeakerCard

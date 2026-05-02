@@ -6,7 +6,7 @@ export const homeTheme = {
     title: 'text-2xl font-extrabold leading-tight text-slate-900 sm:text-3xl lg:text-4xl',
     description: 'mt-3 max-w-md text-sm leading-relaxed text-slate-900/90 sm:text-base lg:text-lg',
     shortsRow:
-      'flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible sm:pb-0',
+      'flex gap-4 overflow-x-auto pb-2 pt-1 px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible sm:pb-0 sm:pt-0',
     shortWrapper:
       'relative h-80 w-56 flex-shrink-0 snap-start overflow-hidden rounded-xl bg-black/15 sm:w-full',
     shortIframe: 'absolute inset-0 h-full w-full border-0',
@@ -101,7 +101,7 @@ export const homeTheme = {
     mainIframe: 'absolute inset-0 h-full w-full border-0 rounded-2xl',
     reelsTitle: 'text-sm font-semibold uppercase tracking-wide text-[var(--brand-accent)]',
     reelsGrid:
-      'mt-4 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:pb-0 md:grid-cols-4',
+      'mt-4 flex gap-3 overflow-x-auto pb-2 pt-1 px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:pb-0 sm:pt-0 md:grid-cols-4',
     reelItem:
       'relative aspect-[9/16] w-56 flex-shrink-0 snap-start overflow-hidden rounded-xl sm:w-full sm:max-w-[270px] sm:mx-auto',
     reelVideo: 'h-full w-full object-cover',
@@ -329,7 +329,7 @@ export const homeTheme = {
     videoDescription: 'mt-1 text-xs text-slate-600 sm:text-sm',
   },
   homeRegistration: {
-    sectionWrapper: 'relative w-full bg-[#ffffff72] py-14 sm:py-16',
+    sectionWrapper: 'relative w-full bg-[#ffffff72] pt-6 pb-14 sm:py-16',
     introText: 'mx-auto -mt-6 mb-8 max-w-3xl text-center text-sm text-slate-600 sm:text-base',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
     mainGrid: 'mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1.1fr)]',

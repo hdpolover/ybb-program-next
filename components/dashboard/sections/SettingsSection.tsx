@@ -2,17 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { signInWithPopup, signOut } from "firebase/auth";
 import {
   KeyRound,
   Mail,
   Shield,
   Chrome,
   UserRound,
+  Lock,
+  Eye,
+  EyeOff,
   Loader2,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
 import { parseApiDate } from "@/lib/utils";
+import { auth, googleProvider } from "@/lib/firebase";
 
 function formatLastUsedAt(value?: string | null): string | null {
   if (!value) return null;
@@ -117,27 +122,56 @@ function providerLabel(provider: string): string {
   return provider.charAt(0).toUpperCase() + provider.slice(1);
 }
 
+function getPasswordRules(password: string) {
+  return {
+    minLength: password.length >= 8,
+    lower: /[a-z]/.test(password),
+    upper: /[A-Z]/.test(password),
+    numberOrSymbol: /[\d\W]/.test(password),
+  };
+}
+
+function isStrongPassword(password: string) {
+  const rules = getPasswordRules(password);
+  return rules.minLength && rules.lower && rules.upper && rules.numberOrSymbol;
+}
+
 export default function SettingsSection() {
   const [authMe, setAuthMe] = useState<AuthMeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [resetState, setResetState] = useState<
     "idle" | "sending" | "sent" | "error"
   >("idle");
+  const [googleLinking, setGoogleLinking] = useState(false);
+  const [linkState, setLinkState] = useState<"idle" | "linking" | "linked" | "error">("idle");
+  const [linkError, setLinkError] = useState("");
+  const [showLinkPassword, setShowLinkPassword] = useState(false);
+  const [showLinkConfirmPassword, setShowLinkConfirmPassword] = useState(false);
+  const [linkForm, setLinkForm] = useState({
+    password: "",
+    confirmPassword: "",
+  });
+
+  const loadAuthMe = async () => {
+    const res = await fetch("/api/auth/me");
+    const json = (await res.json()) as ApiResponse<AuthMeData>;
+    if (json.data) setAuthMe(json.data);
+  };
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((json: ApiResponse<AuthMeData>) => {
-        if (json.data) setAuthMe(json.data);
-      })
+    loadAuthMe()
       .catch(() => {
         /* silently ignore */
       })
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hasLocalIdentity = authMe?.identities?.some(
     (i) => i.provider === "local" || i.provider === "email"
+  );
+  const hasGoogleIdentity = authMe?.identities?.some(
+    (i) => i.provider === "google" || i.provider === "google.com"
   );
 
   const handleResetPassword = async () => {
@@ -164,9 +198,101 @@ export default function SettingsSection() {
     }
   };
 
+  const handleConnectGoogle = async () => {
+    if (!authMe?.email || googleLinking) return;
+
+    setGoogleLinking(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const googleEmail = result.user.email?.trim().toLowerCase() || "";
+      const currentEmail = authMe.email.trim().toLowerCase();
+
+      if (!googleEmail || googleEmail !== currentEmail) {
+        await signOut(auth).catch(() => undefined);
+        throw new Error("Use the same email as your current account to connect Google sign-in.");
+      }
+
+      const idToken = await result.user.getIdToken();
+      const res = await fetch("/api/auth/firebase-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        statusCode?: number;
+        message?: string;
+      };
+      if (!res.ok) {
+        throw new Error(json?.message || "Failed to connect Google sign-in.");
+      }
+
+      await loadAuthMe();
+      toast.success("Google sign-in connected.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to connect Google sign-in.";
+      toast.error(message);
+    } finally {
+      setGoogleLinking(false);
+    }
+  };
+
+  const handleLinkLocalAuth = async () => {
+    if (!authMe?.email || linkState === "linking") return;
+    if (!linkForm.password || !linkForm.confirmPassword) {
+      setLinkState("error");
+      setLinkError("Password and confirm password are required.");
+      return;
+    }
+    if (!isStrongPassword(linkForm.password)) {
+      setLinkState("error");
+      setLinkError(
+        "Use at least 8 characters with uppercase, lowercase, and a number or symbol."
+      );
+      return;
+    }
+    if (linkForm.password !== linkForm.confirmPassword) {
+      setLinkState("error");
+      setLinkError("Password and confirm password do not match.");
+      return;
+    }
+
+    setLinkState("linking");
+    setLinkError("");
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: authMe.email,
+          password: linkForm.password,
+        }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        statusCode?: number;
+        message?: string;
+      };
+
+      if (!res.ok) {
+        throw new Error(json?.message || "Failed to add email & password sign-in.");
+      }
+
+      await loadAuthMe();
+      setLinkState("linked");
+      setLinkForm({ password: "", confirmPassword: "" });
+      toast.success("Email & password sign-in has been added.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to add email & password sign-in.";
+      setLinkState("error");
+      setLinkError(message);
+      toast.error(message);
+    }
+  };
+
   if (loading) {
     return <SettingsSkeleton />;
   }
+
+  const passwordRules = getPasswordRules(linkForm.password);
 
   return (
     <div className="space-y-6">
@@ -246,6 +372,19 @@ export default function SettingsSection() {
                   No sign-in methods found.
                 </p>
               )}
+              {!hasGoogleIdentity ? (
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={handleConnectGoogle}
+                    disabled={googleLinking}
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {googleLinking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Chrome className="h-4 w-4 text-blue-500" />}
+                    {googleLinking ? "Connecting..." : "Connect Google"}
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         </section>
@@ -294,12 +433,97 @@ export default function SettingsSection() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-400">
-                <Shield className="h-4 w-4 shrink-0" />
-                <span>
-                  You&apos;re signed in with a social provider. Password
-                  management is handled by your provider.
-                </span>
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-slate-700">
+                  Add email &amp; password sign-in
+                </p>
+                <p className="text-xs text-slate-500">
+                  You currently sign in with a social provider. Add a password so you can also log in with email.
+                </p>
+                <div className="space-y-2">
+                  <label className="block">
+                    <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      New password
+                    </span>
+                    <div className="relative">
+                      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type={showLinkPassword ? "text" : "password"}
+                        value={linkForm.password}
+                        onChange={(event) =>
+                          setLinkForm((current) => ({ ...current, password: event.target.value }))
+                        }
+                        className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-10 text-sm text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        placeholder="8+ chars, uppercase, lowercase, number/symbol"
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLinkPassword((prev) => !prev)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        aria-label={showLinkPassword ? "Hide password" : "Show password"}
+                      >
+                        {showLinkPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </label>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                    <p className={passwordRules.minLength ? "text-emerald-600" : ""}>• 8+ characters</p>
+                    <p className={passwordRules.upper ? "text-emerald-600" : ""}>• Uppercase letter</p>
+                    <p className={passwordRules.lower ? "text-emerald-600" : ""}>• Lowercase letter</p>
+                    <p className={passwordRules.numberOrSymbol ? "text-emerald-600" : ""}>• Number or symbol</p>
+                  </div>
+                  <label className="block">
+                    <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      Confirm password
+                    </span>
+                    <div className="relative">
+                      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type={showLinkConfirmPassword ? "text" : "password"}
+                        value={linkForm.confirmPassword}
+                        onChange={(event) =>
+                          setLinkForm((current) => ({ ...current, confirmPassword: event.target.value }))
+                        }
+                        className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-10 text-sm text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        placeholder="Re-enter your password"
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLinkConfirmPassword((prev) => !prev)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        aria-label={showLinkConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showLinkConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </label>
+                </div>
+                {linkError ? (
+                  <p className="text-xs text-red-600">{linkError}</p>
+                ) : null}
+                {linkState === "linked" ? (
+                  <p className="flex items-center gap-1 text-xs font-medium text-emerald-600">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Email &amp; password sign-in connected.
+                  </p>
+                ) : null}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleLinkLocalAuth}
+                    disabled={linkState === "linking"}
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {linkState === "linking" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    {linkState === "linking" ? "Adding..." : "Add sign-in method"}
+                  </button>
+                  <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <Shield className="h-3.5 w-3.5" />
+                    Existing social login stays connected.
+                  </div>
+                </div>
               </div>
             )}
           </div>

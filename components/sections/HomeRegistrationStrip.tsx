@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
+import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import Image from 'next/image';
 import { componentsTheme } from '@/lib/theme/components';
 
@@ -299,10 +299,10 @@ export default function HomeRegistrationStrip({
   }, [primaryDescriptionHtml, secondaryDescriptionHtml, primaryRequirements, secondaryRequirements, primaryBenefits, secondaryBenefits]);
 
   return (
-    <section className={componentsTheme.homeRegistration.sectionWrapper}>
+    <section className={`${componentsTheme.homeRegistration.sectionWrapper} overflow-x-hidden`}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.6fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.7fr)]">
-          <div className="flex h-full min-h-0 flex-col gap-4">
+          <div className="flex h-full min-h-0 min-w-0 flex-col gap-4">
             <div className={`${componentsTheme.homeRegistration.instagramCard} flex min-h-0 flex-1 flex-col p-0`}>
               {activePost ? (
                 <div className="flex h-full min-h-0 flex-col p-4">
@@ -349,7 +349,7 @@ export default function HomeRegistrationStrip({
                     </a>
                   )}
 
-                  <div className="mt-4 flex items-center justify-between gap-3">
+                  <div className="mt-4 flex min-w-0 items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       {posts.map((post, index) => (
                         <button
@@ -367,9 +367,9 @@ export default function HomeRegistrationStrip({
                       href={activePost.permalink}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80"
+                      className="inline-flex min-w-0 items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80"
                     >
-                      View on Instagram
+                      <span className="truncate">View on Instagram</span>
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   </div>
@@ -383,28 +383,16 @@ export default function HomeRegistrationStrip({
 
             <div className="grid gap-3">
               {displayedGuidelines.length > 0 ? (
-                displayedGuidelines.map((guide, index) => (
+                displayedGuidelines.map((guide) => (
                   <a
                     key={guide.id}
                     href={guide.url}
                     target="_blank"
                     rel="noreferrer"
-                    className={`group relative flex items-center justify-between overflow-hidden rounded-2xl border px-4 py-3 text-left transition ${
-                      index === 0
-                        ? 'border-[var(--brand-accent)] bg-[var(--brand-accent-soft)] hover:opacity-95'
-                        : 'border-[var(--brand-border)] bg-[var(--brand-accent-soft)] hover:opacity-90'
-                    }`}
+                    className="inline-flex w-full items-center justify-between gap-3 rounded-md bg-[var(--brand-accent)] px-4 py-3 text-left text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2"
                   >
-                    <span className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-[var(--brand-accent)]" />
-                    <div className="min-w-0">
-                      <p className="inline-flex items-center rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--brand-accent)]">
-                        Guideline
-                      </p>
-                      <p className="mt-1 truncate text-sm font-bold text-slate-900">{guide.title}</p>
-                    </div>
-                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[var(--brand-accent)] transition group-hover:bg-[var(--brand-accent-soft)]">
-                      <ExternalLink className="h-4 w-4" />
-                    </span>
+                    <span className="truncate">{guide.title}</span>
+                    <ExternalLink className="h-4 w-4 shrink-0" />
                   </a>
                 ))
               ) : (
@@ -415,7 +403,7 @@ export default function HomeRegistrationStrip({
             </div>
           </div>
 
-          <div className="flex h-full min-h-0 flex-col space-y-4">
+          <div className="flex h-full min-h-0 min-w-0 flex-col space-y-4">
             <div className="space-y-2">
               <p className="text-accent text-xs font-semibold uppercase tracking-wider">
                 Registration Types
@@ -428,8 +416,13 @@ export default function HomeRegistrationStrip({
               </p>
             </div>
 
-            <div className="grid flex-1 gap-6 lg:grid-cols-2">
-            <div className={componentsTheme.applyRegistrationTypes.card}>
+            <div className="relative">
+              <p className="mb-2 flex items-center justify-end gap-1 text-xs font-medium text-slate-500 lg:hidden">
+                Swipe for more
+                <ArrowRight className="h-3.5 w-3.5" />
+              </p>
+              <div className="flex w-full min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pl-1 pr-8 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:overflow-visible lg:pb-0 lg:pr-0 lg:pt-0">
+            <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.75rem)] snap-start lg:min-w-0`}>
               <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
                 <div className={componentsTheme.applyRegistrationTypes.headerRow}>
                   <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
@@ -547,7 +540,7 @@ export default function HomeRegistrationStrip({
               </div>
             </div>
 
-            <div className={componentsTheme.applyRegistrationTypes.card}>
+            <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.75rem)] snap-start lg:min-w-0`}>
               <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
                 <div className={componentsTheme.applyRegistrationTypes.headerRowTopAligned}>
                   <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
@@ -666,6 +659,11 @@ export default function HomeRegistrationStrip({
                 </div>
               </div>
             </div>
+            </div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#ffffff72] to-transparent lg:hidden"
+              />
             </div>
           </div>
         </div>

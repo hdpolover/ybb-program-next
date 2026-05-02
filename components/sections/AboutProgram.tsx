@@ -150,47 +150,6 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
               </button>
             </div>
 
-            <div className="mt-6 sm:hidden">
-              <div className={componentsTheme.aboutProgram.collageWrapper}>
-                <div className={componentsTheme.aboutProgram.collageGrid}>
-                  <div
-                    className={`${componentsTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
-                  >
-                    <Image
-                      src={imageMain}
-                      alt="Japan Youth Summit main program"
-                      fill
-                      sizes="100vw"
-                      className={componentsTheme.aboutProgram.collageImage}
-                    />
-                  </div>
-
-                  <div
-                    className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
-                  >
-                    <Image
-                      src={imageSecondary}
-                      alt="Japan Youth Summit activity"
-                      fill
-                      sizes="50vw"
-                      className={componentsTheme.aboutProgram.collageImage}
-                    />
-                  </div>
-                  <div
-                    className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
-                  >
-                    <Image
-                      src={imageThird}
-                      alt="Japan Youth Summit highlight"
-                      fill
-                      sizes="50vw"
-                      className={componentsTheme.aboutProgram.collageImage}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div className={`hidden sm:block ${componentsTheme.aboutProgram.contentWrapper}`}>
               {activeTab === 'vision' ? renderContent(vision) : renderContent(mission)}
             </div>
@@ -259,6 +218,47 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
               >
                 I Want To Join
               </a>
+            </div>
+          </div>
+
+          <div className="mt-6 sm:hidden">
+            <div className={componentsTheme.aboutProgram.collageWrapper}>
+              <div className={componentsTheme.aboutProgram.collageGrid}>
+                <div
+                  className={`${componentsTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                >
+                  <Image
+                    src={imageMain}
+                    alt="Japan Youth Summit main program"
+                    fill
+                    sizes="100vw"
+                    className={componentsTheme.aboutProgram.collageImage}
+                  />
+                </div>
+
+                <div
+                  className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
+                >
+                  <Image
+                    src={imageSecondary}
+                    alt="Japan Youth Summit activity"
+                    fill
+                    sizes="50vw"
+                    className={componentsTheme.aboutProgram.collageImage}
+                  />
+                </div>
+                <div
+                  className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
+                >
+                  <Image
+                    src={imageThird}
+                    alt="Japan Youth Summit highlight"
+                    fill
+                    sizes="50vw"
+                    className={componentsTheme.aboutProgram.collageImage}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

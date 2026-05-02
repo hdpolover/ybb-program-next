@@ -2,9 +2,10 @@ export const partnersTheme = {
   partnersWhy: {
     sectionWrapper: 'px-6 py-14 sm:py-16 md:py-20 lg:px-8',
     container: 'mx-auto max-w-7xl',
-    grid: 'mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4',
+    grid:
+      'mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pl-1 pr-6 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:pb-0 sm:pr-0 sm:pt-0 lg:grid-cols-4',
     featureCard:
-      'flex h-full flex-col gap-2 rounded-2xl bg-white p-5 text-left shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
+      'flex h-full min-w-[85%] snap-start flex-col gap-2 rounded-2xl bg-white p-5 text-left shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 sm:min-w-0',
     featureIconCircle:
       'inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/30',
     featureIcon: 'h-5 w-5',
@@ -17,8 +18,9 @@ export const partnersTheme = {
   partnersJourney: {
     sectionWrapper: 'px-6 py-14 sm:py-16 md:py-20 lg:px-8',
     container: 'mx-auto max-w-7xl',
-    grid: 'mt-20 grid gap-10 sm:grid-cols-2 lg:grid-cols-4',
-    card: 'flex flex-col gap-2',
+    grid:
+      'mt-12 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 pl-1 pr-6 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mt-20 sm:grid sm:grid-cols-2 sm:gap-10 sm:overflow-visible sm:pb-0 sm:pr-0 sm:pt-0 lg:grid-cols-4',
+    card: 'flex min-w-[85%] snap-start flex-col gap-2 sm:min-w-0',
     number: 'text-4xl font-extrabold tracking-tight text-primary sm:text-5xl',
     title: 'text-base font-extrabold text-slate-900 sm:text-lg',
     description: 'text-sm leading-relaxed text-slate-700 sm:text-base',
@@ -26,9 +28,10 @@ export const partnersTheme = {
   partnersSponsorTiers: {
     sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8',
     container: 'mx-auto max-w-7xl',
-    tiersGrid: 'grid gap-6 lg:grid-cols-3',
+    tiersGrid:
+      'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pl-1 pr-6 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:pb-0 lg:pr-0 lg:pt-0',
     diamondCard:
-      'rounded-2xl bg-white p-6 shadow-[0_10px_40px_rgba(2,6,23,0.08)] ring-2 ring-primary/30 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-primary/40',
+      'min-w-[85%] snap-start rounded-2xl bg-white p-6 shadow-[0_10px_40px_rgba(2,6,23,0.08)] ring-2 ring-primary/30 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-primary/40 lg:min-w-0',
     diamondIconCircle: 'inline-grid h-9 w-9 place-items-center rounded-full bg-primary text-white',
     diamondLabel: 'text-xs font-semibold uppercase tracking-wide text-primary',
     diamondLogoImg: 'h-9 w-9 rounded bg-white object-contain p-1 ring-1 ring-slate-200',
@@ -36,7 +39,7 @@ export const partnersTheme = {
     mutedMeta: 'mt-1 text-xs text-slate-600',
     bodyText: 'mt-2 text-sm text-slate-700',
     goldCard:
-      'rounded-2xl bg-white p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-amber-200/60',
+      'min-w-[85%] snap-start rounded-2xl bg-white p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-amber-200/60 lg:min-w-0',
     goldIconCircle:
       'inline-grid h-9 w-9 place-items-center rounded-full bg-amber-500/20 text-amber-600 ring-1 ring-amber-200',
     goldLabel: 'text-xs font-semibold uppercase tracking-wide text-amber-700',
@@ -48,7 +51,7 @@ export const partnersTheme = {
     goldOrgMeta: 'text-xs text-slate-600',
     goldOrgBody: 'mt-1 text-sm text-slate-700',
     silverCard:
-      'rounded-2xl bg-white p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
+      'min-w-[85%] snap-start rounded-2xl bg-white p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 lg:min-w-0',
     silverIconCircle:
       'inline-grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200',
     silverLabel: 'text-xs font-semibold uppercase tracking-wide text-slate-700',
@@ -116,13 +119,14 @@ export const partnersTheme = {
     sectionWrapper: 'relative w-full py-16 sm:py-20',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
     subtitle: 'mx-auto -mt-6 mb-8 max-w-2xl text-center text-sm text-slate-600 sm:mb-10',
-    grid: 'mx-auto grid max-w-5xl gap-6 md:grid-cols-3',
+    grid:
+      'mx-auto grid max-w-5xl grid-flow-col auto-cols-[100%] snap-x snap-mandatory items-stretch gap-4 overflow-x-auto pb-2 pt-1 px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid-flow-row md:auto-cols-auto md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 md:pr-0 md:pt-0',
     communityCard:
-      'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-blue-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
+      'group flex h-full w-full snap-start flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-blue-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     silverCard:
-      'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-slate-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
+      'group flex h-full w-full snap-start flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-slate-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     goldCard:
-      'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-amber-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-amber-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
+      'group flex h-full w-full snap-start flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-amber-50 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-amber-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     diamondCard:
       'group flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-t from-primary/10 to-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-2 ring-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)]',
     cardBody: 'p-5',
@@ -155,8 +159,9 @@ export const partnersTheme = {
     sectionWrapper:
       "relative w-full bg-[url('/img/sebelumfooter.png')] bg-cover bg-center px-6 py-12 sm:py-14 md:py-16 lg:px-8",
     container: 'mx-auto max-w-7xl',
-    listWrapper: 'flex flex-wrap justify-center gap-6',
-    card: 'group w-[340px] sm:w-[360px] flex items-start gap-4 rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-primary/40',
+    listWrapper:
+      'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pl-1 pr-6 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:justify-center sm:gap-6 sm:overflow-visible sm:pb-0 sm:pr-0 sm:pt-0',
+    card: 'group flex min-w-[85%] snap-start items-start gap-4 rounded-2xl bg-white p-5 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-primary/40 sm:w-[360px] sm:min-w-0',
     logoImg: 'h-12 w-12 rounded bg-white object-contain p-1.5 ring-1 ring-slate-200',
     orgName: 'font-extrabold text-slate-900',
     brandChip:

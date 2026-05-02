@@ -1,6 +1,7 @@
 import AnnouncementsGrid from '@/components/announcements/AnnouncementsGrid';
 import HeroSection from '@/components/ui/HeroSection';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
+import { resolveAnnouncementHref } from '@/lib/announcements';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { headers } from 'next/headers';
 import type { AnnouncementListSection, AnnouncementsHeroSection } from '@/types/announcements';
@@ -30,7 +31,7 @@ export default async function AnnouncementsPage() {
     excerpt: item.excerpt || '',
     author: item.author || 'YBB',
     date: item.date || '',
-    href: item.href || undefined,
+    href: resolveAnnouncementHref(item.id, item.href),
     category: (item.category as any) || undefined,
   }));
 
