@@ -211,7 +211,9 @@ export const homeTheme = {
     contentWrapper: 'mt-5 space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base',
     aboutPreviewWrapper: 'relative',
     contentPreviewClamp:
-      'max-h-[220px] overflow-hidden [-webkit-mask-image:linear-gradient(to_bottom,black_72%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_72%,transparent_100%)]',
+      'max-h-[220px] overflow-hidden',
+    contentPreviewFade:
+      'pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#f4f7fb] via-[#f4f7fb]/85 to-transparent',
     readMoreButton:
       'inline-flex items-center text-sm font-semibold text-[var(--brand-accent)] underline decoration-[var(--brand-accent)]/35 underline-offset-4 transition hover:decoration-[var(--brand-accent)]',
     richText:

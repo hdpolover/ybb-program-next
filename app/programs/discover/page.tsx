@@ -9,6 +9,10 @@ type ProgramDestination = {
   href: string | null;
 };
 
+type DiscoverProgramsPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>;
+};
+
 function toProgramsHref(rawUrl?: string | null): string | null {
   const raw = (rawUrl || '').trim();
   if (!raw) return null;
@@ -37,9 +41,16 @@ function initial(name: string): string {
   return cleaned ? cleaned.charAt(0).toUpperCase() : '?';
 }
 
-export default async function DiscoverProgramsPage() {
+function readSearchTerm(value: string | string[] | undefined): { raw: string; normalized: string } {
+  const raw = Array.isArray(value) ? (value[0] || '').trim() : (value || '').trim();
+  return { raw, normalized: raw.toLowerCase() };
+}
+
+export default async function DiscoverProgramsPage({ searchParams }: DiscoverProgramsPageProps) {
   const host = (await headers()).get('host') || '';
   const settings = await getSettingsForBrandDomain(host);
+  const resolvedSearchParams = await Promise.resolve(searchParams ?? {});
+  const { raw: searchTerm, normalized: normalizedSearchTerm } = readSearchTerm(resolvedSearchParams.q);
 
   const currentName = settings?.brand?.name || 'Current Program';
   const currentLogo = settings?.brand?.logo_icon_url || null;
@@ -61,8 +72,12 @@ export default async function DiscoverProgramsPage() {
     })
     .map(({ host: _ignored, ...entry }) => entry);
 
-  const openNow = others.filter((entry) => Boolean(entry.href));
-  const comingSoon = others.filter((entry) => !entry.href);
+  const filtered = normalizedSearchTerm
+    ? others.filter((entry) => entry.name.toLowerCase().includes(normalizedSearchTerm))
+    : others;
+  const openNow = filtered.filter((entry) => Boolean(entry.href));
+  const comingSoon = filtered.filter((entry) => !entry.href);
+  const hasResults = openNow.length > 0 || comingSoon.length > 0;
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-16">
@@ -71,6 +86,11 @@ export default async function DiscoverProgramsPage() {
         <p className="mt-2 text-sm text-slate-600">
           Browse all available program destinations and open them in a new tab.
         </p>
+        {searchTerm && (
+          <p className="mt-2 text-sm text-slate-600">
+            Showing results for <span className="font-semibold text-slate-900">&quot;{searchTerm}&quot;</span>
+          </p>
+        )}
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <a
@@ -99,6 +119,12 @@ export default async function DiscoverProgramsPage() {
             <span className="text-xs font-semibold uppercase tracking-wide">Current</span>
           </a>
         </div>
+
+        {searchTerm && !hasResults && (
+          <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            No programs found for <span className="font-semibold text-slate-900">&quot;{searchTerm}&quot;</span>.
+          </div>
+        )}
 
         {openNow.length > 0 && (
           <>
@@ -176,4 +202,3 @@ export default async function DiscoverProgramsPage() {
     </main>
   );
 }
-

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
@@ -203,6 +203,10 @@ export default function HomeRegistrationStrip({
     benefits: string[];
     benefitsLabel: string;
   } | null>(null);
+  const primaryContentRef = useRef<HTMLDivElement | null>(null);
+  const secondaryContentRef = useRef<HTMLDivElement | null>(null);
+  const [showPrimaryReadDetails, setShowPrimaryReadDetails] = useState(false);
+  const [showSecondaryReadDetails, setShowSecondaryReadDetails] = useState(false);
 
   useEffect(() => {
     setActivePostIndex(0);
@@ -276,6 +280,24 @@ export default function HomeRegistrationStrip({
   const secondaryOpen = currentNow ? isRegistrationOpen(secondaryType?.validity_periods, currentNow) : false;
 
   const displayedGuidelines = (guidelines ?? []).filter((guide) => Boolean(guide.url)).slice(0, 2);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      const primaryElement = primaryContentRef.current;
+      const secondaryElement = secondaryContentRef.current;
+
+      setShowPrimaryReadDetails(
+        Boolean(primaryElement && primaryElement.scrollHeight > primaryElement.clientHeight),
+      );
+      setShowSecondaryReadDetails(
+        Boolean(secondaryElement && secondaryElement.scrollHeight > secondaryElement.clientHeight),
+      );
+    };
+
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [primaryDescriptionHtml, secondaryDescriptionHtml, primaryRequirements, secondaryRequirements, primaryBenefits, secondaryBenefits]);
 
   return (
     <section className={componentsTheme.homeRegistration.sectionWrapper}>
@@ -439,8 +461,8 @@ export default function HomeRegistrationStrip({
                     <span>{getActivePeriodLabel(primaryType?.validity_periods, currentNow ?? new Date(0))}</span>
                 </div>
               </div>
-              <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
-                <div className="h-[360px] overflow-hidden">
+              <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
+                <div ref={primaryContentRef} className="h-[360px] overflow-hidden">
                   {hasRichTextContent(primaryType?.description) && (
                     <div
                       className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
@@ -470,23 +492,25 @@ export default function HomeRegistrationStrip({
                     ))}
                   </ul>
                 </div>
-                <div className="mt-3 flex justify-end">
-                  <button
-                    type="button"
-                    className="text-xs font-semibold text-primary transition hover:text-primary/80"
-                    onClick={() =>
-                      setDescriptionDialog({
-                        title: primaryType?.name ?? 'Self Funded',
-                        descriptionHtml: primaryDescriptionHtml,
-                        requirements: primaryRequirements,
-                        benefits: primaryBenefits,
-                        benefitsLabel: 'Benefit',
-                      })
-                    }
-                  >
-                    Read details
-                  </button>
-                </div>
+                {showPrimaryReadDetails && (
+                  <div className="mt-auto pt-3 flex justify-end">
+                    <button
+                      type="button"
+                      className="text-xs font-semibold text-primary transition hover:text-primary/80"
+                      onClick={() =>
+                        setDescriptionDialog({
+                          title: primaryType?.name ?? 'Self Funded',
+                          descriptionHtml: primaryDescriptionHtml,
+                          requirements: primaryRequirements,
+                          benefits: primaryBenefits,
+                          benefitsLabel: 'Benefit',
+                        })
+                      }
+                    >
+                      Read details
+                    </button>
+                  </div>
+                )}
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
@@ -549,8 +573,8 @@ export default function HomeRegistrationStrip({
                     <span>{getActivePeriodLabel(secondaryType?.validity_periods, currentNow ?? new Date(0))}</span>
                 </div>
               </div>
-              <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
-                <div className="h-[360px] overflow-hidden">
+              <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
+                <div ref={secondaryContentRef} className="h-[360px] overflow-hidden">
                   {hasRichTextContent(secondaryType?.description) && (
                     <div
                       className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
@@ -582,23 +606,25 @@ export default function HomeRegistrationStrip({
                     ))}
                   </ul>
                 </div>
-                <div className="mt-3 flex justify-end">
-                  <button
-                    type="button"
-                    className="text-xs font-semibold text-primary transition hover:text-primary/80"
-                    onClick={() =>
-                      setDescriptionDialog({
-                        title: secondaryType?.name ?? 'Fully Funded',
-                        descriptionHtml: secondaryDescriptionHtml,
-                        requirements: secondaryRequirements,
-                        benefits: secondaryBenefits,
-                        benefitsLabel: 'Benefit (If Selected)',
-                      })
-                    }
-                  >
-                    Read details
-                  </button>
-                </div>
+                {showSecondaryReadDetails && (
+                  <div className="mt-auto pt-3 flex justify-end">
+                    <button
+                      type="button"
+                      className="text-xs font-semibold text-primary transition hover:text-primary/80"
+                      onClick={() =>
+                        setDescriptionDialog({
+                          title: secondaryType?.name ?? 'Fully Funded',
+                          descriptionHtml: secondaryDescriptionHtml,
+                          requirements: secondaryRequirements,
+                          benefits: secondaryBenefits,
+                          benefitsLabel: 'Benefit (If Selected)',
+                        })
+                      }
+                    >
+                      Read details
+                    </button>
+                  </div>
+                )}
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>

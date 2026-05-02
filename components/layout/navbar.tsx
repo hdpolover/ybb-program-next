@@ -1,13 +1,41 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Search as SearchIcon, Menu, X, ChevronDown, ChevronRight, Check } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import type { SettingsAvailableBrand } from '@/types/settings';
 
 const navItems: string[] = ['Home', 'Programs', 'Partners & Sponsors', 'Announcements', 'FAQ'];
+
+type QuickSearchEntry = {
+  id: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  external: boolean;
+};
+
+type HomeApiGuideline = {
+  id?: string;
+  title?: string;
+  url?: string;
+  type?: string;
+};
+
+type HomeApiSection = {
+  type?: string;
+  content?: {
+    guidelines?: HomeApiGuideline[];
+  };
+};
+
+type HomeApiResponse = {
+  data?: {
+    sections?: HomeApiSection[];
+  };
+};
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -19,8 +47,10 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [pinned, setPinned] = useState(false);
+  const [dynamicSearchEntries, setDynamicSearchEntries] = useState<QuickSearchEntry[]>([]);
   const { settings } = useSettings();
   const pathname = usePathname();
+  const router = useRouter();
 
   const lastScrollYRef = useRef(0);
   const scrollElRef = useRef<HTMLElement | null>(null);
@@ -28,6 +58,7 @@ export function Navbar() {
   const closeProgramsMenuTimerRef = useRef<number | null>(null);
   const scrollDirRef = useRef<'up' | 'down'>('down');
   const scrollAccumRef = useRef(0);
+  const dynamicSearchLoadedRef = useRef(false);
 
   const hrefFor = (item: string): string => {
     switch (item) {
@@ -276,6 +307,50 @@ export function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!searchOpen || dynamicSearchLoadedRef.current) return;
+    dynamicSearchLoadedRef.current = true;
+
+    const controller = new AbortController();
+
+    const loadSearchEntries = async () => {
+      try {
+        const res = await fetch('/api/home', {
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const json = (await res.json()) as HomeApiResponse;
+        const sections = json?.data?.sections || [];
+        const registrationOverview = sections.find((section) => section.type === 'registration_overview');
+        const guidelines = registrationOverview?.content?.guidelines || [];
+        const guidelineEntries: QuickSearchEntry[] = guidelines
+          .map((guideline, index) => {
+            const title = (guideline.title || '').trim();
+            const href = (guideline.url || '').trim();
+            if (!title || !href) return null;
+            const typeLabel = (guideline.type || 'Document').trim();
+            return {
+              id: `guideline-${guideline.id || index}`,
+              title,
+              subtitle: `Guideline • ${typeLabel}`,
+              href,
+              external: /^https?:\/\//i.test(href),
+            };
+          })
+          .filter((entry): entry is QuickSearchEntry => Boolean(entry));
+
+        setDynamicSearchEntries(guidelineEntries);
+      } catch {
+        // Keep base search index available even if dynamic data fails.
+      }
+    };
+
+    void loadSearchEntries();
+    return () => controller.abort();
+  }, [searchOpen]);
+
   const ctaHref = isAuthenticated ? '/dashboard' : '/login';
   const ctaLabel = isAuthenticated ? 'DASHBOARD' : 'REGISTER NOW';
 
@@ -283,10 +358,58 @@ export function Navbar() {
 
   const logoSrc = settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
 
+  const quickSearchIndex = useMemo(() => {
+    const pageEntries: QuickSearchEntry[] = navItems.map((item) => ({
+      id: `page-${item.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      title: item,
+      subtitle: 'Page',
+      href: hrefFor(item),
+      external: false,
+    }));
+
+    const programEntries: QuickSearchEntry[] = brandProgramLinks
+      .filter((brand) => Boolean(brand.href))
+      .map((brand) => ({
+        id: `program-${brand.id}`,
+        title: brand.name,
+        subtitle: brand.subtitle,
+        href: brand.href || '/programs/discover',
+        external: /^https?:\/\//i.test(brand.href || ''),
+      }));
+
+    return [...pageEntries, ...programEntries, ...dynamicSearchEntries];
+  }, [brandProgramLinks, dynamicSearchEntries]);
+
+  const previewResults = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return quickSearchIndex.slice(0, 6);
+
+    return quickSearchIndex
+      .map((entry) => {
+        const text = `${entry.title} ${entry.subtitle}`.toLowerCase();
+        if (!text.includes(term)) return null;
+        const startsWithTitle = entry.title.toLowerCase().startsWith(term);
+        const startsWithSubtitle = entry.subtitle.toLowerCase().startsWith(term);
+        return {
+          ...entry,
+          score: startsWithTitle ? 3 : startsWithSubtitle ? 2 : 1,
+        };
+      })
+      .filter((entry): entry is (typeof quickSearchIndex)[number] & { score: number } => Boolean(entry))
+      .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+      .slice(0, 8);
+  }, [query, quickSearchIndex]);
+
+  const queryTrimmed = query.trim();
+
   const submitSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    // TODO: ini baru hardcode, kalo mau berfungsi hubungin sama real search functionnya
-    console.log('Search:', query);
+    const term = queryTrimmed;
+    if (!term) {
+      setSearchOpen(false);
+      return;
+    }
+    router.push(`/search?q=${encodeURIComponent(term)}`);
     setSearchOpen(false);
   };
 
@@ -707,6 +830,44 @@ export function Navbar() {
                 Search
               </button>
             </form>
+            <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
+              {previewResults.length === 0 ? (
+                <p className="px-3 py-2 text-sm text-slate-500">
+                  No quick matches found.
+                </p>
+              ) : (
+                <div className="max-h-64 overflow-y-auto">
+                  {previewResults.map((result) => (
+                    <a
+                      key={result.id}
+                      href={result.href}
+                      target={result.external ? '_blank' : undefined}
+                      rel={result.external ? 'noopener noreferrer' : undefined}
+                      className="block border-b border-slate-100 px-3 py-2.5 last:border-b-0 hover:bg-[var(--brand-accent-soft)]/40"
+                      onClick={() => {
+                        setSearchOpen(false);
+                        setOpen(false);
+                      }}
+                    >
+                      <p className="text-sm font-semibold text-slate-900">{result.title}</p>
+                      <p className="truncate text-xs text-slate-600">{result.subtitle}</p>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+            {queryTrimmed && (
+              <a
+                href={`/search?q=${encodeURIComponent(queryTrimmed)}`}
+                className="mt-3 block rounded-lg border border-slate-200 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:border-[var(--brand-accent)] hover:bg-[var(--brand-accent-soft)]/40 hover:text-[var(--brand-accent)]"
+                onClick={() => {
+                  setSearchOpen(false);
+                  setOpen(false);
+                }}
+              >
+                See all results for &quot;{queryTrimmed}&quot;
+              </a>
+            )}
           </div>
         </div>
       )}

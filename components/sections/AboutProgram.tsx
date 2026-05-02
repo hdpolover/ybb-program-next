@@ -54,13 +54,15 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
     return <div className={componentsTheme.aboutProgram.richText} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
   };
 
-  const aboutPlainText = about
-    ? decodePossiblyEncodedHtml(about)
+  const decodedAbout = about ? decodePossiblyEncodedHtml(about) : '';
+  const aboutContainsList = /<(ul|ol|li)\b/i.test(decodedAbout);
+  const aboutPlainText = decodedAbout
+    ? decodedAbout
         .replace(/<[^>]+>/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
     : '';
-  const shouldShowReadMore = aboutPlainText.length > ABOUT_PREVIEW_MAX_CHARS;
+  const shouldShowReadMore = aboutPlainText.length > ABOUT_PREVIEW_MAX_CHARS && !aboutContainsList;
 
   useEffect(() => {
     if (!isAboutModalOpen) return;
@@ -101,6 +103,12 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
                 >
                   {renderContent(about)}
                 </div>
+                {shouldShowReadMore && (
+                  <div
+                    className={componentsTheme.aboutProgram.contentPreviewFade}
+                    aria-hidden="true"
+                  />
+                )}
               </div>
               {shouldShowReadMore && (
                 <button
