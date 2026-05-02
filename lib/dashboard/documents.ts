@@ -59,6 +59,24 @@ export function formatDocumentCategoryLabel(value?: string): string {
   return toTitleCaseFromToken(value);
 }
 
+export function formatDocumentTypeLabel(value?: string): string {
+  if (!value) return 'Document';
+
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return 'Document';
+
+  const typeLabelMap: Record<string, string> = {
+    program_resource: 'Program Resource',
+    complementary_document: 'Complementary Document',
+    agreement_letter: 'Agreement Letter',
+    certificate: 'Certificate',
+    template: 'Template',
+    document: 'Document',
+  };
+
+  return typeLabelMap[normalized] ?? toTitleCaseFromToken(normalized);
+}
+
 export function formatDocumentDateLabel(value?: string): string {
   if (!value) return 'Not available';
 

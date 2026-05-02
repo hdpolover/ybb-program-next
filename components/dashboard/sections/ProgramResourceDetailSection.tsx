@@ -23,6 +23,7 @@ import {
   formatDocumentCategoryLabel,
   formatDocumentDateLabel,
   formatDocumentStatusLabel,
+  formatDocumentTypeLabel,
   toDocumentItem,
 } from '@/lib/dashboard/documents';
 
@@ -197,6 +198,7 @@ export default function ProgramResourceDetailSection({
 
   const statusLabel = formatDocumentStatusLabel(resource.status);
   const categoryLabel = formatDocumentCategoryLabel(resource.category);
+  const typeLabel = formatDocumentTypeLabel(resource.documentType);
   const updatedAtLabel = formatDocumentDateLabel(resource.updatedAt);
   const statusToneClass =
     resource.status === 'available'
@@ -236,7 +238,7 @@ export default function ProgramResourceDetailSection({
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <DetailInfo
                 label="Type"
-                value={resource.documentType}
+                value={typeLabel}
                 icon={<FileText className="h-4 w-4" />}
               />
               <DetailInfo
@@ -282,7 +284,7 @@ export default function ProgramResourceDetailSection({
                 <div className="bg-primary/10 mb-4 flex h-16 w-16 items-center justify-center rounded-full text-primary">
                   <FolderClosed className="h-7 w-7" />
                 </div>
-                <p className={paymentsTheme.detailIllustrationTitle}>{resource.documentType}</p>
+                <p className={paymentsTheme.detailIllustrationTitle}>{typeLabel}</p>
                 <p className={paymentsTheme.detailIllustrationBody}>
                   This record belongs to your active program. Use the actions below to open or
                   download the file.

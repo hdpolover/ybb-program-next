@@ -16,6 +16,7 @@ import { getEnvelopeData, getErrorMessage, isRecord } from '@/lib/api/response';
 import {
   type DocumentItem,
   formatDocumentDateLabel,
+  formatDocumentTypeLabel,
   getProgramResourceDetailHref,
   toDocumentItem,
 } from '@/lib/dashboard/documents';
@@ -603,7 +604,9 @@ export default function DocumentsSection() {
                         <p className="text-sm font-semibold text-slate-900">{item.title}</p>
                         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
                           <p className="text-slate-500">Type</p>
-                          <p className="text-right text-slate-700">{item.documentType}</p>
+                          <p className="text-right text-slate-700">
+                            {formatDocumentTypeLabel(item.documentType)}
+                          </p>
                           <p className="text-slate-500">Updated</p>
                           <p className="text-right text-slate-700">{formatDocumentDateLabel(item.updatedAt)}</p>
                         </div>
@@ -672,7 +675,7 @@ export default function DocumentsSection() {
                           </Link>
                         </div>
                         <div className={componentsTheme.dashboardDocuments.docTypeCell}>
-                          {item.documentType}
+                          {formatDocumentTypeLabel(item.documentType)}
                         </div>
                         <div className={componentsTheme.dashboardDocuments.docTypeCell}>
                           {formatDocumentDateLabel(item.updatedAt)}
