@@ -46,6 +46,7 @@ export default function FurtherInformationSection({
           src="/img/backgroundformobile.png"
           alt=""
           fill
+          sizes="100vw"
           priority
           className="object-contain object-bottom"
         />
@@ -55,6 +56,7 @@ export default function FurtherInformationSection({
           src="/img/halfback.png"
           alt=""
           fill
+          sizes="100vw"
           priority
           className="object-cover object-center"
         />

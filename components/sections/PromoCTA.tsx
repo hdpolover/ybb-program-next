@@ -32,6 +32,7 @@ export default function PromoCTA({
           src="/img/ctabackgroundformobile.png"
           alt=""
           fill
+          sizes="100vw"
           priority
           className="object-cover object-center"
         />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { Calendar, Check, CreditCard, ExternalLink, MapPin } from 'lucide-react';
+import { Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
@@ -44,9 +44,8 @@ type HomeRegistrationStripProps = {
   guidelines?: Guideline[];
 };
 
-function isRegistrationOpen(periods: ValidityPeriod[] | undefined): boolean {
+function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): boolean {
   if (!periods || periods.length === 0) return false;
-  const now = new Date();
 
   return periods.some((p) => {
     const start = new Date(p.start_date);
@@ -56,9 +55,8 @@ function isRegistrationOpen(periods: ValidityPeriod[] | undefined): boolean {
   });
 }
 
-function getActivePeriodLabel(periods: ValidityPeriod[] | undefined): string {
+function getActivePeriodLabel(periods: ValidityPeriod[] | undefined, now: Date): string {
   if (!periods || periods.length === 0) return 'TBD';
-  const now = new Date();
   const parse = (d: string) => {
     const parsed = new Date(d);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
@@ -66,7 +64,12 @@ function getActivePeriodLabel(periods: ValidityPeriod[] | undefined): string {
   const fmt = (d: string) => {
     const parsed = parse(d);
     if (!parsed) return 'TBD';
-    return parsed.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    return parsed.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
   };
   const active = periods.find((p) => {
     const start = parse(p.start_date);
@@ -177,6 +180,11 @@ export default function HomeRegistrationStrip({
   guidelines,
 }: HomeRegistrationStripProps) {
   if (!registrationTypes || registrationTypes.length === 0) return null;
+  const [currentNow, setCurrentNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setCurrentNow(new Date());
+  }, []);
 
   const posts = useMemo(
     () =>
@@ -188,6 +196,13 @@ export default function HomeRegistrationStrip({
   );
   const [activePostIndex, setActivePostIndex] = useState(0);
   const [fallbackImageFailed, setFallbackImageFailed] = useState(false);
+  const [descriptionDialog, setDescriptionDialog] = useState<{
+    title: string;
+    descriptionHtml: string;
+    requirements: string[];
+    benefits: string[];
+    benefitsLabel: string;
+  } | null>(null);
 
   useEffect(() => {
     setActivePostIndex(0);
@@ -208,14 +223,57 @@ export default function HomeRegistrationStrip({
     setFallbackImageFailed(false);
   }, [activePostIndex, posts]);
 
+  useEffect(() => {
+    if (!descriptionDialog) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDescriptionDialog(null);
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [descriptionDialog]);
+
   const activePost = posts[activePostIndex] ?? null;
   const registrationFeeTypes = registrationTypes.filter(isRegistrationFeeTier);
   const fallbackTypes = registrationFeeTypes.length > 0 ? registrationFeeTypes : registrationTypes;
   const primaryType = pickRegistrationTier(fallbackTypes, 'self_funded');
   const secondaryType = pickRegistrationTier(fallbackTypes, 'fully_funded', primaryType?.id);
+  const primaryDescriptionHtml = toRichHtml(primaryType?.description);
+  const secondaryDescriptionHtml = toRichHtml(secondaryType?.description);
+  const primaryRequirements = primaryType?.requirements?.length
+    ? primaryType.requirements
+    : [
+        'Complete registration form and documentation',
+        'Submit required documents on time',
+        'Pay fees according to scheduled payment batches',
+      ];
+  const secondaryRequirements = secondaryType?.requirements?.length
+    ? secondaryType.requirements
+    : [
+        'Complete registration form and documentation',
+        'Submit detailed essays and applications',
+        'Participate in interviews and evaluations',
+      ];
+  const primaryBenefits = primaryType?.benefits ?? [
+    'Guaranteed program participation',
+    'Faster application processing',
+    'You pay all scheduled fee batches yourself',
+  ];
+  const secondaryBenefits = secondaryType?.benefits ?? [
+    'Full reimbursement of all payments',
+    'Enhanced program recognition',
+    'Access to exclusive fully funded activities',
+  ];
 
-  const primaryOpen = isRegistrationOpen(primaryType?.validity_periods);
-  const secondaryOpen = isRegistrationOpen(secondaryType?.validity_periods);
+  const primaryOpen = currentNow ? isRegistrationOpen(primaryType?.validity_periods, currentNow) : false;
+  const secondaryOpen = currentNow ? isRegistrationOpen(secondaryType?.validity_periods, currentNow) : false;
 
   const displayedGuidelines = (guidelines ?? []).filter((guide) => Boolean(guide.url)).slice(0, 2);
 
@@ -378,49 +436,57 @@ export default function HomeRegistrationStrip({
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                     Registration Period:
                   </span>
-                  <span>{getActivePeriodLabel(primaryType?.validity_periods)}</span>
+                    <span>{getActivePeriodLabel(primaryType?.validity_periods, currentNow ?? new Date(0))}</span>
                 </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
-                {hasRichTextContent(primaryType?.description) && (
-                  <div
-                    className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
-                    dangerouslySetInnerHTML={{ __html: toRichHtml(primaryType?.description) }}
-                  />
-                )}
-                <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
-                <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {(primaryType?.requirements?.length
-                    ? primaryType.requirements
-                    : [
-                        'Complete registration form and documentation',
-                        'Submit required documents on time',
-                        'Pay fees according to scheduled payment batches',
-                      ]
-                  ).map((label, idx) => (
-                    <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>Benefit</p>
-                <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {(primaryType?.benefits ?? [
-                    'Guaranteed program participation',
-                    'Faster application processing',
-                    'You pay all scheduled fee batches yourself',
-                  ]).map((label, idx) => (
-                    <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="h-[360px] overflow-hidden">
+                  {hasRichTextContent(primaryType?.description) && (
+                    <div
+                      className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
+                      dangerouslySetInnerHTML={{ __html: primaryDescriptionHtml }}
+                    />
+                  )}
+                  <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+                  <ul className={componentsTheme.applyRegistrationTypes.list}>
+                    {primaryRequirements.map((label, idx) => (
+                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                        <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                          <Check className="h-3 w-3" />
+                        </span>
+                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>Benefit</p>
+                  <ul className={componentsTheme.applyRegistrationTypes.list}>
+                    {primaryBenefits.map((label, idx) => (
+                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                        <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                          <Check className="h-3 w-3" />
+                        </span>
+                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-primary transition hover:text-primary/80"
+                    onClick={() =>
+                      setDescriptionDialog({
+                        title: primaryType?.name ?? 'Self Funded',
+                        descriptionHtml: primaryDescriptionHtml,
+                        requirements: primaryRequirements,
+                        benefits: primaryBenefits,
+                        benefitsLabel: 'Benefit',
+                      })
+                    }
+                  >
+                    Read details
+                  </button>
+                </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
@@ -480,51 +546,59 @@ export default function HomeRegistrationStrip({
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                     Registration Period:
                   </span>
-                  <span>{getActivePeriodLabel(secondaryType?.validity_periods)}</span>
+                    <span>{getActivePeriodLabel(secondaryType?.validity_periods, currentNow ?? new Date(0))}</span>
                 </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
-                {hasRichTextContent(secondaryType?.description) && (
-                  <div
-                    className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
-                    dangerouslySetInnerHTML={{ __html: toRichHtml(secondaryType?.description) }}
-                  />
-                )}
-                <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
-                <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {(secondaryType?.requirements?.length
-                    ? secondaryType.requirements
-                    : [
-                        'Complete registration form and documentation',
-                        'Submit detailed essays and applications',
-                        'Participate in interviews and evaluations',
-                      ]
-                  ).map((label, idx) => (
-                    <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
-                  Benefit (If Selected)
-                </p>
-                <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {(secondaryType?.benefits ?? [
-                    'Full reimbursement of all payments',
-                    'Enhanced program recognition',
-                    'Access to exclusive fully funded activities',
-                  ]).map((label, idx) => (
-                    <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="h-[360px] overflow-hidden">
+                  {hasRichTextContent(secondaryType?.description) && (
+                    <div
+                      className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
+                      dangerouslySetInnerHTML={{ __html: secondaryDescriptionHtml }}
+                    />
+                  )}
+                  <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+                  <ul className={componentsTheme.applyRegistrationTypes.list}>
+                    {secondaryRequirements.map((label, idx) => (
+                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                        <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                          <Check className="h-3 w-3" />
+                        </span>
+                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+                    Benefit (If Selected)
+                  </p>
+                  <ul className={componentsTheme.applyRegistrationTypes.list}>
+                    {secondaryBenefits.map((label, idx) => (
+                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                        <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                          <Check className="h-3 w-3" />
+                        </span>
+                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-primary transition hover:text-primary/80"
+                    onClick={() =>
+                      setDescriptionDialog({
+                        title: secondaryType?.name ?? 'Fully Funded',
+                        descriptionHtml: secondaryDescriptionHtml,
+                        requirements: secondaryRequirements,
+                        benefits: secondaryBenefits,
+                        benefitsLabel: 'Benefit (If Selected)',
+                      })
+                    }
+                  >
+                    Read details
+                  </button>
+                </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
@@ -550,6 +624,65 @@ export default function HomeRegistrationStrip({
           </div>
         </div>
       </div>
+      {descriptionDialog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${descriptionDialog.title} details`}
+        >
+          <div
+            className="absolute inset-0 bg-slate-900/45 backdrop-blur-sm"
+            onClick={() => setDescriptionDialog(null)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-full max-w-2xl rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <h3 className="text-sm font-semibold text-slate-900">{descriptionDialog.title} Details</h3>
+              <button
+                type="button"
+                onClick={() => setDescriptionDialog(null)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                aria-label="Close details dialog"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+              {hasRichTextContent(descriptionDialog.descriptionHtml) && (
+                <div
+                  className="prose prose-sm mb-4 max-w-none text-slate-700 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-a:text-primary"
+                  dangerouslySetInnerHTML={{ __html: descriptionDialog.descriptionHtml }}
+                />
+              )}
+              <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+              <ul className={componentsTheme.applyRegistrationTypes.list}>
+                {descriptionDialog.requirements.map((label, idx) => (
+                  <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                    <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+                {descriptionDialog.benefitsLabel}
+              </p>
+              <ul className={componentsTheme.applyRegistrationTypes.list}>
+                {descriptionDialog.benefits.map((label, idx) => (
+                  <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                    <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
