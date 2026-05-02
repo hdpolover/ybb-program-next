@@ -23,28 +23,28 @@ function formatLastUsedAt(value?: string | null): string | null {
 
 function SettingsSkeleton() {
   return (
-    <div className="px-4 py-8 animate-pulse">
+    <div className="animate-pulse space-y-6">
       {/* Page header */}
-      <div className="mb-8">
+      <div className="space-y-2">
         <div className="h-8 w-56 rounded-lg bg-slate-200" />
         <div className="mt-2 h-4 w-80 rounded bg-slate-100" />
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Account card */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-4">
+          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
             <div className="h-4 w-24 rounded bg-slate-200" />
           </div>
           <div className="divide-y divide-slate-100">
-            <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center justify-between px-4 py-4 sm:px-6">
               <div className="space-y-1.5">
                 <div className="h-3 w-24 rounded bg-slate-100" />
                 <div className="h-4 w-48 rounded bg-slate-200" />
               </div>
               <div className="h-6 w-20 rounded-full bg-slate-100" />
             </div>
-            <div className="px-6 py-4">
+            <div className="px-4 py-4 sm:px-6">
               <div className="mb-3 h-3 w-28 rounded bg-slate-100" />
               <div className="space-y-2">
                 <div className="h-14 rounded-xl bg-slate-100" />
@@ -56,10 +56,10 @@ function SettingsSkeleton() {
 
         {/* Security card */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-4">
+          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
             <div className="h-4 w-20 rounded bg-slate-200" />
           </div>
-          <div className="flex items-center justify-between px-6 py-5">
+          <div className="flex items-center justify-between px-4 py-5 sm:px-6">
             <div className="space-y-1.5">
               <div className="h-4 w-20 rounded bg-slate-200" />
               <div className="h-3 w-56 rounded bg-slate-100" />
@@ -70,10 +70,10 @@ function SettingsSkeleton() {
 
         {/* Notifications card */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-4">
+          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
             <div className="h-4 w-28 rounded bg-slate-200" />
           </div>
-          <div className="px-6 py-5">
+          <div className="px-4 py-5 sm:px-6">
             <div className="h-12 rounded-xl bg-slate-100" />
           </div>
         </div>
@@ -169,9 +169,9 @@ export default function SettingsSection() {
   }
 
   return (
-    <div className="px-4 py-8">
+    <div className="space-y-6">
       {/* Page header */}
-      <div className="mb-8">
+      <div className="space-y-1">
         <h1 className="text-2xl font-bold text-slate-900">
           Profile &amp; Settings
         </h1>
@@ -180,10 +180,10 @@ export default function SettingsSection() {
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Account section */}
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-4">
+          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
             <div className="flex items-center gap-2">
               <UserRound className="h-4 w-4 text-primary" />
               <h2 className="text-sm font-semibold text-slate-700">Account</h2>
@@ -192,7 +192,7 @@ export default function SettingsSection() {
 
           <div className="divide-y divide-slate-100">
             {/* Email */}
-            <div className="flex items-center justify-between gap-4 px-6 py-4">
+            <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                   Email address
@@ -207,7 +207,7 @@ export default function SettingsSection() {
             </div>
 
             {/* Connected providers */}
-            <div className="px-6 py-4">
+            <div className="px-4 py-4 sm:px-6">
               <p className="mb-3 text-xs font-medium uppercase tracking-wide text-slate-400">
                 Sign-in methods
               </p>
@@ -252,14 +252,14 @@ export default function SettingsSection() {
 
         {/* Security section */}
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-4">
+          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
             <div className="flex items-center gap-2">
               <KeyRound className="h-4 w-4 text-primary" />
               <h2 className="text-sm font-semibold text-slate-700">Security</h2>
             </div>
           </div>
 
-          <div className="px-6 py-5">
+          <div className="px-4 py-5 sm:px-6">
             {hasLocalIdentity ? (
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -307,7 +307,7 @@ export default function SettingsSection() {
 
         {/* Notification Preferences */}
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-4">
+          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-primary" />
               <h2 className="text-sm font-semibold text-slate-700">
@@ -315,7 +315,7 @@ export default function SettingsSection() {
               </h2>
             </div>
           </div>
-          <div className="px-6 py-5">
+          <div className="px-4 py-5 sm:px-6">
             <div className="flex items-center gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-400">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>Notification preferences are coming soon.</span>

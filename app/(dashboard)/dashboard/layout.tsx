@@ -209,11 +209,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     pageSubtitle = 'Track your payment status and manage your registration payments.';
   } else if (pathname?.startsWith('/dashboard/documents')) {
     pageTitle = 'Available Program Documents';
-    pageSubtitle = 'Access and download important program materials. These documents contain essential information to ensure your successful program completion.';
+    pageSubtitle = 'Access your program resources and certificates.';
   } else if (pathname?.startsWith('/dashboard/referrals')) {
     pageTitle = 'Referral Funnel';
     pageSubtitle = 'Track who used your ambassador link or code and how far they progressed.';
   }
+
+  const isDocumentsRoute = pathname?.startsWith('/dashboard/documents');
 
   useEffect(() => {
     let cancelled = false;
@@ -492,7 +494,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                    <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
                      {pageTitle}
                   </h1>
-                  <p className="text-xs text-slate-500 sm:text-sm">{pageSubtitle}</p>
+                  <p className={`text-xs text-slate-500 sm:text-sm ${isDocumentsRoute ? 'hidden sm:block' : ''}`}>{pageSubtitle}</p>
                 </div>
               )}
 
