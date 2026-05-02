@@ -958,7 +958,7 @@ export default function SubmissionEditSection() {
                     return (
                       <div
                         key={field.id}
-                        className={`${submissionTheme.editFieldLabelWrapper} rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${
+                        className={`${submissionTheme.editFieldLabelWrapper} ${
                           shouldSpanFullWidth(field) ? "md:col-span-2" : ""
                         }`}
                       >

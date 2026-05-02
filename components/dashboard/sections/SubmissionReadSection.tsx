@@ -531,14 +531,14 @@ export default function SubmissionReadSection() {
       />
 
       {/* Page Title */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Registration Form</h1>
+      <div className="flex flex-col gap-2 sm:gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <h1 className="text-[2rem] font-bold leading-tight text-slate-900 sm:text-2xl">Registration Form</h1>
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
           {detail ? (
             <button
               type="button"
               onClick={() => setShowProgressDrawer(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm transition hover:border-primary/40 hover:bg-primary/5"
+              className="inline-flex h-10 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] shadow-sm transition hover:border-primary/40 hover:bg-primary/5 sm:gap-2 sm:py-2 sm:text-xs"
             >
               <TrendingUp className="h-3.5 w-3.5 text-primary" />
               <span className="font-semibold uppercase tracking-wide text-slate-500">Progress</span>
@@ -548,7 +548,7 @@ export default function SubmissionReadSection() {
           ) : null}
           <Link
             href="/dashboard/submission/edit"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 sm:px-4 sm:py-2"
           >
             <Pencil className="h-4 w-4" />
             Fill Form
@@ -585,14 +585,14 @@ export default function SubmissionReadSection() {
 
       {!loading && detail ? (
         <>
-          {/* Tab Buttons - Pill shaped using theme */}
-          <div className="flex flex-wrap gap-2">
+          {/* Tab Buttons - horizontal scroll on mobile, wrapped on desktop */}
+          <div className="-mx-1.5 flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-1.5 pb-2 sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
             {detail.sections.map(section => (
               <button
                 key={section.id}
                 type="button"
                 onClick={() => setActiveSectionId(section.id)}
-                className={`rounded-full border-2 px-8 py-2 text-base font-medium transition-colors ${
+                className={`snap-start shrink-0 whitespace-nowrap rounded-full border-2 px-4 py-1.5 text-sm font-semibold leading-none transition-colors sm:px-8 sm:py-2 sm:text-base ${
                   activeSection?.id === section.id
                     ? 'border-primary bg-primary text-white'
                     : 'hover:bg-primary/10 border-primary bg-transparent text-primary'

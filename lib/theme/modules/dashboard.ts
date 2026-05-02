@@ -484,20 +484,20 @@ export const dashboardTheme = {
 
     // read-only profile header
     profileCard:
-      'rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.08)] sm:p-7',
-    profileRow: 'flex flex-col gap-5 md:flex-row md:items-center md:justify-between',
-    profileLeft: 'flex items-start gap-4 sm:gap-5',
-    profileAvatarWrapper: 'relative h-20 w-20 shrink-0 aspect-square',
+      'rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_10px_40px_rgba(15,23,42,0.08)] sm:p-7',
+    profileRow: 'flex flex-col gap-4 md:flex-row md:items-center md:justify-between',
+    profileLeft: 'flex min-w-0 items-start gap-3.5 sm:gap-5',
+    profileAvatarWrapper: 'relative h-16 w-16 shrink-0 aspect-square sm:h-20 sm:w-20',
     profileAvatarInner:
       'absolute inset-0 overflow-hidden rounded-full bg-primary shadow-lg ring-4 ring-primary/20',
     profileAvatarImage: 'object-cover',
     profileAvatarButton:
       'absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-white text-primary shadow-md ring-1 ring-primary/20',
-    profileName: 'text-lg font-extrabold text-slate-900',
+    profileName: 'text-base font-extrabold text-slate-900 sm:text-lg',
     profileRole: 'text-[11px] font-semibold uppercase tracking-wide text-primary',
     profileMeta: 'text-xs text-slate-600',
     profileMetaLabel: 'font-semibold text-slate-700',
-    profileRightWrapper: 'max-w-md text-xs text-slate-600 md:text-right',
+    profileRightWrapper: 'w-full max-w-full text-xs text-slate-600 md:w-auto md:max-w-md md:text-right',
     profileRightLabel: 'text-[11px] font-semibold uppercase tracking-wide text-slate-500',
     profileRightText: 'mt-1 leading-relaxed text-slate-700',
 
@@ -531,11 +531,13 @@ export const dashboardTheme = {
     // edit: stepper
     editSectionWrapper: 'space-y-6 text-sm',
     stepperCard:
-      'rounded-2xl border border-slate-200 bg-white px-8 py-6 shadow-[0_10px_40px_rgba(15,23,42,0.06)]',
-    stepperRow: 'flex flex-col gap-6 md:flex-row md:items-center md:justify-between',
-    stepperButtonBase: 'flex flex-1 flex-col items-center gap-2 text-xs focus:outline-none',
+      'rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_10px_40px_rgba(15,23,42,0.06)] sm:px-6 sm:py-5 md:px-8 md:py-6',
+    stepperRow:
+      'flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-row md:items-center md:justify-between md:overflow-visible md:pb-0',
+    stepperButtonBase:
+      'flex min-w-[152px] flex-col items-center gap-1.5 text-xs focus:outline-none md:min-w-0 md:flex-1 md:gap-2',
     stepperButtonLocked: 'cursor-not-allowed opacity-60',
-    stepperPillRow: 'flex items-center gap-3',
+    stepperPillRow: 'flex snap-start shrink-0 items-center gap-3 md:min-w-0 md:shrink md:flex-1',
     stepperCircle:
       'flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition',
     stepperCircleActive: 'bg-primary text-white shadow-md',

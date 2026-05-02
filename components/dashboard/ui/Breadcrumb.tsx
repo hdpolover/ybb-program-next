@@ -14,29 +14,29 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-2">
+    <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
         
         return (
-          <div key={index} className="flex items-center gap-2">
+          <div key={index} className="flex min-w-0 items-center gap-1.5 sm:gap-2">
             {index > 0 && (
-              <ChevronRight className="h-5 w-5 text-slate-400" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 sm:h-5 sm:w-5" />
             )}
             
             {isLast ? (
-              <span className="text-base font-bold text-primary">
+              <span className="max-w-[12rem] truncate text-sm font-bold text-primary sm:max-w-none sm:text-base">
                 {item.label}
               </span>
             ) : item.href ? (
               <Link
                 href={item.href}
-                className="text-base font-normal text-slate-700 hover:text-primary transition-colors"
+                className="max-w-[8.5rem] truncate text-sm font-normal text-slate-700 transition-colors hover:text-primary sm:max-w-none sm:text-base"
               >
                 {item.label}
               </Link>
             ) : (
-              <span className="text-base font-normal text-slate-700">
+              <span className="max-w-[8.5rem] truncate text-sm font-normal text-slate-700 sm:max-w-none sm:text-base">
                 {item.label}
               </span>
             )}

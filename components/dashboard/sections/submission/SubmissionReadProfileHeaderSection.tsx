@@ -27,6 +27,14 @@ export default function SubmissionReadProfileHeaderSection() {
     "Participant";
   const profileImageUrl =
     localPhotoUrl ?? participantProfile?.profilePictureUrl?.trim() ?? null;
+  const email = me?.email?.trim() || "-";
+  const maskedEmail = useMemo(() => {
+    if (!email || email === "-") return "-";
+    const [localPart, domainPart] = email.split("@");
+    if (!localPart || !domainPart) return email;
+    if (localPart.length <= 2) return `${localPart.charAt(0)}•@${domainPart}`;
+    return `${localPart.slice(0, 2)}${"•".repeat(Math.min(4, localPart.length - 2))}@${domainPart}`;
+  }, [email]);
   const accountId = me?.userId || "-";
   const maskedAccountId = useMemo(() => {
     if (!accountId || accountId === "-") return "-";
@@ -142,27 +150,29 @@ export default function SubmissionReadProfileHeaderSection() {
             </button>
           </div>
 
-          <div className="min-w-0 space-y-1.5">
+          <div className="min-w-0 flex-1 space-y-1 sm:space-y-1.5">
             <p className={`${submissionTheme.profileName} truncate`} style={{ textTransform: 'capitalize' }}>{displayName}</p>
-            <p className={submissionTheme.profileRole}>Participant Account</p>
-            <p className={submissionTheme.profileMeta}>
-              <span className={submissionTheme.profileMetaLabel}>Account ID:</span>{" "}
-              <span className="inline-flex min-w-0 items-center gap-2">
-                <span className="min-w-0 truncate font-mono">
+            <div className={submissionTheme.profileMeta}>
+              <div className="min-w-0 truncate">{maskedEmail}</div>
+            </div>
+            <div className={`${submissionTheme.profileMeta} mt-0.5`}>
+              <span className={submissionTheme.profileMetaLabel}>Account ID:</span>
+              <div className="mt-0.5 flex min-w-0 items-center gap-2">
+                <span className="block min-w-0 flex-1 truncate font-mono">
                   {showAccountId ? accountId : maskedAccountId}
                 </span>
                 {accountId !== "-" && (
                   <button
                     type="button"
                     onClick={() => setShowAccountId(v => !v)}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
                     aria-label={showAccountId ? "Hide account id" : "Show account id"}
                   >
                     {showAccountId ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 )}
-              </span>
-            </p>
+              </div>
+            </div>
           </div>
         </div>
 
