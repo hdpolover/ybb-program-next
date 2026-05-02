@@ -479,7 +479,24 @@ export default function SubmissionEditSection() {
             setSelectedProgramId(nextDetail.programId);
           }
           setDetail(nextDetail);
-          setActiveSectionId(nextDetail.sections[0]?.id ?? null);
+          setActiveSectionId(current => {
+            const rawStep = new URLSearchParams(window.location.search).get("step")?.trim();
+            const requestedFromUrl = rawStep ? (rawStep === "preview" ? PREVIEW_STEP_ID : rawStep) : null;
+            const validStepIds = new Set([
+              ...nextDetail.sections.map(section => section.id),
+              PREVIEW_STEP_ID,
+            ]);
+
+            if (requestedFromUrl && validStepIds.has(requestedFromUrl)) {
+              return requestedFromUrl;
+            }
+
+            if (current && validStepIds.has(current)) {
+              return current;
+            }
+
+            return nextDetail.sections[0]?.id ?? null;
+          });
           setSectionValues(
             Object.fromEntries(
               nextDetail.sections.map(section => [
