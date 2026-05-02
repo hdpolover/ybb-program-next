@@ -200,6 +200,33 @@ export function toPortalSubmissionDetail(payload: unknown): PortalSubmissionDeta
         : Array.isArray(payload.previewChecklistItems)
           ? payload.previewChecklistItems.filter((item): item is string => typeof item === "string")
           : [],
+    previewPrimaryAction:
+      isRecord(payload.preview) && isRecord(payload.preview.primaryAction)
+        ? {
+            type:
+              typeof payload.preview.primaryAction.type === "string"
+                ? payload.preview.primaryAction.type
+                : "submit_application",
+            label:
+              typeof payload.preview.primaryAction.label === "string"
+                ? payload.preview.primaryAction.label
+                : "Submit Application",
+            enabled:
+              typeof payload.preview.primaryAction.enabled === "boolean"
+                ? payload.preview.primaryAction.enabled
+                : false,
+            reason:
+              typeof payload.preview.primaryAction.reason === "string"
+                ? payload.preview.primaryAction.reason
+                : undefined,
+          }
+        : undefined,
+    isRegistrationPaymentRequired:
+      isRecord(payload.preview) && isRecord(payload.preview.payment) && typeof payload.preview.payment.required === "boolean"
+        ? payload.preview.payment.required
+        : typeof payload.isRegistrationPaymentRequired === "boolean"
+          ? payload.isRegistrationPaymentRequired
+          : undefined,
     isRegistrationPaymentSettled:
       isRecord(payload.preview) && isRecord(payload.preview.payment) && typeof payload.preview.payment.paid === "boolean"
         ? payload.preview.payment.paid

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, ChevronDown, ImageIcon, Info, PencilLine } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AlertCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ImageIcon, Info, PencilLine } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -397,6 +397,7 @@ function FieldMedia({ field }: { field: PortalSubmissionField }) {
 
 export default function SubmissionEditSection() {
   const { me } = useDashboardData();
+  const stepperScrollRef = useRef<HTMLDivElement | null>(null);
   const [detail, setDetail] = useState<PortalSubmissionDetail | null>(null);
   const [sectionValues, setSectionValues] = useState<Record<string, Record<string, string>>>({});
   const [essayValues, setEssayValues] = useState<Record<string, string>>({});
@@ -409,6 +410,8 @@ export default function SubmissionEditSection() {
   const [isPreviewSectionsExpanded, setIsPreviewSectionsExpanded] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
+  const [canScrollStepperPrev, setCanScrollStepperPrev] = useState(false);
+  const [canScrollStepperNext, setCanScrollStepperNext] = useState(false);
 
   useEffect(() => {
     const syncSelectedProgram = () => {
@@ -575,6 +578,33 @@ export default function SubmissionEditSection() {
     if (next) setActiveSectionId(next.id);
   };
 
+  const scrollStepper = (direction: -1 | 1) => {
+    const container = stepperScrollRef.current;
+    if (!container) return;
+    const scrollAmount = Math.max(180, Math.floor(container.clientWidth * 0.7));
+    container.scrollBy({ left: direction * scrollAmount, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const container = stepperScrollRef.current;
+    if (!container) return;
+
+    const updateScrollAffordance = () => {
+      const maxScrollLeft = container.scrollWidth - container.clientWidth;
+      setCanScrollStepperPrev(container.scrollLeft > 6);
+      setCanScrollStepperNext(container.scrollLeft < maxScrollLeft - 6);
+    };
+
+    updateScrollAffordance();
+    container.addEventListener("scroll", updateScrollAffordance, { passive: true });
+    window.addEventListener("resize", updateScrollAffordance);
+
+    return () => {
+      container.removeEventListener("scroll", updateScrollAffordance);
+      window.removeEventListener("resize", updateScrollAffordance);
+    };
+  }, [activeSectionId, stepperItems.length]);
+
   const renderFieldInput = (section: PortalSubmissionSection, field: PortalSubmissionField) => {
     const value = sectionValues[section.id]?.[field.name] ?? "";
     const fieldType = field.type.toLowerCase();
@@ -718,7 +748,34 @@ export default function SubmissionEditSection() {
 
           {/* Stepper */}
           <div className={submissionTheme.stepperCard}>
-            <div className={submissionTheme.stepperRow}>
+            <div className="mb-2 flex items-center justify-between md:hidden">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Swipe steps
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => scrollStepper(-1)}
+                  disabled={!canScrollStepperPrev}
+                  aria-label="Scroll to previous steps"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollStepper(1)}
+                  disabled={!canScrollStepperNext}
+                  aria-label="Scroll to next steps"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 disabled:opacity-40"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div ref={stepperScrollRef} className={submissionTheme.stepperRow}>
               {stepperItems.map((step, index) => {
                 const sectionStatus = String(step.status || "pending").toLowerCase();
                 const isDone = sectionStatus === "completed";
@@ -771,14 +828,47 @@ export default function SubmissionEditSection() {
                   </div>
                 );
               })}
+              </div>
+              {canScrollStepperPrev ? (
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white to-transparent md:hidden" />
+              ) : null}
+              {canScrollStepperNext ? (
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent md:hidden" />
+              ) : null}
             </div>
           </div>
 
           {activeSectionId === PREVIEW_STEP_ID ? (() => {
             const checklistItems = detail.previewChecklistItems ?? [];
             const allChecked = checklistItems.every(item => checkedItems.has(item));
-            const isPaymentSettled = detail.isRegistrationPaymentSettled ?? true;
-            const canSubmit = allChecked && isPaymentSettled;
+            const isDraftApplication = detail.status === "draft";
+            const previewActionType = detail.previewPrimaryAction?.type;
+            const previewActionLabel = detail.previewPrimaryAction?.label;
+            const previewActionEnabled = detail.previewPrimaryAction?.enabled ?? true;
+            const previewActionReason = detail.previewPrimaryAction?.reason;
+            const isPaymentRequired = detail.isRegistrationPaymentRequired ?? false;
+            const isPaymentSettled = isPaymentRequired
+              ? (detail.isRegistrationPaymentSettled ?? false)
+              : true;
+            const canSubmit = isDraftApplication && allChecked && isPaymentSettled && previewActionEnabled;
+            const shouldGoToPayment =
+              isDraftApplication && (previewActionType === "complete_payment" || !isPaymentSettled);
+            const shouldShowSubmitButton = isDraftApplication && !shouldGoToPayment;
+            const isSubmissionLocked = !isDraftApplication || !previewActionEnabled;
+            const validationMessages = [
+              ...(!isDraftApplication
+                ? [previewActionReason || `Application is already in "${detail.status}" status.`]
+                : []),
+              ...(isDraftApplication && !previewActionEnabled
+                ? [previewActionReason || "Submission is not available right now."]
+                : []),
+              ...(isDraftApplication && !allChecked
+                ? ["Please check all confirmation boxes before submitting."]
+                : []),
+              ...(isDraftApplication && !isPaymentSettled
+                ? ["Registration payment is required before you can submit."]
+                : []),
+            ];
 
             const toggleSection = () => setIsPreviewSectionsExpanded(prev => !prev);
 
@@ -790,6 +880,41 @@ export default function SubmissionEditSection() {
               });
 
             const handleSubmit = async () => {
+              if (!isDraftApplication) {
+                const reason = previewActionReason || `Application is already in "${detail.status}" status.`;
+                setError(reason);
+                toast.error(reason);
+                return;
+              }
+
+              if (!previewActionEnabled) {
+                const reason = previewActionReason || "Submission is not available right now.";
+                setError(reason);
+                toast.error(reason);
+                return;
+              }
+
+              if (!allChecked) {
+                const reason = "Please check all confirmation boxes before submitting.";
+                setError(reason);
+                toast.error(reason);
+                return;
+              }
+
+              if (!isPaymentSettled) {
+                const reason = "Registration payment is required before you can submit.";
+                setError(reason);
+                toast.error(reason);
+                return;
+              }
+
+              if (!canSubmit) {
+                const reason = "Please complete all required steps before submitting.";
+                setError(reason);
+                toast.error(reason);
+                return;
+              }
+
               setSubmitting(true);
               setError(null);
               try {
@@ -820,68 +945,66 @@ export default function SubmissionEditSection() {
                   </div>
 
                   <div className={submissionTheme.previewWrapper}>
-                    <div className={submissionTheme.previewCard}>
-                      <button
-                        type="button"
-                        className="flex w-full items-center justify-between gap-2"
-                        onClick={toggleSection}
-                      >
-                        <h3 className={submissionTheme.previewCardTitle}>
-                          Application Sections ({detail.sections.length})
-                        </h3>
-                        <ChevronDown
-                          className={`h-4 w-4 text-slate-400 transition-transform ${isPreviewSectionsExpanded ? "rotate-180" : ""}`}
-                        />
-                      </button>
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2"
+                      onClick={toggleSection}
+                    >
+                      <h3 className={submissionTheme.previewCardTitle}>
+                        Application Sections ({detail.sections.length})
+                      </h3>
+                      <ChevronDown
+                        className={`h-4 w-4 text-slate-400 transition-transform ${isPreviewSectionsExpanded ? "rotate-180" : ""}`}
+                      />
+                    </button>
 
-                      {isPreviewSectionsExpanded ? (
-                        <div className="mt-3 space-y-3">
-                          {detail.sections.map(section => (
-                            <div key={section.id} className="rounded-xl border border-slate-200 bg-white p-3">
-                              <div className="mb-2 flex items-center justify-between gap-2">
-                                <h4 className={submissionTheme.previewCardTitle}>{section.title}</h4>
-                                <button
-                                  type="button"
-                                  className={submissionTheme.previewEditButton}
-                                  onClick={() => setActiveSectionId(section.id)}
-                                >
-                                  <PencilLine className={submissionTheme.previewEditIcon} />
-                                  <span>Edit</span>
-                                </button>
-                              </div>
-                              <dl className={submissionTheme.previewDefinitionList}>
-                                {section.fields
-                                  .filter(field => shouldRenderField(section, field))
-                                  .map(field => {
-                                    const rawValue = sectionValues[section.id]?.[field.name] ?? "";
-                                    const displayValue = getPreviewDisplayValue(section, field, rawValue, sectionValues[section.id] ?? {});
-                                    return (
-                                      <div key={field.id}>
-                                        <dt className={submissionTheme.previewDt}>{field.label}</dt>
-                                        <dd className={submissionTheme.previewDd}>{displayValue || "-"}</dd>
-                                      </div>
-                                    );
-                                  })}
-                                {section.id === "entry_information" && detail.essays.length > 0
-                                  ? [...detail.essays]
-                                      .sort((a, b) => a.order - b.order)
-                                      .map(essay => (
-                                        <div key={essay.id} className="md:col-span-2">
-                                          <dt className={submissionTheme.previewDt}>{essay.question}</dt>
-                                          <dd className={submissionTheme.previewDdMultiline}>{essayValues[essay.id] || "-"}</dd>
-                                        </div>
-                                      ))
-                                  : null}
-                              </dl>
+                    {isPreviewSectionsExpanded ? (
+                      <div className="divide-y divide-slate-200">
+                        {detail.sections.map(section => (
+                          <div key={section.id} className="py-3">
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <h4 className={submissionTheme.previewCardTitle}>{section.title}</h4>
+                              <button
+                                type="button"
+                                className={submissionTheme.previewEditButton}
+                                onClick={() => setActiveSectionId(section.id)}
+                              >
+                                <PencilLine className={submissionTheme.previewEditIcon} />
+                                <span>Edit</span>
+                              </button>
                             </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
+                            <dl className={submissionTheme.previewDefinitionList}>
+                              {section.fields
+                                .filter(field => shouldRenderField(section, field))
+                                .map(field => {
+                                  const rawValue = sectionValues[section.id]?.[field.name] ?? "";
+                                  const displayValue = getPreviewDisplayValue(section, field, rawValue, sectionValues[section.id] ?? {});
+                                  return (
+                                    <div key={field.id}>
+                                      <dt className={submissionTheme.previewDt}>{field.label}</dt>
+                                      <dd className={submissionTheme.previewDd}>{displayValue || "-"}</dd>
+                                    </div>
+                                  );
+                                })}
+                              {section.id === "entry_information" && detail.essays.length > 0
+                                ? [...detail.essays]
+                                    .sort((a, b) => a.order - b.order)
+                                    .map(essay => (
+                                      <div key={essay.id} className="md:col-span-2">
+                                        <dt className={submissionTheme.previewDt}>{essay.question}</dt>
+                                        <dd className={submissionTheme.previewDdMultiline}>{essayValues[essay.id] || "-"}</dd>
+                                      </div>
+                                    ))
+                                : null}
+                            </dl>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
 
                   {detail.termsAndConditions ? (
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                    <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-slate-700">
                       <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                         Disclaimer
                       </p>
@@ -893,7 +1016,7 @@ export default function SubmissionEditSection() {
                   ) : null}
 
                   {checklistItems.length > 0 ? (
-                    <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="space-y-2 border-t border-slate-200 pt-4">
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                         Please confirm the following
                       </p>
@@ -911,6 +1034,14 @@ export default function SubmissionEditSection() {
                     </div>
                   ) : null}
 
+                  {validationMessages.length > 0 ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-900">
+                      {validationMessages.map(message => (
+                        <p key={message}>{message}</p>
+                      ))}
+                    </div>
+                  ) : null}
+
                   <div className="flex items-center justify-between gap-3">
                     <button
                       type="button"
@@ -919,22 +1050,31 @@ export default function SubmissionEditSection() {
                     >
                       Previous
                     </button>
-                    {isPaymentSettled ? (
-                      <button
-                        type="button"
-                        className={submissionTheme.primaryButton}
-                        disabled={!canSubmit || submitting}
-                        onClick={() => void handleSubmit()}
-                      >
-                        {submitting ? "Submitting..." : "Submit Application"}
-                      </button>
-                    ) : (
+                    {shouldGoToPayment ? (
                       <Link
                         href="/dashboard/payments"
                         className={submissionTheme.primaryButton}
                       >
                         Complete Payment
                       </Link>
+                    ) : !shouldShowSubmitButton ? (
+                      <button
+                        type="button"
+                        className={submissionTheme.primaryButton}
+                        disabled
+                        aria-disabled="true"
+                      >
+                        {previewActionLabel || "Submit Application"}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className={submissionTheme.primaryButton}
+                        disabled={submitting || isSubmissionLocked}
+                        onClick={() => void handleSubmit()}
+                      >
+                        {submitting ? "Submitting..." : "Submit Application"}
+                      </button>
                     )}
                   </div>
                 </div>

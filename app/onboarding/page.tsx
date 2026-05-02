@@ -2,7 +2,7 @@
 
 import { OnboardingForm, StepKey, steps, LOGIN_IMAGES, PROGRAM_SOURCES } from "./types";
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { componentsTheme } from '@/lib/theme/components';
 import type { CountryMetadata } from '@/types/metadata';
@@ -16,6 +16,8 @@ import { User, Users, MapPin, Globe, Building, Gift, Map as MapIcon } from 'luci
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { settings } = useSettings();
 
   const submissionTheme = componentsTheme.dashboardSubmission;
@@ -54,7 +56,7 @@ export default function OnboardingPage() {
     country: '',
     state: '',
     city: '',
-    birthDate: '',
+    birthDate: '2000',
     programSource: '',
     gender: '',
     referralCode: '',
@@ -211,9 +213,9 @@ export default function OnboardingPage() {
 
 
   const yearSelectOptions = useMemo(() => {
-    const currentYear = new Date().getFullYear();
+    const maxBirthYear = Math.min(new Date().getFullYear(), 2020);
     const options = [];
-    for (let i = currentYear; i >= 1950; i--) {
+    for (let i = maxBirthYear; i >= 1950; i--) {
       options.push({ value: i.toString(), label: i.toString() });
     }
     return options;
@@ -424,6 +426,27 @@ export default function OnboardingPage() {
     return 3;
   }, [isBioValid, isLocationValid, isAgeValid]);
 
+  useEffect(() => {
+    const stepParam = searchParams.get('step');
+    if (!stepParam) return;
+
+    const parsed = Number.parseInt(stepParam, 10);
+    if (Number.isNaN(parsed)) return;
+
+    const targetIndex = Math.min(Math.max(parsed, 1), steps.length) - 1;
+    const targetStep = steps[targetIndex];
+    setActiveStep(prev => (prev === targetStep ? prev : targetStep));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const stepParam = (currentIndex + 1).toString();
+    if (searchParams.get('step') === stepParam) return;
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.set('step', stepParam);
+    router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false });
+  }, [currentIndex, pathname, router, searchParams]);
+
   const goToStep = (target: StepKey) => {
     const targetIndex = steps.indexOf(target);
     if (targetIndex <= maxReachableIndex) {
@@ -495,7 +518,19 @@ export default function OnboardingPage() {
       <div className={onboardingTheme.layoutGrid}>
         <div className={onboardingTheme.leftCol}>
           <div className={onboardingTheme.leftCenter}>
-            <div className="w-full max-w-lg flex flex-col">
+            <div className="w-full max-w-lg min-h-full flex flex-col">
+              <div className={onboardingTheme.mobileImagePanel}>
+                <Image
+                  src={loginImageSrc}
+                  alt={brandName}
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-cover"
+                />
+                <div className={onboardingTheme.mobileImageOverlay} />
+              </div>
+
               <div className={`${onboardingTheme.logoWrapper} flex items-center gap-3`}>
                 <Image
                   src={brandLogo}
@@ -505,7 +540,7 @@ export default function OnboardingPage() {
                   className={onboardingTheme.logoImage}
                   priority
                 />
-                <span className="font-bold text-lg text-[var(--brand-primary)] tracking-tight">
+                <span className="font-bold text-base leading-tight text-[var(--brand-primary)] tracking-tight sm:text-lg">
                   {brandName}
                 </span>
               </div>
@@ -817,7 +852,7 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <p className="mt-4 text-center text-xs text-slate-400">
+              <p className="mt-auto pt-6 text-center text-xs text-slate-400">
                 Copyright &copy; {new Date().getFullYear()} {brandName}
               </p>
             </div>

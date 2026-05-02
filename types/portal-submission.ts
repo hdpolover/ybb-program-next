@@ -80,6 +80,13 @@ export type PortalSubmissionDetail = {
   participantAvatarUrl?: string;
   termsAndConditions?: string | null;
   previewChecklistItems?: string[];
+  previewPrimaryAction?: {
+    type: 'submit_application' | 'complete_payment' | string;
+    label: string;
+    enabled: boolean;
+    reason?: string;
+  };
+  isRegistrationPaymentRequired?: boolean;
   isRegistrationPaymentSettled?: boolean;
 };
 

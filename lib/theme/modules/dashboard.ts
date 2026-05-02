@@ -696,8 +696,8 @@ export const dashboardTheme = {
     previewEditIcon: 'h-3.5 w-3.5',
     previewDefinitionList: 'mt-2 grid gap-2 md:grid-cols-2',
     previewDt: 'text-[11px] text-slate-500',
-    previewDd: 'font-medium',
-    previewDdMultiline: 'font-medium whitespace-pre-line',
+    previewDd: 'font-medium break-words',
+    previewDdMultiline: 'font-medium whitespace-pre-line break-words',
 
     // edit: modal
     modalOverlay: 'fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 px-4',
