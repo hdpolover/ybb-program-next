@@ -29,7 +29,15 @@ export default function SupportedBy({ items }: SupportedByProps) {
           title="Organizations that stand behind this program"
         />
 
-        <div className="mt-6 overflow-hidden">
+        <div
+          className="mt-6 overflow-hidden"
+          style={{
+            WebkitMaskImage:
+              'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+            maskImage:
+              'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+          }}
+        >
           <div className="logo-marquee flex items-center gap-10">
             {sponsors.map(sponsor => (
               <a

@@ -100,15 +100,18 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
                   className={
                     shouldShowReadMore ? componentsTheme.aboutProgram.contentPreviewClamp : undefined
                   }
+                  style={
+                    shouldShowReadMore
+                      ? {
+                          WebkitMaskImage:
+                            'linear-gradient(to bottom, black 0%, black 72%, transparent 100%)',
+                          maskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 100%)',
+                        }
+                      : undefined
+                  }
                 >
                   {renderContent(about)}
                 </div>
-                {shouldShowReadMore && (
-                  <div
-                    className={componentsTheme.aboutProgram.contentPreviewFade}
-                    aria-hidden="true"
-                  />
-                )}
               </div>
               {shouldShowReadMore && (
                 <button

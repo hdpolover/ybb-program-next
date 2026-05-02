@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import Image from 'next/image';
-import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
 type InstagramFeedItem = {
@@ -302,27 +301,19 @@ export default function HomeRegistrationStrip({
   return (
     <section className={componentsTheme.homeRegistration.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader
-          eyebrow="Registration Types"
-          title="Choose how you want to join"
-        />
-        <p className={componentsTheme.homeRegistration.introText}>
-          Explore the available registration options and read the guidebook before you apply.
-        </p>
-
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.6fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.7fr)]">
-          <div className="flex flex-col gap-4">
-            <div className={`${componentsTheme.homeRegistration.instagramCard} p-0`}>
+        <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.6fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.7fr)]">
+          <div className="flex h-full min-h-0 flex-col gap-4">
+            <div className={`${componentsTheme.homeRegistration.instagramCard} flex min-h-0 flex-1 flex-col p-0`}>
               {activePost ? (
-                <div className="p-4">
+                <div className="flex h-full min-h-0 flex-col p-4">
                   {activePost.imageUrl?.trim() && !fallbackImageFailed ? (
                     <a
                       href={activePost.permalink}
                       target="_blank"
                       rel="noreferrer"
-                      className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                      className="group block flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white"
                     >
-                      <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
+                      <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100 lg:h-full lg:min-h-[420px] lg:aspect-auto">
                         <Image
                           src={activePost.imageUrl}
                           alt={activePost.caption || 'Instagram post'}
@@ -398,30 +389,46 @@ export default function HomeRegistrationStrip({
                     href={guide.url}
                     target="_blank"
                     rel="noreferrer"
-                    className={`group flex items-center justify-between rounded-2xl border px-4 py-3 text-left shadow-sm transition ${
+                    className={`group relative flex items-center justify-between overflow-hidden rounded-2xl border px-4 py-3 text-left transition ${
                       index === 0
-                        ? 'border-primary/20 bg-primary/[0.04] hover:border-primary/35 hover:bg-primary/[0.06]'
-                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                        ? 'border-[var(--brand-accent)] bg-[var(--brand-accent-soft)] hover:opacity-95'
+                        : 'border-[var(--brand-border)] bg-[var(--brand-accent-soft)] hover:opacity-90'
                     }`}
                   >
+                    <span className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-[var(--brand-accent)]" />
                     <div className="min-w-0">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                        Guidebook
+                      <p className="inline-flex items-center rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--brand-accent)]">
+                        Guideline
                       </p>
-                      <p className="mt-1 truncate text-sm font-semibold text-slate-900">{guide.title}</p>
+                      <p className="mt-1 truncate text-sm font-bold text-slate-900">{guide.title}</p>
                     </div>
-                    <ExternalLink className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-primary" />
+                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[var(--brand-accent)] transition group-hover:bg-[var(--brand-accent-soft)]">
+                      <ExternalLink className="h-4 w-4" />
+                    </span>
                   </a>
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-4 py-6 text-center text-sm text-slate-500">
-                  Guidebooks will appear here once program resources are published.
+                  Guidelines will appear here once program resources are published.
                 </div>
               )}
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="flex h-full min-h-0 flex-col space-y-4">
+            <div className="space-y-2">
+              <p className="text-accent text-xs font-semibold uppercase tracking-wider">
+                Registration Types
+              </p>
+              <h2 className="text-3xl font-extrabold tracking-tight text-blue-950 sm:text-4xl">
+                Choose how you want to join
+              </h2>
+              <p className="max-w-3xl text-sm text-slate-600 sm:text-base">
+                Explore the available registration options and read the guidebook before you apply.
+              </p>
+            </div>
+
+            <div className="grid flex-1 gap-6 lg:grid-cols-2">
             <div className={componentsTheme.applyRegistrationTypes.card}>
               <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
                 <div className={componentsTheme.applyRegistrationTypes.headerRow}>
@@ -646,6 +653,7 @@ export default function HomeRegistrationStrip({
                   )}
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
