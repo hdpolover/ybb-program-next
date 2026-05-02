@@ -21,6 +21,7 @@ type ValidityPeriod = {
 type RegistrationType = {
   id: string;
   name: string;
+  description?: string | null;
   price: string;
   currency: string;
   fee_type?: string;
@@ -124,6 +125,50 @@ function pickRegistrationTier(
   };
 
   return [...candidates].sort((a, b) => toPrice(a) - toPrice(b))[target === 'self_funded' ? candidates.length - 1 : 0];
+}
+
+function decodePossiblyEncodedHtml(value: string): string {
+  if (!value.includes('&lt;')) return value;
+  return value
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&amp;/gi, '&');
+}
+
+function sanitizeRichHtml(value: string): string {
+  return value
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
+    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, '')
+    .replace(/\son\w+="[^"]*"/gi, '')
+    .replace(/\son\w+='[^']*'/gi, '')
+    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, '');
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function toRichHtml(value?: string | null): string {
+  const raw = decodePossiblyEncodedHtml((value ?? '').trim());
+  if (!raw) return '';
+  const hasHtml = /<\/?[a-z][\s\S]*>/i.test(raw);
+  const html = hasHtml ? raw : `<p>${escapeHtml(raw).replace(/\r?\n/g, '<br />')}</p>`;
+  return sanitizeRichHtml(html);
+}
+
+function hasRichTextContent(value?: string | null): boolean {
+  const richHtml = toRichHtml(value);
+  if (!richHtml) return false;
+  const plain = richHtml.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
+  return plain.length > 0;
 }
 
 export default function HomeRegistrationStrip({
@@ -337,6 +382,12 @@ export default function HomeRegistrationStrip({
                 </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
+                {hasRichTextContent(primaryType?.description) && (
+                  <div
+                    className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
+                    dangerouslySetInnerHTML={{ __html: toRichHtml(primaryType?.description) }}
+                  />
+                )}
                 <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
                 <ul className={componentsTheme.applyRegistrationTypes.list}>
                   {(primaryType?.requirements?.length
@@ -433,6 +484,12 @@ export default function HomeRegistrationStrip({
                 </div>
               </div>
               <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
+                {hasRichTextContent(secondaryType?.description) && (
+                  <div
+                    className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
+                    dangerouslySetInnerHTML={{ __html: toRichHtml(secondaryType?.description) }}
+                  />
+                )}
                 <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
                 <ul className={componentsTheme.applyRegistrationTypes.list}>
                   {(secondaryType?.requirements?.length

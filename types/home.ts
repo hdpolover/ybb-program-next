@@ -43,6 +43,7 @@ export type RegistrationOverviewSection = {
     registration_types: {
       id: string;
       name: string;
+      description?: string | null;
       price: string;
       currency: string;
       fee_type?: string;
