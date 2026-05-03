@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { useSettings } from '@/components/providers/SettingsProvider';
 import { formatDate } from '@/lib/utils';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
@@ -271,6 +272,9 @@ function AttachmentPreview({
 }
 
 export default function SupportTicketsPage() {
+  const { settings } = useSettings();
+  const programId = settings?.active_program?.id ?? '';
+
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<TicketDetail | null>(null);
@@ -311,6 +315,15 @@ export default function SupportTicketsPage() {
 
   const descriptionPlainText = useMemo(() => richTextToPlain(description), [description]);
   const replyPlainText = useMemo(() => richTextToPlain(replyMessage), [replyMessage]);
+  const originalMessage = useMemo(
+    () => selectedTicket?.messages?.find((message) => !message.isFromAdmin),
+    [selectedTicket],
+  );
+  const originalDescription = useMemo(() => {
+    const source = selectedTicket?.description?.trim() ? selectedTicket.description : (originalMessage?.message ?? '');
+    return sanitizeRichHtml(source);
+  }, [originalMessage?.message, selectedTicket?.description]);
+  const originalAttachments = originalMessage?.attachments ?? [];
 
   const loadTickets = useCallback(async () => {
     setLoadingList(true);
@@ -431,14 +444,37 @@ export default function SupportTicketsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          programId: programId || undefined,
           category: category.trim(),
           subCategory: subCategory || undefined,
           subject: subject.trim(),
-          description: buildTicketDescription(description, createAttachments),
+          description: sanitizeRichHtml(description),
+          attachments: createAttachments,
         }),
       });
-      const json = (await res.json().catch(() => null)) as { message?: string; data?: { id?: string } } | null;
-      if (!res.ok) {
+
+      let json = (await res.json().catch(() => null)) as { message?: string; data?: { id?: string } } | null;
+      let finalResponse = res;
+      const createErrorMessage = (json?.message ?? '').toLowerCase();
+      const hasUnsupportedFieldError =
+        createErrorMessage.includes('should not exist') &&
+        (createErrorMessage.includes('programid') || createErrorMessage.includes('attachments'));
+
+      if (!res.ok && hasUnsupportedFieldError) {
+        finalResponse = await fetch('/api/support/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: category.trim(),
+            subCategory: subCategory || undefined,
+            subject: subject.trim(),
+            description: buildTicketDescription(description, createAttachments),
+          }),
+        });
+        json = (await finalResponse.json().catch(() => null)) as { message?: string; data?: { id?: string } } | null;
+      }
+
+      if (!finalResponse.ok) {
         throw new Error(json?.message ?? 'Failed to create support ticket');
       }
       setSubject('');
@@ -677,10 +713,19 @@ export default function SupportTicketsPage() {
 
               <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
                 <p className="text-xs font-medium text-zinc-700">Original Description</p>
-                <div
-                  className="prose prose-sm mt-1 max-w-none text-zinc-700"
-                  dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(selectedTicket.description ?? '') }}
-                />
+                {originalDescription ? (
+                  <div
+                    className="prose prose-sm mt-1 max-w-none text-zinc-700"
+                    dangerouslySetInnerHTML={{ __html: originalDescription }}
+                  />
+                ) : (
+                  <p className="mt-1 text-sm text-zinc-500">No description provided.</p>
+                )}
+                {originalAttachments.length > 0 ? (
+                  <div className="mt-2">
+                    <AttachmentPreview attachments={originalAttachments} />
+                  </div>
+                ) : null}
               </div>
 
               <div className="space-y-2">
