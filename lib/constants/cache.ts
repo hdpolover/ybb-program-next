@@ -28,8 +28,3 @@ export function getSettingsLsKey(brandDomain: string): string {
   return `${SETTINGS_LS_LEGACY_KEY}:${normalizedSuffix(brandDomain)}`;
 }
 export const SETTINGS_LS_TTL_MS = SETTINGS_CACHE_TTL * 1000;
-
-export const PAYMENT_METHODS_CACHE_TTL = 120; // seconds
-export function getPaymentMethodsCacheKey(brandDomain: string): string {
-  return `payment-methods:${normalizedSuffix(brandDomain)}`;
-}

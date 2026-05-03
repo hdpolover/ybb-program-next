@@ -1,6 +1,8 @@
 import { headers } from 'next/headers';
 
 const resolvedHostCache = new Map<string, string>();
+// Cap the host-resolution cache to prevent unbounded growth from request-controlled Host headers.
+const MAX_RESOLVED_HOST_CACHE = 50;
 
 export function normalizeBrandUrl(input: string): string {
   const trimmed = (input || '').trim().replace(/\/+$/, '');
@@ -21,7 +23,9 @@ function resolveFromHost(hostnameRaw: string, defaultDomain: string | null): str
       ? defaultDomain || 'localhost'
       : normalizeBrandUrl(hostname);
 
-  resolvedHostCache.set(cacheKey, resolved);
+  if (resolvedHostCache.size < MAX_RESOLVED_HOST_CACHE) {
+    resolvedHostCache.set(cacheKey, resolved);
+  }
   return resolved;
 }
 
