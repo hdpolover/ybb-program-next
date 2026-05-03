@@ -31,7 +31,8 @@ export default function PhotoGallery({
   if (!images || images.length === 0) return null;
 
   const [selected, setSelected] = useState<number | null>(null);
-  const [visible, setVisible] = useState<number>(12);
+  const initialVisible = mode === 'home' ? 8 : 12;
+  const [visible, setVisible] = useState<number>(initialVisible);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setSelected(null);

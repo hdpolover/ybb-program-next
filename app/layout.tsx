@@ -4,6 +4,7 @@ import Script from 'next/script';
 import { getHomePageData } from '@/lib/api/home';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { resolveBrandDomain } from '@/lib/server/envContext';
+import { getFeatureFlags } from '@/lib/server/featureFlags';
 import { SettingsProvider } from '@/components/providers/SettingsProvider';
 import './globals.css';
 import ClientNavbarGate from '@/components/layout/ClientNavbarGate';
@@ -113,6 +114,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const host = await resolveBrandDomain();
+  const featureFlags = getFeatureFlags();
   const appVersion = process.env.NEXT_PUBLIC_APP_BUILD_ID || 'development';
 
   let brandAccent: string | null = null;
@@ -140,6 +142,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   const programSlug = process.env.YBB_PROGRAM_SLUG?.trim() || settingsData?.active_program?.slug || 'ybb';
+  const defaultChatBotId = '4a9ea369-4638-413f-92d4-9c4600f7c6be';
+  const chatBotId = process.env.NEXT_PUBLIC_CHAT_WIDGET_BOT_ID?.trim() || defaultChatBotId;
+  const chatScriptEnabled = featureFlags.enableThirdPartyScriptGating ? Boolean(chatBotId) : true;
 
   const accent = brandAccent;
   const themeStyle =
@@ -168,7 +173,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
             <ClientCTAGate />
             <BackToTop />
-            <ClientChatWidgetGate />
             <ClientFooterGate />
           </PromoCTAProvider>
         </SettingsProvider>
@@ -190,11 +194,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </>
         )}
 
-        <Script
-          src="https://aksamu.com/chat-widget.js"
-          data-bot-id="4a9ea369-4638-413f-92d4-9c4600f7c6be"
-          data-primary-color={accent || "#16a34a"}
-          strategy="lazyOnload"
+        <ClientChatWidgetGate
+          enabled={chatScriptEnabled}
+          botId={chatBotId}
+          primaryColor={accent || '#16a34a'}
         />
       </body>
     </html>
