@@ -144,48 +144,30 @@ export default function AlumniStoriesSection({
 				<div className={componentsTheme.alumniStories.layoutGrid}>
 					{/* Left: main video */}
 					<div>
-						<div className={componentsTheme.alumniStories.mainVideoWrapper}>
-							{activeItem && activeItem.type === 'video' && toEmbedUrl(activeItem.video_url) ? (
-								<iframe
-									src={toEmbedUrl(activeItem.video_url) ?? ''}
-									title={activeItem.testimonial || activeItem.name}
-									className={componentsTheme.alumniStories.mainIframe}
-									loading="lazy"
-									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-									allowFullScreen
-								/>
-							) : (
-								<div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
-									Video coming soon
-								</div>
-							)}
-						</div>
-						{activeItem && (
-							<div className="mt-4 flex items-start gap-3">
-								{activeItem.avatar_url && (
-									<Image
-										src={activeItem.avatar_url}
-										alt={activeItem.name}
-										width={40}
-										height={40}
-										className="h-10 w-10 flex-shrink-0 rounded-full object-cover ring-2 ring-accent/30"
-									/>
+						<div className={componentsTheme.alumniStories.mainVideoCard}>
+							<div className={componentsTheme.alumniStories.mainVideoHeader}>
+								<p className={componentsTheme.alumniStories.mainVideoLabel}>Featured Story</p>
+								{activeItem?.name && (
+									<p className={componentsTheme.alumniStories.mainVideoName}>{activeItem.name}</p>
 								)}
-								<div>
-									<p className="text-sm font-semibold text-slate-900">
-										{activeItem.name}
-									</p>
-									{activeItem.role && (
-										<p className="text-xs text-slate-500">{activeItem.role}</p>
-									)}
-									{activeItem.testimonial && (
-										<p className="mt-2 text-sm text-slate-700">
-											{activeItem.testimonial}
-										</p>
-									)}
-								</div>
 							</div>
-						)}
+							<div className={componentsTheme.alumniStories.mainVideoWrapper}>
+								{activeItem && activeItem.type === 'video' && toEmbedUrl(activeItem.video_url) ? (
+									<iframe
+										src={toEmbedUrl(activeItem.video_url) ?? ''}
+										title={activeItem.testimonial || activeItem.name}
+										className={componentsTheme.alumniStories.mainIframe}
+										loading="lazy"
+										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+										allowFullScreen
+									/>
+								) : (
+									<div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
+										Video coming soon
+									</div>
+								)}
+							</div>
+						</div>
 					</div>
 
 					{/* Right: reels-style thumbnails from API items */}

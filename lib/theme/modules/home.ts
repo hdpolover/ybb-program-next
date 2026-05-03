@@ -103,6 +103,12 @@ export const homeTheme = {
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
     card: 'mx-auto max-w-7xl px-6 py-10 text-slate-900 sm:px-10',
     layoutGrid: 'grid gap-10 items-start',
+    mainVideoCard:
+      'rounded-2xl bg-white/90 p-3 shadow-[0_16px_46px_rgba(15,23,42,0.10)] ring-1 ring-slate-200 sm:p-4',
+    mainVideoHeader: 'mb-3 flex items-center justify-between gap-3 px-1',
+    mainVideoLabel:
+      'inline-flex items-center rounded-full bg-[var(--brand-accent-soft)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-accent)] ring-1 ring-[var(--brand-border)]',
+    mainVideoName: 'truncate text-sm font-semibold text-slate-700',
     mainVideoWrapper:
       'relative aspect-video w-full max-w-4xl overflow-hidden rounded-2xl bg-slate-900/5 ring-1 ring-slate-200 mx-auto',
     mainIframe: 'absolute inset-0 h-full w-full border-0 rounded-2xl',
