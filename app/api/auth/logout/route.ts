@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getEnvBrandDomain } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
 
 const BRAND_DOMAIN = getEnvBrandDomain() ?? '';
 
@@ -11,8 +12,11 @@ type LogoutResponse = {
   data?: unknown;
 };
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const csrfRejection = getCsrfGuardRejection(request);
+    if (csrfRejection) return csrfRejection;
+
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
