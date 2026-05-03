@@ -57,9 +57,15 @@ const toEmbedUrl = (videoUrl: string | null): string | null => {
 	return null;
 };
 
-const toYouTubeThumbnail = (videoUrl: string | null): string | null => {
+const getYouTubeThumbnailCandidates = (videoUrl: string | null): string[] => {
 	const id = extractYouTubeId(videoUrl);
-	return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null;
+	if (!id) return [];
+	return [
+		`https://img.youtube.com/vi/${id}/maxresdefault.jpg`,
+		`https://img.youtube.com/vi/${id}/sddefault.jpg`,
+		`https://img.youtube.com/vi/${id}/hqdefault.jpg`,
+		`https://img.youtube.com/vi/${id}/mqdefault.jpg`,
+	];
 };
 
 export default function AlumniStoriesSection({
@@ -67,12 +73,11 @@ export default function AlumniStoriesSection({
 	subtitle,
 	items,
 }: AlumniStoriesProps) {
-	if (!items || items.length === 0) return null;
-
 	const [startIndex, setStartIndex] = useState(0);
 	const [pageSize, setPageSize] = useState(REELS_PAGE_SIZE);
 	const [loaded, setLoaded] = useState<Record<string, boolean>>({});
 	const [activeId, setActiveId] = useState<string | null>(null);
+	const [thumbVariantIndex, setThumbVariantIndex] = useState<Record<string, number>>({});
 
 	useEffect(() => {
 		if (typeof window === 'undefined') return;
@@ -113,6 +118,8 @@ export default function AlumniStoriesSection({
 		return normalizedItems.find(item => item.id === activeId) ?? featured;
 	}, [activeId, featured, normalizedItems]);
 
+	if (normalizedItems.length === 0) return null;
+
 	const handleNext = () => {
 		if (!total) return;
 		setStartIndex(prev => (prev + safePageSize) % total);
@@ -125,6 +132,16 @@ export default function AlumniStoriesSection({
 
 	const markLoaded = (id: string) => {
 		setLoaded(prev => ({ ...prev, [id]: true }));
+	};
+
+	const bumpThumbnailVariant = (id: string, totalVariants: number) => {
+		setThumbVariantIndex(prev => {
+			const current = prev[id] ?? 0;
+			if (current >= totalVariants - 1) {
+				return prev;
+			}
+			return { ...prev, [id]: current + 1 };
+		});
 	};
 
 	const truncate = (text: string, maxChars = 80) => {
@@ -200,6 +217,11 @@ export default function AlumniStoriesSection({
 							{visibleReels.map(item => {
 								const isActive = activeItem?.id === item.id;
 								const thumbLoaded = loaded[item.id];
+								const thumbnailVariants = item.thumbnail_url
+									? [item.thumbnail_url]
+									: getYouTubeThumbnailCandidates(item.video_url);
+								const variantIndex = thumbVariantIndex[item.id] ?? 0;
+								const currentThumbnail = thumbnailVariants[variantIndex] ?? null;
 
 								return (
 									<button
@@ -211,14 +233,22 @@ export default function AlumniStoriesSection({
 										{!thumbLoaded && (
 											<div className={componentsTheme.alumniStories.reelSkeleton} />
 										)}
-										{item.type === 'video' && (item.thumbnail_url || toYouTubeThumbnail(item.video_url)) ? (
+										{item.type === 'video' && currentThumbnail ? (
 											<Image
-												src={item.thumbnail_url || toYouTubeThumbnail(item.video_url) || ''}
+												src={currentThumbnail}
 												alt={item.testimonial || item.name}
 												fill
-												sizes="(max-width: 640px) 100vw, 25vw"
+												sizes="(max-width: 640px) 224px, (max-width: 1024px) 30vw, 270px"
+												quality={90}
 												className={componentsTheme.alumniStories.reelVideo}
 												onLoad={() => markLoaded(item.id)}
+												onError={() => {
+													if (variantIndex < thumbnailVariants.length - 1) {
+														bumpThumbnailVariant(item.id, thumbnailVariants.length);
+														return;
+													}
+													markLoaded(item.id);
+												}}
 											/>
 										) : (
 											<div className={componentsTheme.alumniStories.reelVideo}>
