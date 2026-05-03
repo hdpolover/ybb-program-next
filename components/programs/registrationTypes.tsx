@@ -28,6 +28,56 @@ type RegistrationTypeProgramsProps = {
   } | null;
 };
 
+function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | null {
+  const normalized = category.trim().toLowerCase();
+  if (normalized === 'self_funded' || normalized === 'self-funded') return 'self_funded';
+  if (normalized === 'fully_funded' || normalized === 'fully-funded') return 'fully_funded';
+  return null;
+}
+
+function hasCategory(
+  tier: RegistrationInfoPricingTier,
+  target: 'self_funded' | 'fully_funded',
+): boolean {
+  const categories = [
+    ...(tier.allowed_categories ?? []),
+    ...(tier.target ? [tier.target] : []),
+  ];
+
+  return categories
+    .map((item) => normalizeCategory(String(item)))
+    .some((item) => item === target);
+}
+
+function isRegistrationFeeTier(tier: RegistrationInfoPricingTier): boolean {
+  return (tier.fee_type ?? '').toLowerCase() === 'registration_fee';
+}
+
+function pickRegistrationTier(
+  tiers: RegistrationInfoPricingTier[],
+  target: 'self_funded' | 'fully_funded',
+  excludeId?: string,
+): RegistrationInfoPricingTier | undefined {
+  const oppositeTarget = target === 'self_funded' ? 'fully_funded' : 'self_funded';
+  const candidates = tiers.filter((tier) => tier.id !== excludeId);
+  const exact = candidates.find(
+    (tier) => hasCategory(tier, target) && !hasCategory(tier, oppositeTarget),
+  );
+  if (exact) return exact;
+
+  const inclusive = candidates.find((tier) => hasCategory(tier, target));
+  if (inclusive) return inclusive;
+
+  if (candidates.length === 0) return undefined;
+
+  const toPrice = (tier: RegistrationInfoPricingTier) => {
+    const value = Number(String(tier.price).replace(/[^0-9.-]/g, ''));
+    return Number.isFinite(value) ? value : 0;
+  };
+
+  return [...candidates].sort((a, b) => toPrice(a) - toPrice(b))[target === 'self_funded' ? candidates.length - 1 : 0];
+}
+
 function normalizeDisplayValue(value: unknown): string {
   if (value === null || value === undefined) return '';
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'bigint') {
@@ -57,8 +107,9 @@ export default function RegistrationTypePrograms({
 }: RegistrationTypeProgramsProps) {
   if (!pricingTiers && !instructions) return null;
 
-  const primaryType = pricingTiers?.[0];
-  const secondaryType = pricingTiers?.[1];
+  const registrationFeeTypes = (pricingTiers ?? []).filter(isRegistrationFeeTier);
+  const primaryType = pickRegistrationTier(registrationFeeTypes, 'self_funded');
+  const secondaryType = pickRegistrationTier(registrationFeeTypes, 'fully_funded', primaryType?.id);
 
   const primaryBenefits = primaryType?.benefits ?? [];
   const secondaryBenefits = secondaryType?.benefits ?? [];

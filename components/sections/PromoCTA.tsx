@@ -24,7 +24,6 @@ export default function PromoCTA({
   backgroundImageMobileUrl,
   videoUrl,
   videoTitle,
-  videoDescription,
 }: PromoCTAProps) {
   const resolvedPrimaryCtaHref = normalizeLandingCtaHref(primaryCtaHref);
   const resolvedDesktopBackground = backgroundImageUrl?.trim() || '/img/ctabekground.png';
@@ -83,20 +82,6 @@ export default function PromoCTA({
                   allowFullScreen
                 />
               </div>
-              {(videoTitle || videoDescription) && (
-                <div className="mt-3">
-                  {videoTitle && (
-                    <h3 className={`${componentsTheme.promoCta.videoTitle} break-words`}>
-                      {videoTitle}
-                    </h3>
-                  )}
-                  {videoDescription && (
-                    <p className={`${componentsTheme.promoCta.videoDescription} break-words`}>
-                      {videoDescription}
-                    </p>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         ) : null}

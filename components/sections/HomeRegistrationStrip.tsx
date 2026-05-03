@@ -245,9 +245,8 @@ export default function HomeRegistrationStrip({
 
   const activePost = posts[activePostIndex] ?? null;
   const registrationFeeTypes = registrationTypes.filter(isRegistrationFeeTier);
-  const fallbackTypes = registrationFeeTypes.length > 0 ? registrationFeeTypes : registrationTypes;
-  const primaryType = pickRegistrationTier(fallbackTypes, 'self_funded');
-  const secondaryType = pickRegistrationTier(fallbackTypes, 'fully_funded', primaryType?.id);
+  const primaryType = pickRegistrationTier(registrationFeeTypes, 'self_funded');
+  const secondaryType = pickRegistrationTier(registrationFeeTypes, 'fully_funded', primaryType?.id);
   const primaryDescriptionHtml = toRichHtml(primaryType?.description);
   const secondaryDescriptionHtml = toRichHtml(secondaryType?.description);
   const primaryRequirements = primaryType?.requirements?.length
