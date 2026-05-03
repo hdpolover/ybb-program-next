@@ -1,11 +1,28 @@
 import { headers } from 'next/headers';
 
+const resolvedHostCache = new Map<string, string>();
+
 export function normalizeBrandUrl(input: string): string {
   const trimmed = (input || '').trim().replace(/\/+$/, '');
   if (!trimmed) return '';
   // Strip protocol first, then strip port (localhost:3000 → localhost, domain.com:8080 → domain.com)
   const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
   return withoutProtocol.split(':')[0];
+}
+
+function resolveFromHost(hostnameRaw: string, defaultDomain: string | null): string {
+  const cacheKey = `${hostnameRaw}|${defaultDomain ?? ''}`;
+  const cached = resolvedHostCache.get(cacheKey);
+  if (cached) return cached;
+
+  const hostname = hostnameRaw.split(':')[0];
+  const resolved =
+    !hostname || hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')
+      ? defaultDomain || 'localhost'
+      : normalizeBrandUrl(hostname);
+
+  resolvedHostCache.set(cacheKey, resolved);
+  return resolved;
 }
 
 /**
@@ -27,16 +44,8 @@ export function getEnvBrandDomain(): string | null {
 export async function resolveBrandDomain(): Promise<string> {
   const h = await headers();
   const hostnameRaw = h.get('x-hostname') || h.get('host') || '';
-  const hostname = hostnameRaw.split(':')[0];
-
   const defaultDomain = getEnvBrandDomain();
-
-  if (!hostname || hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-    // For localhost, use default domain if available, otherwise fallback
-    return defaultDomain || 'localhost';
-  }
-
-  return normalizeBrandUrl(hostname);
+  return resolveFromHost(hostnameRaw, defaultDomain);
 }
 
 /**
@@ -45,14 +54,6 @@ export async function resolveBrandDomain(): Promise<string> {
  */
 export function resolveBrandDomainFromRequest(request: Request): string {
   const hostnameRaw = request.headers.get('x-hostname') || request.headers.get('host') || '';
-  const hostname = hostnameRaw.split(':')[0];
-
   const defaultDomain = getEnvBrandDomain();
-
-  if (!hostname || hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-    // For localhost, use default domain if available, otherwise fallback
-    return defaultDomain || 'localhost';
-  }
-
-  return normalizeBrandUrl(hostname);
+  return resolveFromHost(hostnameRaw, defaultDomain);
 }
