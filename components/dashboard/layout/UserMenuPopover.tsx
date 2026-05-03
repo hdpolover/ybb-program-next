@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { ChevronDown, LogOut, Settings, UserCircle2 } from 'lucide-react';
+import { ChevronDown, LifeBuoy, LogOut, Settings, UserCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -105,6 +105,15 @@ export default function UserMenuPopover({
             >
               <Settings className="h-4 w-4 text-slate-400" />
               <span>Profile &amp; Settings</span>
+            </Link>
+
+            <Link
+              href="/dashboard/support-tickets"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              <LifeBuoy className="h-4 w-4 text-slate-400" />
+              <span>Support Tickets</span>
             </Link>
 
             <div className="my-1 border-t border-slate-100" />

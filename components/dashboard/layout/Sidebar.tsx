@@ -7,6 +7,7 @@ import {
   CreditCard,
   FileText,
   FolderClosed,
+  LifeBuoy,
   LayoutDashboard,
   Upload,
   Users,
@@ -68,6 +69,7 @@ export default function Sidebar({
     if (href.startsWith("/dashboard/submission")) return <Upload className="h-4 w-4" />;
     if (href.startsWith("/dashboard/documents")) return <FolderClosed className="h-4 w-4" />;
     if (href.startsWith("/dashboard/payments")) return <CreditCard className="h-4 w-4" />;
+    if (href.startsWith("/dashboard/support-tickets")) return <LifeBuoy className="h-4 w-4" />;
     return <FileText className="h-4 w-4" />;
   };
 
