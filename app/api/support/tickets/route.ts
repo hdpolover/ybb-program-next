@@ -83,7 +83,6 @@ export async function POST(request: Request) {
       subject?: string;
       description?: string;
       attachments?: SupportTicketAttachment[];
-      priority?: 'low' | 'normal' | 'high';
     };
 
     const brandDomain = resolveBrandDomainFromRequest(request);

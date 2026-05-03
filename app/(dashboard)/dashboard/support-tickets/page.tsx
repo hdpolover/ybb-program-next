@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ImagePlus, Paperclip, RefreshCw, Search, Trash2 } from 'lucide-react';
-import { useSettings } from '@/components/providers/SettingsProvider';
+import { ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
@@ -45,12 +44,6 @@ type CategoryOption = {
   label: string;
   subCategories: Array<{ value: string; label: string }>;
 };
-
-const PRIORITIES: Array<{ value: 'low' | 'normal' | 'high'; label: string }> = [
-  { value: 'low', label: 'Low' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'high', label: 'High' },
-];
 
 const CATEGORY_OPTIONS: CategoryOption[] = [
   {
@@ -105,6 +98,32 @@ function sanitizeRichHtml(value: string): string {
     .replace(/\son\w+="[^"]*"/gi, '')
     .replace(/\son\w+='[^']*'/gi, '')
     .replace(/<(?!\/?(p|br|strong|b|em|i|u|ul|ol|li|blockquote|code|pre)\b)[^>]*>/gi, '');
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function buildTicketDescription(
+  description: string,
+  attachments: SupportTicketAttachment[],
+): string {
+  const sanitizedDescription = sanitizeRichHtml(description);
+  if (attachments.length === 0) return sanitizedDescription;
+
+  const attachmentList = attachments
+    .map(
+      (attachment) =>
+        `<li><strong>${escapeHtml(attachment.fileName)}</strong>: ${escapeHtml(attachment.fileUrl)}</li>`,
+    )
+    .join('');
+
+  return `${sanitizedDescription}<p><strong>Uploaded screenshots</strong></p><ul>${attachmentList}</ul>`;
 }
 
 function richTextToPlain(value: string): string {
@@ -252,9 +271,6 @@ function AttachmentPreview({
 }
 
 export default function SupportTicketsPage() {
-  const { settings } = useSettings();
-  const programId = settings?.active_program?.id ?? '';
-
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<TicketDetail | null>(null);
@@ -272,7 +288,6 @@ export default function SupportTicketsPage() {
   const [subCategory, setSubCategory] = useState(CATEGORY_OPTIONS[0].subCategories[0]?.value ?? '');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<'low' | 'normal' | 'high'>('normal');
   const [createAttachments, setCreateAttachments] = useState<SupportTicketAttachment[]>([]);
   const [replyMessage, setReplyMessage] = useState('');
   const [replyAttachments, setReplyAttachments] = useState<SupportTicketAttachment[]>([]);
@@ -416,13 +431,10 @@ export default function SupportTicketsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          programId: programId || undefined,
           category: category.trim(),
           subCategory: subCategory || undefined,
           subject: subject.trim(),
-          description: sanitizeRichHtml(description),
-          attachments: createAttachments,
-          priority,
+          description: buildTicketDescription(description, createAttachments),
         }),
       });
       const json = (await res.json().catch(() => null)) as { message?: string; data?: { id?: string } } | null;
@@ -539,21 +551,6 @@ export default function SupportTicketsPage() {
                 />
               </label>
 
-              <label className="block text-xs font-medium text-zinc-600">
-                Priority
-                <select
-                  value={priority}
-                  onChange={(event) => setPriority(event.target.value as 'low' | 'normal' | 'high')}
-                  className="mt-1 block w-full rounded-md border border-zinc-200 px-2.5 py-2 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  {PRIORITIES.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
               <div className="space-y-1">
                 <p className="text-xs font-medium text-zinc-600">Description</p>
                 <RichTextEditor
@@ -588,10 +585,20 @@ export default function SupportTicketsPage() {
 
               <button
                 type="submit"
-                disabled={submitting || !subject.trim() || !descriptionPlainText}
-                className="w-full rounded-md bg-blue-500 px-3 py-2 text-xs font-semibold text-white disabled:opacity-60 hover:bg-blue-600"
+                disabled={submitting || uploadingCreateAttachment || !subject.trim() || !descriptionPlainText}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-blue-500 px-3 py-2 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 hover:bg-blue-600"
+                aria-busy={submitting || uploadingCreateAttachment}
               >
-                {submitting ? 'Submitting...' : 'Submit Ticket'}
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Submitting ticket...
+                  </>
+                ) : uploadingCreateAttachment ? (
+                  'Uploading screenshots...'
+                ) : (
+                  'Submit Ticket'
+                )}
               </button>
             </form>
           </div>
