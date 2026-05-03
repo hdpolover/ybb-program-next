@@ -90,6 +90,7 @@ Or [http://localhost:3000](http://localhost:3000) if running directly with `npm 
 - `npm start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run type-check` - Run TypeScript type checking
+- `npm run test:e2e` - Run Playwright E2E tests
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check code formatting
 
@@ -121,6 +122,19 @@ APP_BUILD_ID=development
 ```
 
 For production and Dokploy deployments, set `APP_BUILD_ID` to a unique value per release, such as a commit SHA, release tag, or CI build number. This is what the app uses to detect that a newer web version is live and trigger a full refresh.
+
+Feature flags available for rollout control (default `false`):
+
+- `ENABLE_BRAND_SCOPED_CACHE`
+- `ENABLE_CSRF_GUARD`
+- `ENABLE_FILE_SERVICE_AUTH_REQUIRED`
+- `ENABLE_PAYMENT_OUTBOX`
+- `ENABLE_STRICT_REVALIDATE_AUTH`
+- `ENABLE_THIRD_PARTY_SCRIPT_GATING`
+
+Baseline/checklist artifact for PR #1:
+
+- `docs/PR1_BASELINE_AND_FLAGS.md`
 
 ## 📚 Tech Stack
 
