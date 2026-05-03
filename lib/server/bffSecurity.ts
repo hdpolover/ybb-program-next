@@ -15,9 +15,18 @@ function getRequestHost(request: Request): string {
 
 function getOriginHost(request: Request): string {
   const origin = request.headers.get('origin');
-  if (!origin) return '';
+  if (origin) {
+    try {
+      return normalizeHost(new URL(origin).host);
+    } catch {
+      return '';
+    }
+  }
+
+  const referer = request.headers.get('referer');
+  if (!referer) return '';
   try {
-    return normalizeHost(new URL(origin).host);
+    return normalizeHost(new URL(referer).host);
   } catch {
     return '';
   }
@@ -36,8 +45,9 @@ function isSameOriginRequest(request: Request): { valid: boolean; reason?: strin
 export function getCsrfGuardRejection(request: Request): NextResponse | null {
   const flags = getFeatureFlags();
   const result = isSameOriginRequest(request);
+  const enforceGuard = flags.enableCsrfGuard || process.env.NODE_ENV === 'production';
 
-  if (!result.valid && !flags.enableCsrfGuard) {
+  if (!result.valid && !enforceGuard) {
     console.warn('[bff-csrf-guard] log-only violation', {
       method: request.method,
       path: new URL(request.url).pathname,
@@ -55,4 +65,3 @@ export function getCsrfGuardRejection(request: Request): NextResponse | null {
 
   return null;
 }
-

@@ -135,6 +135,8 @@ Feature flags available for rollout control (default `false`):
 - `ENABLE_STRICT_REVALIDATE_AUTH`
 - `ENABLE_THIRD_PARTY_SCRIPT_GATING`
 
+`ENABLE_CSRF_GUARD` controls enforcement in non-production environments. Production always enforces same-origin checks on mutating BFF routes.
+
 Baseline/checklist artifact for PR #1:
 
 - `docs/PR1_BASELINE_AND_FLAGS.md`
