@@ -11,13 +11,17 @@ type HighlightImage = {
 
 type ProgramHighlightsProps = {
   imageGallery?: HighlightImage[];
+  highlightsEyebrow?: string;
   highlightsTitle?: string;
+  highlightsIntro?: string;
   highlightItems?: string[];
 };
 
 export default function ProgramHighlights({
   imageGallery,
+  highlightsEyebrow,
   highlightsTitle,
+  highlightsIntro,
   highlightItems,
 }: ProgramHighlightsProps) {
   const defaultObjectivePoints = [
@@ -33,13 +37,17 @@ export default function ProgramHighlights({
   const smallImage1 = imageGallery?.[1] ?? imageGallery?.[0];
   const smallImage2 = imageGallery?.[2] ?? imageGallery?.[1] ?? imageGallery?.[0];
 
-  const title = highlightsTitle ?? 'Program Highlights';
+  const eyebrow = highlightsEyebrow ?? 'Program Objective';
+  const title = highlightsTitle ?? 'Program Objectives';
+  const intro =
+    highlightsIntro ??
+    'Our program is designed to shape delegates into impactful young leaders through forums, competitions, and collaborative projects.';
   const items = highlightItems && highlightItems.length > 0 ? highlightItems : defaultObjectivePoints;
 
   return (
     <section className={componentsTheme.programHighlights.sectionWrapper}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHeader eyebrow="Program Objective" title={title} />
+        <SectionHeader eyebrow={eyebrow} title={title} />
 
         <div className="mt-6 grid items-start gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)] lg:gap-10">
           {/* Left: Kolase 3 gambar */}
@@ -61,7 +69,7 @@ export default function ProgramHighlights({
                   ) : (
                     <Image
                       src="/img/programhighlight1.jpg"
-                      alt="Delegates during Japan Youth Summit sessions"
+                      alt="Delegates during program sessions"
                       fill
                       sizes="(min-width:1024px) 420px, 100vw"
                       className="object-cover"
@@ -84,7 +92,7 @@ export default function ProgramHighlights({
                   ) : (
                     <Image
                       src="/img/programoverview.png"
-                      alt="Overview of Japan Youth Summit program"
+                      alt="Overview of program"
                       fill
                       sizes="(min-width:1024px) 260px, 50vw"
                       className="object-cover"
@@ -119,9 +127,7 @@ export default function ProgramHighlights({
           {/* Right: Program Objective points */}
           <div className={componentsTheme.programHighlights.rightWrapper}>
             <p className={componentsTheme.programHighlights.objectiveIntro}>
-              The Japan Youth Summit program is carefully designed to shape delegates into impactful
-              young leaders. Through a mix of forums, competitions, and collaborative projects,
-              participants are guided to grow in character, skills, and global perspective.
+              {intro}
             </p>
 
             <ul className="mt-5 space-y-3">

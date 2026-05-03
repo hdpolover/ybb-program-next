@@ -148,7 +148,9 @@ export type ProgramAwardsSection = {
 export type ProgramObjectivesSection = {
 	type: 'program_objectives';
 	content: {
+		eyebrow?: string;
 		title: string;
+		intro?: string;
 		items: {
 			id: string;
 			description: string;

@@ -127,6 +127,8 @@ export default async function Home() {
 
   const objectivesTitle =
     programObjectivesSection?.content.title ?? programHighlightsSection?.content.content.title;
+  const objectivesEyebrow = programObjectivesSection?.content.eyebrow;
+  const objectivesIntro = programObjectivesSection?.content.intro;
 
   const objectivesItems = programObjectivesSection
     ? [...programObjectivesSection.content.items]
@@ -175,7 +177,9 @@ export default async function Home() {
       />
       <ProgramHighlights
         imageGallery={objectivesImageGallery}
+        highlightsEyebrow={objectivesEyebrow}
         highlightsTitle={objectivesTitle}
+        highlightsIntro={objectivesIntro}
         highlightItems={objectivesItems}
       />
       <SupportedBy items={supportedBySection?.data} />
