@@ -3,6 +3,7 @@ import type { HomePageData } from '@/types/home';
 import { apiGetWithEnvelope, ApiRequestError } from '@/lib/api/httpClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 import { getHomeCacheTag, HOME_CACHE_TAG, HOME_CACHE_TTL } from '@/lib/constants/cache';
+import { dedupeInFlight } from '@/lib/server/stampede';
 
 function buildBrandUrlVariants(normalizedUrl: string): string[] {
   const noScheme = normalizedUrl.replace(/^https?:\/\//, '');
@@ -71,7 +72,7 @@ async function fetchHomePageData(host: string): Promise<HomePageData> {
   for (let i = 0; i < urlVariants.length; i += 1) {
     const url = urlVariants[i];
     try {
-      return await getHomeFetcher(brandUrl)(url);
+      return await dedupeInFlight(`home:${brandUrl}:${url}`, () => getHomeFetcher(brandUrl)(url));
     } catch (e) {
       lastError = e;
 

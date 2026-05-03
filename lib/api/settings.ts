@@ -10,6 +10,7 @@ import {
   SETTINGS_LS_LEGACY_KEY,
   SETTINGS_LS_TTL_MS,
 } from '@/lib/constants/cache';
+import { dedupeInFlight } from '@/lib/server/stampede';
 
 const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
@@ -81,7 +82,7 @@ export async function getSettingsForBrandDomain(brandDomain: string): Promise<Se
       ? DEFAULT_BRAND_URL
       : normalizedHost;
 
-  const settings = await getSettingsFetcher(normalized)();
+  const settings = await dedupeInFlight(`settings:${normalized}`, () => getSettingsFetcher(normalized)());
   if (Array.isArray(settings.available_brands)) {
     return settings;
   }

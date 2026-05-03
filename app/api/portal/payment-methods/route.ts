@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
+class PaymentMethodsUpstreamError extends Error {
+  constructor(
+    readonly status: number,
+    readonly statusCode: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'PaymentMethodsUpstreamError';
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
@@ -27,18 +38,15 @@ export async function GET(request: Request) {
 
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      return NextResponse.json(
-        {
-          statusCode: (json as any)?.statusCode ?? res.status,
-          message: (json as any)?.message ?? 'Failed to fetch payment methods',
-          data: null,
-        },
-        { status: res.status },
+      throw new PaymentMethodsUpstreamError(
+        res.status,
+        (json as any)?.statusCode ?? res.status,
+        (json as any)?.message ?? 'Failed to fetch payment methods',
       );
     }
 
     const payload = (json as any)?.data ?? json;
-    const methods = Array.isArray(payload)
+    const resolvedMethods = Array.isArray(payload)
       ? payload
       : Array.isArray((payload as any)?.data)
         ? (payload as any).data
@@ -46,8 +54,15 @@ export async function GET(request: Request) {
           ? (payload as any).methods
           : [];
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: methods });
+    return NextResponse.json({ statusCode: 200, message: 'Success', data: resolvedMethods });
   } catch (error) {
+    if (error instanceof PaymentMethodsUpstreamError) {
+      return NextResponse.json(
+        { statusCode: error.statusCode, message: error.message, data: null },
+        { status: error.status },
+      );
+    }
+
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ statusCode: 500, message, data: null }, { status: 500 });
   }
