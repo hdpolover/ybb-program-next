@@ -119,11 +119,12 @@ Create a `.env.local` file in the root directory:
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=/api
 API_INTERNAL_URL=http://localhost:4000/v1
+LANDING_CONTENT_INTERNAL_URL=http://localhost:4003
 APP_BUILD_ID=development
 ```
 
 For production and Dokploy deployments, set `APP_BUILD_ID` to a unique value per release, such as a commit SHA, release tag, or CI build number. This is what the app uses to detect that a newer web version is live and trigger a full refresh.
-Production builds also require `NEXT_PUBLIC_API_URL` and `API_INTERNAL_URL` so deployment cannot silently fall back to staging endpoints.
+Production builds also require `NEXT_PUBLIC_API_URL` and `API_INTERNAL_URL` so deployment cannot silently fall back to staging endpoints. Set `LANDING_CONTENT_INTERNAL_URL` to enable landing-page reads from the new landing-content service with automatic API fallback.
 Set `SETTINGS_REVALIDATE_SECRET` and `HOME_REVALIDATE_SECRET` in production to protect revalidation endpoints.
 
 Feature flags available for rollout control (default `false`):

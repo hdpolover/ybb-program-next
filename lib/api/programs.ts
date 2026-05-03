@@ -1,5 +1,6 @@
 import type { ProgramsPageData } from '@/types/programs';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
+import { getLandingPageWithFallback } from '@/lib/api/landingContentClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 
 const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
@@ -12,11 +13,11 @@ function resolveBrand(host: string): string {
 
 export async function getProgramsPageData(host: string): Promise<ProgramsPageData> {
   const brandUrl = resolveBrand(host);
-  return apiGetWithEnvelope<ProgramsPageData>('/v1/landing/programs', {
-    query: { url: brandUrl },
-    headers: {
-      'x-brand-domain': brandUrl,
-    },
+  return getLandingPageWithFallback<ProgramsPageData>({
+    brandDomain: brandUrl,
+    landingPath: 'programs',
+    fallbackApiPath: '/v1/landing/programs',
+    fallbackQuery: { url: brandUrl },
   });
 }
 

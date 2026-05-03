@@ -1,6 +1,7 @@
 import { unstable_cache } from 'next/cache';
 import type { SettingsData } from '@/types/settings';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
+import { getLandingPageWithFallback } from '@/lib/api/landingContentClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 import {
   getSettingsCacheTag,
@@ -23,9 +24,10 @@ function getSettingsFetcher(brandDomain: string): () => Promise<SettingsData> {
   const brandTag = getSettingsCacheTag(brandDomain);
   const fetcher = unstable_cache(
     async (): Promise<SettingsData> => {
-      return apiGetWithEnvelope<SettingsData>('/v1/landing/settings', {
-        headers: { 'x-brand-domain': brandDomain },
-        cache: 'no-store', // unstable_cache owns the TTL; skip fetch-level HTTP cache
+      return getLandingPageWithFallback<SettingsData>({
+        brandDomain,
+        landingPath: 'settings',
+        fallbackApiPath: '/v1/landing/settings',
       });
     },
     [SETTINGS_CACHE_TAG, cacheKey],

@@ -1,6 +1,7 @@
 import { unstable_cache } from 'next/cache';
 import type { HomePageData } from '@/types/home';
-import { apiGetWithEnvelope, ApiRequestError } from '@/lib/api/httpClient';
+import { ApiRequestError } from '@/lib/api/httpClient';
+import { getLandingPageWithFallback } from '@/lib/api/landingContentClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 import { getHomeCacheTag, HOME_CACHE_TAG, HOME_CACHE_TTL } from '@/lib/constants/cache';
 
@@ -26,12 +27,11 @@ function getHomeFetcher(brandUrl: string): (url: string) => Promise<HomePageData
   const brandTag = getHomeCacheTag(brandUrl);
   const fetcher = unstable_cache(
     async (url: string): Promise<HomePageData> => {
-      return apiGetWithEnvelope<HomePageData>('/v1/landing/home', {
-        query: { url },
-        headers: {
-          'x-brand-domain': brandUrl,
-        },
-        cache: 'no-store',
+      return getLandingPageWithFallback<HomePageData>({
+        brandDomain: brandUrl,
+        landingPath: 'home',
+        fallbackApiPath: '/v1/landing/home',
+        fallbackQuery: { url },
       });
     },
     [HOME_CACHE_TAG, cacheKey],

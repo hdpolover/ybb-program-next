@@ -35,15 +35,41 @@ async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
   }
 
   try {
-    const url = new URL('/v1/landing/settings', API_BASE_URL);
+    const landingContentBaseUrl = process.env.LANDING_CONTENT_INTERNAL_URL?.trim().replace(/\/+$/, '');
+    let res: Response;
 
-    const res = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-brand-domain': brandUrl,
-      },
-    });
+    if (landingContentBaseUrl) {
+      const landingContentUrl = new URL(
+        `/v1/public/${encodeURIComponent(brandUrl)}/settings`,
+        `${landingContentBaseUrl}/`,
+      );
+      res = await fetch(landingContentUrl.toString(), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } else {
+      const url = new URL('/v1/landing/settings', API_BASE_URL);
+      res = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-brand-domain': brandUrl,
+        },
+      });
+    }
+
+    if (!res.ok && landingContentBaseUrl) {
+      const fallbackUrl = new URL('/v1/landing/settings', API_BASE_URL);
+      res = await fetch(fallbackUrl.toString(), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-brand-domain': brandUrl,
+        },
+      });
+    }
 
     if (!res.ok) {
       maintenanceModeCache.set(brandUrl, {
