@@ -10,6 +10,7 @@ export const dashboardNav: NavItem[] = [
   { label: 'Submission', href: '/dashboard/submission' },
   { label: 'Payments', href: '/dashboard/payments' },
   { label: 'Document', href: '/dashboard/documents' },
+  { label: 'Support Tickets', href: '/dashboard/support-tickets' },
 ];
 
 export const ambassadorNav: NavItem[] = [

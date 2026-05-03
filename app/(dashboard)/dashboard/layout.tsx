@@ -185,6 +185,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     sectionLabel = 'Payments';
   } else if (pathname?.startsWith('/dashboard/documents')) {
     sectionLabel = 'Documents';
+  } else if (pathname?.startsWith('/dashboard/support-tickets')) {
+    sectionLabel = 'Support Tickets';
   }
 
   let pageTitle = 'Dashboard';
@@ -213,6 +215,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   } else if (pathname?.startsWith('/dashboard/referrals')) {
     pageTitle = 'Referral Funnel';
     pageSubtitle = 'Track who used your ambassador link or code and how far they progressed.';
+  } else if (pathname?.startsWith('/dashboard/support-tickets')) {
+    pageTitle = 'Support Tickets';
+    pageSubtitle = 'Send a ticket to support and track responses from the team.';
   }
 
   const isDocumentsRoute = pathname?.startsWith('/dashboard/documents');
@@ -346,7 +351,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const ambassadorAllowed =
       pathname === '/dashboard' ||
       pathname?.startsWith('/dashboard/referrals') ||
-      pathname?.startsWith('/dashboard/settings');
+      pathname?.startsWith('/dashboard/settings') ||
+      pathname?.startsWith('/dashboard/support-tickets');
     if (!ambassadorAllowed) {
       router.replace('/dashboard');
     }
