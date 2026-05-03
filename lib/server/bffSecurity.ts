@@ -1,23 +1,45 @@
 import { NextResponse } from 'next/server';
 import { getFeatureFlags } from '@/lib/server/featureFlags';
 
-function normalizeHost(value: string | null): string {
-  if (!value) return '';
-  return value.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0];
+/**
+ * Build a canonical origin string (scheme://host[:port]) by running the
+ * combined value through the URL parser, which strips default ports and
+ * lower-cases the authority.  Returns '' on any parse failure.
+ */
+function buildOrigin(proto: string, host: string): string {
+  try {
+    return new URL(`${proto}://${host}`).origin;
+  } catch {
+    return '';
+  }
 }
 
-function getRequestHost(request: Request): string {
-  const forwardedHost = request.headers.get('x-forwarded-host');
-  const host = request.headers.get('host');
-  const hostname = request.headers.get('x-hostname');
-  return normalizeHost(forwardedHost || host || hostname);
+/**
+ * Derive the effective origin of the server from request headers.
+ * Uses x-forwarded-proto (supports comma-separated values from load-balancers)
+ * and x-forwarded-host / host.  Falls back to "https" in production so that
+ * the comparison never accidentally passes on http vs https mismatch.
+ */
+function getRequestOrigin(request: Request): string {
+  const host =
+    request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+  if (!host) return '';
+  const rawProto = request.headers.get('x-forwarded-proto') || '';
+  const proto =
+    rawProto.split(',')[0].trim() ||
+    (process.env.NODE_ENV === 'production' ? 'https' : 'http');
+  return buildOrigin(proto, host);
 }
 
-function getOriginHost(request: Request): string {
+/**
+ * Extract the full origin (scheme://host[:port]) from the Origin header, or
+ * fall back to the origin portion of the Referer URL.
+ */
+function getIncomingOrigin(request: Request): string {
   const origin = request.headers.get('origin');
   if (origin) {
     try {
-      return normalizeHost(new URL(origin).host);
+      return new URL(origin).origin;
     } catch {
       return '';
     }
@@ -26,19 +48,19 @@ function getOriginHost(request: Request): string {
   const referer = request.headers.get('referer');
   if (!referer) return '';
   try {
-    return normalizeHost(new URL(referer).host);
+    return new URL(referer).origin;
   } catch {
     return '';
   }
 }
 
 function isSameOriginRequest(request: Request): { valid: boolean; reason?: string } {
-  const requestHost = getRequestHost(request);
-  const originHost = getOriginHost(request);
+  const requestOrigin = getRequestOrigin(request);
+  const incomingOrigin = getIncomingOrigin(request);
 
-  if (!requestHost) return { valid: false, reason: 'missing-host' };
-  if (!originHost) return { valid: false, reason: 'missing-origin' };
-  if (requestHost !== originHost) return { valid: false, reason: 'origin-mismatch' };
+  if (!requestOrigin) return { valid: false, reason: 'missing-host' };
+  if (!incomingOrigin) return { valid: false, reason: 'missing-origin' };
+  if (requestOrigin !== incomingOrigin) return { valid: false, reason: 'origin-mismatch' };
   return { valid: true };
 }
 
