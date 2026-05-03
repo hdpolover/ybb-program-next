@@ -32,7 +32,6 @@ Set canonical links used during rollout and regression checks.
 
 These flags are now plumbed in code and env examples. Keep defaults `false` until rollout steps require them.
 
-- `ENABLE_BRAND_SCOPED_CACHE`
 - `ENABLE_CSRF_GUARD`
 - `ENABLE_FILE_SERVICE_AUTH_REQUIRED`
 - `ENABLE_PAYMENT_OUTBOX`
