@@ -27,6 +27,11 @@ const MARQUEE_STYLE: MarqueeStyle = {
   '--duration': '55s',
 };
 
+function getAvatarSrc(photo: string | undefined, name: string) {
+  if (photo) return photo;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=96&background=f1f5f9&color=0f172a`;
+}
+
 export default function Testimonials({ section }: Props) {
   if (!section || !section.content.items || section.content.items.length === 0) return null;
 
@@ -76,16 +81,34 @@ export default function Testimonials({ section }: Props) {
                 role="button"
                 tabIndex={0}
               >
+                <div className={componentsTheme.testimonialsHome.cardHeaderRow}>
+                  <div className={componentsTheme.testimonialsHome.profileRow}>
+                    <div className={componentsTheme.testimonialsHome.avatarWrapper}>
+                      <Image
+                        src={getAvatarSrc(t.photo, t.name)}
+                        alt={t.name}
+                        fill
+                        sizes="44px"
+                        className={componentsTheme.testimonialsHome.avatarImg}
+                        unoptimized={!t.photo?.startsWith('/')}
+                      />
+                    </div>
+                    <div className={componentsTheme.testimonialsHome.profileMetaCol}>
+                      <p className={componentsTheme.testimonialsHome.nameRow}>
+                        <span>{t.name}</span>
+                      </p>
+                      <p className={componentsTheme.testimonialsHome.roleText}>{t.role}</p>
+                    </div>
+                  </div>
+                  <span className={componentsTheme.testimonialsHome.badge}>
+                    {t.country || 'Alumni'}
+                  </span>
+                </div>
                 <p className={componentsTheme.testimonialsHome.quote}>“{t.quote}”</p>
                 <div className={componentsTheme.testimonialsHome.metaRow}>
-                  <div>
-                    <p className={componentsTheme.testimonialsHome.nameRow}>
-                      <span className={componentsTheme.testimonialsHome.nameFlag}>{t.flag}</span>
-                      <span>{t.name}</span>
-                    </p>
-                    <p className={componentsTheme.testimonialsHome.roleText}>{t.role}</p>
-                  </div>
-                  <span className={componentsTheme.testimonialsHome.badge}>{t.country || 'Alumni'}</span>
+                  <span className={componentsTheme.testimonialsHome.yearPill}>
+                    Batch {t.year || '-'}
+                  </span>
                 </div>
               </div>
             ))}
