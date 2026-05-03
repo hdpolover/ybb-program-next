@@ -1,5 +1,5 @@
 import type { FaqsPageData } from '@/types/faqs';
-import { apiGetWithEnvelope } from '@/lib/api/httpClient';
+import { getLandingPageWithFallback } from '@/lib/api/landingContentClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 
 const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
@@ -12,12 +12,12 @@ function resolveBrand(host: string): string {
 
 export async function getFaqsPageData(host: string): Promise<FaqsPageData> {
   const brandUrl = resolveBrand(host);
-  return apiGetWithEnvelope<FaqsPageData>('/v1/landing/faqs', {
+  return getLandingPageWithFallback<FaqsPageData>({
+    brandDomain: brandUrl,
+    landingPath: 'faqs',
+    fallbackApiPath: '/v1/landing/faqs',
     // Fetch a broad first page so category tabs (e.g., Payment) are not dropped
     // by the backend pagination default on program FAQ pages.
-    query: { url: brandUrl, page: 1, limit: 200 },
-    headers: {
-      'x-brand-domain': brandUrl,
-    },
+    fallbackQuery: { url: brandUrl, page: 1, limit: 200 },
   });
 }
