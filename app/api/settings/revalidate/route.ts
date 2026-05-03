@@ -1,6 +1,6 @@
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
-import { SETTINGS_CACHE_TAG } from '@/lib/constants/cache';
+import { getSettingsCacheTag, SETTINGS_CACHE_TAG } from '@/lib/constants/cache';
 import { isRevalidateAuthorized } from '@/lib/server/revalidateAuth';
 
 /**
@@ -25,7 +25,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  revalidateTag(SETTINGS_CACHE_TAG, 'max');
+  const url = new URL(request.url);
+  const requestedBrandDomain = url.searchParams.get('brandDomain')?.trim() || '';
+  const targetTag = requestedBrandDomain
+    ? getSettingsCacheTag(requestedBrandDomain)
+    : SETTINGS_CACHE_TAG;
 
-  return NextResponse.json({ revalidated: true, tag: SETTINGS_CACHE_TAG });
+  revalidateTag(targetTag, 'max');
+
+  return NextResponse.json({
+    revalidated: true,
+    tag: targetTag,
+    scope: requestedBrandDomain ? 'brand' : 'global',
+  });
 }

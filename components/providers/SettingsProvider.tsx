@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { Toaster } from 'sonner';
 import type { SettingsData } from '@/types/settings';
-import { SETTINGS_LS_KEY, SETTINGS_LS_TTL_MS } from '@/lib/constants/cache';
+import { getSettingsLsKey, SETTINGS_LS_LEGACY_KEY, SETTINGS_LS_TTL_MS } from '@/lib/constants/cache';
 
 type SettingsContextType = {
   settings: SettingsData | null;
@@ -30,7 +30,8 @@ export function SettingsProvider({
   useEffect(() => {
     if (!initialSettings) return;
     try {
-      const stored = localStorage.getItem(SETTINGS_LS_KEY);
+      const scopedKey = getSettingsLsKey(window.location.hostname);
+      const stored = localStorage.getItem(scopedKey);
       if (stored) {
         const { data, cachedAt } = JSON.parse(stored) as { data: SettingsData; cachedAt: number };
         // Only update if server data differs or cached entry is older than half the TTL
@@ -39,9 +40,12 @@ export function SettingsProvider({
         if (!isStale && !isDifferent) return;
       }
       localStorage.setItem(
-        SETTINGS_LS_KEY,
+        scopedKey,
         JSON.stringify({ data: initialSettings, cachedAt: Date.now() }),
       );
+      if (localStorage.getItem(SETTINGS_LS_LEGACY_KEY)) {
+        localStorage.removeItem(SETTINGS_LS_LEGACY_KEY);
+      }
     } catch {
       // Ignore localStorage errors (private browsing, quota exceeded, etc.)
     }
