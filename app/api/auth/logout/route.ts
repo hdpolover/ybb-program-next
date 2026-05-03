@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getEnvBrandDomain } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 const BRAND_DOMAIN = getEnvBrandDomain() ?? '';
 
@@ -16,7 +17,7 @@ export async function POST() {
     const accessToken = cookieStore.get('accessToken')?.value;
 
     if (accessToken) {
-      const apiUrl = new URL('/v1/auth/logout', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
+      const apiUrl = new URL('/v1/auth/logout', getServerApiBaseUrl());
       const res = await fetch(apiUrl.toString(), {
         method: 'POST',
         headers: {

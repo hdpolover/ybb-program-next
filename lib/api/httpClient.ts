@@ -27,11 +27,24 @@ export class ApiRequestError extends Error {
   }
 }
 
-const INTERNAL_API_BASE_URL = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
-const API_BASE_URL = typeof window === 'undefined' ? INTERNAL_API_BASE_URL : (process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com');
+function getApiBaseUrl(): string {
+  if (typeof window === 'undefined') {
+    const serverBaseUrl = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL;
+    if (!serverBaseUrl) {
+      throw new Error('API_INTERNAL_URL or NEXT_PUBLIC_API_URL must be configured for server-side API calls.');
+    }
+    return serverBaseUrl;
+  }
+
+  const publicBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!publicBaseUrl) {
+    throw new Error('NEXT_PUBLIC_API_URL must be configured for client-side API calls.');
+  }
+  return publicBaseUrl;
+}
 
 export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Promise<T> {
-  const url = new URL(path, API_BASE_URL);
+  const url = new URL(path, getApiBaseUrl());
 
   if (options.query) {
     Object.entries(options.query).forEach(([key, value]) => {
@@ -49,9 +62,6 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
       'Content-Type': 'application/json',
       ...(options.headers ?? {}),
     },
-  }).catch((err) => {
-    console.error('[DEBUG] fetch failed GET error:', err.message, url.toString());
-    throw err;
   });
 
   if (!res.ok) {
@@ -62,7 +72,7 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
 }
 
 export async function apiPost<T>(path: string, options: ApiPostOptions = {}): Promise<T> {
-  const url = new URL(path, API_BASE_URL);
+  const url = new URL(path, getApiBaseUrl());
 
   if (options.query) {
     Object.entries(options.query).forEach(([key, value]) => {

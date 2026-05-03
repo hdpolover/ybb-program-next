@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
-    const cookieNames = cookieStore.getAll().map(c => c.name);
     const accessToken = cookieStore.get('accessToken')?.value;
 
     if (!accessToken) {
@@ -14,10 +14,6 @@ export async function GET(request: Request) {
           statusCode: 401,
           message: 'Unauthorized',
           data: null,
-          debug: {
-            hasAccessTokenCookie: false,
-            cookieNames,
-          },
         },
         { status: 401 },
       );
@@ -25,7 +21,7 @@ export async function GET(request: Request) {
 
     const brandDomain = resolveBrandDomainFromRequest(request);
 
-    const apiUrl = new URL('/v1/participants/me', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
+    const apiUrl = new URL('/v1/participants/me', getServerApiBaseUrl());
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
@@ -43,12 +39,6 @@ export async function GET(request: Request) {
           statusCode: (json as any)?.statusCode ?? res.status,
           message: (json as any)?.message ?? 'Failed to fetch participant profile',
           data: null,
-          debug: {
-            hasAccessTokenCookie: true,
-            brandDomain,
-            backendStatus: res.status,
-            cookieNames,
-          },
         },
         { status: res.status },
       );
@@ -58,15 +48,6 @@ export async function GET(request: Request) {
       statusCode: 200,
       message: 'Success',
       data: (json as any)?.data ?? json ?? null,
-      ...(process.env.NODE_ENV !== 'production'
-        ? {
-            debug: {
-              hasAccessTokenCookie: true,
-              brandDomain,
-              cookieNames,
-            },
-          }
-        : {}),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
