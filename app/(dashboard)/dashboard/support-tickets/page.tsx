@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { ExternalLink, ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import { formatDate } from '@/lib/utils';
 
@@ -127,6 +127,92 @@ function buildTicketDescription(
   return `${sanitizedDescription}<p><strong>Uploaded screenshots</strong></p><ul>${attachmentList}</ul>`;
 }
 
+function stripUploadedScreenshotsSection(value: string): string {
+  return value
+    .replace(/<p>\s*<strong>\s*Uploaded screenshots\s*<\/strong>\s*<\/p>\s*<ul>[\s\S]*?<\/ul>/i, '')
+    .trim();
+}
+
+function guessMimeTypeFromUrl(url: string): string | undefined {
+  return /\.(png|jpe?g|gif|webp|bmp|svg)(\?|#|$)/i.test(url) ? 'image/*' : undefined;
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function getAttachmentAccessUrl(attachment: SupportTicketAttachment): string {
+  return isUuid(attachment.fileId)
+    ? `/api/support/attachments/${encodeURIComponent(attachment.fileId)}`
+    : attachment.fileUrl;
+}
+
+function toTitleCaseFromToken(value: string): string {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function getStatusChipClass(status: TicketStatus): string {
+  switch (status) {
+    case 'open':
+      return 'border-blue-200 bg-blue-50 text-blue-700';
+    case 'in_progress':
+      return 'border-amber-200 bg-amber-50 text-amber-700';
+    case 'waiting_response':
+      return 'border-purple-200 bg-purple-50 text-purple-700';
+    case 'resolved':
+      return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    case 'closed':
+      return 'border-zinc-200 bg-zinc-100 text-zinc-700';
+    default:
+      return 'border-zinc-200 bg-zinc-100 text-zinc-700';
+  }
+}
+
+function getPriorityChipClass(priority: TicketPriority): string {
+  switch (priority) {
+    case 'urgent':
+      return 'border-red-200 bg-red-50 text-red-700';
+    case 'high':
+      return 'border-orange-200 bg-orange-50 text-orange-700';
+    case 'normal':
+      return 'border-sky-200 bg-sky-50 text-sky-700';
+    case 'low':
+      return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    default:
+      return 'border-zinc-200 bg-zinc-100 text-zinc-700';
+  }
+}
+
+function extractScreenshotAttachments(value: string): SupportTicketAttachment[] {
+  if (!value.trim()) return [];
+  const normalized = value.replace(/&amp;/gi, '&');
+  const matches = normalized.match(/https?:\/\/[^\s<>"')]+/gi) ?? [];
+  const urls = Array.from(new Set(matches.map((url) => url.replace(/[),.;]+$/, ''))));
+
+  return urls.map((fileUrl, index) => {
+    let fileName = `Screenshot ${index + 1}`;
+    try {
+      const pathName = decodeURIComponent(new URL(fileUrl).pathname);
+      const lastSegment = pathName.split('/').filter(Boolean).pop();
+      if (lastSegment) fileName = lastSegment;
+    } catch {
+      // Keep default label for malformed URLs.
+    }
+
+    return {
+      fileId: `external-${index}`,
+      fileName,
+      fileUrl,
+      mimeType: guessMimeTypeFromUrl(fileUrl),
+    };
+  });
+}
+
 function richTextToPlain(value: string): string {
   return value
     .replace(/<br\s*\/?>/gi, '\n')
@@ -232,17 +318,17 @@ function AttachmentPreview({
         return (
           <div key={attachment.fileId} className="rounded-md border border-zinc-200 bg-zinc-50 p-2">
             {isImage ? (
-              <a href={attachment.fileUrl} target="_blank" rel="noreferrer" className="block">
+              <a href={getAttachmentAccessUrl(attachment)} target="_blank" rel="noreferrer" className="block">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={attachment.fileUrl}
+                  src={getAttachmentAccessUrl(attachment)}
                   alt={attachment.fileName}
                   className="h-28 w-full rounded object-cover"
                 />
               </a>
             ) : (
               <a
-                href={attachment.fileUrl}
+                href={getAttachmentAccessUrl(attachment)}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
@@ -295,6 +381,7 @@ export default function SupportTicketsPage() {
   const [createAttachments, setCreateAttachments] = useState<SupportTicketAttachment[]>([]);
   const [replyMessage, setReplyMessage] = useState('');
   const [replyAttachments, setReplyAttachments] = useState<SupportTicketAttachment[]>([]);
+  const [isScreenshotDrawerOpen, setIsScreenshotDrawerOpen] = useState(false);
 
   const selectedCategoryOption = useMemo(
     () => CATEGORY_OPTIONS.find((option) => option.value === category) ?? CATEGORY_OPTIONS[0],
@@ -319,11 +406,33 @@ export default function SupportTicketsPage() {
     () => selectedTicket?.messages?.find((message) => !message.isFromAdmin),
     [selectedTicket],
   );
+  const originalContent =
+    selectedTicket?.description?.trim() ? selectedTicket.description : (originalMessage?.message ?? '');
   const originalDescription = useMemo(() => {
-    const source = selectedTicket?.description?.trim() ? selectedTicket.description : (originalMessage?.message ?? '');
-    return sanitizeRichHtml(source);
-  }, [originalMessage?.message, selectedTicket?.description]);
-  const originalAttachments = originalMessage?.attachments ?? [];
+    return sanitizeRichHtml(stripUploadedScreenshotsSection(originalContent));
+  }, [originalContent]);
+  const extractedOriginalAttachments = useMemo(
+    () => extractScreenshotAttachments(originalContent),
+    [originalContent],
+  );
+  const originalAttachments = useMemo(() => {
+    const merged = new Map<string, SupportTicketAttachment>();
+    const combined = [...(originalMessage?.attachments ?? []), ...extractedOriginalAttachments];
+
+    combined.forEach((attachment, index) => {
+      if (!attachment.fileUrl) return;
+      if (merged.has(attachment.fileUrl)) return;
+
+      merged.set(attachment.fileUrl, {
+        ...attachment,
+        fileId: attachment.fileId || `${attachment.fileUrl}-${index}`,
+        fileName: attachment.fileName || `Screenshot ${merged.size + 1}`,
+        mimeType: attachment.mimeType ?? guessMimeTypeFromUrl(attachment.fileUrl),
+      });
+    });
+
+    return Array.from(merged.values());
+  }, [extractedOriginalAttachments, originalMessage?.attachments]);
 
   const loadTickets = useCallback(async () => {
     setLoadingList(true);
@@ -671,11 +780,12 @@ export default function SupportTicketsPage() {
                   <button
                     key={ticket.id}
                     type="button"
-                    onClick={() => {
-                      latestRequestedIdRef.current = ticket.id;
-                      setSelectedId(ticket.id);
-                      setSelectedTicket(null);
-                    }}
+                     onClick={() => {
+                       latestRequestedIdRef.current = ticket.id;
+                       setIsScreenshotDrawerOpen(false);
+                       setSelectedId(ticket.id);
+                       setSelectedTicket(null);
+                     }}
                     className={`w-full rounded-md border p-2 text-left ${
                       selectedId === ticket.id
                         ? 'border-blue-400 bg-blue-50'
@@ -704,11 +814,29 @@ export default function SupportTicketsPage() {
                   {selectedTicket.ticketNumber}
                 </p>
                 <h3 className="text-base font-semibold text-zinc-900">{selectedTicket.subject}</h3>
-                <p className="text-xs text-zinc-500">
-                  {selectedTicket.category}
-                  {selectedTicket.subCategory ? ` / ${selectedTicket.subCategory}` : ''} · {selectedTicket.status} ·{' '}
-                  {selectedTicket.priority} · Created {formatDate(selectedTicket.createdAt)}
-                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                    {toTitleCaseFromToken(selectedTicket.category)}
+                  </span>
+                  {selectedTicket.subCategory ? (
+                    <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700">
+                      {toTitleCaseFromToken(selectedTicket.subCategory)}
+                    </span>
+                  ) : null}
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${getStatusChipClass(selectedTicket.status)}`}
+                  >
+                    {toTitleCaseFromToken(selectedTicket.status)}
+                  </span>
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${getPriorityChipClass(selectedTicket.priority)}`}
+                  >
+                    Priority: {toTitleCaseFromToken(selectedTicket.priority)}
+                  </span>
+                  <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-semibold text-zinc-700">
+                    Created {formatDate(selectedTicket.createdAt)}
+                  </span>
+                </div>
               </div>
 
               <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
@@ -722,8 +850,15 @@ export default function SupportTicketsPage() {
                   <p className="mt-1 text-sm text-zinc-500">No description provided.</p>
                 )}
                 {originalAttachments.length > 0 ? (
-                  <div className="mt-2">
-                    <AttachmentPreview attachments={originalAttachments} />
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsScreenshotDrawerOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
+                    >
+                      <ImagePlus className="h-3.5 w-3.5" />
+                      View screenshots ({originalAttachments.length})
+                    </button>
                   </div>
                 ) : null}
               </div>
@@ -801,6 +936,67 @@ export default function SupportTicketsPage() {
           ) : null}
         </div>
       </section>
+
+      {isScreenshotDrawerOpen ? (
+        <div className="fixed inset-0 z-50 flex">
+          <button
+            type="button"
+            aria-label="Close screenshots drawer"
+            className="h-full flex-1 bg-black/50"
+            onClick={() => setIsScreenshotDrawerOpen(false)}
+          />
+          <aside className="h-full w-full max-w-xl border-l border-zinc-200 bg-white p-4 shadow-xl">
+            <div className="flex items-center justify-between gap-2 border-b border-zinc-200 pb-3">
+              <div>
+                <p className="text-sm font-semibold text-zinc-900">Ticket screenshots</p>
+                <p className="text-xs text-zinc-500">{originalAttachments.length} file(s)</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsScreenshotDrawerOpen(false)}
+                className="rounded-md border border-zinc-200 p-1.5 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700"
+                aria-label="Close drawer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-4 space-y-3 overflow-y-auto pr-1">
+              {originalAttachments.map((attachment) => {
+                const isImage =
+                  (attachment.mimeType ?? '').startsWith('image/') ||
+                  /\.(png|jpe?g|gif|webp|bmp|svg)(\?|#|$)/i.test(attachment.fileUrl);
+
+                return (
+                  <div key={attachment.fileId} className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                    {isImage ? (
+                        <a href={getAttachmentAccessUrl(attachment)} target="_blank" rel="noreferrer" className="block">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getAttachmentAccessUrl(attachment)}
+                            alt={attachment.fileName}
+                            className="h-44 w-full rounded-md object-cover"
+                          />
+                        </a>
+                      ) : null}
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <p className="line-clamp-1 text-xs font-medium text-zinc-700">{attachment.fileName}</p>
+                      <a
+                        href={getAttachmentAccessUrl(attachment)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-1 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Open
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </aside>
+        </div>
+      ) : null}
     </main>
   );
 }
