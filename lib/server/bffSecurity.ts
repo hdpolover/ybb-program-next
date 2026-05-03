@@ -58,8 +58,8 @@ function isSameOriginRequest(request: Request): { valid: boolean; reason?: strin
   const requestOrigin = getRequestOrigin(request);
   const incomingOrigin = getIncomingOrigin(request);
 
-  if (!requestOrigin) return { valid: false, reason: 'missing-host' };
-  if (!incomingOrigin) return { valid: false, reason: 'missing-origin' };
+  if (!requestOrigin) return { valid: false, reason: 'missing-request-origin' };
+  if (!incomingOrigin) return { valid: false, reason: 'missing-incoming-origin' };
   if (requestOrigin !== incomingOrigin) return { valid: false, reason: 'origin-mismatch' };
   return { valid: true };
 }
