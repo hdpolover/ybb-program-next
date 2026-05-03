@@ -114,16 +114,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const host = await resolveBrandDomain();
   const appVersion = process.env.NEXT_PUBLIC_APP_BUILD_ID || 'development';
-  let programSlug = 'ybb'; // Default/fallback
 
   let brandAccent: string | null = null;
   let settingsData = null;
 
-  // Fetch both in parallel for faster loading
-  const [settingsResult, homeDataResult] = await Promise.allSettled([
-    getSettingsForBrandDomain(host),
-    getHomePageData(host),
-  ]);
+  const [settingsResult] = await Promise.allSettled([getSettingsForBrandDomain(host)]);
 
   let gaId: string | null = null;
 
@@ -144,11 +139,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     console.log('[Layout] Theme loaded from API:', brandAccent);
   }
 
-  if (homeDataResult.status === 'fulfilled' && homeDataResult.value.slug) {
-    programSlug = homeDataResult.value.slug;
-  } else if (homeDataResult.status === 'rejected') {
-    console.error('[Layout] Failed to fetch program data:', homeDataResult.reason);
-  }
+  const programSlug = process.env.YBB_PROGRAM_SLUG?.trim() || settingsData?.active_program?.slug || 'ybb';
 
   const accent = brandAccent;
   const themeStyle =
