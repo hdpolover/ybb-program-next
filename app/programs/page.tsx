@@ -11,7 +11,7 @@ import Objectives from '@/components/programs/Objectives';
 import Benefits from '@/components/programs/Benefits';
 import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
-import { getProgramsPageData } from '@/lib/api/programs';
+import { getProgramDetail, getProgramsPageData } from '@/lib/api/programs';
 import { getFaqsPageData } from '@/lib/api/faqs';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
 import MainFAQSection from '@/components/faq/MainFAQSection';
@@ -90,6 +90,26 @@ export default async function ProgramOverviewPage() {
     heroSection?.type === 'hero' && heroSection.content.bg_image
       ? heroSection.content.bg_image
       : '/img/programsbackground.png';
+  const programSlug = programOverviewSection?.content.program_slug ?? null;
+  const programDetail = programSlug ? await getProgramDetail(programSlug, host).catch(() => null) : null;
+  const guidelineLinks = (programDetail?.resources ?? [])
+    .filter((resource) => resource.isPublic && !!resource.fileUrl)
+    .filter((resource) => {
+      const normalizedType = (resource.type ?? '').toLowerCase();
+      const normalizedTitle = (resource.title ?? '').toLowerCase();
+      return normalizedType.includes('guide') || normalizedTitle.includes('guide');
+    })
+    .map((resource) => ({
+      label: resource.title || 'Guideline',
+      url: resource.fileUrl as string,
+    }));
+  const hasProgramSchedules =
+    Boolean(programImportantDatesSection) &&
+    (programImportantDatesSection?.content.items?.length ?? 0) > 0;
+  const hasProgramJourney =
+    Boolean(programJourneySection) &&
+    (programJourneySection?.content.items?.length ?? 0) > 0;
+  const shouldShowJourney = hasProgramJourney && !hasProgramSchedules;
 
   return (
     <main className="relative">
@@ -103,7 +123,10 @@ export default async function ProgramOverviewPage() {
           { href: `/${programsPage.slug}`, label: programsPage.title },
         ]}
       />
-      <CurrentProgram overview={programOverviewSection?.content} />
+      <CurrentProgram
+        overview={programOverviewSection?.content}
+        guidebooks={guidelineLinks}
+      />
       <RegistrationTypePrograms
         pricingTiers={registrationInfoSection?.content.pricing_tiers}
         instructions={registrationInfoSection?.content.instructions}
@@ -114,7 +137,7 @@ export default async function ProgramOverviewPage() {
       />
       <section className="h-10" />
       <ProgramActivities activities={programActivitiesSection?.content} />
-      <ProgramSteps journey={programJourneySection?.content} />
+      {shouldShowJourney ? <ProgramSteps journey={programJourneySection?.content} /> : null}
       <ProgramSchedules dates={programImportantDatesSection?.content} />
       {previousProgramsSection && previousProgramsSection.content.items.length > 0 && (
         <PreviousProgramsGrid previous={previousProgramsSection.content} />

@@ -10,6 +10,7 @@ import { parseApiDate } from '@/lib/utils';
 type CurrentProgramProps = {
   overview?: ProgramOverviewSection['content'];
   coverImage?: string;
+  guidebooks?: Array<{ label: string; url: string }>;
 };
 
 function parseValidDate(value: unknown): Date | null {
@@ -52,7 +53,7 @@ function formatDateRange(start?: string | null, end?: string | null): string | n
   return endDate ? format(endDate) : null;
 }
 
-export default function CurrentProgram({ overview, coverImage }: CurrentProgramProps) {
+export default function CurrentProgram({ overview, coverImage, guidebooks: backendGuidebooks }: CurrentProgramProps) {
   if (!overview) return null;
 
   const description = overview.description;
@@ -73,7 +74,12 @@ export default function CurrentProgram({ overview, coverImage }: CurrentProgramP
     }
   })();
   const eventDates = formatDateRange(overview.start_date ?? null, overview.end_date ?? null);
-  const guidebooksRaw = overview.guidebooks && overview.guidebooks.length > 0 ? overview.guidebooks : null;
+  const guidebooksRaw =
+    backendGuidebooks && backendGuidebooks.length > 0
+      ? backendGuidebooks
+      : overview.guidebooks && overview.guidebooks.length > 0
+        ? overview.guidebooks
+        : null;
   const guidebooks = guidebooksRaw ? guidebooksRaw.slice(-2) : null;
   const showThemeBlock = Boolean(theme) || Boolean(subthemes);
 
@@ -226,9 +232,9 @@ export default function CurrentProgram({ overview, coverImage }: CurrentProgramP
                     >
                       <span>
                         {(() => {
-                          if (!guide.label) return 'Read Guidebook';
-                          const base = guide.label.split('(')[0].trim();
-                          return base || guide.label || 'Read Guidebook';
+                          if (!guide.label) return 'Read Guideline';
+                          const normalized = guide.label.replace(/\bguidebooks?\b/gi, 'Guideline').trim();
+                          return normalized || 'Read Guideline';
                         })()}
                       </span>
                     </a>
