@@ -73,12 +73,6 @@ export default function Testimonials({ section }: Props) {
                 type="button"
                 className={componentsTheme.testimonialsHome.card}
                 onClick={() => setActive(t)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setActive(t);
-                  }
-                }}
               >
                 <p className={componentsTheme.testimonialsHome.quote}>“{t.quote}”</p>
                 <div className={componentsTheme.testimonialsHome.metaRow}>
