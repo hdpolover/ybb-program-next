@@ -163,7 +163,7 @@ export default function RequireNowSection({ slug }: RequireNowSectionProps) {
             </div>
 
             <a
-              href="mailto:partnership@ybbglobal.org"
+              href="mailto:ybb.partnership@gmail.com"
               className="inline-flex w-full items-center justify-center rounded-xl border border-primary/100/70 bg-white px-6 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2"
             >
               Contact us Via Email
