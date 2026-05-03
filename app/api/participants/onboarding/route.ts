@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
 
 function isEmptyData(value: unknown): boolean {
   if (value == null) return true;
@@ -23,7 +25,7 @@ export async function GET(request: Request) {
 
     const brandDomain = resolveBrandDomainFromRequest(request);
 
-    const apiUrl = new URL('/v1/participants/onboarding', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
+    const apiUrl = new URL('/v1/participants/onboarding', getServerApiBaseUrl());
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
@@ -73,6 +75,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const csrfRejection = getCsrfGuardRejection(request);
+    if (csrfRejection) return csrfRejection;
+
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
@@ -92,7 +97,7 @@ export async function POST(request: Request) {
       body.birthDate = `${body.birthDate}-01-01`;
     }
 
-    const apiUrl = new URL('/v1/participants/onboarding', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
+    const apiUrl = new URL('/v1/participants/onboarding', getServerApiBaseUrl());
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {

@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ tierId: string }> },
 ) {
   try {
+    const csrfRejection = getCsrfGuardRejection(request);
+    if (csrfRejection) return csrfRejection;
+
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 
@@ -18,10 +23,7 @@ export async function POST(
     const brandDomain = resolveBrandDomainFromRequest(request);
     const body = await request.json().catch(() => ({}));
 
-    const apiUrl = new URL(
-      `/v1/portal/payments/tiers/${tierId}/ensure-invoice`,
-      (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''),
-    );
+    const apiUrl = new URL(`/v1/portal/payments/tiers/${tierId}/ensure-invoice`, getServerApiBaseUrl());
 
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',

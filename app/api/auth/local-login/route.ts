@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
 
 type LocalLoginBody = {
   email: string;
@@ -23,6 +24,9 @@ type LocalLoginResponse = {
 
 export async function POST(request: Request) {
   try {
+    const csrfRejection = getCsrfGuardRejection(request);
+    if (csrfRejection) return csrfRejection;
+
     const envBrandId = process.env.YBB_BRAND_ID || '';
     const brandDomain = resolveBrandDomainFromRequest(request);
 

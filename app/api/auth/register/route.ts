@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
 
 type RegisterBody = {
   email: string;
@@ -26,6 +27,9 @@ type RegisterResponse = {
 export async function POST(request: Request) {
   let step: string = 'init';
   try {
+    const csrfRejection = getCsrfGuardRejection(request);
+    if (csrfRejection) return csrfRejection;
+
     step = 'read_env';
     const envBrandId = process.env.YBB_BRAND_ID || '';
     const envProgramId = process.env.YBB_PROGRAM_ID || '';

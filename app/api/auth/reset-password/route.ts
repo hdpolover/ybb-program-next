@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
 
 type ResetPasswordBody = {
   token: string;
@@ -15,6 +16,9 @@ type ResetPasswordResponse = {
 
 export async function POST(request: Request) {
   try {
+    const csrfRejection = getCsrfGuardRejection(request);
+    if (csrfRejection) return csrfRejection;
+
     const body = (await request.json()) as ResetPasswordBody;
     if (!body?.token || !body?.password) {
       return NextResponse.json(
