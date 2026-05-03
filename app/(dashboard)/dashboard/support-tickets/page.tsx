@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshCw, Search } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import { formatDate } from '@/lib/utils';
@@ -48,6 +48,7 @@ export default function SupportTicketsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [replying, setReplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const latestRequestedIdRef = useRef<string | null>(null);
   const [search, setSearch] = useState('');
 
   const [category, setCategory] = useState('general');
@@ -99,6 +100,7 @@ export default function SupportTicketsPage() {
 
   const loadTicketDetail = useCallback(
     async (id: string) => {
+      latestRequestedIdRef.current = id;
       setLoadingDetail(true);
       setError(null);
       try {
@@ -109,11 +111,17 @@ export default function SupportTicketsPage() {
         if (!res.ok) {
           throw new Error(json?.message ?? 'Failed to load support ticket detail');
         }
-        setSelectedTicket((json?.data as TicketDetail) ?? null);
+        if (latestRequestedIdRef.current === id) {
+          setSelectedTicket((json?.data as TicketDetail) ?? null);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load support ticket detail');
+        if (latestRequestedIdRef.current === id) {
+          setError(err instanceof Error ? err.message : 'Failed to load support ticket detail');
+        }
       } finally {
-        setLoadingDetail(false);
+        if (latestRequestedIdRef.current === id) {
+          setLoadingDetail(false);
+        }
       }
     },
     [],
@@ -314,7 +322,10 @@ export default function SupportTicketsPage() {
                   <button
                     key={ticket.id}
                     type="button"
-                    onClick={() => setSelectedId(ticket.id)}
+                    onClick={() => {
+                      setSelectedId(ticket.id);
+                      setSelectedTicket(null);
+                    }}
                     className={`w-full rounded-md border p-2 text-left ${
                       selectedId === ticket.id
                         ? 'border-blue-400 bg-blue-50'
