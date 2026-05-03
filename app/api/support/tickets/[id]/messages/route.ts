@@ -10,6 +10,14 @@ type ApiEnvelope = {
   data?: unknown;
 };
 
+type SupportTicketAttachment = {
+  fileId: string;
+  fileName: string;
+  fileUrl: string;
+  mimeType?: string;
+  uploadedAt?: string;
+};
+
 function asApiEnvelope(value: unknown): ApiEnvelope {
   return value && typeof value === 'object' ? (value as ApiEnvelope) : {};
 }
@@ -29,7 +37,7 @@ export async function POST(
     }
 
     const { id } = await context.params;
-    const body = (await request.json()) as { message?: string; attachments?: string[] };
+    const body = (await request.json()) as { message?: string; attachments?: SupportTicketAttachment[] };
     const brandDomain = resolveBrandDomainFromRequest(request);
     const apiUrl = new URL(`/v1/support/tickets/${id}/messages`, getServerApiBaseUrl());
 

@@ -6,6 +6,14 @@ import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
 
 export const dynamic = 'force-dynamic';
 
+type SupportTicketAttachment = {
+  fileId: string;
+  fileName: string;
+  fileUrl: string;
+  mimeType?: string;
+  uploadedAt?: string;
+};
+
 type ApiEnvelope = {
   statusCode?: number;
   message?: string;
@@ -74,6 +82,7 @@ export async function POST(request: Request) {
       subCategory?: string;
       subject?: string;
       description?: string;
+      attachments?: SupportTicketAttachment[];
       priority?: 'low' | 'normal' | 'high';
     };
 
