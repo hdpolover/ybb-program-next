@@ -68,8 +68,9 @@ export default function Testimonials({ section }: Props) {
             style={MARQUEE_STYLE}
           >
             {[...allItems, ...allItems].map((t, idx) => (
-              <div
+              <button
                 key={idx}
+                type="button"
                 className={componentsTheme.testimonialsHome.card}
                 onClick={() => setActive(t)}
                 onKeyDown={e => {
@@ -78,17 +79,16 @@ export default function Testimonials({ section }: Props) {
                     setActive(t);
                   }
                 }}
-                role="button"
-                tabIndex={0}
               >
-                <div className={componentsTheme.testimonialsHome.cardHeaderRow}>
+                <p className={componentsTheme.testimonialsHome.quote}>“{t.quote}”</p>
+                <div className={componentsTheme.testimonialsHome.metaRow}>
                   <div className={componentsTheme.testimonialsHome.profileRow}>
                     <div className={componentsTheme.testimonialsHome.avatarWrapper}>
                       <Image
                         src={getAvatarSrc(t.photo, t.name)}
                         alt={t.name}
                         fill
-                        sizes="44px"
+                        sizes="40px"
                         className={componentsTheme.testimonialsHome.avatarImg}
                         unoptimized={!t.photo?.startsWith('/')}
                       />
@@ -100,17 +100,16 @@ export default function Testimonials({ section }: Props) {
                       <p className={componentsTheme.testimonialsHome.roleText}>{t.role}</p>
                     </div>
                   </div>
-                  <span className={componentsTheme.testimonialsHome.badge}>
-                    {t.country || 'Alumni'}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={componentsTheme.testimonialsHome.badge}>
+                      {t.country || 'Alumni'}
+                    </span>
+                    <span className={componentsTheme.testimonialsHome.yearPill}>
+                      Batch {t.year || '-'}
+                    </span>
+                  </div>
                 </div>
-                <p className={componentsTheme.testimonialsHome.quote}>“{t.quote}”</p>
-                <div className={componentsTheme.testimonialsHome.metaRow}>
-                  <span className={componentsTheme.testimonialsHome.yearPill}>
-                    Batch {t.year || '-'}
-                  </span>
-                </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
