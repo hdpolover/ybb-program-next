@@ -145,6 +145,19 @@ export const programsTheme = {
   programsSchedules: {
     sectionWrapper: 'relative w-full bg-white py-10 sm:py-14 lg:py-16',
     container: 'relative mx-auto max-w-6xl px-6 lg:px-8',
+    listWrapper: 'mt-8 space-y-6',
+    groupSection:
+      'rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)] sm:p-5',
+    groupHeader: 'mb-4 flex items-center justify-between gap-3',
+    groupTitle: 'text-base font-bold text-slate-900 sm:text-lg',
+    groupCount:
+      'inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600',
+    cardsGrid: 'grid gap-3 sm:grid-cols-2',
+    card: 'rounded-2xl border border-slate-200 bg-slate-50 p-4',
+    cardHeader: 'flex flex-wrap items-center justify-between gap-2',
+    cardDate: 'text-sm font-semibold text-slate-700',
+    cardTitle: 'mt-2 text-base font-bold text-slate-900',
+    cardDescription: 'mt-1 text-sm leading-relaxed text-slate-600',
     tableWrapper:
       'mt-8 overflow-hidden rounded-3xl bg-white shadow-[0_18px_50px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80',
     tableInner: 'overflow-x-auto',
