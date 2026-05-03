@@ -8,7 +8,6 @@ function parseBooleanFlag(value: string | undefined, defaultValue = false): bool
 }
 
 export const FEATURE_FLAG_ENV_KEYS = {
-  enableBrandScopedCache: 'ENABLE_BRAND_SCOPED_CACHE',
   enableCsrfGuard: 'ENABLE_CSRF_GUARD',
   enableFileServiceAuthRequired: 'ENABLE_FILE_SERVICE_AUTH_REQUIRED',
   enablePaymentOutbox: 'ENABLE_PAYMENT_OUTBOX',
@@ -17,7 +16,6 @@ export const FEATURE_FLAG_ENV_KEYS = {
 } as const;
 
 export type FeatureFlags = Readonly<{
-  enableBrandScopedCache: boolean;
   enableCsrfGuard: boolean;
   enableFileServiceAuthRequired: boolean;
   enablePaymentOutbox: boolean;
@@ -27,7 +25,6 @@ export type FeatureFlags = Readonly<{
 
 export function getFeatureFlags(env: ProcessEnv = process.env): FeatureFlags {
   return {
-    enableBrandScopedCache: parseBooleanFlag(env[FEATURE_FLAG_ENV_KEYS.enableBrandScopedCache]),
     enableCsrfGuard: parseBooleanFlag(env[FEATURE_FLAG_ENV_KEYS.enableCsrfGuard]),
     enableFileServiceAuthRequired: parseBooleanFlag(env[FEATURE_FLAG_ENV_KEYS.enableFileServiceAuthRequired]),
     enablePaymentOutbox: parseBooleanFlag(env[FEATURE_FLAG_ENV_KEYS.enablePaymentOutbox]),
@@ -37,4 +34,3 @@ export function getFeatureFlags(env: ProcessEnv = process.env): FeatureFlags {
     ),
   };
 }
-

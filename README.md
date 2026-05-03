@@ -128,7 +128,6 @@ Set `SETTINGS_REVALIDATE_SECRET` and `HOME_REVALIDATE_SECRET` in production to p
 
 Feature flags available for rollout control (default `false`):
 
-- `ENABLE_BRAND_SCOPED_CACHE`
 - `ENABLE_CSRF_GUARD`
 - `ENABLE_FILE_SERVICE_AUTH_REQUIRED`
 - `ENABLE_PAYMENT_OUTBOX`
