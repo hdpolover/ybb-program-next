@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ExternalLink, ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
-import { formatDate } from '@/lib/utils';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'normal' | 'high' | 'urgent';
@@ -186,6 +185,21 @@ function getPriorityChipClass(priority: TicketPriority): string {
     default:
       return 'border-zinc-200 bg-zinc-100 text-zinc-700';
   }
+}
+
+function formatDateTime(value?: string): string {
+  if (!value) return 'Unknown';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Unknown';
+
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(date);
 }
 
 function extractScreenshotAttachments(value: string): SupportTicketAttachment[] {
@@ -834,7 +848,7 @@ export default function SupportTicketsPage() {
                     Priority: {toTitleCaseFromToken(selectedTicket.priority)}
                   </span>
                   <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-semibold text-zinc-700">
-                    Created {formatDate(selectedTicket.createdAt)}
+                    Created {formatDateTime(selectedTicket.createdAt)}
                   </span>
                 </div>
               </div>
@@ -875,7 +889,7 @@ export default function SupportTicketsPage() {
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-xs font-semibold text-zinc-700">{message.senderName}</p>
-                        <p className="text-[11px] text-zinc-500">{formatDate(message.createdAt)}</p>
+                        <p className="text-[11px] text-zinc-500">{formatDateTime(message.createdAt)}</p>
                       </div>
                       <div
                         className="prose prose-sm mt-1 max-w-none text-zinc-700"
