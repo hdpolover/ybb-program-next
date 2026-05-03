@@ -323,7 +323,7 @@ export default function SupportTicketsPage() {
                     key={ticket.id}
                     type="button"
                     onClick={() => {
-                      latestRequestedIdRef.current = null;
+                      latestRequestedIdRef.current = ticket.id;
                       setSelectedId(ticket.id);
                       setSelectedTicket(null);
                     }}
