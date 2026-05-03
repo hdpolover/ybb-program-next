@@ -3,26 +3,38 @@ import type { SettingsData } from '@/types/settings';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 import {
+  getSettingsCacheTag,
+  getSettingsLsKey,
   SETTINGS_CACHE_TAG,
   SETTINGS_CACHE_TTL,
-  SETTINGS_LS_KEY,
+  SETTINGS_LS_LEGACY_KEY,
   SETTINGS_LS_TTL_MS,
 } from '@/lib/constants/cache';
 
 const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
-// Server-side cached fetch — shared by layout SSR and /api/settings route handler.
-// unstable_cache keys by function arguments, so each brandDomain gets its own cache entry.
-const fetchSettingsFromBackend = unstable_cache(
-  async (brandDomain: string): Promise<SettingsData> => {
-    return apiGetWithEnvelope<SettingsData>('/v1/landing/settings', {
-      headers: { 'x-brand-domain': brandDomain },
-      cache: 'no-store', // unstable_cache owns the TTL; skip fetch-level HTTP cache
-    });
-  },
-  [SETTINGS_CACHE_TAG],
-  { revalidate: SETTINGS_CACHE_TTL, tags: [SETTINGS_CACHE_TAG] },
-);
+const settingsFetcherByBrand = new Map<string, () => Promise<SettingsData>>();
+
+function getSettingsFetcher(brandDomain: string): () => Promise<SettingsData> {
+  const cacheKey = brandDomain || 'default';
+  const existing = settingsFetcherByBrand.get(cacheKey);
+  if (existing) return existing;
+
+  const brandTag = getSettingsCacheTag(brandDomain);
+  const fetcher = unstable_cache(
+    async (): Promise<SettingsData> => {
+      return apiGetWithEnvelope<SettingsData>('/v1/landing/settings', {
+        headers: { 'x-brand-domain': brandDomain },
+        cache: 'no-store', // unstable_cache owns the TTL; skip fetch-level HTTP cache
+      });
+    },
+    [SETTINGS_CACHE_TAG, cacheKey],
+    { revalidate: SETTINGS_CACHE_TTL, tags: [SETTINGS_CACHE_TAG, brandTag] },
+  );
+
+  settingsFetcherByBrand.set(cacheKey, fetcher);
+  return fetcher;
+}
 
 type BrandListItem = {
   id: string;
@@ -69,7 +81,7 @@ export async function getSettingsForBrandDomain(brandDomain: string): Promise<Se
       ? DEFAULT_BRAND_URL
       : normalizedHost;
 
-  const settings = await fetchSettingsFromBackend(normalized);
+  const settings = await getSettingsFetcher(normalized)();
   if (Array.isArray(settings.available_brands)) {
     return settings;
   }
@@ -88,14 +100,22 @@ export async function getSettingsForBrandDomain(brandDomain: string): Promise<Se
 
 export async function getSettings(): Promise<SettingsData> {
   if (typeof window !== 'undefined') {
+    const host = window.location.hostname || DEFAULT_BRAND_URL;
+    const scopedKey = getSettingsLsKey(host);
+
     // Check localStorage cache first
     try {
-      const raw = localStorage.getItem(SETTINGS_LS_KEY);
+      const raw = localStorage.getItem(scopedKey);
       if (raw) {
         const { data, cachedAt } = JSON.parse(raw) as { data: SettingsData; cachedAt: number };
         const hasAvailableBrands = Array.isArray(data.available_brands);
         if (Date.now() - cachedAt < SETTINGS_LS_TTL_MS && hasAvailableBrands) return data;
-        localStorage.removeItem(SETTINGS_LS_KEY);
+        localStorage.removeItem(scopedKey);
+      }
+
+      // One-time migration cleanup for old unscoped key
+      if (localStorage.getItem(SETTINGS_LS_LEGACY_KEY)) {
+        localStorage.removeItem(SETTINGS_LS_LEGACY_KEY);
       }
     } catch {
       // Ignore localStorage errors (e.g. private browsing restrictions)
@@ -118,7 +138,7 @@ export async function getSettings(): Promise<SettingsData> {
 
     try {
       localStorage.setItem(
-        SETTINGS_LS_KEY,
+        scopedKey,
         JSON.stringify({ data: json.data, cachedAt: Date.now() }),
       );
     } catch {}
@@ -127,5 +147,5 @@ export async function getSettings(): Promise<SettingsData> {
   }
 
   // Server-side fallback (e.g. called from a non-layout server component)
-  return fetchSettingsFromBackend(DEFAULT_BRAND_URL);
+  return getSettingsFetcher(DEFAULT_BRAND_URL)();
 }

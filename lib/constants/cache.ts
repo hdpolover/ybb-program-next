@@ -6,6 +6,25 @@ export const SETTINGS_CACHE_TTL = 300; // seconds
 export const HOME_CACHE_TAG = 'home';
 export const HOME_CACHE_TTL = 120; // seconds
 
+function normalizeDomain(input: string): string {
+  return (input || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '').split('/')[0].split(':')[0];
+}
+
+function normalizedSuffix(input: string): string {
+  return normalizeDomain(input) || 'default';
+}
+
+export function getSettingsCacheTag(brandDomain: string): string {
+  return `${SETTINGS_CACHE_TAG}:${normalizedSuffix(brandDomain)}`;
+}
+
+export function getHomeCacheTag(brandDomain: string): string {
+  return `${HOME_CACHE_TAG}:${normalizedSuffix(brandDomain)}`;
+}
+
 // Client-side localStorage — matches server TTL so stale entries expire together.
-export const SETTINGS_LS_KEY = 'ybb:settings';
+export const SETTINGS_LS_LEGACY_KEY = 'ybb:settings';
+export function getSettingsLsKey(brandDomain: string): string {
+  return `${SETTINGS_LS_LEGACY_KEY}:${normalizedSuffix(brandDomain)}`;
+}
 export const SETTINGS_LS_TTL_MS = SETTINGS_CACHE_TTL * 1000;
