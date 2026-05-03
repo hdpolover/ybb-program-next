@@ -23,6 +23,9 @@ function resolveFromHost(hostnameRaw: string, defaultDomain: string | null): str
       ? defaultDomain || 'localhost'
       : normalizeBrandUrl(hostname);
 
+  // Only cache if below the cap to prevent unbounded growth from attacker-controlled Host headers.
+  // For production deployments with a fixed set of brand domains this limit is never reached;
+  // beyond it, resolution still works correctly — just without the memoization benefit.
   if (resolvedHostCache.size < MAX_RESOLVED_HOST_CACHE) {
     resolvedHostCache.set(cacheKey, resolved);
   }
