@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 type VerifyEmailBody = {
   token: string;
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
 
     const brandDomain = resolveBrandDomainFromRequest(request);
 
-    const apiUrl = new URL('/v1/auth/verify-email', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
+    const apiUrl = new URL('/v1/auth/verify-email', getServerApiBaseUrl());
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {

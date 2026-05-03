@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 type AmbassadorLoginBody = {
   email: string;
@@ -58,10 +59,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiUrl = new URL(
-      '/v1/auth/ambassador-login',
-      (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''),
-    );
+    const apiUrl = new URL('/v1/auth/ambassador-login', getServerApiBaseUrl());
 
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',

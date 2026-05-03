@@ -7,11 +7,24 @@ const fallbackBuildId = `${packageJson.version}-${new Date()
 
 const isProductionBuild = process.env.NODE_ENV === 'production';
 
-if (isProductionBuild && !process.env.APP_BUILD_ID?.trim()) {
-  throw new Error(
-    'APP_BUILD_ID is required for production builds. Set it in the deployment environment before running next build.',
-  );
+function requireProdEnv(name, message) {
+  if (isProductionBuild && !process.env[name]?.trim()) {
+    throw new Error(message || `${name} is required for production builds.`);
+  }
 }
+
+requireProdEnv(
+  'APP_BUILD_ID',
+  'APP_BUILD_ID is required for production builds. Set it in the deployment environment before running next build.',
+);
+requireProdEnv(
+  'NEXT_PUBLIC_API_URL',
+  'NEXT_PUBLIC_API_URL is required for production builds to prevent accidental staging fallback.',
+);
+requireProdEnv(
+  'API_INTERNAL_URL',
+  'API_INTERNAL_URL is required for production builds to keep server-side calls on the intended backend.',
+);
 
 const appBuildId = (
   process.env.APP_BUILD_ID ||
@@ -154,4 +167,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-

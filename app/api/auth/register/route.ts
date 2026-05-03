@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 type RegisterBody = {
   email: string;
@@ -115,7 +116,7 @@ export async function POST(request: Request) {
     }
 
     step = 'fetch_backend_register';
-    const apiUrl = new URL('/v1/auth/register', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
+    const apiUrl = new URL('/v1/auth/register', getServerApiBaseUrl());
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {
@@ -185,21 +186,12 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    const stack = error instanceof Error ? error.stack : undefined;
-    console.error('[api/auth/register] error', { step, message, stack });
+    console.error('[api/auth/register] error', { step, message });
     return NextResponse.json(
       {
         statusCode: 500,
         message,
         data: null,
-        ...(process.env.NODE_ENV !== 'production'
-          ? {
-              debug: {
-                step,
-                stack,
-              },
-            }
-          : {}),
       },
       { status: 500 },
     );

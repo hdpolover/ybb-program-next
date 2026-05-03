@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 type ForgotPasswordBody = {
   email: string;
@@ -36,13 +37,7 @@ export async function POST(request: Request) {
       console.warn('[api/auth/forgot-password] auth-context fetch failed', { brandDomain, error: errMsg });
     }
 
-    const apiUrl = new URL(
-      '/v1/auth/forgot-password',
-      (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(
-        /\/v1\/?$/,
-        '',
-      ),
-    );
+    const apiUrl = new URL('/v1/auth/forgot-password', getServerApiBaseUrl());
 
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',

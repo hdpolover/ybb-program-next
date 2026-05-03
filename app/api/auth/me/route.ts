@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 type AuthMeResponse = {
   statusCode?: number;
@@ -27,7 +28,6 @@ type AuthMeResponse = {
 export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
-    const cookieNames = cookieStore.getAll().map(c => c.name);
     const accessToken = cookieStore.get('accessToken')?.value;
 
     const brandDomain = resolveBrandDomainFromRequest(request);
@@ -38,17 +38,12 @@ export async function GET(request: Request) {
           statusCode: 401,
           message: 'Unauthorized',
           data: null,
-          debug: {
-            hasAccessTokenCookie: false,
-            brandDomain,
-            cookieNames,
-          },
         },
         { status: 401 },
       );
     }
 
-    const apiUrl = new URL('/v1/auth/me', (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''));
+    const apiUrl = new URL('/v1/auth/me', getServerApiBaseUrl());
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
@@ -66,12 +61,6 @@ export async function GET(request: Request) {
           statusCode: json.statusCode ?? res.status,
           message: json.message ?? 'Failed to fetch profile',
           data: null,
-          debug: {
-            hasAccessTokenCookie: true,
-            brandDomain,
-            backendStatus: res.status,
-            cookieNames,
-          },
         },
         { status: res.status },
       );

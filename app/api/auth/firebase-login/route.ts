@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 
 type FirebaseLoginBody = {
@@ -44,9 +45,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const baseCandidate = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com';
-    const apiBaseUrl = baseCandidate.replace(/\/v1\/?$/, '');
-    const url = new URL('/v1/auth/firebase-login', apiBaseUrl);
+    const url = new URL('/v1/auth/firebase-login', getServerApiBaseUrl());
     console.log('[firebase-login] API URL:', url.toString());
 
     let brandId: string | undefined;
@@ -132,7 +131,6 @@ export async function POST(request: Request) {
       data: {
         isNewUser,
         ...(typeof isOnboardingCompleted === 'boolean' ? { isOnboardingCompleted } : {}),
-        ...(process.env.NODE_ENV !== 'production' ? { providerIdUsed: body.providerId } : {}),
       },
     });
 

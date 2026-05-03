@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 type ExchangeBody = {
   token?: string;
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     }
 
     const brandDomain = resolveBrandDomainFromRequest(request);
-    const apiBase = (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, '');
+    const apiBase = getServerApiBaseUrl();
 
     const backendRes = await fetch(new URL('/v1/admins/support-access/impersonations/exchange', apiBase), {
       method: 'POST',
@@ -92,4 +93,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

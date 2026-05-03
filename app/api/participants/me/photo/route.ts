@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
-const baseApi = () =>
-  (
-    process.env.API_INTERNAL_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'https://staging-api.ybbhub.com'
-  ).replace(/\/v1\/?$/, '');
+const baseApi = () => getServerApiBaseUrl();
 
 export async function POST(request: Request) {
   try {
@@ -106,7 +102,7 @@ export async function POST(request: Request) {
       const fileId = (fileInfo.id ?? fileInfo.file_id) as string | undefined;
       if (fileId) {
         const publicBase = (
-          process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com'
+          process.env.NEXT_PUBLIC_API_URL || getServerApiBaseUrl()
         ).replace(/\/v1\/?$/, '');
         fileUrl = `${publicBase}/v1/files/${fileId}/download`;
       }
@@ -114,7 +110,7 @@ export async function POST(request: Request) {
 
     if (!fileUrl) {
       return NextResponse.json(
-        { statusCode: 500, message: 'Storage returned no URL', debug: { uploadData } },
+        { statusCode: 500, message: 'Storage returned no URL' },
         { status: 500 }
       );
     }
