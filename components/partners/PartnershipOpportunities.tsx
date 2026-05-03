@@ -58,7 +58,7 @@ export default function PartnershipOpportunitiesSection({
             </ul>
             <div className={componentsTheme.partnersOpportunities.cardFooter}>
               <Button
-                href="/apply/ambassador-program"
+                href="/partners/ambassador-program"
                 className="w-full"
                 variant="primary"
               >
@@ -176,7 +176,7 @@ export default function PartnershipOpportunitiesSection({
             </ul>
             <div className={componentsTheme.partnersOpportunities.cardFooter}>
               <Button
-                href="/apply/community-institution"
+                href="/partners/community-institution"
                 className="w-full"
                 variant="primary"
               >

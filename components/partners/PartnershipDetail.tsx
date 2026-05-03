@@ -33,6 +33,28 @@ const PACKAGES: Record<
       'Volunteer opportunities',
     ],
   },
+  'community-institution': {
+    title: 'Community & Institution',
+    bestFor: 'Best for: Schools, universities, and communities.',
+    price: 'Flexible',
+    bullets: [
+      'Group participant registration',
+      '1 free quota for every 15 registered participants',
+      'Free slot ideal for mentors or supervisors',
+      'Support participants throughout the program',
+    ],
+  },
+  'ambassador-program': {
+    title: 'Ambassador Program',
+    bestFor: 'Best for: Content creators, youth leaders, and influencers.',
+    price: 'By Selection',
+    bullets: [
+      'Selected based on content quality and audience engagement',
+      "Aligned with YBB's vision and mission",
+      'Represent YBB through authentic content and campaigns',
+      'Build impact while growing personal influence',
+    ],
+  },
   'silver-partner': {
     title: 'Silver Partner',
     bestFor: 'Best for: Organizations starting strategic collaboration.',
@@ -108,7 +130,7 @@ export default function PartnershipDetailSection({
   const selfFundedPct = affiliateCommission?.self_funded_pct ?? 20;
 
    const gradientVariant =
-    slug === 'community-partner'
+    slug === 'community-partner' || slug === 'community-institution' || slug === 'ambassador-program'
       ? componentsTheme.partnersDetail.gradientRightCommunity
       : slug === 'silver-partner'
         ? componentsTheme.partnersDetail.gradientRightSilver

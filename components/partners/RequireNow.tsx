@@ -1,6 +1,10 @@
+'use client';
+
+import { useMemo, useState } from 'react';
 import { Building2, FileText, Mail, Phone, Tag, User } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
+import { useSettings } from '@/components/providers/SettingsProvider';
 
 type RequireNowSectionProps = {
   slug?: string;
@@ -8,16 +12,76 @@ type RequireNowSectionProps = {
 
 // Section: Require Now — partnership inquiry form
 export default function RequireNowSection({ slug }: RequireNowSectionProps) {
+  const { settings } = useSettings();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+
+  const partnershipType = useMemo(() => {
+    if (!slug) return 'partnership';
+    if (slug === 'community-partner') return 'community-institution';
+    return slug;
+  }, [slug]);
+
+  const programId = settings?.active_program?.id ?? '';
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const subject = String(formData.get('subject') ?? '').trim();
+
+    if (!programId) {
+      setSubmitError('Active program is not available for this brand.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/partnerships/enquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          programId,
+          partnershipType,
+          subCategory: slug === 'affiliate-program' ? subject : undefined,
+          fullName: String(formData.get('fullName') ?? '').trim(),
+          email: String(formData.get('workEmail') ?? '').trim(),
+          whatsappNumber: String(formData.get('phone') ?? '').trim() || undefined,
+          company: String(formData.get('company') ?? '').trim() || undefined,
+          subject: subject || undefined,
+          description: String(formData.get('description') ?? '').trim() || undefined,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'Failed to submit inquiry.');
+      }
+
+      form.reset();
+      setSubmitSuccess('Your inquiry has been submitted. Our partnership team will contact you soon.');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section className={componentsTheme.partnersRequire.sectionWrapper} id="apply">
       <div className={componentsTheme.partnersRequire.container}>
-        <SectionHeader eyebrow="Partnership" title="Require Now" />
+        <SectionHeader eyebrow="Partnership" title="Inquire Now" />
         <p className={componentsTheme.partnersRequire.subtitle}>
           Share a few details about you and your organization, and our partnership team will get
           back to you shortly.
         </p>
 
-        <form className={componentsTheme.partnersRequire.formGrid} action="#" method="post">
+        <form className={componentsTheme.partnersRequire.formGrid} onSubmit={handleSubmit}>
           <div className={componentsTheme.partnersRequire.fieldGroup}>
             <label className={componentsTheme.partnersRequire.label} htmlFor="fullName">
               Full Name
@@ -151,10 +215,23 @@ export default function RequireNowSection({ slug }: RequireNowSectionProps) {
           <div className="sm:col-span-2 mt-4 flex flex-col gap-3">
             <button
               type="submit"
+              disabled={isSubmitting}
               className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
-              Submit
+              {isSubmitting ? 'Submitting...' : 'Submit Inquiry'}
             </button>
+
+            {submitError ? (
+              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {submitError}
+              </p>
+            ) : null}
+
+            {submitSuccess ? (
+              <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {submitSuccess}
+              </p>
+            ) : null}
 
             <div className="flex items-center justify-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               <span className="h-px w-8 bg-slate-200" aria-hidden="true" />
