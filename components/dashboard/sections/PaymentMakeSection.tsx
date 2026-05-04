@@ -54,6 +54,15 @@ interface InvoiceData {
   currency?: string;
 }
 
+interface PendingPaymentData {
+  actionUrl?: string;
+  paymentMethod?: string;
+  accountName?: string;
+  sourceName?: string;
+  paymentDate?: string;
+  proofUrl?: string;
+}
+
 function hasHtmlMarkup(value: string): boolean {
   return /<\/?[a-z][\s\S]*>/i.test(value);
 }
@@ -127,12 +136,34 @@ function getActionUrl(payload: unknown): string | null {
   return typeof action.url === "string" && action.url.length > 0 ? action.url : null;
 }
 
+function getPendingPaymentData(payload: unknown): PendingPaymentData | null {
+  if (!isRecord(payload)) return null;
+  const history = Array.isArray(payload.history) ? payload.history : [];
+  const processingRow = history.find((row) => isRecord(row) && String(row.status ?? "").toLowerCase() === "processing");
+  if (!isRecord(processingRow)) return null;
+
+  return {
+    actionUrl: typeof processingRow.actionUrl === "string" ? processingRow.actionUrl : undefined,
+    paymentMethod:
+      typeof processingRow.paymentMethod === "string"
+        ? processingRow.paymentMethod
+        : typeof processingRow.method === "string"
+          ? processingRow.method
+          : undefined,
+    accountName: typeof processingRow.accountName === "string" ? processingRow.accountName : undefined,
+    sourceName: typeof processingRow.sourceName === "string" ? processingRow.sourceName : undefined,
+    paymentDate: typeof processingRow.paymentDate === "string" ? processingRow.paymentDate : undefined,
+    proofUrl: typeof processingRow.proofUrl === "string" ? processingRow.proofUrl : undefined,
+  };
+}
+
 export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProps) {
   const { settings } = useSettings();
   const router = useRouter();
   const rateToIdr = settings?.currency?.rate_to_idr ?? 16900;
 
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
+  const [pendingPayment, setPendingPayment] = useState<PendingPaymentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
@@ -176,8 +207,10 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
 
         if (!cancelled) {
           const payload = getEnvelopeData(json);
-          const invoicePayload = isRecord(payload) ? payload.invoice : null;
+          const payloadRecord = isRecord(payload) ? payload : null;
+          const invoicePayload = payloadRecord?.invoice;
           setInvoice(toInvoiceData(invoicePayload));
+          setPendingPayment(getPendingPaymentData(payloadRecord));
         }
       } catch (err) {
         if (!cancelled) {
@@ -298,6 +331,8 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const [manualNotes, setManualNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [cancellingPending, setCancellingPending] = useState(false);
+  const [cancelPendingError, setCancelPendingError] = useState<string | null>(null);
 
   const amountUsd = invoice?.amount ?? 0;
   const amountIdr = amountUsd * rateToIdr;
@@ -348,6 +383,30 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     manualPaymentDate.trim() !== "" &&
     manualProofFile !== null;
   const isFormComplete = isGatewayComplete || isManualComplete;
+
+  const handleCancelPendingPayment = useCallback(async () => {
+    if (cancellingPending) return;
+    setCancellingPending(true);
+    setCancelPendingError(null);
+    try {
+      const response = await fetch(`/api/portal/payments/${paymentId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      const json = (await response.json().catch(() => null)) as unknown;
+      if (!response.ok) {
+        throw new Error(getErrorMessage(json, "Failed to cancel pending payment"));
+      }
+
+      router.replace(`/dashboard/payments/${paymentId}`);
+    } catch (err) {
+      setCancelPendingError(err instanceof Error ? err.message : "Failed to cancel pending payment");
+    } finally {
+      setCancellingPending(false);
+    }
+  }, [cancellingPending, paymentId, router]);
 
   const handleSubmit = useCallback(async () => {
     if (!isFormComplete || submitting) return;
@@ -466,6 +525,98 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
           <Link href={`/dashboard/payments/${paymentId}`} className="mt-4 text-sm text-primary underline">
             Back to Payment Details
           </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (normalizedInvoiceStatus === "processing") {
+    const hasCheckoutLink = typeof pendingPayment?.actionUrl === "string" && pendingPayment.actionUrl.length > 0;
+    const hasProofImage = typeof pendingPayment?.proofUrl === "string" && pendingPayment.proofUrl.length > 0;
+    const paymentMethodLabel = pendingPayment?.paymentMethod ?? invoice.label;
+
+    return (
+      <section className={paymentsTheme.sectionWrapper}>
+        <nav className={paymentsTheme.breadcrumbNav}>
+          <Link href="/dashboard/payments" className={paymentsTheme.breadcrumbLink}>
+            Payments
+          </Link>
+          <span className={paymentsTheme.breadcrumbSeparator}>/</span>
+          <Link href={`/dashboard/payments/${paymentId}`} className={paymentsTheme.breadcrumbLink}>
+            Payment Details
+          </Link>
+          <span className={paymentsTheme.breadcrumbSeparator}>/</span>
+          <span className={paymentsTheme.breadcrumbCurrent}>Make Payment</span>
+        </nav>
+
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+          <p className="font-semibold">A payment is already pending for this item.</p>
+          <p className="mt-1">
+            You cannot create a new payment until this one is completed or rejected.
+          </p>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-900">Pending Payment Details</p>
+          <dl className="mt-3 grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Method</dt>
+              <dd className="mt-1">{paymentMethodLabel || "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account Name</dt>
+              <dd className="mt-1">{pendingPayment?.accountName || "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Source Name</dt>
+              <dd className="mt-1">{pendingPayment?.sourceName || "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Payment Date</dt>
+              <dd className="mt-1">{pendingPayment?.paymentDate || "-"}</dd>
+            </div>
+          </dl>
+
+          {hasProofImage ? (
+            <div className="mt-4 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Payment Proof</p>
+              <a href={pendingPayment?.proofUrl} target="_blank" rel="noreferrer noopener" className="inline-block">
+                <img
+                  src={pendingPayment?.proofUrl}
+                  alt="Manual payment proof"
+                  className="max-h-72 w-auto rounded-xl border border-slate-200 object-contain"
+                />
+              </a>
+            </div>
+          ) : null}
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            {hasCheckoutLink ? (
+              <a
+                href={pendingPayment?.actionUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
+              >
+                Continue Pending Checkout
+              </a>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleCancelPendingPayment}
+              disabled={cancellingPending}
+              className="inline-flex items-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {cancellingPending ? "Cancelling..." : "Cancel Pending Payment"}
+            </button>
+            <Link href={`/dashboard/payments/${paymentId}`} className={paymentsTheme.backButton}>
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to Payment Details</span>
+            </Link>
+          </div>
+          {cancelPendingError ? (
+            <p className="mt-3 text-sm text-red-600">{cancelPendingError}</p>
+          ) : null}
         </div>
       </section>
     );

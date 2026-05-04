@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Mail,
@@ -54,8 +55,11 @@ interface HistoryEntry {
   paymentMethod?: string;
   dateTime?: string;
   accountName?: string;
+  sourceName?: string;
+  paymentDate?: string;
   amountLabel?: string;
   actionUrl?: string;
+  proofUrl?: string;
 }
 
 function SkeletonBlock({ className }: { className?: string }) {
@@ -229,12 +233,16 @@ function toHistoryEntry(value: unknown): HistoryEntry | null {
     paymentMethod: typeof value.paymentMethod === 'string' ? value.paymentMethod : undefined,
     dateTime: typeof value.dateTime === 'string' ? value.dateTime : undefined,
     accountName: typeof value.accountName === 'string' ? value.accountName : undefined,
+    sourceName: typeof value.sourceName === 'string' ? value.sourceName : undefined,
+    paymentDate: typeof value.paymentDate === 'string' ? value.paymentDate : undefined,
     amountLabel: typeof value.amountLabel === 'string' ? value.amountLabel : undefined,
     actionUrl: typeof value.actionUrl === 'string' ? value.actionUrl : undefined,
+    proofUrl: typeof value.proofUrl === 'string' ? value.proofUrl : undefined,
   };
 }
 
 export default function PaymentDetailSection({ paymentId }: PaymentDetailSectionProps) {
+  const router = useRouter();
   const [paymentPreview, setPaymentPreview] = useState<CachedPaymentPreview | null>(() =>
     readCachedPaymentPreview(readActiveProgramId(), paymentId)
   );
@@ -244,6 +252,8 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [backgroundError, setBackgroundError] = useState<string | null>(null);
+  const [cancellingPending, setCancellingPending] = useState(false);
+  const [cancelPendingError, setCancelPendingError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -435,13 +445,15 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     details: {
       code: h.code ?? `TR-${h.id}`,
       paymentMethod: toMethodDisplayLabel(h.paymentMethod ?? h.method) || 'Not specified',
-      dateTime: h.dateTime
+      dateTime: h.paymentDate
+        ? formatDateLabel(h.paymentDate)
+        : h.dateTime
         ? formatDateTimeLabel(h.dateTime)
         : `${formatDateLabel(h.date)} ${h.time}`,
       accountName: h.accountName ?? '',
       amountLabel: h.amountLabel ?? formatInvoiceAmount(h.amount),
-      source: 'Participant Dashboard',
-      proofUrl: undefined,
+      source: h.sourceName ?? 'Participant Dashboard',
+      proofUrl: h.proofUrl,
     },
     status:
       h.status === 'processing'
@@ -458,6 +470,28 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   const pendingGatewayActionUrl = history
     .find(entry => entry.status === 'processing' && typeof entry.actionUrl === 'string' && entry.actionUrl.trim().length > 0)
     ?.actionUrl;
+
+  const handleCancelPendingPayment = async () => {
+    if (cancellingPending || effectiveStatus !== 'processing') return;
+    setCancellingPending(true);
+    setCancelPendingError(null);
+    try {
+      const response = await fetch(`/api/portal/payments/${paymentId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const json = (await response.json().catch(() => null)) as unknown;
+      if (!response.ok) {
+        throw new Error(getErrorMessage(json, 'Failed to cancel pending payment'));
+      }
+      router.refresh();
+    } catch (err) {
+      setCancelPendingError(err instanceof Error ? err.message : 'Failed to cancel pending payment');
+    } finally {
+      setCancellingPending(false);
+    }
+  };
 
   return (
     <div className={paymentsTheme.sectionWrapper}>
@@ -575,6 +609,16 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
                   </span>
                 </a>
               ) : null}
+              {effectiveStatus === 'processing' ? (
+                <button
+                  type="button"
+                  onClick={handleCancelPendingPayment}
+                  disabled={cancellingPending}
+                  className="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {cancellingPending ? 'Cancelling...' : 'Cancel Pending Payment'}
+                </button>
+              ) : null}
               {effectiveStatus !== 'paid' && effectiveStatus !== 'processing' ? (
                 <Link
                   href={`/dashboard/payments/${paymentId}/make-payment`}
@@ -585,6 +629,9 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
                     <span>Make Payment</span>
                   </span>
                 </Link>
+              ) : null}
+              {cancelPendingError ? (
+                <p className="mt-2 text-sm text-red-600">{cancelPendingError}</p>
               ) : null}
             </div>
           </div>
