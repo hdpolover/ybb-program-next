@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import countries110m from 'world-atlas/countries-110m.json';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+
+const GEO_DATA = countries110m as unknown as Record<string, unknown>;
 
 type WorldGeo = {
   rsmKey: string;
@@ -37,6 +39,12 @@ export default function ParticipantDistribution({
   countryParticipants,
   legend,
 }: ParticipantDistributionProps) {
+  const [selectedCountry, setSelectedCountry] = useState<{
+    name: string;
+    level: Level;
+    participants: number;
+  } | null>(null);
+
   const hasLevels = countryLevels && Object.keys(countryLevels).length > 0;
   const hasParticipants = countryParticipants && Object.keys(countryParticipants).length > 0;
   if (!hasLevels && !hasParticipants) return null;
@@ -55,12 +63,6 @@ export default function ParticipantDistribution({
     if (level === 'low') return colors.low;
     return colors.none;
   }
-  const [selectedCountry, setSelectedCountry] = useState<{
-    name: string;
-    level: Level;
-    participants: number;
-  } | null>(null);
-
   const selectedLabel = selectedCountry
     ? selectedCountry.name
     : 'Click on a country to see its participation level';
@@ -84,6 +86,8 @@ export default function ParticipantDistribution({
     }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
+  const totalParticipants = all.reduce((sum, item) => sum + item.count, 0);
+  const representedCountries = all.filter((item) => item.count > 0).length;
 
   return (
     <section className={componentsTheme.participantDistribution.sectionWrapper}>
@@ -95,59 +99,97 @@ export default function ParticipantDistribution({
         />
 
         <div className={componentsTheme.participantDistribution.mapCard}>
-          <div className={componentsTheme.participantDistribution.mapWrapper}>
-            {componentsTheme.participantDistribution.mapBackdrop ? (
-              <div className={componentsTheme.participantDistribution.mapBackdrop} />
-            ) : null}
-
-            <div className={componentsTheme.participantDistribution.mapInner}>
-              <ComposableMap
-                projectionConfig={{ scale: 145 }}
-                style={{ width: '100%', height: '100%' }}
-              >
-                <Geographies geography={GEO_URL}>
-                  {({ geographies }: { geographies: WorldGeo[] }) =>
-                    geographies.map((geo: WorldGeo) => {
-                      const name = geo.properties.name ?? 'Unknown';
-                      return (
-                        <Geography
-                          key={geo.rsmKey}
-                          geography={geo}
-                          fill={getFillForCountry(name)}
-                          stroke={componentsTheme.participantDistribution.mapStroke}
-                          strokeWidth={0.4}
-                          onClick={() => {
-                            const level = (levels[name] ?? 'none') as Level;
-                            const count = participants[name] ?? 0;
-                            setSelectedCountry({
-                              name,
-                              level,
-                              participants: count,
-                            });
-                          }}
-                          style={{
-                            default: { outline: 'none' },
-                            hover: { outline: 'none', opacity: 0.9, cursor: 'pointer' },
-                            pressed: { outline: 'none' },
-                          }}
-                        />
-                      );
-                    })
-                  }
-                </Geographies>
-              </ComposableMap>
+          <div className="mb-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Total participants</p>
+              <p className="mt-1 text-xl font-extrabold text-slate-900">{totalParticipants.toLocaleString()}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Countries represented</p>
+              <p className="mt-1 text-xl font-extrabold text-slate-900">{representedCountries.toLocaleString()}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Top country</p>
+              <p className="mt-1 text-base font-bold text-slate-900">{topEntries[0]?.name ?? 'No data yet'}</p>
             </div>
           </div>
 
-          {/* Selected country info, centered under the map */}
-          <div className="mt-6 text-center">
-            <p className="text-sm font-semibold text-slate-900">{selectedLabel}</p>
-            {selectedSubLabel ? (
-              <p className="mt-1 text-xs font-medium text-emerald-600">{selectedSubLabel}</p>
-            ) : null}
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <div className={componentsTheme.participantDistribution.mapWrapper}>
+              {componentsTheme.participantDistribution.mapBackdrop ? (
+                <div className={componentsTheme.participantDistribution.mapBackdrop} />
+              ) : null}
+
+              <div className={componentsTheme.participantDistribution.mapInner}>
+                <ComposableMap
+                  projectionConfig={{ scale: 145 }}
+                  style={{ width: '100%', height: '100%' }}
+                >
+                  <Geographies geography={GEO_DATA}>
+                    {({ geographies }: { geographies: WorldGeo[] }) =>
+                      geographies.map((geo: WorldGeo) => {
+                        const name = geo.properties.name ?? 'Unknown';
+                        return (
+                          <Geography
+                            key={geo.rsmKey}
+                            geography={geo}
+                            fill={getFillForCountry(name)}
+                            stroke={componentsTheme.participantDistribution.mapStroke}
+                            strokeWidth={0.5}
+                            onClick={() => {
+                              const level = (levels[name] ?? 'none') as Level;
+                              const count = participants[name] ?? 0;
+                              setSelectedCountry({
+                                name,
+                                level,
+                                participants: count,
+                              });
+                            }}
+                            style={{
+                              default: { outline: 'none' },
+                              hover: { outline: 'none', opacity: 0.88, cursor: 'pointer' },
+                              pressed: { outline: 'none' },
+                            }}
+                          />
+                        );
+                      })
+                    }
+                  </Geographies>
+                </ComposableMap>
+              </div>
+            </div>
+
+            <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Selected country</p>
+              <p className="mt-1 text-sm font-semibold text-slate-900">{selectedLabel}</p>
+              {selectedSubLabel ? (
+                <p className="mt-1 text-xs font-medium text-emerald-600">{selectedSubLabel}</p>
+              ) : null}
+              {selectedCountry ? (
+                <p className="mt-1 text-xs text-slate-600">Level: {legendCopy[selectedCountry.level]}</p>
+              ) : null}
+
+              <div className="mt-4">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Top countries</p>
+                <div className="space-y-2">
+                  {topEntries.slice(0, 5).map((row, idx) => (
+                    <div key={row.name} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="line-clamp-1 text-xs font-semibold text-slate-900">
+                          {idx + 1}. {row.name}
+                        </p>
+                        <p className="text-[11px] font-medium text-slate-600">{row.count.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {topEntries.length === 0 ? (
+                    <p className="text-xs text-slate-500">No country data yet.</p>
+                  ) : null}
+                </div>
+              </div>
+            </aside>
           </div>
 
-          {/* Legend row below the map, like the reference layout */}
           <div className={componentsTheme.participantDistribution.legendRow}>
             <div className={componentsTheme.participantDistribution.legendItem}>
               <span
@@ -176,7 +218,6 @@ export default function ParticipantDistribution({
           </div>
         </div>
 
-        {/* Compact Top 10 list as a separate card under the map card (same section) */}
         <div className="mt-4 overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-200">
           <table className="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
             <thead className="bg-slate-50">

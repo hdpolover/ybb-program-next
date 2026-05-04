@@ -149,9 +149,9 @@ export const homeTheme = {
       high: '#ef4444', // merah (high participation)
       medium: '#facc15', // kuning (medium participation)
       low: '#22c55e', // hijau (low participation)
-      none: '#e5e7eb', // abu-abu kalau belum ada peserta
+      none: '#cbd5e1', // abu-abu kalau belum ada peserta
     },
-    mapStroke: '#ffffff',
+    mapStroke: '#f8fafc',
   },
   topParticipantCountries: {
     card: 'mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(15,23,42,0.12)] ring-1 ring-slate-200',
