@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ExternalLink, ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2, X } from 'lucide-react';
+import { ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
@@ -124,12 +124,6 @@ function buildTicketDescription(
     .join('');
 
   return `${sanitizedDescription}<p><strong>Uploaded screenshots</strong></p><ul>${attachmentList}</ul>`;
-}
-
-function stripUploadedScreenshotsSection(value: string): string {
-  return value
-    .replace(/<p>\s*<strong>\s*Uploaded screenshots\s*<\/strong>\s*<\/p>\s*<ul>[\s\S]*?<\/ul>/i, '')
-    .trim();
 }
 
 function guessMimeTypeFromUrl(url: string): string | undefined {
@@ -371,6 +365,52 @@ function AttachmentPreview({
   );
 }
 
+function CompactAttachmentGrid({
+  attachments,
+}: {
+  attachments: SupportTicketAttachment[];
+}) {
+  if (attachments.length === 0) return null;
+
+  return (
+    <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
+      {attachments.map((attachment) => {
+        const isImage =
+          (attachment.mimeType ?? '').startsWith('image/') ||
+          /\.(png|jpe?g|gif|webp|bmp|svg)(\?|#|$)/i.test(attachment.fileUrl);
+
+        if (!isImage) {
+          return (
+            <a
+              key={attachment.fileId}
+              href={getAttachmentAccessUrl(attachment)}
+              target="_blank"
+              rel="noreferrer"
+              className="line-clamp-2 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-blue-700 hover:bg-zinc-50"
+            >
+              {attachment.fileName}
+            </a>
+          );
+        }
+
+        return (
+          <a
+            key={attachment.fileId}
+            href={getAttachmentAccessUrl(attachment)}
+            target="_blank"
+            rel="noreferrer"
+            className="overflow-hidden rounded-md border border-zinc-200 bg-zinc-100 hover:border-zinc-300"
+            title={attachment.fileName}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={getAttachmentAccessUrl(attachment)} alt={attachment.fileName} className="h-16 w-full object-cover" />
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function SupportTicketsPage() {
   const { settings } = useSettings();
   const programId = settings?.active_program?.id ?? '';
@@ -395,7 +435,7 @@ export default function SupportTicketsPage() {
   const [createAttachments, setCreateAttachments] = useState<SupportTicketAttachment[]>([]);
   const [replyMessage, setReplyMessage] = useState('');
   const [replyAttachments, setReplyAttachments] = useState<SupportTicketAttachment[]>([]);
-  const [isScreenshotDrawerOpen, setIsScreenshotDrawerOpen] = useState(false);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const selectedCategoryOption = useMemo(
     () => CATEGORY_OPTIONS.find((option) => option.value === category) ?? CATEGORY_OPTIONS[0],
@@ -422,9 +462,6 @@ export default function SupportTicketsPage() {
   );
   const originalContent =
     selectedTicket?.description?.trim() ? selectedTicket.description : (originalMessage?.message ?? '');
-  const originalDescription = useMemo(() => {
-    return sanitizeRichHtml(stripUploadedScreenshotsSection(originalContent));
-  }, [originalContent]);
   const extractedOriginalAttachments = useMemo(
     () => extractScreenshotAttachments(originalContent),
     [originalContent],
@@ -608,6 +645,7 @@ export default function SupportTicketsPage() {
       if (json?.data?.id) {
         setSelectedId(json.data.id);
       }
+      setIsCreateDrawerOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create support ticket');
     } finally {
@@ -641,26 +679,290 @@ export default function SupportTicketsPage() {
     }
   }
 
+  function handleSelectTicket(ticketId: string) {
+    if (selectedId === ticketId) {
+      if (!selectedTicket && !loadingDetail) {
+        void loadTicketDetail(ticketId);
+      }
+      return;
+    }
+
+    latestRequestedIdRef.current = ticketId;
+    setSelectedId(ticketId);
+    setSelectedTicket(null);
+  }
+
   return (
-    <main className="space-y-4">
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
-          Support Center
-        </div>
-        <h1 className="mt-1 text-xl font-bold text-zinc-900">Support Tickets</h1>
-        <p className="text-sm text-zinc-500">
-          Report issues with rich details, screenshots, and track replies from our support team.
-        </p>
+    <main className="space-y-5">
+      <section className="flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() => setIsCreateDrawerOpen(true)}
+          className="rounded-md bg-blue-500 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-600"
+        >
+          Create Ticket
+        </button>
       </section>
 
       {error ? <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
 
-      <section className="grid gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
-        <div className="space-y-4">
-          <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-            <form onSubmit={handleCreateTicket} className="space-y-3">
-              <h2 className="text-sm font-semibold text-zinc-900">Create Ticket</h2>
+      <section className="grid gap-5 lg:grid-cols-[520px_minmax(0,1fr)]">
+        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-900">My Tickets</h2>
+              <p className="text-[11px] text-zinc-500">
+                {filteredTickets.length} of {tickets.length} ticket(s)
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void loadTickets()}
+              className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-1 text-[11px] text-zinc-600 hover:bg-zinc-50"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Refresh
+            </button>
+          </div>
 
+          <div className="relative mb-3">
+            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by ticket number, subject, category, or status"
+              className="w-full rounded-md border border-zinc-200 py-2 pl-8 pr-3 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+
+          <div className="max-h-[720px] overflow-auto rounded-lg border border-zinc-200">
+            <table className="min-w-full divide-y divide-zinc-200 text-xs">
+              <thead className="bg-zinc-50 text-left text-[11px] font-semibold uppercase tracking-wide text-zinc-600">
+                <tr>
+                  <th className="px-3 py-2">Ticket</th>
+                  <th className="px-3 py-2">Subject</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Priority</th>
+                  <th className="px-3 py-2">Updated</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 bg-white">
+                {loadingList ? (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-6 text-center text-zinc-500">
+                      Loading tickets...
+                    </td>
+                  </tr>
+                ) : filteredTickets.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-6 text-center text-zinc-500">
+                      No tickets found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTickets.map((ticket) => (
+                    <tr
+                      key={ticket.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleSelectTicket(ticket.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          handleSelectTicket(ticket.id);
+                        }
+                      }}
+                      className={`cursor-pointer ${
+                        selectedId === ticket.id ? 'bg-blue-50' : 'hover:bg-zinc-50'
+                      }`}
+                    >
+                      <td className="px-3 py-2 align-top">
+                        <p className="font-semibold text-zinc-800">{ticket.ticketNumber}</p>
+                        <p className="text-[11px] text-zinc-500">{toTitleCaseFromToken(ticket.category)}</p>
+                      </td>
+                      <td className="px-3 py-2 align-top">
+                        <p className="line-clamp-2 font-medium text-zinc-800">{ticket.subject}</p>
+                        <p className="line-clamp-1 text-[11px] text-zinc-500">
+                          {ticket.subCategory ? toTitleCaseFromToken(ticket.subCategory) : '-'}
+                        </p>
+                      </td>
+                      <td className="px-3 py-2 align-top text-zinc-700">{toTitleCaseFromToken(ticket.status)}</td>
+                      <td className="px-3 py-2 align-top text-zinc-700">{toTitleCaseFromToken(ticket.priority)}</td>
+                      <td className="px-3 py-2 align-top text-zinc-600">{formatDateTime(ticket.updatedAt)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+          {!selectedId ? <p className="text-sm text-zinc-500">Select a ticket to view details.</p> : null}
+          {selectedId && loadingDetail ? <p className="text-sm text-zinc-500">Loading ticket detail...</p> : null}
+          {selectedId && !loadingDetail && !selectedTicket ? (
+            <p className="text-sm text-zinc-500">Unable to load ticket detail. Try selecting again or refresh.</p>
+          ) : null}
+          {selectedTicket ? (
+            <div className="space-y-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                  {selectedTicket.ticketNumber}
+                </p>
+                <h3 className="text-base font-semibold text-zinc-900">{selectedTicket.subject}</h3>
+                <div className="mt-3 grid gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 sm:grid-cols-2">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Category</p>
+                    <p className="text-sm font-medium text-zinc-800">{toTitleCaseFromToken(selectedTicket.category)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Sub-category</p>
+                    <p className="text-sm font-medium text-zinc-800">
+                      {selectedTicket.subCategory ? toTitleCaseFromToken(selectedTicket.subCategory) : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Status</p>
+                    <p className="text-sm font-medium text-zinc-800">{toTitleCaseFromToken(selectedTicket.status)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Priority</p>
+                    <p className="text-sm font-medium text-zinc-800">{toTitleCaseFromToken(selectedTicket.priority)}</p>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Created</p>
+                    <p className="text-sm font-medium text-zinc-800">{formatDateTime(selectedTicket.createdAt)}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-zinc-900">Conversation</h4>
+                {selectedTicket.messages && selectedTicket.messages.length > 0 ? (
+                  selectedTicket.messages.map((message, index) => {
+                    const isMainThread = originalMessage
+                      ? message.id === originalMessage.id
+                      : !message.isFromAdmin && index === 0;
+                    const attachmentsForDisplay = isMainThread
+                      ? Array.from(
+                          new Map(
+                            [...(message.attachments ?? []), ...originalAttachments]
+                              .filter((attachment) => attachment.fileUrl)
+                              .map((attachment) => [attachment.fileUrl, attachment]),
+                          ).values(),
+                        )
+                      : (message.attachments ?? []);
+                    const messageTypeLabel = isMainThread
+                      ? 'Main thread'
+                      : message.isFromAdmin
+                        ? 'Support reply'
+                        : 'Participant reply';
+
+                    return (
+                      <div
+                        key={message.id}
+                        className={`rounded-md border p-3 ${
+                          isMainThread
+                            ? 'border-amber-200 bg-amber-50/40'
+                            : message.isFromAdmin
+                              ? 'border-blue-200 bg-blue-50/50'
+                              : 'border-zinc-200 bg-white'
+                        }`}
+                      >
+                        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-700">
+                              {messageTypeLabel}
+                            </span>
+                            <p className="text-xs font-semibold text-zinc-700">{message.senderName}</p>
+                          </div>
+                          <p className="text-[11px] text-zinc-500">{formatDateTime(message.createdAt)}</p>
+                        </div>
+                        <div
+                          className="prose prose-sm max-w-none text-zinc-700"
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(message.message) }}
+                        />
+                        {attachmentsForDisplay.length > 0 ? (
+                          <CompactAttachmentGrid attachments={attachmentsForDisplay} />
+                        ) : null}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-zinc-500">No replies yet.</p>
+                )}
+              </div>
+
+              <form onSubmit={handleReply} className="space-y-2">
+                <p className="text-xs font-medium text-zinc-600">Send reply</p>
+                <RichTextEditor
+                  value={replyMessage}
+                  onChange={setReplyMessage}
+                  placeholder="Add extra details or follow-up screenshots."
+                />
+                <div className="space-y-2">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50">
+                    <ImagePlus className="h-3.5 w-3.5" />
+                    {uploadingReplyAttachment ? 'Uploading images...' : 'Attach screenshots'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(event) => {
+                        void handleAttachmentSelection(event.target.files, 'reply');
+                        event.currentTarget.value = '';
+                      }}
+                    />
+                  </label>
+                  <AttachmentPreview
+                    attachments={replyAttachments}
+                    onRemove={(fileId) =>
+                      setReplyAttachments((prev) => prev.filter((attachment) => attachment.fileId !== fileId))
+                    }
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={replying || (!replyPlainText && replyAttachments.length === 0)}
+                    className="rounded-md bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60 hover:bg-blue-600"
+                  >
+                    {replying ? 'Sending...' : 'Send Reply'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      {isCreateDrawerOpen ? (
+        <div className="fixed inset-0 z-50 flex">
+          <button
+            type="button"
+            aria-label="Close create ticket drawer"
+            className="h-full flex-1 bg-black/50"
+            onClick={() => setIsCreateDrawerOpen(false)}
+          />
+          <aside className="h-full w-full max-w-xl overflow-y-auto border-l border-zinc-200 bg-white p-4 shadow-xl">
+            <div className="flex items-center justify-between gap-2 border-b border-zinc-200 pb-3">
+              <div>
+                <p className="text-sm font-semibold text-zinc-900">Create Ticket</p>
+                <p className="text-xs text-zinc-500">Describe your issue and add screenshots when needed.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateDrawerOpen(false)}
+                className="rounded-md border border-zinc-200 p-1.5 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700"
+                aria-label="Close drawer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTicket} className="mt-4 space-y-3">
               <label className="block text-xs font-medium text-zinc-600">
                 Category
                 <select
@@ -760,257 +1062,10 @@ export default function SupportTicketsPage() {
                 )}
               </button>
             </form>
-          </div>
-
-          <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-zinc-900">My Tickets</h2>
-              <button
-                type="button"
-                onClick={() => void loadTickets()}
-                className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-1 text-[11px] text-zinc-600 hover:bg-zinc-50"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Refresh
-              </button>
-            </div>
-            <div className="relative mb-2">
-              <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by ticket number or subject"
-                className="w-full rounded-md border border-zinc-200 py-2 pl-8 pr-3 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-            <div className="max-h-[320px] space-y-2 overflow-y-auto">
-              {loadingList ? <p className="text-xs text-zinc-500">Loading tickets...</p> : null}
-              {!loadingList && filteredTickets.length === 0 ? (
-                <p className="text-xs text-zinc-500">No tickets found.</p>
-              ) : null}
-              {!loadingList &&
-                filteredTickets.map((ticket) => (
-                  <button
-                    key={ticket.id}
-                    type="button"
-                     onClick={() => {
-                       latestRequestedIdRef.current = ticket.id;
-                       setIsScreenshotDrawerOpen(false);
-                       setSelectedId(ticket.id);
-                       setSelectedTicket(null);
-                     }}
-                    className={`w-full rounded-md border p-2 text-left ${
-                      selectedId === ticket.id
-                        ? 'border-blue-400 bg-blue-50'
-                        : 'border-zinc-200 bg-white hover:bg-zinc-50'
-                    }`}
-                  >
-                    <p className="text-[11px] font-semibold text-zinc-700">{ticket.ticketNumber}</p>
-                    <p className="line-clamp-1 text-xs font-medium text-zinc-800">{ticket.subject}</p>
-                    <p className="text-[11px] text-zinc-500">
-                      {ticket.status} · {ticket.priority}
-                      {ticket.subCategory ? ` · ${ticket.subCategory}` : ''}
-                    </p>
-                  </button>
-                ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          {!selectedId ? <p className="text-sm text-zinc-500">Select a ticket to view details.</p> : null}
-          {selectedId && loadingDetail ? <p className="text-sm text-zinc-500">Loading ticket detail...</p> : null}
-          {selectedTicket ? (
-            <div className="space-y-4">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                  {selectedTicket.ticketNumber}
-                </p>
-                <h3 className="text-base font-semibold text-zinc-900">{selectedTicket.subject}</h3>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
-                    {toTitleCaseFromToken(selectedTicket.category)}
-                  </span>
-                  {selectedTicket.subCategory ? (
-                    <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700">
-                      {toTitleCaseFromToken(selectedTicket.subCategory)}
-                    </span>
-                  ) : null}
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${getStatusChipClass(selectedTicket.status)}`}
-                  >
-                    {toTitleCaseFromToken(selectedTicket.status)}
-                  </span>
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${getPriorityChipClass(selectedTicket.priority)}`}
-                  >
-                    Priority: {toTitleCaseFromToken(selectedTicket.priority)}
-                  </span>
-                  <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-semibold text-zinc-700">
-                    Created {formatDateTime(selectedTicket.createdAt)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
-                <p className="text-xs font-medium text-zinc-700">Original Description</p>
-                {originalDescription ? (
-                  <div
-                    className="prose prose-sm mt-1 max-w-none text-zinc-700"
-                    dangerouslySetInnerHTML={{ __html: originalDescription }}
-                  />
-                ) : (
-                  <p className="mt-1 text-sm text-zinc-500">No description provided.</p>
-                )}
-                {originalAttachments.length > 0 ? (
-                  <div className="mt-3">
-                    <button
-                      type="button"
-                      onClick={() => setIsScreenshotDrawerOpen(true)}
-                      className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
-                    >
-                      <ImagePlus className="h-3.5 w-3.5" />
-                      View screenshots ({originalAttachments.length})
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-zinc-900">Conversation</h4>
-                {selectedTicket.messages && selectedTicket.messages.length > 0 ? (
-                  selectedTicket.messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`rounded-md border p-3 ${
-                        message.isFromAdmin ? 'border-blue-200 bg-blue-50/50' : 'border-zinc-200 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-xs font-semibold text-zinc-700">{message.senderName}</p>
-                        <p className="text-[11px] text-zinc-500">{formatDateTime(message.createdAt)}</p>
-                      </div>
-                      <div
-                        className="prose prose-sm mt-1 max-w-none text-zinc-700"
-                        dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(message.message) }}
-                      />
-                      {message.attachments && message.attachments.length > 0 ? (
-                        <div className="mt-2">
-                          <AttachmentPreview attachments={message.attachments} />
-                        </div>
-                      ) : null}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-zinc-500">No replies yet.</p>
-                )}
-              </div>
-
-              <form onSubmit={handleReply} className="space-y-2">
-                <p className="text-xs font-medium text-zinc-600">Send reply</p>
-                <RichTextEditor
-                  value={replyMessage}
-                  onChange={setReplyMessage}
-                  placeholder="Add extra details or follow-up screenshots."
-                />
-                <div className="space-y-2">
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50">
-                    <ImagePlus className="h-3.5 w-3.5" />
-                    {uploadingReplyAttachment ? 'Uploading images...' : 'Attach screenshots'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={(event) => {
-                        void handleAttachmentSelection(event.target.files, 'reply');
-                        event.currentTarget.value = '';
-                      }}
-                    />
-                  </label>
-                  <AttachmentPreview
-                    attachments={replyAttachments}
-                    onRemove={(fileId) =>
-                      setReplyAttachments((prev) => prev.filter((attachment) => attachment.fileId !== fileId))
-                    }
-                  />
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={replying || (!replyPlainText && replyAttachments.length === 0)}
-                    className="rounded-md bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60 hover:bg-blue-600"
-                  >
-                    {replying ? 'Sending...' : 'Send Reply'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          ) : null}
-        </div>
-      </section>
-
-      {isScreenshotDrawerOpen ? (
-        <div className="fixed inset-0 z-50 flex">
-          <button
-            type="button"
-            aria-label="Close screenshots drawer"
-            className="h-full flex-1 bg-black/50"
-            onClick={() => setIsScreenshotDrawerOpen(false)}
-          />
-          <aside className="h-full w-full max-w-xl border-l border-zinc-200 bg-white p-4 shadow-xl">
-            <div className="flex items-center justify-between gap-2 border-b border-zinc-200 pb-3">
-              <div>
-                <p className="text-sm font-semibold text-zinc-900">Ticket screenshots</p>
-                <p className="text-xs text-zinc-500">{originalAttachments.length} file(s)</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsScreenshotDrawerOpen(false)}
-                className="rounded-md border border-zinc-200 p-1.5 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700"
-                aria-label="Close drawer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="mt-4 space-y-3 overflow-y-auto pr-1">
-              {originalAttachments.map((attachment) => {
-                const isImage =
-                  (attachment.mimeType ?? '').startsWith('image/') ||
-                  /\.(png|jpe?g|gif|webp|bmp|svg)(\?|#|$)/i.test(attachment.fileUrl);
-
-                return (
-                  <div key={attachment.fileId} className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
-                    {isImage ? (
-                        <a href={getAttachmentAccessUrl(attachment)} target="_blank" rel="noreferrer" className="block">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={getAttachmentAccessUrl(attachment)}
-                            alt={attachment.fileName}
-                            className="h-44 w-full rounded-md object-cover"
-                          />
-                        </a>
-                      ) : null}
-                    <div className="mt-2 flex items-center justify-between gap-2">
-                      <p className="line-clamp-1 text-xs font-medium text-zinc-700">{attachment.fileName}</p>
-                      <a
-                        href={getAttachmentAccessUrl(attachment)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-1 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Open
-                      </a>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </aside>
         </div>
       ) : null}
+
     </main>
   );
 }
