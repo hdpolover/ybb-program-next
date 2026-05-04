@@ -55,6 +55,7 @@ interface HistoryEntry {
   dateTime?: string;
   accountName?: string;
   amountLabel?: string;
+  actionUrl?: string;
 }
 
 function SkeletonBlock({ className }: { className?: string }) {
@@ -229,6 +230,7 @@ function toHistoryEntry(value: unknown): HistoryEntry | null {
     dateTime: typeof value.dateTime === 'string' ? value.dateTime : undefined,
     accountName: typeof value.accountName === 'string' ? value.accountName : undefined,
     amountLabel: typeof value.amountLabel === 'string' ? value.amountLabel : undefined,
+    actionUrl: typeof value.actionUrl === 'string' ? value.actionUrl : undefined,
   };
 }
 
@@ -453,6 +455,9 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
               : 'created',
   }));
   const hasPaymentActivity = effectiveStatus !== 'unpaid' || items.length > 0;
+  const pendingGatewayActionUrl = history
+    .find(entry => entry.status === 'processing' && typeof entry.actionUrl === 'string' && entry.actionUrl.trim().length > 0)
+    ?.actionUrl;
 
   return (
     <div className={paymentsTheme.sectionWrapper}>
@@ -539,6 +544,8 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
                 <p className={paymentsTheme.detailIllustrationTitle}>
                   {effectiveStatus === 'paid'
                     ? 'Payment Completed'
+                    : effectiveStatus === 'processing'
+                      ? 'Payment In Progress'
                     : overdue
                       ? 'Payment Overdue'
                       : 'Payment Required'}
@@ -546,12 +553,29 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
                 <p className={paymentsTheme.detailIllustrationBody}>
                   {effectiveStatus === 'paid'
                     ? 'This payment has been completed. You can review the details and receipt history below.'
+                    : effectiveStatus === 'processing'
+                      ? pendingGatewayActionUrl
+                        ? 'Your payment is still pending. Continue from your latest checkout page to finish it.'
+                        : 'Your payment is currently pending. We are waiting for payment confirmation.'
                     : overdue
                       ? 'This payment is overdue. Please complete your payment as soon as possible.'
                       : 'This payment requires your attention. Please complete your payment before the due date.'}
                 </p>
               </div>
-              {effectiveStatus !== 'paid' ? (
+              {effectiveStatus === 'processing' && pendingGatewayActionUrl ? (
+                <a
+                  href={pendingGatewayActionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={paymentsTheme.detailMakePaymentButton}
+                >
+                  <span className={paymentsTheme.detailMakePaymentInner}>
+                    <CreditCard className="h-4 w-4" />
+                    <span>Continue Payment</span>
+                  </span>
+                </a>
+              ) : null}
+              {effectiveStatus !== 'paid' && effectiveStatus !== 'processing' ? (
                 <Link
                   href={`/dashboard/payments/${paymentId}/make-payment`}
                   className={paymentsTheme.detailMakePaymentButton}
