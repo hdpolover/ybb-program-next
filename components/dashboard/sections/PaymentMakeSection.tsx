@@ -373,9 +373,39 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
       };
 
       if (paymentType === "manual") {
+        const proofFile = manualProofFile;
+        if (!proofFile) {
+          throw new Error("Please upload payment proof before completing a manual payment");
+        }
+
+        const uploadForm = new FormData();
+        uploadForm.append("file", proofFile);
+
+        const uploadResponse = await fetch("/api/portal/payments/proof", {
+          method: "POST",
+          body: uploadForm,
+        });
+        const uploadJson = (await uploadResponse.json().catch(() => null)) as unknown;
+        if (!uploadResponse.ok) {
+          throw new Error(getErrorMessage(uploadJson, "Failed to upload payment proof"));
+        }
+
+        const uploadPayload = getEnvelopeData(uploadJson);
+        if (!isRecord(uploadPayload)) {
+          throw new Error("Failed to parse uploaded payment proof metadata");
+        }
+
+        const proofFileId = typeof uploadPayload.fileId === "string" ? uploadPayload.fileId : "";
+        const proofFileUrl = typeof uploadPayload.fileUrl === "string" ? uploadPayload.fileUrl : "";
+        if (!proofFileId || !proofFileUrl) {
+          throw new Error("Uploaded payment proof is missing file metadata");
+        }
+
         body.account_name = manualAccountName;
         body.source_name = manualSourceName;
         body.payment_date = manualPaymentDate;
+        body.proof_file_id = proofFileId;
+        body.proof_file_url = proofFileUrl;
         body.notes = manualNotes || undefined;
       }
 
