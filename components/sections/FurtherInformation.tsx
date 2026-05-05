@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
@@ -12,8 +11,12 @@ interface GuidelineLink {
 }
 
 interface FurtherInformationProps {
+  eyebrow?: string;
   title?: string;
   subtitle?: string;
+  desktopBackgroundImageUrl?: string;
+  mobileBackgroundImageUrl?: string;
+  mockupImageUrl?: string;
   guidebooks?: GuidelineLink[];
 }
 
@@ -31,34 +34,35 @@ const DEFAULT_GUIDELINES: GuidelineLink[] = [
 ];
 
 export default function FurtherInformationSection({
+  eyebrow = 'Guideline',
   title = 'Further Information',
   subtitle = 'The complete information regarding this program can be seen in the guideline below.',
+  desktopBackgroundImageUrl = '/img/halfback.png',
+  mobileBackgroundImageUrl = '/img/backgroundformobile.png',
+  mockupImageUrl = '/img/mockupjapan.png',
   guidebooks = DEFAULT_GUIDELINES,
 }: FurtherInformationProps) {
   if (!guidebooks || guidebooks.length === 0 || guidebooks.every(g => !g.href || g.href === '#')) return null;
+  const resolvedDesktopBackground = desktopBackgroundImageUrl?.trim() || '/img/halfback.png';
+  const resolvedMobileBackground = mobileBackgroundImageUrl?.trim() || resolvedDesktopBackground;
+  const resolvedMockupImage = mockupImageUrl?.trim() || '/img/mockupjapan.png';
   return (
     <section
       className={`${componentsTheme.furtherInfo.sectionWrapper} min-h-[760px] overflow-hidden py-14 sm:min-h-0 sm:py-28`}
     >
       <div className="absolute inset-0 bg-primary/20 sm:hidden" />
       <div className="absolute inset-0 sm:hidden">
-        <Image
-          src="/img/backgroundformobile.png"
-          alt=""
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover object-center"
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${resolvedMobileBackground})` }}
+          aria-hidden="true"
         />
       </div>
       <div className="absolute inset-0 hidden sm:block">
-        <Image
-          src="/img/halfback.png"
-          alt=""
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover object-center"
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${resolvedDesktopBackground})` }}
+          aria-hidden="true"
         />
       </div>
 
@@ -66,10 +70,10 @@ export default function FurtherInformationSection({
         <div className={componentsTheme.furtherInfo.innerGrid}>
           <div className={componentsTheme.furtherInfo.leftCol}>
             <div className="sm:hidden">
-              <SectionHeader eyebrow="Guideline" title={title} align="center" />
+              <SectionHeader eyebrow={eyebrow} title={title} align="center" />
             </div>
             <div className="hidden sm:block">
-              <SectionHeader eyebrow="Guideline" title={title} align="left" />
+              <SectionHeader eyebrow={eyebrow} title={title} align="left" />
             </div>
             <p className={`${componentsTheme.furtherInfo.description} break-words`}>{subtitle}</p>
 
@@ -107,7 +111,16 @@ export default function FurtherInformationSection({
           </div>
 
           <div className={componentsTheme.furtherInfo.rightCol}>
-            <div className={componentsTheme.furtherInfo.mockupWrapper}></div>
+            <div
+              className={componentsTheme.furtherInfo.mockupWrapper}
+              style={{
+                backgroundImage: `url(${resolvedMockupImage})`,
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'contain',
+              }}
+              aria-hidden="true"
+            />
           </div>
         </div>
       </div>

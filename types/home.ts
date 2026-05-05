@@ -19,6 +19,7 @@ export type HomeSectionType =
   | 'payment_info'
   | 'supported_by'
   | 'participant_demographics'
+  | 'further_information'
   | 'promo_cta';
 
 export type MainBannerSection = {
@@ -289,6 +290,18 @@ export type ParticipantDemographicsSection = {
   };
 };
 
+export type FurtherInformationSection = {
+  type: 'further_information';
+  content: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    background_image_url: string | null;
+    background_image_mobile_url: string | null;
+    mockup_image_url: string | null;
+  };
+};
+
 export type PromoCTASection = {
   type: 'promo_cta';
   content: {
@@ -322,9 +335,10 @@ export type HomeSection =
 	| ProgramAwardsSection
 	| OrganizationCredentialsSection
 	| PaymentInfoSection
-	| SupportedBySection
-	| ParticipantDemographicsSection
-	| PromoCTASection;
+  | SupportedBySection
+  | ParticipantDemographicsSection
+  | FurtherInformationSection
+  | PromoCTASection;
 
 export type ProgramHighlightsSection = {
   type: 'program_highlights';

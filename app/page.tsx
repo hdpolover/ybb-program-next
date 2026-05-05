@@ -40,6 +40,7 @@ import type {
   OrganizationCredentialsSection,
   PaymentInfoSection,
   ParticipantDemographicsSection,
+  FurtherInformationSection as HomeFurtherInformationSection,
   PromoCTASection,
 } from '@/types/home';
 
@@ -115,6 +116,9 @@ export default async function Home() {
   );
   const promoCTASection = homeData.sections.find(
     (section): section is PromoCTASection => section.type === 'promo_cta'
+  );
+  const furtherInformationSection = homeData.sections.find(
+    (section): section is HomeFurtherInformationSection => section.type === 'further_information'
   );
 
   const objectivesImageGallery = programObjectivesSection
@@ -198,7 +202,15 @@ export default async function Home() {
         countryParticipants={participantDemographicsSection?.content.country_participants}
         legend={participantDemographicsSection?.content.legend}
       />
-      <FurtherInformationSection guidebooks={furtherGuidebooks} />
+      <FurtherInformationSection
+        eyebrow={furtherInformationSection?.content.eyebrow}
+        title={furtherInformationSection?.content.title}
+        subtitle={furtherInformationSection?.content.subtitle}
+        desktopBackgroundImageUrl={furtherInformationSection?.content.background_image_url ?? undefined}
+        mobileBackgroundImageUrl={furtherInformationSection?.content.background_image_mobile_url ?? undefined}
+        mockupImageUrl={furtherInformationSection?.content.mockup_image_url ?? undefined}
+        guidebooks={furtherGuidebooks}
+      />
       <WhatMakesUsSpecialSection section={programFeaturesSection} />
       <ProgramBenefitsSection section={programBenefitsSection} />
       <AlumniStoriesSection
