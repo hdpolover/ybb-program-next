@@ -4,7 +4,12 @@ import { useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import countries110m from 'world-atlas/countries-110m.json';
 import SectionHeader from '@/components/ui/SectionHeader';
+import { Button } from '@/components/ui/button/button';
 import { componentsTheme } from '@/lib/theme/components';
+import {
+  getParticipantDistributionSummary,
+  PARTICIPANT_DISTRIBUTION_DETAILS_HREF,
+} from '@/lib/participant-distribution';
 
 const GEO_DATA = countries110m as unknown as Record<string, unknown>;
 
@@ -71,23 +76,8 @@ export default function ParticipantDistribution({
     ? `${selectedCountry.participants.toLocaleString()} participants`
     : '';
 
-  // Hitung Top 10 negara berdasarkan jumlah peserta (masih mock), buat ditampilin di bawah map
-  const all = Object.entries(participants).map(([name, count]) => ({
-    name,
-    count: Number(count),
-  }));
-
-  const total = all.reduce((sum, item) => sum + item.count, 0) || 1;
-
-  const topEntries = all
-    .map(item => ({
-      ...item,
-      percentage: (item.count / total) * 100,
-    }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
-  const totalParticipants = all.reduce((sum, item) => sum + item.count, 0);
-  const representedCountries = all.filter((item) => item.count > 0).length;
+  const { topEntries, totalParticipants, representedCountries } =
+    getParticipantDistributionSummary(participants);
 
   return (
     <section className={componentsTheme.participantDistribution.sectionWrapper}>
@@ -186,6 +176,15 @@ export default function ParticipantDistribution({
                     <p className="text-xs text-slate-500">No country data yet.</p>
                   ) : null}
                 </div>
+                {topEntries.length > 0 ? (
+                  <Button
+                    href={PARTICIPANT_DISTRIBUTION_DETAILS_HREF}
+                    variant="outline"
+                    className="mt-4 w-full"
+                  >
+                    View full distribution
+                  </Button>
+                ) : null}
               </div>
             </aside>
           </div>
@@ -216,55 +215,6 @@ export default function ParticipantDistribution({
               <span>{legendCopy.none}</span>
             </div>
           </div>
-        </div>
-
-        <div className="mt-4 overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgba(15,23,42,0.08)] ring-1 ring-slate-200">
-          <table className="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:px-4">
-                  #
-                </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:px-4">
-                  Country
-                </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:px-4">
-                  Participants
-                </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:px-4">
-                  Percentage
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {topEntries.map((row, idx) => (
-                <tr key={row.name}>
-                  <td className="px-3 py-2 text-[11px] font-semibold text-slate-500 sm:px-4">
-                    {idx + 1}
-                  </td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-900 sm:px-4">
-                    {row.name}
-                  </td>
-                  <td className="px-3 py-2 text-right text-xs font-medium text-slate-900 sm:px-4">
-                    {row.count.toLocaleString()}
-                  </td>
-                  <td className="px-3 py-2 sm:px-4">
-                    <div className="flex items-center gap-2">
-                      <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                        <div
-                          className="h-full rounded-full bg-primary/100"
-                          style={{ width: `${row.percentage.toFixed(1)}%` }}
-                        />
-                      </div>
-                      <span className="w-12 text-right text-[11px] font-medium text-slate-700">
-                        {row.percentage.toFixed(1)}%
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </section>
