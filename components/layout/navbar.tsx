@@ -1,9 +1,21 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search as SearchIcon, Menu, X, ChevronDown, ChevronRight, Check } from 'lucide-react';
+import {
+  Search as SearchIcon,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Check,
+  Compass,
+  MapPin,
+  PanelsTopLeft,
+  ArrowUpRight,
+} from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import type { SettingsAvailableBrand } from '@/types/settings';
 
@@ -36,6 +48,16 @@ type HomeApiResponse = {
     sections?: HomeApiSection[];
   };
 };
+
+function chunkItems<T>(items: T[], chunkSize: number): T[][] {
+  if (chunkSize <= 0) return [items];
+
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += chunkSize) {
+    chunks.push(items.slice(index, index + chunkSize));
+  }
+  return chunks;
+}
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -117,42 +139,44 @@ export function Navbar() {
   const currentBrandName = settings?.brand?.name?.trim().toLowerCase() || '';
   const normalizedCurrentHost = currentHost.replace(/^www\./, '').toLowerCase();
   const availableBrands = settings?.available_brands || [];
-  const brandProgramLinks = availableBrands
-    .map((brand) => ({
-      id: brand.id,
-      name: brand.name,
-      href: toBrandProgramsHref(brand),
-      host: extractHost(brand.landing_url || brand.website_url || ''),
-      logoIconUrl: brand.logo_icon_url?.trim() || null,
-      location:
-        normalizeOptionalText(
-          brand.location
-            || [brand.city, brand.country].filter(Boolean).join(', ')
-            || brand.address
-            || inferLocationFromBrandName(brand.name),
-        ) || 'Program location',
-      subtitle:
-        (() => {
-          const tagline = normalizeOptionalText(brand.tagline || brand.description);
-          const location = normalizeOptionalText(
-            brand.location
-              || [brand.city, brand.country].filter(Boolean).join(', ')
-              || brand.address
-              || inferLocationFromBrandName(brand.name),
-          );
-          if (tagline && location) return `${tagline} • ${location}`;
-          return tagline || location || 'Explore this program';
-        })(),
-    }));
+  const brandProgramLinks = availableBrands.map(brand => ({
+    id: brand.id,
+    name: brand.name,
+    href: toBrandProgramsHref(brand),
+    host: extractHost(brand.landing_url || brand.website_url || ''),
+    logoIconUrl: brand.logo_icon_url?.trim() || null,
+    location:
+      normalizeOptionalText(
+        brand.location ||
+          [brand.city, brand.country].filter(Boolean).join(', ') ||
+          brand.address ||
+          inferLocationFromBrandName(brand.name)
+      ) || 'Program location',
+    subtitle: (() => {
+      const tagline = normalizeOptionalText(brand.tagline || brand.description);
+      const location = normalizeOptionalText(
+        brand.location ||
+          [brand.city, brand.country].filter(Boolean).join(', ') ||
+          brand.address ||
+          inferLocationFromBrandName(brand.name)
+      );
+      if (tagline && location) return `${tagline} • ${location}`;
+      return tagline || location || 'Explore this program';
+    })(),
+  }));
 
   const shouldShowProgramsDropdown = availableBrands.length > 1;
-  const otherBrandProgramLinks = brandProgramLinks.filter((brand) => {
+  const otherBrandProgramLinks = brandProgramLinks.filter(brand => {
     const isSameHost = normalizedCurrentHost ? brand.host === normalizedCurrentHost : false;
     const isSameName = brand.name.trim().toLowerCase() === currentBrandName;
     return !isSameHost && !isSameName;
   });
   const featuredProgramDestinations = otherBrandProgramLinks.slice(0, 4);
   const extraProgramDestinations = otherBrandProgramLinks.slice(4);
+  const featuredProgramColumns = chunkItems(
+    featuredProgramDestinations,
+    Math.max(1, Math.ceil(featuredProgramDestinations.length / 2))
+  );
 
   const clearProgramsCloseTimer = () => {
     if (closeProgramsMenuTimerRef.current !== null) {
@@ -196,7 +220,8 @@ export function Navbar() {
       return el.scrollHeight > el.clientHeight + 1;
     };
 
-    const rootScrollEl = (document.scrollingElement as HTMLElement | null) ?? document.documentElement;
+    const rootScrollEl =
+      (document.scrollingElement as HTMLElement | null) ?? document.documentElement;
     scrollElRef.current = rootScrollEl;
     activeScrollElRef.current = rootScrollEl;
     lastScrollYRef.current = rootScrollEl.scrollTop;
@@ -260,7 +285,9 @@ export function Navbar() {
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('scroll', onScroll);
-      document.removeEventListener('scroll', onScroll, { capture: true } as AddEventListenerOptions);
+      document.removeEventListener('scroll', onScroll, {
+        capture: true,
+      } as AddEventListenerOptions);
       if (raf) window.cancelAnimationFrame(raf);
     };
   }, []);
@@ -323,7 +350,9 @@ export function Navbar() {
         if (!res.ok) return;
         const json = (await res.json()) as HomeApiResponse;
         const sections = json?.data?.sections || [];
-        const registrationOverview = sections.find((section) => section.type === 'registration_overview');
+        const registrationOverview = sections.find(
+          section => section.type === 'registration_overview'
+        );
         const guidelines = registrationOverview?.content?.guidelines || [];
         const guidelineEntries: QuickSearchEntry[] = guidelines
           .map((guideline, index) => {
@@ -354,12 +383,13 @@ export function Navbar() {
   const ctaHref = isAuthenticated ? '/dashboard' : '/login';
   const ctaLabel = isAuthenticated ? 'DASHBOARD' : 'REGISTER NOW';
 
-
-
-  const logoSrc = settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
+  const logoSrc =
+    settings?.brand?.logo_url?.trim() ||
+    settings?.active_program?.logo_url?.trim() ||
+    '/img/ybb-logo.png';
 
   const quickSearchIndex = useMemo(() => {
-    const pageEntries: QuickSearchEntry[] = navItems.map((item) => ({
+    const pageEntries: QuickSearchEntry[] = navItems.map(item => ({
       id: `page-${item.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
       title: item,
       subtitle: 'Page',
@@ -368,8 +398,8 @@ export function Navbar() {
     }));
 
     const programEntries: QuickSearchEntry[] = brandProgramLinks
-      .filter((brand) => Boolean(brand.href))
-      .map((brand) => ({
+      .filter(brand => Boolean(brand.href))
+      .map(brand => ({
         id: `program-${brand.id}`,
         title: brand.name,
         subtitle: brand.subtitle,
@@ -385,7 +415,7 @@ export function Navbar() {
     if (!term) return quickSearchIndex.slice(0, 6);
 
     return quickSearchIndex
-      .map((entry) => {
+      .map(entry => {
         const text = `${entry.title} ${entry.subtitle}`.toLowerCase();
         if (!text.includes(term)) return null;
         const startsWithTitle = entry.title.toLowerCase().startsWith(term);
@@ -395,7 +425,9 @@ export function Navbar() {
           score: startsWithTitle ? 3 : startsWithSubtitle ? 2 : 1,
         };
       })
-      .filter((entry): entry is (typeof quickSearchIndex)[number] & { score: number } => Boolean(entry))
+      .filter((entry): entry is (typeof quickSearchIndex)[number] & { score: number } =>
+        Boolean(entry)
+      )
       .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
       .slice(0, 8);
   }, [query, quickSearchIndex]);
@@ -423,7 +455,7 @@ export function Navbar() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between gap-4 md:h-24">
             <div className="flex shrink-0 items-center">
-              <a href="/" aria-label="Go to home" onClick={() => setOpen(false)}>
+              <Link href="/" aria-label="Go to home" onClick={() => setOpen(false)}>
                 <Image
                   src={logoSrc}
                   alt="Logo"
@@ -432,10 +464,10 @@ export function Navbar() {
                   className="h-9 w-auto sm:h-11 md:h-12 lg:h-14"
                   unoptimized
                 />
-              </a>
+              </Link>
             </div>
 
-            <div className="hidden items-center gap-5 lg:gap-7 xl:gap-10 md:flex">
+            <div className="hidden items-center gap-5 md:flex lg:gap-7 xl:gap-10">
               {navItems.map(item => {
                 const href = hrefFor(item);
                 const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
@@ -443,171 +475,276 @@ export function Navbar() {
                   return (
                     <div
                       key={item}
-                      className="relative flex items-center gap-1"
+                      className="static flex items-center"
                       onMouseEnter={openProgramsMenu}
                       onMouseLeave={closeProgramsMenuWithDelay}
                     >
-                      <a
-                        href={href}
-                        aria-current={isActive ? 'page' : undefined}
-                        className={
-                          isActive
-                            ? 'text-sm font-semibold text-[var(--brand-accent)] transition-colors lg:text-base'
-                            : 'text-sm font-semibold text-gray-600 transition-colors hover:text-[var(--brand-accent)] lg:text-base'
-                        }
-                      >
-                        {item}
-                      </a>
                       <button
                         type="button"
-                        aria-label="Toggle programs brands menu"
+                        aria-label="Toggle programs menu"
                         aria-expanded={programMenuOpen}
                         aria-haspopup="menu"
                         onClick={() => setProgramMenuOpen(openState => !openState)}
-                        className="rounded-md p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-[var(--brand-accent)]"
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all lg:text-base ${
+                          isActive || programMenuOpen
+                            ? 'bg-slate-100 text-[var(--brand-accent)]'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-[var(--brand-accent)]'
+                        }`}
                       >
-                        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${programMenuOpen ? 'rotate-180' : ''}`} />
+                        <span>{item}</span>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform duration-200 ${programMenuOpen ? 'rotate-180' : ''}`}
+                        />
                       </button>
                       {programMenuOpen && (
-                        <div className="absolute left-0 top-full z-[90] w-[36rem] max-w-[90vw] pt-3">
-                          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5">
-                            <div className="border-b border-slate-200 bg-slate-50/70 p-3">
-                              <div className="grid grid-cols-2 gap-2">
-                                <a
-                                  href="/programs"
-                                  onClick={() => setProgramMenuOpen(false)}
-                                  className="group flex items-center justify-between gap-2 rounded-xl border border-[var(--brand-accent)] bg-[var(--brand-accent-soft)] px-3 py-2.5 text-sm font-semibold text-[var(--brand-accent)] transition-colors"
-                                >
-                                  <span className="flex min-w-0 items-center gap-2">
-                                    {settings?.brand?.logo_icon_url ? (
-                                      <Image
-                                        src={settings.brand.logo_icon_url}
-                                        alt={`${settings?.brand?.name || 'Current Program'} logo`}
-                                        width={32}
-                                        height={32}
-                                        className="h-6 w-6 shrink-0 rounded-full border border-[var(--brand-accent)]/30 object-cover"
-                                        unoptimized
-                                      />
-                                    ) : (
-                                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[var(--brand-accent)]/30 bg-white text-[11px] font-bold uppercase">
-                                        {brandInitial(settings?.brand?.name || 'Current Program')}
-                                      </span>
-                                    )}
-                                    <span className="truncate">{settings?.brand?.name || 'Current Program'}</span>
-                                  </span>
-                                  <Check className="h-4 w-4 shrink-0" />
-                                </a>
+                        <div className="absolute inset-x-0 top-full z-[90]">
+                          <div className="overflow-hidden border-b border-slate-200 bg-white shadow-[0_28px_80px_rgba(15,23,42,0.14)] ring-1 ring-black/5">
+                            <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                              <div className="border-b border-slate-200/80 bg-gradient-to-b from-slate-50 via-white to-white py-5">
+                                <div className="flex items-start justify-between gap-6">
+                                  <div>
+                                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                                      Program directory
+                                    </p>
+                                    <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+                                      Explore YBB programs
+                                    </h3>
+                                    <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">
+                                      Browse the active program site, jump to another program, or
+                                      compare the programs currently available across the YBB
+                                      network.
+                                    </p>
+                                  </div>
+                                  <Link
+                                    href="/programs/discover"
+                                    onClick={() => setProgramMenuOpen(false)}
+                                    className="hover:bg-[var(--brand-accent-soft)]/60 inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-[var(--brand-accent)] hover:text-[var(--brand-accent)]"
+                                  >
+                                    <Compass className="h-4 w-4" />
+                                    <span>See all programs</span>
+                                  </Link>
+                                </div>
                               </div>
-                            </div>
 
-                            <div className="max-h-[22rem] overflow-y-auto p-3">
-                              {featuredProgramDestinations.length > 0 && (
-                                <>
-                                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Programs</p>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {featuredProgramDestinations.map(brand => (
-                                      brand.href ? (
-                                        <a
-                                          key={brand.id}
-                                          href={brand.href}
-                                          onClick={() => setProgramMenuOpen(false)}
-                                          className="group flex min-h-16 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:border-[var(--brand-accent)] hover:bg-[var(--brand-accent-soft)]/60 hover:text-[var(--brand-accent)]"
-                                        >
-                                          <div className="flex min-w-0 items-center gap-3">
-                                            {brand.logoIconUrl ? (
-                                              <Image
-                                                src={brand.logoIconUrl}
-                                                alt={`${brand.name} logo`}
-                                                width={36}
-                                                height={36}
-                                                className="h-8 w-8 shrink-0 rounded-full border border-slate-200 object-cover"
-                                                unoptimized
-                                              />
-                                            ) : (
-                                              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 bg-slate-50 text-xs font-bold uppercase text-slate-500">
-                                                {brandInitial(brand.name)}
-                                              </span>
-                                            )}
-                                            <div className="min-w-0">
-                                              <div className="truncate text-[15px]">{brand.name}</div>
-                                              <div className="truncate text-[13px] leading-tight text-slate-600">{brand.subtitle}</div>
-                                            </div>
-                                          </div>
-                                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-[var(--brand-accent)]" />
-                                        </a>
-                                      ) : (
-                                        <span
-                                          key={brand.id}
-                                          className="flex min-h-16 cursor-not-allowed items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-400"
-                                        >
-                                          <div className="flex min-w-0 items-center gap-3">
-                                            {brand.logoIconUrl ? (
-                                              <Image
-                                                src={brand.logoIconUrl}
-                                                alt={`${brand.name} logo`}
-                                                width={36}
-                                                height={36}
-                                                className="h-8 w-8 shrink-0 rounded-full border border-slate-200 object-cover"
-                                                unoptimized
-                                              />
-                                            ) : (
-                                              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-xs font-bold uppercase text-slate-500">
-                                                {brandInitial(brand.name)}
-                                              </span>
-                                            )}
-                                            <div className="min-w-0">
-                                              <div className="truncate text-[15px]">{brand.name}</div>
-                                              <div className="truncate text-[13px] leading-tight text-slate-500">{brand.subtitle}</div>
-                                            </div>
-                                          </div>
-                                          <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                                            Soon
-                                          </span>
-                                        </span>
-                                      )
-                                    ))}
-                                  </div>
-                                </>
-                              )}
-
-                              {extraProgramDestinations.length > 0 && (
-                                <>
-                                  <p className={`text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 ${featuredProgramDestinations.length > 0 ? 'mb-2 mt-4' : 'mb-2'}`}>
-                                    More programs
+                              <div className="grid gap-8 py-7 lg:grid-cols-[1.05fr_1.55fr]">
+                                <div className="space-y-4">
+                                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                    Current program
                                   </p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {extraProgramDestinations.map(brand => (
-                                      brand.href ? (
-                                        <a
-                                          key={brand.id}
-                                          href={brand.href}
-                                          onClick={() => setProgramMenuOpen(false)}
-                                          className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition-colors hover:border-[var(--brand-accent)] hover:bg-[var(--brand-accent-soft)]/50 hover:text-[var(--brand-accent)]"
-                                        >
-                                          {brand.name}
-                                        </a>
-                                      ) : (
-                                        <span
-                                          key={brand.id}
-                                          className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-400"
-                                        >
-                                          {brand.name}
+                                  <Link
+                                    href="/programs"
+                                    onClick={() => setProgramMenuOpen(false)}
+                                    className="border-[var(--brand-accent)]/15 hover:border-[var(--brand-accent)]/35 hover:shadow-[var(--brand-accent)]/10 group block rounded-[1.6rem] border bg-[linear-gradient(180deg,var(--brand-accent-soft)_0%,rgba(255,255,255,0.98)_100%)] p-5 transition-all hover:shadow-lg"
+                                  >
+                                    <div className="flex items-start justify-between gap-4">
+                                      <div className="flex min-w-0 items-center gap-3">
+                                        {settings?.brand?.logo_icon_url ? (
+                                          <Image
+                                            src={settings.brand.logo_icon_url}
+                                            alt={`${settings?.brand?.name || 'Current Program'} logo`}
+                                            width={52}
+                                            height={52}
+                                            className="border-[var(--brand-accent)]/15 h-12 w-12 shrink-0 rounded-2xl border bg-white object-cover p-1"
+                                            unoptimized
+                                          />
+                                        ) : (
+                                          <span className="border-[var(--brand-accent)]/15 grid h-12 w-12 shrink-0 place-items-center rounded-2xl border bg-white text-sm font-bold uppercase text-[var(--brand-accent)]">
+                                            {brandInitial(
+                                              settings?.brand?.name || 'Current Program'
+                                            )}
+                                          </span>
+                                        )}
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-2">
+                                            <span className="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-accent)]">
+                                              Active site
+                                            </span>
+                                            <Check className="h-4 w-4 text-[var(--brand-accent)]" />
+                                          </div>
+                                          <div className="mt-3 truncate text-xl font-semibold text-slate-900">
+                                            {settings?.brand?.name || 'Current Program'}
+                                          </div>
+                                          <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">
+                                            {settings?.active_program?.name ||
+                                              'Continue browsing the current program experience.'}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <ArrowUpRight className="h-5 w-5 shrink-0 text-slate-400 transition-colors group-hover:text-[var(--brand-accent)]" />
+                                    </div>
+                                  </Link>
+
+                                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                                    <Link
+                                      href="/programs"
+                                      onClick={() => setProgramMenuOpen(false)}
+                                      className="hover:bg-[var(--brand-accent-soft)]/40 group rounded-2xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-[var(--brand-accent)]"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-100 text-slate-700 transition-colors group-hover:bg-white group-hover:text-[var(--brand-accent)]">
+                                          <PanelsTopLeft className="h-4.5 w-4.5" />
                                         </span>
-                                      )
+                                        <div className="min-w-0">
+                                          <div className="truncate text-sm font-semibold text-slate-900">
+                                            Current site overview
+                                          </div>
+                                          <div className="truncate text-sm text-slate-600">
+                                            Go to this program&apos;s listing page
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </Link>
+                                    <Link
+                                      href="/programs/discover"
+                                      onClick={() => setProgramMenuOpen(false)}
+                                      className="hover:bg-[var(--brand-accent-soft)]/40 group rounded-2xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-[var(--brand-accent)]"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-100 text-slate-700 transition-colors group-hover:bg-white group-hover:text-[var(--brand-accent)]">
+                                          <Compass className="h-4.5 w-4.5" />
+                                        </span>
+                                        <div className="min-w-0">
+                                          <div className="truncate text-sm font-semibold text-slate-900">
+                                            Discover programs
+                                          </div>
+                                          <div className="truncate text-sm text-slate-600">
+                                            Browse every destination in one place
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </Link>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-5">
+                                  <div className="flex items-end justify-between gap-4">
+                                    <div>
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                        Other programs
+                                      </p>
+                                      <p className="mt-2 text-sm leading-6 text-slate-600">
+                                        Open another YBB program site directly from the navigation.
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    className={`grid gap-4 ${featuredProgramColumns.length > 1 ? 'md:grid-cols-2' : 'grid-cols-1'}`}
+                                  >
+                                    {featuredProgramColumns.map((column, columnIndex) => (
+                                      <div
+                                        key={`program-column-${columnIndex}`}
+                                        className="space-y-3"
+                                      >
+                                        {column.map(brand =>
+                                          brand.href ? (
+                                            <a
+                                              key={brand.id}
+                                              href={brand.href}
+                                              onClick={() => setProgramMenuOpen(false)}
+                                              className="hover:bg-[var(--brand-accent-soft)]/50 group flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 transition-all hover:border-[var(--brand-accent)] hover:shadow-sm"
+                                            >
+                                              <div className="flex min-w-0 items-start gap-3">
+                                                {brand.logoIconUrl ? (
+                                                  <Image
+                                                    src={brand.logoIconUrl}
+                                                    alt={`${brand.name} logo`}
+                                                    width={44}
+                                                    height={44}
+                                                    className="h-11 w-11 shrink-0 rounded-2xl border border-slate-200 bg-white object-cover p-1"
+                                                    unoptimized
+                                                  />
+                                                ) : (
+                                                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-slate-50 text-sm font-bold uppercase text-slate-500">
+                                                    {brandInitial(brand.name)}
+                                                  </span>
+                                                )}
+                                                <div className="min-w-0">
+                                                  <div className="truncate text-[15px] font-semibold text-slate-900">
+                                                    {brand.name}
+                                                  </div>
+                                                  <div className="mt-1 flex items-center gap-1.5 text-[13px] text-slate-500">
+                                                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                                    <span className="truncate">
+                                                      {brand.location}
+                                                    </span>
+                                                  </div>
+                                                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
+                                                    {brand.subtitle}
+                                                  </p>
+                                                </div>
+                                              </div>
+                                              <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-[var(--brand-accent)]" />
+                                            </a>
+                                          ) : (
+                                            <span
+                                              key={brand.id}
+                                              className="flex items-start justify-between gap-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-4 text-slate-400"
+                                            >
+                                              <div className="flex min-w-0 items-start gap-3">
+                                                {brand.logoIconUrl ? (
+                                                  <Image
+                                                    src={brand.logoIconUrl}
+                                                    alt={`${brand.name} logo`}
+                                                    width={44}
+                                                    height={44}
+                                                    className="h-11 w-11 shrink-0 rounded-2xl border border-slate-200 object-cover p-1"
+                                                    unoptimized
+                                                  />
+                                                ) : (
+                                                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-sm font-bold uppercase text-slate-500">
+                                                    {brandInitial(brand.name)}
+                                                  </span>
+                                                )}
+                                                <div className="min-w-0">
+                                                  <div className="truncate text-[15px] font-semibold text-slate-500">
+                                                    {brand.name}
+                                                  </div>
+                                                  <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-500">
+                                                    {brand.subtitle}
+                                                  </p>
+                                                </div>
+                                              </div>
+                                              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                                Soon
+                                              </span>
+                                            </span>
+                                          )
+                                        )}
+                                      </div>
                                     ))}
                                   </div>
-                                </>
-                              )}
-                            </div>
-                            <div className="border-t border-slate-200 p-3">
-                              <a
-                                href="/programs/discover"
-                                onClick={() => setProgramMenuOpen(false)}
-                                className="group flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-[var(--brand-accent)] hover:bg-[var(--brand-accent-soft)]/50 hover:text-[var(--brand-accent)]"
-                              >
-                                <span className="truncate">Explore all programs</span>
-                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-[var(--brand-accent)]" />
-                              </a>
+
+                                  {extraProgramDestinations.length > 0 && (
+                                    <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/60 p-4">
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                        More programs
+                                      </p>
+                                      <div className="mt-3 flex flex-wrap gap-2.5">
+                                        {extraProgramDestinations.map(brand =>
+                                          brand.href ? (
+                                            <a
+                                              key={brand.id}
+                                              href={brand.href}
+                                              onClick={() => setProgramMenuOpen(false)}
+                                              className="hover:bg-[var(--brand-accent-soft)]/50 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-[var(--brand-accent)] hover:text-[var(--brand-accent)]"
+                                            >
+                                              {brand.name}
+                                            </a>
+                                          ) : (
+                                            <span
+                                              key={brand.id}
+                                              className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-400"
+                                            >
+                                              {brand.name}
+                                            </span>
+                                          )
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -643,7 +780,7 @@ export function Navbar() {
 
               <a
                 href={ctaHref}
-                className="hidden min-h-11 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 md:inline-flex"
+                className="hover:bg-primary/90 hidden min-h-11 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 md:inline-flex"
               >
                 {ctaLabel}
               </a>
@@ -665,7 +802,8 @@ export function Navbar() {
                 <div className="space-y-2">
                   {navItems.map(item => {
                     const href = hrefFor(item);
-                    const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+                    const isActive =
+                      pathname === href || (href !== '/' && pathname.startsWith(href));
                     if (item === 'Programs' && shouldShowProgramsDropdown) {
                       return (
                         <div key={item} className="space-y-2">
@@ -681,7 +819,7 @@ export function Navbar() {
                           >
                             {settings?.brand?.name ? `${item} (${settings.brand.name})` : item}
                           </a>
-                          {otherBrandProgramLinks.map(brand => (
+                          {otherBrandProgramLinks.map(brand =>
                             brand.href ? (
                               <a
                                 key={brand.id}
@@ -706,7 +844,9 @@ export function Navbar() {
                                   )}
                                   <div className="min-w-0">
                                     <div className="truncate text-[15px]">{brand.name}</div>
-                                    <div className="truncate text-xs leading-tight text-slate-600">{brand.location}</div>
+                                    <div className="truncate text-xs leading-tight text-slate-600">
+                                      {brand.location}
+                                    </div>
                                   </div>
                                 </div>
                                 <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-[var(--brand-accent)]" />
@@ -733,7 +873,9 @@ export function Navbar() {
                                   )}
                                   <div className="min-w-0">
                                     <div className="truncate text-[15px]">{brand.name}</div>
-                                    <div className="truncate text-xs leading-tight text-slate-500">{brand.location}</div>
+                                    <div className="truncate text-xs leading-tight text-slate-500">
+                                      {brand.location}
+                                    </div>
                                   </div>
                                 </div>
                                 <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
@@ -741,14 +883,14 @@ export function Navbar() {
                                 </span>
                               </span>
                             )
-                          ))}
-                          <a
+                          )}
+                          <Link
                             href="/programs/discover"
                             className="block w-full rounded-xl px-4 py-2.5 pl-7 text-left text-sm font-medium text-slate-700 transition hover:bg-[var(--brand-accent-soft)] hover:text-[var(--brand-accent)]"
                             onClick={() => setOpen(false)}
                           >
                             Explore all programs
-                          </a>
+                          </Link>
                         </div>
                       );
                     }
@@ -772,7 +914,7 @@ export function Navbar() {
                 <div className="my-3 h-px w-full bg-gray-200" />
                 <a
                   href={ctaHref}
-                  className="mt-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  className="hover:bg-primary/90 mt-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
                   {ctaLabel}
@@ -790,7 +932,7 @@ export function Navbar() {
       <div>{navbarContent}</div>
 
       <div
-        className={`${'fixed left-0 right-0 top-0 z-[70] will-change-transform transition-[transform,opacity] duration-300'} ${
+        className={`${'fixed left-0 right-0 top-0 z-[70] transition-[transform,opacity] duration-300 will-change-transform'} ${
           pinned ? 'opacity-100' : 'pointer-events-none opacity-0'
         } ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
       >
@@ -832,18 +974,16 @@ export function Navbar() {
             </form>
             <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
               {previewResults.length === 0 ? (
-                <p className="px-3 py-2 text-sm text-slate-500">
-                  No quick matches found.
-                </p>
+                <p className="px-3 py-2 text-sm text-slate-500">No quick matches found.</p>
               ) : (
                 <div className="max-h-64 overflow-y-auto">
-                  {previewResults.map((result) => (
+                  {previewResults.map(result => (
                     <a
                       key={result.id}
                       href={result.href}
                       target={result.external ? '_blank' : undefined}
                       rel={result.external ? 'noopener noreferrer' : undefined}
-                      className="block border-b border-slate-100 px-3 py-2.5 last:border-b-0 hover:bg-[var(--brand-accent-soft)]/40"
+                      className="hover:bg-[var(--brand-accent-soft)]/40 block border-b border-slate-100 px-3 py-2.5 last:border-b-0"
                       onClick={() => {
                         setSearchOpen(false);
                         setOpen(false);
@@ -859,7 +999,7 @@ export function Navbar() {
             {queryTrimmed && (
               <a
                 href={`/search?q=${encodeURIComponent(queryTrimmed)}`}
-                className="mt-3 block rounded-lg border border-slate-200 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:border-[var(--brand-accent)] hover:bg-[var(--brand-accent-soft)]/40 hover:text-[var(--brand-accent)]"
+                className="hover:bg-[var(--brand-accent-soft)]/40 mt-3 block rounded-lg border border-slate-200 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:border-[var(--brand-accent)] hover:text-[var(--brand-accent)]"
                 onClick={() => {
                   setSearchOpen(false);
                   setOpen(false);
