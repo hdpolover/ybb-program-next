@@ -24,6 +24,7 @@ import {
   appendProgramId,
   readActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
+import { upsertCachedPaymentPreview } from "@/lib/dashboard/payments-cache";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -400,13 +401,29 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
         throw new Error(getErrorMessage(json, "Failed to cancel pending payment"));
       }
 
-      router.replace(`/dashboard/payments/${paymentId}`);
+      const currentInvoice = invoice;
+      if (!currentInvoice) {
+        router.push(`/dashboard/payments/${paymentId}`);
+        return;
+      }
+
+      upsertCachedPaymentPreview(readActiveProgramId(), {
+        id: currentInvoice.id,
+        label: currentInvoice.label,
+        status: "unpaid",
+        paymentType: currentInvoice.category,
+        amountLabel: `${currentInvoice.currency ?? "USD"} ${currentInvoice.amount.toFixed(2)}`,
+        syncDate: currentInvoice.dueDate || "-",
+        hasInvoice: true,
+      });
+      router.push(`/dashboard/payments/${paymentId}`);
+      router.refresh();
     } catch (err) {
       setCancelPendingError(err instanceof Error ? err.message : "Failed to cancel pending payment");
     } finally {
       setCancellingPending(false);
     }
-  }, [cancellingPending, paymentId, router]);
+  }, [cancellingPending, invoice, paymentId, router]);
 
   const handleSubmit = useCallback(async () => {
     if (!isFormComplete || submitting) return;

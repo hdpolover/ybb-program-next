@@ -41,6 +41,8 @@ interface InvoiceData {
   dueDate?: string;
   status: 'paid' | 'unpaid' | 'processing' | 'failed';
   currency?: string;
+  transactionId?: string;
+  intentId?: string;
 }
 
 interface HistoryEntry {
@@ -52,6 +54,8 @@ interface HistoryEntry {
   status: 'cancelled' | 'failed' | 'processing' | 'paid';
   note: string;
   code?: string;
+  invoiceId?: string;
+  transactionId?: string;
   paymentMethod?: string;
   dateTime?: string;
   accountName?: string;
@@ -207,6 +211,8 @@ function toInvoiceData(value: unknown): InvoiceData | null {
     dueDate: typeof value.dueDate === 'string' ? value.dueDate : undefined,
     status: normalizeInvoiceStatus(value.status),
     currency: typeof value.currency === 'string' ? value.currency.toUpperCase() : 'USD',
+    transactionId: typeof value.transactionId === 'string' ? value.transactionId : undefined,
+    intentId: typeof value.intentId === 'string' ? value.intentId : undefined,
   };
 }
 
@@ -230,6 +236,8 @@ function toHistoryEntry(value: unknown): HistoryEntry | null {
     status: normalizeHistoryStatus(value.status),
     note: typeof value.note === 'string' ? value.note : '',
     code: typeof value.code === 'string' ? value.code : undefined,
+    invoiceId: typeof value.invoiceId === 'string' ? value.invoiceId : undefined,
+    transactionId: typeof value.transactionId === 'string' ? value.transactionId : undefined,
     paymentMethod: typeof value.paymentMethod === 'string' ? value.paymentMethod : undefined,
     dateTime: typeof value.dateTime === 'string' ? value.dateTime : undefined,
     accountName: typeof value.accountName === 'string' ? value.accountName : undefined,
@@ -397,10 +405,12 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   const amountLabel = invoice
     ? formatInvoiceAmount(invoice.amount)
     : paymentPreview?.amountLabel || 'Loading amount...';
+  const primaryTransactionId = invoice?.transactionId ?? history.find(entry => entry.transactionId)?.transactionId;
   const handleDownloadInvoice = () => {
     const invoiceId = invoice?.id ?? paymentId;
     const content = [
       `Invoice ID: ${invoiceId}`,
+      `Transaction ID: ${primaryTransactionId ?? '-'}`,
       `Payment Name: ${paymentName}`,
       `Category: ${categoryLabel}`,
       `Amount: ${amountLabel}`,
@@ -443,7 +453,8 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
           : undefined,
     note: h.note?.trim() || 'No additional notes.',
     details: {
-      code: h.code ?? `TR-${h.id}`,
+      invoiceId: h.invoiceId ?? invoice?.id ?? paymentId,
+      transactionId: h.transactionId ?? h.code ?? `TR-${h.id}`,
       paymentMethod: toMethodDisplayLabel(h.paymentMethod ?? h.method) || 'Not specified',
       dateTime: h.paymentDate
         ? formatDateLabel(h.paymentDate)
@@ -485,6 +496,22 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
       if (!response.ok) {
         throw new Error(getErrorMessage(json, 'Failed to cancel pending payment'));
       }
+      const programId = readActiveProgramId();
+      const updatedPreview: CachedPaymentPreview = {
+        id: invoice?.id ?? paymentId,
+        label: paymentName,
+        status: 'unpaid',
+        paymentType: invoice?.category ?? paymentPreview?.paymentType ?? 'payment',
+        amountLabel,
+        syncDate: invoice?.dueDate ?? paymentPreview?.syncDate ?? '-',
+        hasInvoice: true,
+      };
+      setInvoice(current =>
+        current ? { ...current, status: 'unpaid', transactionId: undefined, intentId: undefined } : current
+      );
+      setHistory([]);
+      setPaymentPreview(updatedPreview);
+      upsertCachedPaymentPreview(programId, updatedPreview);
       router.refresh();
     } catch (err) {
       setCancelPendingError(err instanceof Error ? err.message : 'Failed to cancel pending payment');
@@ -541,6 +568,16 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
                 value={dueDateLabel}
                 overdue={overdue}
                 icon={<CalendarClock className="h-4 w-4" />}
+              />
+              <InfoRow
+                label="Invoice ID"
+                value={invoice?.id ?? paymentId}
+                icon={<Tag className="h-4 w-4" />}
+              />
+              <InfoRow
+                label="Transaction ID"
+                value={primaryTransactionId ?? 'Not generated yet'}
+                icon={<CreditCard className="h-4 w-4" />}
               />
             </div>
           </div>

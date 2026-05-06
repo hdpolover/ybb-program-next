@@ -20,7 +20,8 @@ export type HistoryItem = {
   status?: 'created' | 'pending' | 'completed' | 'cancelled' | 'rejected';
   // Detail buat modal (opsional, kalo ada ya ditampilin)
   details?: {
-    code: string;
+    invoiceId?: string;
+    transactionId?: string;
     paymentMethod: string;
     dateTime: string;
     accountName: string;
@@ -84,9 +85,15 @@ export default function HistoryList({
                   Transaction Information
                 </p>
                 <div className={paymentsTheme.historyModalSectionBody}>
+                  {active.details?.invoiceId ? (
+                    <div>
+                      <span className="font-semibold">Invoice ID:</span>{" "}
+                      {active.details.invoiceId}
+                    </div>
+                  ) : null}
                   <div>
-                    <span className="font-semibold">Transaction Code:</span>{" "}
-                    {active.details?.code ?? '-'}
+                    <span className="font-semibold">Transaction ID:</span>{" "}
+                    {active.details?.transactionId ?? '-'}
                   </div>
                   <div>
                     <span className="font-semibold">Payment Method:</span>{" "}
