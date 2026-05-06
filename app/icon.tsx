@@ -1,6 +1,9 @@
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { ImageResponse } from 'next/og';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { resolveBrandDomain } from '@/lib/server/envContext';
+import { pickBrandFaviconUrl, toDataUrl } from '@/lib/branding/icon';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -10,35 +13,24 @@ export const size = {
 };
 export const contentType = 'image/png';
 
-function normalizeHex(input: string | null | undefined): string {
-  const raw = (input || '').trim();
-  if (!raw) return '#1c57b3';
-  const withHash = raw.startsWith('#') ? raw : `#${raw}`;
-  return /^#[0-9a-fA-F]{6}$/.test(withHash) ? withHash : '#1c57b3';
-}
-
-function initialLetters(value: string | null | undefined): string {
-  const text = (value || '').trim();
-  if (!text) return 'YB';
-  const parts = text.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
-  }
-  return text.slice(0, 2).toUpperCase();
+async function getFallbackLogoDataUrl(): Promise<string> {
+  const file = await readFile(join(process.cwd(), 'public', 'img', 'ybb-logo.png'));
+  return `data:image/png;base64,${file.toString('base64')}`;
 }
 
 export default async function Icon() {
-  let initials = 'YB';
-  let accent = '#1c57b3';
+  let brandIconDataUrl: string | null = null;
 
   try {
     const host = await resolveBrandDomain();
     const settings = await getSettingsForBrandDomain(host);
-    initials = initialLetters(settings.active_program?.name || settings.brand?.name);
-    accent = normalizeHex(settings.brand?.primary_color);
+    const brandIconUrl = pickBrandFaviconUrl(settings);
+    brandIconDataUrl = brandIconUrl ? await toDataUrl(brandIconUrl) : null;
   } catch {
     // Keep safe defaults if settings lookup fails.
   }
+
+  const src = brandIconDataUrl ?? await getFallbackLogoDataUrl();
 
   return new ImageResponse(
     (
@@ -49,15 +41,21 @@ export default async function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: 14,
-          background: accent,
-          color: '#ffffff',
-          fontWeight: 800,
-          fontSize: 28,
-          letterSpacing: -1,
+          background: '#ffffff',
+          overflow: 'hidden',
         }}
       >
-        {initials}
+        <img
+          src={src}
+          alt="Brand icon"
+          width="64"
+          height="64"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+          }}
+        />
       </div>
     ),
     {

@@ -23,6 +23,8 @@ export async function GET() {
         logo_white_url: null,
         logo_color_url: null,
         logo_icon_url: null,
+        favicon_url: null,
+        apple_icon_url: null,
         primary_color: null,
         support_email: null,
         contact_phone: null,

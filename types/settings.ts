@@ -12,6 +12,8 @@ export type SettingsBrand = {
   logo_white_url: string | null;
   logo_color_url: string | null;
   logo_icon_url: string | null;
+  favicon_url?: string | null;
+  apple_icon_url?: string | null;
   primary_color: string | null;
   description?: string | null;
   support_email: string | null;
@@ -69,6 +71,8 @@ export type SettingsData = {
     logo_white_url?: string | null;
     logo_color_url?: string | null;
     logo_icon_url?: string | null;
+    favicon_url?: string | null;
+    apple_icon_url?: string | null;
   };
   available_brands?: SettingsAvailableBrand[];
 };
