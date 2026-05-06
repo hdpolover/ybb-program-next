@@ -10,6 +10,7 @@ type InstagramFeedItem = {
   permalink: string;
   imageUrl?: string | null;
   caption?: string | null;
+  embedHtml?: string | null;
 };
 
 type ValidityPeriod = {
@@ -173,6 +174,61 @@ function hasRichTextContent(value?: string | null): boolean {
   return plain.length > 0;
 }
 
+function extractInstagramPermalink(input?: string | null): string | null {
+  const raw = decodePossiblyEncodedHtml((input ?? '').trim());
+  if (!raw || !/instagram\.com/i.test(raw)) return null;
+
+  const permalinkCandidate =
+    raw.match(/data-instgrm-permalink=(['"])(.*?)\1/i)?.[2] ??
+    raw.match(/href=(['"])(https?:\/\/(?:www\.)?instagram\.com\/[^'"]+)\1/i)?.[2] ??
+    raw;
+
+  try {
+    const url = new URL(permalinkCandidate);
+    const hostname = url.hostname.toLowerCase();
+    if (hostname !== 'instagram.com' && hostname !== 'www.instagram.com') return null;
+
+    const path = url.pathname.replace(/\/+$/, '');
+    const supportedPath = path.match(/^\/(p|reel|tv)\/[^/]+/i)?.[0];
+    if (!supportedPath) return null;
+
+    return `https://www.instagram.com${supportedPath}/`;
+  } catch {
+    return null;
+  }
+}
+
+function buildInstagramEmbedHtml(permalink: string): string {
+  const safePermalink = escapeHtml(permalink);
+  return `<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${safePermalink}" data-instgrm-version="14"><a href="${safePermalink}" target="_blank" rel="noreferrer">View this post on Instagram</a></blockquote>`;
+}
+
+function resolveInstagramEmbedPermalink(post: InstagramFeedItem | null): string | null {
+  if (!post) return null;
+
+  return (
+    extractInstagramPermalink(post.embedHtml) ??
+    extractInstagramPermalink(post.imageUrl) ??
+    extractInstagramPermalink(post.permalink)
+  );
+}
+
+function hasExplicitInstagramEmbed(post: InstagramFeedItem | null): boolean {
+  if (!post) return false;
+  return Boolean(
+    extractInstagramPermalink(post.embedHtml) ||
+      extractInstagramPermalink(post.imageUrl),
+  );
+}
+
+type InstagramWindow = Window & {
+  instgrm?: {
+    Embeds?: {
+      process: () => void;
+    };
+  };
+};
+
 export default function HomeRegistrationStrip({
   igFeed,
   registrationTypes,
@@ -226,6 +282,45 @@ export default function HomeRegistrationStrip({
     setFallbackImageFailed(false);
   }, [activePostIndex, posts]);
 
+  const activePost = posts[activePostIndex] ?? null;
+  const activePostEmbedPermalink = resolveInstagramEmbedPermalink(activePost);
+  const showInstagramEmbed =
+    Boolean(activePostEmbedPermalink) &&
+    (hasExplicitInstagramEmbed(activePost) ||
+      fallbackImageFailed ||
+      !activePost?.imageUrl?.trim());
+  const activePostEmbedHtml = activePostEmbedPermalink
+    ? buildInstagramEmbedHtml(activePostEmbedPermalink)
+    : '';
+
+  useEffect(() => {
+    if (!showInstagramEmbed) return;
+
+    const processEmbeds = () => {
+      (window as InstagramWindow).instgrm?.Embeds?.process();
+    };
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://www.instagram.com/embed.js"]',
+    );
+    const frameId = window.requestAnimationFrame(processEmbeds);
+
+    if (existingScript) {
+      return () => window.cancelAnimationFrame(frameId);
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://www.instagram.com/embed.js';
+    script.async = true;
+    script.onload = processEmbeds;
+    document.body.appendChild(script);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      script.onload = null;
+    };
+  }, [showInstagramEmbed]);
+
   useEffect(() => {
     if (!descriptionDialog) return;
 
@@ -243,7 +338,6 @@ export default function HomeRegistrationStrip({
     };
   }, [descriptionDialog]);
 
-  const activePost = posts[activePostIndex] ?? null;
   const registrationFeeTypes = registrationTypes.filter(isRegistrationFeeTier);
   const primaryType = pickRegistrationTier(registrationFeeTypes, 'self_funded');
   const secondaryType = pickRegistrationTier(registrationFeeTypes, 'fully_funded', primaryType?.id);
@@ -305,7 +399,16 @@ export default function HomeRegistrationStrip({
             <div className={`${componentsTheme.homeRegistration.instagramCard} flex min-h-0 flex-1 flex-col p-0`}>
               {activePost ? (
                 <div className="flex h-full min-h-0 flex-col p-4">
-                  {activePost.imageUrl?.trim() && !fallbackImageFailed ? (
+                  {showInstagramEmbed ? (
+                    <div className="flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                      <div className="flex h-[420px] items-start justify-center overflow-y-auto bg-white p-2 sm:h-[500px] sm:p-3 lg:h-[540px]">
+                        <div
+                          className="w-full [&_.instagram-media]:!m-0 [&_.instagram-media]:!w-full [&_.instagram-media]:!max-w-none [&_.instagram-media]:!min-w-0 [&_.instagram-media]:!rounded-none [&_.instagram-media]:!border-0 [&_.instagram-media]:!shadow-none [&_iframe]:!w-full"
+                          dangerouslySetInnerHTML={{ __html: activePostEmbedHtml }}
+                        />
+                      </div>
+                    </div>
+                  ) : activePost.imageUrl?.trim() && !fallbackImageFailed ? (
                     <a
                       href={activePost.permalink}
                       target="_blank"

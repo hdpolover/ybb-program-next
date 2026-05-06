@@ -38,8 +38,9 @@ export type RegistrationOverviewSection = {
     ig_feed: {
       id: string;
       permalink: string;
-      imageUrl: string;
-      caption: string;
+      imageUrl?: string | null;
+      caption?: string | null;
+      embedHtml?: string | null;
     }[];
     registration_types: {
       id: string;
