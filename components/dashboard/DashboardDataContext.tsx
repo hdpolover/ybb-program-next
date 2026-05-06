@@ -28,6 +28,7 @@ export type PortalDashboardSummary = {
     status?: string;
     category?: string;
     canSwitchCategory?: boolean;
+    switchCategoryMessage?: string;
     progress?: number;
     currentStep?: string;
     daysUntilDeadline?: number;

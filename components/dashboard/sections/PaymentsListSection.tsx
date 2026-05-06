@@ -260,10 +260,12 @@ export default function PaymentsListSection() {
   const router = useRouter();
   const activeApplication = dashboardSummary?.activeApplication ?? null;
   const canSwitchCategory = activeApplication?.canSwitchCategory ?? false;
+  const switchCategoryMessage = activeApplication?.switchCategoryMessage?.trim() || '';
   const currentCategory = activeApplication?.category;
   const switchTarget = currentCategory === 'self_funded' ? 'fully_funded' : 'self_funded';
   const switchTargetLabel = switchTarget === 'fully_funded' ? 'Fully Funded' : 'Self Funded';
   const currentCategoryLabel = currentCategory === 'fully_funded' ? 'Fully Funded' : 'Self Funded';
+  const showCategoryCard = currentCategory === 'self_funded' || currentCategory === 'fully_funded';
 
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [switchLoading, setSwitchLoading] = useState(false);
@@ -578,7 +580,7 @@ export default function PaymentsListSection() {
         </div>
       </div>
 
-      {canSwitchCategory && (
+      {showCategoryCard && (
         <div className={paymentsTheme.categoryCard}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -588,16 +590,29 @@ export default function PaymentsListSection() {
               <p className="mt-0.5 text-[13px] font-semibold text-slate-900 sm:text-sm">
                 {currentCategoryLabel}
                 <span className="mx-2 text-slate-300">|</span>
-                <span className="text-primary">Eligible to switch to {switchTargetLabel}</span>
+                <span className={canSwitchCategory ? 'text-primary' : 'text-slate-500'}>
+                  {canSwitchCategory
+                    ? `Eligible to switch to ${switchTargetLabel}`
+                    : 'Category switching unavailable'}
+                </span>
               </p>
               <p className={paymentsTheme.categoryDescription}>
                 Payment options will follow your selected category and payment stage.
               </p>
+              {!canSwitchCategory && switchCategoryMessage ? (
+                <p className="mt-1 text-xs font-medium text-amber-700">{switchCategoryMessage}</p>
+              ) : null}
             </div>
             <button
               type="button"
-              className={paymentsTheme.categoryPrimaryCta}
-              onClick={() => setShowSwitchModal(true)}
+              className={`${paymentsTheme.categoryPrimaryCta} disabled:cursor-not-allowed disabled:opacity-50`}
+              onClick={() => {
+                if (!canSwitchCategory) return;
+                setShowSwitchModal(true);
+              }}
+              disabled={!canSwitchCategory}
+              aria-disabled={!canSwitchCategory}
+              title={!canSwitchCategory && switchCategoryMessage ? switchCategoryMessage : undefined}
             >
               <ArrowLeftRight className="h-4 w-4" />
               <span>Switch to {switchTargetLabel}</span>
@@ -606,7 +621,7 @@ export default function PaymentsListSection() {
         </div>
       )}
 
-      {showSwitchModal &&
+      {showSwitchModal && canSwitchCategory &&
         typeof document !== 'undefined' &&
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 px-4">
