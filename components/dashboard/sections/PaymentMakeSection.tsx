@@ -53,6 +53,7 @@ interface InvoiceData {
   dueDate: string;
   status: string;
   currency?: string;
+  exchangeRate?: number | null;
 }
 
 interface PendingPaymentData {
@@ -112,6 +113,10 @@ function toInvoiceData(value: unknown): InvoiceData | null {
     dueDate: typeof value.dueDate === "string" ? value.dueDate : "",
     status: typeof value.status === "string" ? value.status : "unpaid",
     currency: typeof value.currency === "string" ? value.currency : "USD",
+    exchangeRate:
+      typeof value.exchangeRate === "number" && Number.isFinite(value.exchangeRate) && value.exchangeRate > 0
+        ? value.exchangeRate
+        : null,
   };
 }
 
@@ -161,7 +166,6 @@ function getPendingPaymentData(payload: unknown): PendingPaymentData | null {
 export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProps) {
   const { settings } = useSettings();
   const router = useRouter();
-  const rateToIdr = settings?.currency?.rate_to_idr ?? 16900;
 
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [pendingPayment, setPendingPayment] = useState<PendingPaymentData | null>(null);
@@ -335,9 +339,16 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const [cancellingPending, setCancellingPending] = useState(false);
   const [cancelPendingError, setCancelPendingError] = useState<string | null>(null);
 
+  const fallbackRateToIdr =
+    typeof settings?.currency?.rate_to_idr === "number" && Number.isFinite(settings.currency.rate_to_idr) && settings.currency.rate_to_idr > 0
+      ? settings.currency.rate_to_idr
+      : 16900;
+  const invoiceCurrency = (invoice?.currency ?? "USD").toUpperCase();
+  const rateToIdr = invoiceCurrency === "USD" ? invoice?.exchangeRate ?? null : fallbackRateToIdr;
   const amountUsd = invoice?.amount ?? 0;
-  const amountIdr = amountUsd * rateToIdr;
+  const amountIdr = rateToIdr ? amountUsd * rateToIdr : 0;
   const normalizedInvoiceStatus = String(invoice?.status ?? '').toLowerCase();
+  const missingGatewayExchangeRate = invoiceCurrency === "USD" && (!rateToIdr || rateToIdr <= 0);
 
   const currencyUsd = (v: number) => `$${v.toFixed(2)}`;
   const currencyIdr = (v: number) =>
@@ -349,7 +360,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const hasManualMethods = manualMethods.length > 0;
   const hasGatewayMethods = gatewayMethods.length > 0;
   const hasAnyMethods = hasManualMethods || hasGatewayMethods;
-  const gatewayOptionDisabled = !methodsLoading && !hasGatewayMethods;
+  const gatewayOptionDisabled = (!methodsLoading && !hasGatewayMethods) || missingGatewayExchangeRate;
   const manualOptionDisabled = !methodsLoading && !hasManualMethods;
 
   const selectedManualMethodObj = manualMethods.find((method) => method.code === manualMethod) ?? null;
@@ -374,7 +385,11 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const allAgreementsChecked =
     displayedAgreementItems.length > 0 &&
     displayedAgreementItems.every((_, index) => agreementChecked[index] === true);
-  const isGatewayComplete = paymentType === "gateway" && allAgreementsChecked && gatewayMethod !== "";
+  const isGatewayComplete =
+    paymentType === "gateway" &&
+    allAgreementsChecked &&
+    gatewayMethod !== "" &&
+    !missingGatewayExchangeRate;
   const isManualComplete =
     paymentType === "manual" &&
     allAgreementsChecked &&
@@ -384,6 +399,12 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     manualPaymentDate.trim() !== "" &&
     manualProofFile !== null;
   const isFormComplete = isGatewayComplete || isManualComplete;
+
+  useEffect(() => {
+    if (paymentType === "gateway" && gatewayOptionDisabled && hasManualMethods) {
+      setPaymentType("manual");
+    }
+  }, [gatewayOptionDisabled, hasManualMethods, paymentType]);
 
   const handleCancelPendingPayment = useCallback(async () => {
     if (cancellingPending) return;
@@ -639,7 +660,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     );
   }
 
-  const formattedRate = new Intl.NumberFormat("id-ID").format(rateToIdr);
+  const formattedRate = rateToIdr ? new Intl.NumberFormat("id-ID").format(rateToIdr) : null;
   const paymentTypeOptionMeta: Record<"gateway" | "manual", { title: string; subtitle: string; helper: string }> = {
     gateway: {
       title: "Payment Gateway",
@@ -691,14 +712,23 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
             </div>
             <div className={paymentsTheme.currencyInfoBody}>
               <p className={paymentsTheme.currencyInfoTitle}>Important currency information</p>
-              <p className="text-xs">
-                Although the amount is displayed in USD, payments will be processed in IDR (Indonesian Rupiah).
-                The current conversion rate used is <span className="font-semibold">1 USD = {formattedRate} IDR</span>.
-              </p>
-              <p className="text-xs">
-                <span className="font-semibold">Estimated total:</span> {currencyUsd(amountUsd)}
-                (<span className="font-semibold">{currencyIdr(amountIdr)}</span>)
-              </p>
+              {missingGatewayExchangeRate ? (
+                <p className="text-xs text-rose-700">
+                  Gateway payment is unavailable because this program does not have a payment exchange rate configured yet.
+                  Please use manual transfer for now or ask an admin to set the program exchange rate.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs">
+                    Although the amount is displayed in USD, payments will be processed in IDR (Indonesian Rupiah).
+                    The current conversion rate used is <span className="font-semibold">1 USD = {formattedRate} IDR</span>.
+                  </p>
+                  <p className="text-xs">
+                    <span className="font-semibold">Estimated total:</span> {currencyUsd(amountUsd)}
+                    (<span className="font-semibold">{currencyIdr(amountIdr)}</span>)
+                  </p>
+                </>
+              )}
             </div>
           </div>
           {/* Payment type selector + gateway steps (no card) */}
