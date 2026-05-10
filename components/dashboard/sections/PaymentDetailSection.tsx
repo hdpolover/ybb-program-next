@@ -13,6 +13,10 @@ import {
   CreditCard,
   Download,
   AlertTriangle,
+  Clock,
+  FileText,
+  User,
+  Wallet,
 } from 'lucide-react';
 import { type HistoryItem } from '@/components/dashboard/payments/HistoryList';
 import HistoryPanel from '@/components/dashboard/payments/HistoryPanel';
@@ -33,6 +37,16 @@ interface PaymentDetailSectionProps {
   paymentId: string;
 }
 
+interface PendingSubmissionData {
+  accountName?: string;
+  sourceName?: string;
+  paymentDate?: string;
+  proofUrl?: string;
+  paymentMethod?: string;
+  actionUrl?: string;
+  submittedAt?: string;
+}
+
 interface InvoiceData {
   id: string;
   label: string;
@@ -43,6 +57,7 @@ interface InvoiceData {
   currency?: string;
   transactionId?: string;
   intentId?: string;
+  pendingSubmission?: PendingSubmissionData;
 }
 
 interface HistoryEntry {
@@ -197,6 +212,39 @@ function formatTimeLabel(value?: string | null): string {
   }).format(date);
 }
 
+function toPendingSubmissionData(value: unknown): PendingSubmissionData | undefined {
+  if (!isRecord(value)) return undefined;
+
+  const accountName = typeof value.accountName === 'string' && value.accountName.trim().length > 0
+    ? value.accountName.trim()
+    : undefined;
+  const sourceName = typeof value.sourceName === 'string' && value.sourceName.trim().length > 0
+    ? value.sourceName.trim()
+    : undefined;
+  const paymentDate = typeof value.paymentDate === 'string' && value.paymentDate.trim().length > 0
+    ? value.paymentDate.trim()
+    : undefined;
+  const proofUrl = typeof value.proofUrl === 'string' && value.proofUrl.trim().length > 0
+    ? value.proofUrl.trim()
+    : undefined;
+  const paymentMethod = typeof value.paymentMethod === 'string' && value.paymentMethod.trim().length > 0
+    ? value.paymentMethod.trim()
+    : undefined;
+  const actionUrl = typeof value.actionUrl === 'string' && value.actionUrl.trim().length > 0
+    ? value.actionUrl.trim()
+    : undefined;
+  const submittedAt = typeof value.submittedAt === 'string' && value.submittedAt.trim().length > 0
+    ? value.submittedAt.trim()
+    : undefined;
+
+  // Suppress the panel entirely when no meaningful field is present.
+  if (!accountName && !sourceName && !paymentDate && !proofUrl && !paymentMethod && !actionUrl) {
+    return undefined;
+  }
+
+  return { accountName, sourceName, paymentDate, proofUrl, paymentMethod, actionUrl, submittedAt };
+}
+
 function toInvoiceData(value: unknown): InvoiceData | null {
   if (!isRecord(value)) return null;
 
@@ -213,6 +261,7 @@ function toInvoiceData(value: unknown): InvoiceData | null {
     currency: typeof value.currency === 'string' ? value.currency.toUpperCase() : 'USD',
     transactionId: typeof value.transactionId === 'string' ? value.transactionId : undefined,
     intentId: typeof value.intentId === 'string' ? value.intentId : undefined,
+    pendingSubmission: toPendingSubmissionData(value.pendingSubmission),
   };
 }
 
@@ -582,6 +631,16 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
             </div>
           </div>
 
+          {/* Pending submission panel — shown above history while the participant's
+              manual payment is awaiting admin verification, so they can confirm what
+              they submitted without opening a modal. */}
+          {effectiveStatus === 'processing' && invoice?.pendingSubmission ? (
+            <PendingSubmissionCard
+              submission={invoice.pendingSubmission}
+              fallbackDateLabel={formatDateLabel}
+            />
+          ) : null}
+
           {/* Payment history section */}
           {historyLoading ? (
             <HistorySectionSkeleton />
@@ -751,6 +810,83 @@ function TagRow({ label, tag, icon }: TagRowProps) {
         <span className="mt-1 inline-block rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
           {tag}
         </span>
+      </div>
+    </div>
+  );
+}
+
+interface PendingSubmissionCardProps {
+  submission: PendingSubmissionData;
+  fallbackDateLabel: (value?: string | null) => string;
+}
+
+function PendingSubmissionCard({ submission, fallbackDateLabel }: PendingSubmissionCardProps) {
+  const paymentMethodLabel = toMethodDisplayLabel(submission.paymentMethod) || 'Not specified';
+  const paymentDateLabel = submission.paymentDate
+    ? fallbackDateLabel(submission.paymentDate)
+    : 'Not provided';
+  const submittedAtLabel = submission.submittedAt
+    ? fallbackDateLabel(submission.submittedAt)
+    : null;
+
+  return (
+    <div className={`${paymentsTheme.detailPrimaryCard} border-amber-200 bg-amber-50/40 ring-1 ring-amber-200`}>
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+          <Clock className="h-4 w-4" />
+        </span>
+        <div className="flex-1">
+          <p className="text-sm font-extrabold text-slate-900">Pending Submission</p>
+          <p className="mt-1 text-xs text-slate-600">
+            Your payment has been submitted and is awaiting verification by our team. Below are the
+            details you provided.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <InfoRow
+          label="Payment Method"
+          value={paymentMethodLabel}
+          icon={<Wallet className="h-4 w-4" />}
+        />
+        <InfoRow
+          label="Source / Account"
+          value={submission.sourceName || 'Not provided'}
+          icon={<CreditCard className="h-4 w-4" />}
+        />
+        <InfoRow
+          label="Account Name"
+          value={submission.accountName || 'Not provided'}
+          icon={<User className="h-4 w-4" />}
+        />
+        <InfoRow
+          label="Payment Date"
+          value={paymentDateLabel}
+          icon={<CalendarClock className="h-4 w-4" />}
+        />
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        {submission.proofUrl ? (
+          <a
+            href={submission.proofUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            <span>View Payment Proof</span>
+          </a>
+        ) : (
+          <span className="inline-flex items-center gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-500">
+            <FileText className="h-3.5 w-3.5" />
+            <span>No proof uploaded</span>
+          </span>
+        )}
+        {submittedAtLabel ? (
+          <span className="text-[11px] font-medium text-slate-500">Submitted on {submittedAtLabel}</span>
+        ) : null}
       </div>
     </div>
   );
