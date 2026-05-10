@@ -88,6 +88,19 @@ function buildFallbackPaymentDetail(payload: unknown, id: string) {
         ]
       : [];
 
+  const usdPrice =
+    typeof invoiceRow.usdPrice === 'number' && Number.isFinite(invoiceRow.usdPrice)
+      ? invoiceRow.usdPrice
+      : null;
+  const idrPrice =
+    typeof invoiceRow.idrPrice === 'number' && Number.isFinite(invoiceRow.idrPrice)
+      ? invoiceRow.idrPrice
+      : null;
+  const exchangeRate =
+    typeof invoiceRow.exchangeRate === 'number' && Number.isFinite(invoiceRow.exchangeRate)
+      ? invoiceRow.exchangeRate
+      : null;
+
   return {
     invoice: {
       id,
@@ -97,6 +110,9 @@ function buildFallbackPaymentDetail(payload: unknown, id: string) {
       dueDate: typeof invoiceRow.dueDate === 'string' ? invoiceRow.dueDate : undefined,
       status,
       currency,
+      usdPrice,
+      idrPrice,
+      exchangeRate,
     },
     history,
   };
