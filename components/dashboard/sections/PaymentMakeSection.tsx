@@ -54,6 +54,9 @@ interface InvoiceData {
   status: string;
   currency?: string;
   exchangeRate?: number | null;
+  usdPrice?: number | null;
+  idrPrice?: number | null;
+  paymentInfoHtml?: string | null;
 }
 
 interface PendingPaymentData {
@@ -116,6 +119,18 @@ function toInvoiceData(value: unknown): InvoiceData | null {
     exchangeRate:
       typeof value.exchangeRate === "number" && Number.isFinite(value.exchangeRate) && value.exchangeRate > 0
         ? value.exchangeRate
+        : null,
+    usdPrice:
+      typeof value.usdPrice === "number" && Number.isFinite(value.usdPrice)
+        ? value.usdPrice
+        : null,
+    idrPrice:
+      typeof value.idrPrice === "number" && Number.isFinite(value.idrPrice)
+        ? value.idrPrice
+        : null,
+    paymentInfoHtml:
+      typeof value.paymentInfoHtml === "string" && value.paymentInfoHtml.trim().length > 0
+        ? value.paymentInfoHtml
         : null,
   };
 }
@@ -346,9 +361,13 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const invoiceCurrency = (invoice?.currency ?? "USD").toUpperCase();
   const rateToIdr = invoiceCurrency === "USD" ? invoice?.exchangeRate ?? null : fallbackRateToIdr;
   const amountUsd = invoice?.amount ?? 0;
-  const amountIdr = rateToIdr ? amountUsd * rateToIdr : 0;
   const normalizedInvoiceStatus = String(invoice?.status ?? '').toLowerCase();
   const missingGatewayExchangeRate = invoiceCurrency === "USD" && (!rateToIdr || rateToIdr <= 0);
+
+  // Dual-pricing tier fields with safe fallbacks to legacy invoice amount
+  const tierUsdPrice = invoice?.usdPrice ?? amountUsd;
+  const tierIdrPrice = invoice?.idrPrice ?? 0;
+  const paymentInfoHtml = invoice?.paymentInfoHtml ?? null;
 
   const currencyUsd = (v: number) => `$${v.toFixed(2)}`;
   const currencyIdr = (v: number) =>
@@ -360,8 +379,9 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const hasManualMethods = manualMethods.length > 0;
   const hasGatewayMethods = gatewayMethods.length > 0;
   const hasAnyMethods = hasManualMethods || hasGatewayMethods;
-  const gatewayOptionDisabled = (!methodsLoading && !hasGatewayMethods) || missingGatewayExchangeRate;
-  const manualOptionDisabled = !methodsLoading && !hasManualMethods;
+  const gatewayOptionDisabled =
+    (!methodsLoading && !hasGatewayMethods) || missingGatewayExchangeRate || tierUsdPrice <= 0;
+  const manualOptionDisabled = (!methodsLoading && !hasManualMethods) || tierIdrPrice <= 0;
 
   const selectedManualMethodObj = manualMethods.find((method) => method.code === manualMethod) ?? null;
   const selectedGatewayMethodObj = gatewayMethods.find((method) => method.code === gatewayMethod) ?? null;
@@ -401,10 +421,12 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const isFormComplete = isGatewayComplete || isManualComplete;
 
   useEffect(() => {
-    if (paymentType === "gateway" && gatewayOptionDisabled && hasManualMethods) {
+    if (paymentType === "gateway" && gatewayOptionDisabled && hasManualMethods && !manualOptionDisabled) {
       setPaymentType("manual");
+    } else if (paymentType === "manual" && manualOptionDisabled && hasGatewayMethods && !gatewayOptionDisabled) {
+      setPaymentType("gateway");
     }
-  }, [gatewayOptionDisabled, hasManualMethods, paymentType]);
+  }, [gatewayOptionDisabled, manualOptionDisabled, hasGatewayMethods, hasManualMethods, paymentType]);
 
   const handleCancelPendingPayment = useCallback(async () => {
     if (cancellingPending) return;
@@ -712,22 +734,58 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
             </div>
             <div className={paymentsTheme.currencyInfoBody}>
               <p className={paymentsTheme.currencyInfoTitle}>Important currency information</p>
-              {missingGatewayExchangeRate ? (
+
+              {/* Admin-editable prose, or default */}
+              {paymentInfoHtml ? (
+                <div
+                  className="prose prose-sm text-xs max-w-none"
+                  dangerouslySetInnerHTML={{ __html: paymentInfoHtml }}
+                />
+              ) : (
+                <p className="text-xs">
+                  Although the amount is displayed in USD for gateway payments, payments will be processed in IDR (Indonesian Rupiah).
+                  Manual transfers are denominated directly in IDR.
+                </p>
+              )}
+
+              {/* Auto-rendered numeric block */}
+              {missingGatewayExchangeRate && tierIdrPrice <= 0 ? (
                 <p className="text-xs text-rose-700">
-                  Gateway payment is unavailable because this program does not have a payment exchange rate configured yet.
-                  Please use manual transfer for now or ask an admin to set the program exchange rate.
+                  Payment is unavailable because neither a gateway exchange rate nor a manual IDR price is configured for this program.
                 </p>
               ) : (
-                <>
-                  <p className="text-xs">
-                    Although the amount is displayed in USD, payments will be processed in IDR (Indonesian Rupiah).
-                    The current conversion rate used is <span className="font-semibold">1 USD = {formattedRate} IDR</span>.
-                  </p>
-                  <p className="text-xs">
-                    <span className="font-semibold">Estimated total:</span> {currencyUsd(amountUsd)}
-                    (<span className="font-semibold">{currencyIdr(amountIdr)}</span>)
-                  </p>
-                </>
+                <div className="mt-2 pt-2 border-t border-amber-200/50 text-xs space-y-1">
+                  {hasGatewayMethods && !missingGatewayExchangeRate && tierUsdPrice > 0 && (
+                    <p>
+                      <span className="font-semibold">Gateway:</span>{" "}
+                      {currencyUsd(tierUsdPrice)} USD
+                      {rateToIdr
+                        ? ` ≈ ${currencyIdr(tierUsdPrice * rateToIdr)} (rate: 1 USD = ${formattedRate ?? ""} IDR)`
+                        : ""}
+                    </p>
+                  )}
+                  {hasManualMethods && tierIdrPrice > 0 && (
+                    <p>
+                      <span className="font-semibold">Manual transfer:</span>{" "}
+                      {currencyIdr(tierIdrPrice)} (fixed)
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Method-aware total wording */}
+              {paymentType === "gateway" && tierUsdPrice > 0 && !missingGatewayExchangeRate && (
+                <p className="mt-2 text-sm">
+                  <span className="font-semibold">Estimated total:</span>{" "}
+                  {currencyUsd(tierUsdPrice)}
+                  {rateToIdr ? ` (≈ ${currencyIdr(tierUsdPrice * rateToIdr)})` : ""}
+                </p>
+              )}
+              {paymentType === "manual" && tierIdrPrice > 0 && (
+                <p className="mt-2 text-sm">
+                  <span className="font-semibold">Total to pay:</span>{" "}
+                  {currencyIdr(tierIdrPrice)}
+                </p>
               )}
             </div>
           </div>
@@ -773,6 +831,12 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{paymentTypeOptionMeta.gateway.title}</p>
                       <p className="mt-0.5 text-xs text-slate-600">{paymentTypeOptionMeta.gateway.subtitle}</p>
+                      {tierUsdPrice > 0 && !missingGatewayExchangeRate && (
+                        <p className="mt-1 text-xs font-semibold text-slate-700">
+                          {currencyUsd(tierUsdPrice)}
+                          {rateToIdr ? ` ≈ ${currencyIdr(tierUsdPrice * rateToIdr)}` : ""}
+                        </p>
+                      )}
                       {gatewayOptionDisabled && (
                         <p className="mt-1 text-[11px] font-medium text-slate-500">Unavailable right now</p>
                       )}
@@ -810,6 +874,9 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{paymentTypeOptionMeta.manual.title}</p>
                       <p className="mt-0.5 text-xs text-slate-600">{paymentTypeOptionMeta.manual.subtitle}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-700">
+                        {tierIdrPrice > 0 ? currencyIdr(tierIdrPrice) : "—"}
+                      </p>
                       {manualOptionDisabled && (
                         <p className="mt-1 text-[11px] font-medium text-slate-500">Unavailable right now</p>
                       )}
