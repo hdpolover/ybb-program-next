@@ -100,6 +100,10 @@ function buildFallbackPaymentDetail(payload: unknown, id: string) {
     typeof invoiceRow.exchangeRate === 'number' && Number.isFinite(invoiceRow.exchangeRate)
       ? invoiceRow.exchangeRate
       : null;
+  const paymentInfoHtml =
+    typeof invoiceRow.paymentInfoHtml === 'string' && invoiceRow.paymentInfoHtml.trim().length > 0
+      ? invoiceRow.paymentInfoHtml
+      : null;
 
   return {
     invoice: {
@@ -113,6 +117,7 @@ function buildFallbackPaymentDetail(payload: unknown, id: string) {
       usdPrice,
       idrPrice,
       exchangeRate,
+      paymentInfoHtml,
     },
     history,
   };
