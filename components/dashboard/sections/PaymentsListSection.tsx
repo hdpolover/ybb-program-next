@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
@@ -261,6 +262,8 @@ export default function PaymentsListSection() {
   const activeApplication = dashboardSummary?.activeApplication ?? null;
   const canSwitchCategory = activeApplication?.canSwitchCategory ?? false;
   const switchCategoryMessage = activeApplication?.switchCategoryMessage?.trim() || '';
+  const switchCategoryBlockingInvoiceId =
+    activeApplication?.switchCategoryBlockingInvoiceId?.trim() || '';
   const currentCategory = activeApplication?.category;
   const switchTarget = currentCategory === 'self_funded' ? 'fully_funded' : 'self_funded';
   const switchTargetLabel = switchTarget === 'fully_funded' ? 'Fully Funded' : 'Self Funded';
@@ -600,7 +603,20 @@ export default function PaymentsListSection() {
                 Payment options will follow your selected category and payment stage.
               </p>
               {!canSwitchCategory && switchCategoryMessage ? (
-                <p className="mt-1 text-xs font-medium text-amber-700">{switchCategoryMessage}</p>
+                <p className="mt-1 text-xs font-medium text-amber-700">
+                  {switchCategoryMessage}
+                  {switchCategoryBlockingInvoiceId ? (
+                    <>
+                      {' '}
+                      <Link
+                        href={`/dashboard/payments/${switchCategoryBlockingInvoiceId}`}
+                        className="underline decoration-amber-700/60 underline-offset-2 hover:decoration-amber-700 cursor-pointer"
+                      >
+                        View pending payment &rarr;
+                      </Link>
+                    </>
+                  ) : null}
+                </p>
               ) : null}
             </div>
             <button

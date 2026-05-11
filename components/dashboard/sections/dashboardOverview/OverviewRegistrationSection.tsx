@@ -3,6 +3,7 @@
 import { ArrowLeftRight, GraduationCap, AlertTriangle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { getErrorMessage, getMessage } from "@/lib/api/response";
 import {
@@ -58,6 +59,8 @@ export default function OverviewRegistrationSection() {
 
   const canSwitchCategory = activeApplication?.canSwitchCategory ?? false;
   const switchCategoryMessage = activeApplication?.switchCategoryMessage?.trim() || "";
+  const switchCategoryBlockingInvoiceId =
+    activeApplication?.switchCategoryBlockingInvoiceId?.trim() || "";
   const currentCategory = activeApplication?.category;
   const switchTarget = currentCategory === "self_funded" ? "fully_funded" : "self_funded";
   const switchTargetLabel = switchTarget === "fully_funded" ? "Fully Funded" : "Self Funded";
@@ -160,6 +163,17 @@ export default function OverviewRegistrationSection() {
                       <>
                         <span className="font-semibold">Switch Unavailable:</span>{" "}
                         {switchCategoryMessage || "Category switching is currently locked."}
+                        {switchCategoryBlockingInvoiceId ? (
+                          <>
+                            {" "}
+                            <Link
+                              href={`/dashboard/payments/${switchCategoryBlockingInvoiceId}`}
+                              className="underline decoration-current/60 underline-offset-2 hover:decoration-current cursor-pointer"
+                            >
+                              View pending payment &rarr;
+                            </Link>
+                          </>
+                        ) : null}
                       </>
                     )}
                   </p>
