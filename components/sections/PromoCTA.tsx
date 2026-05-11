@@ -29,11 +29,11 @@ export default function PromoCTA({
   textColorScheme = 'dark',
 }: PromoCTAProps) {
   const resolvedPrimaryCtaHref = normalizeLandingCtaHref(primaryCtaHref);
-  const resolvedDesktopBackground = backgroundImageUrl?.trim() || '/img/ctabekground.png';
+  const resolvedDesktopBackground = backgroundImageUrl?.trim() || undefined;
   const resolvedMobileBackground =
     backgroundImageMobileUrl?.trim() ||
     backgroundImageUrl?.trim() ||
-    '/img/ctabackgroundformobile.png';
+    undefined;
 
   const eyebrowCls = textColorScheme === 'light'
     ? 'text-white/80'
@@ -44,13 +44,15 @@ export default function PromoCTA({
   return (
     <section
       className={componentsTheme.promoCta.sectionWrapper}
-      style={{ backgroundImage: `url(${resolvedDesktopBackground})` }}
+      style={resolvedDesktopBackground ? { backgroundImage: `url(${resolvedDesktopBackground})` } : undefined}
     >
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
-        style={{ backgroundImage: `url(${resolvedMobileBackground})` }}
-        aria-hidden="true"
-      />
+      {resolvedMobileBackground && (
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
+          style={{ backgroundImage: `url(${resolvedMobileBackground})` }}
+          aria-hidden="true"
+        />
+      )}
 
       <div className={componentsTheme.promoCta.glowLeft} />
       <div className={componentsTheme.promoCta.glowRight} />

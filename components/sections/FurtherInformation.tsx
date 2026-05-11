@@ -39,14 +39,14 @@ export default function FurtherInformationSection({
   eyebrow = 'Guideline',
   title = 'Further Information',
   subtitle = 'The complete information regarding this program can be seen in the guideline below.',
-  desktopBackgroundImageUrl = '/img/halfback.png',
-  mobileBackgroundImageUrl = '/img/backgroundformobile.png',
+  desktopBackgroundImageUrl,
+  mobileBackgroundImageUrl,
   mockupImageUrl = '/img/mockupjapan.png',
   guidebooks = DEFAULT_GUIDELINES,
   textColorScheme = 'dark',
 }: FurtherInformationProps) {
   if (!guidebooks || guidebooks.length === 0 || guidebooks.every(g => !g.href || g.href === '#')) return null;
-  const resolvedDesktopBackground = desktopBackgroundImageUrl?.trim() || '/img/halfback.png';
+  const resolvedDesktopBackground = desktopBackgroundImageUrl?.trim() || undefined;
   const resolvedMobileBackground = mobileBackgroundImageUrl?.trim() || resolvedDesktopBackground;
   const resolvedMockupImage = mockupImageUrl?.trim() || '/img/mockupjapan.png';
   return (
@@ -54,20 +54,24 @@ export default function FurtherInformationSection({
       className={`${componentsTheme.furtherInfo.sectionWrapper} min-h-[760px] overflow-hidden py-14 sm:min-h-0 sm:py-28`}
     >
       <div className="absolute inset-0 bg-primary/20 sm:hidden" />
-      <div className="absolute inset-0 sm:hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${resolvedMobileBackground})` }}
-          aria-hidden="true"
-        />
-      </div>
-      <div className="absolute inset-0 hidden sm:block">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${resolvedDesktopBackground})` }}
-          aria-hidden="true"
-        />
-      </div>
+      {resolvedMobileBackground && (
+        <div className="absolute inset-0 sm:hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${resolvedMobileBackground})` }}
+            aria-hidden="true"
+          />
+        </div>
+      )}
+      {resolvedDesktopBackground && (
+        <div className="absolute inset-0 hidden sm:block">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${resolvedDesktopBackground})` }}
+            aria-hidden="true"
+          />
+        </div>
+      )}
 
       <div className={`${componentsTheme.furtherInfo.card} relative z-10`}>
         <div className={componentsTheme.furtherInfo.innerGrid}>
