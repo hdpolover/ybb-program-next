@@ -374,15 +374,13 @@ export default function HomeRegistrationStrip({
           <div className="flex h-full min-h-0 min-w-0 flex-col gap-4">
             <div className={`${componentsTheme.homeRegistration.instagramCard} flex min-h-0 flex-1 flex-col p-0`}>
               {activePost ? (
-                <div className="flex h-full min-h-0 flex-col p-4">
+                <div className={`flex h-full min-h-0 flex-col ${activePostEmbedHtml ? 'pb-4' : 'p-4'}`}>
                   {activePostEmbedHtml ? (
-                    <div className="flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                      <div className="flex h-[340px] items-start justify-center overflow-y-auto bg-white p-2 sm:h-[400px] sm:p-3 lg:h-[440px]">
-                        <div
-                          className="w-full [&_.instagram-media]:!m-0 [&_.instagram-media]:!w-full [&_.instagram-media]:!max-w-none [&_.instagram-media]:!min-w-0 [&_.instagram-media]:!rounded-none [&_.instagram-media]:!border-0 [&_.instagram-media]:!shadow-none [&_iframe]:!w-full"
-                          dangerouslySetInnerHTML={{ __html: activePostEmbedHtml }}
-                        />
-                      </div>
+                    <div className="flex h-[340px] items-start justify-center overflow-y-auto sm:h-[400px] lg:h-[440px]">
+                      <div
+                        className="w-full [&_.instagram-media]:!m-0 [&_.instagram-media]:!w-full [&_.instagram-media]:!max-w-none [&_.instagram-media]:!min-w-0 [&_.instagram-media]:!rounded-none [&_.instagram-media]:!border-0 [&_.instagram-media]:!shadow-none [&_iframe]:!w-full"
+                        dangerouslySetInnerHTML={{ __html: activePostEmbedHtml }}
+                      />
                     </div>
                   ) : (
                     <a
@@ -400,25 +398,27 @@ export default function HomeRegistrationStrip({
                     </a>
                   )}
 
-                  <div className="mt-4 flex min-w-0 items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      {posts.map((post, index) => (
-                        <button
-                          key={post.id}
-                          type="button"
-                          aria-label={`Show Instagram post ${index + 1}`}
-                          onClick={() => setActivePostIndex(index)}
-                          className={`h-2.5 rounded-full transition-all ${
-                            index === normalizedActivePostIndex ? 'w-7 bg-primary' : 'w-2.5 bg-slate-300 hover:bg-slate-400'
-                          }`}
-                        />
-                      ))}
-                    </div>
+                  <div className="mt-4 flex min-w-0 items-center gap-3 px-4">
+                    {posts.length > 1 ? (
+                      <div className="flex items-center gap-2">
+                        {posts.map((post, index) => (
+                          <button
+                            key={post.id}
+                            type="button"
+                            aria-label={`Show Instagram post ${index + 1}`}
+                            onClick={() => setActivePostIndex(index)}
+                            className={`h-2.5 rounded-full transition-all ${
+                              index === normalizedActivePostIndex ? 'w-7 bg-primary' : 'w-2.5 bg-slate-300 hover:bg-slate-400'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
                     <a
                       href={activePost.permalink}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex min-w-0 items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80"
+                      className="ml-auto inline-flex min-w-0 items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80"
                     >
                       <span className="truncate">View on Instagram</span>
                       <ExternalLink className="h-4 w-4" />
