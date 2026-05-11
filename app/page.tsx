@@ -210,6 +210,7 @@ export default async function Home() {
         mobileBackgroundImageUrl={furtherInformationSection?.content.background_image_mobile_url ?? undefined}
         mockupImageUrl={furtherInformationSection?.content.mockup_image_url ?? undefined}
         guidebooks={furtherGuidebooks}
+        textColorScheme={furtherInformationSection?.content.text_color_scheme ?? 'dark'}
       />
       <WhatMakesUsSpecialSection section={programFeaturesSection} />
       <ProgramBenefitsSection section={programBenefitsSection} />
@@ -245,6 +246,7 @@ export default async function Home() {
           videoUrl={promoCTASection.content.video_url ?? undefined}
           videoTitle={promoCTASection.content.video_title ?? undefined}
           videoDescription={promoCTASection.content.video_description ?? undefined}
+          textColorScheme={promoCTASection.content.text_color_scheme ?? 'dark'}
         />
       )}
       <GetInTouchSection />

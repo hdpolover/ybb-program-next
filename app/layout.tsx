@@ -65,6 +65,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = await resolveBrandDomain();
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;
+  const iconVersion = encodeURIComponent(process.env.NEXT_PUBLIC_APP_BUILD_ID || 'development');
+  const iconUrl = `/icon?v=${iconVersion}`;
+  const appleIconUrl = `/apple-icon?v=${iconVersion}`;
 
   try {
     const data = await getHomePageData(host);
@@ -80,9 +83,9 @@ export async function generateMetadata(): Promise<Metadata> {
       authors: [{ name: 'YBB Team' }],
       creator: 'YBB Team',
       icons: {
-        icon: '/icon',
-        shortcut: '/icon',
-        apple: '/apple-icon',
+        icon: [{ url: iconUrl, type: 'image/png' }],
+        shortcut: [{ url: iconUrl, type: 'image/png' }],
+        apple: [{ url: appleIconUrl, type: 'image/png' }],
       },
       openGraph: {
         type: 'website',

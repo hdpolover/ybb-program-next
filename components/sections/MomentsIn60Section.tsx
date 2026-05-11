@@ -18,6 +18,8 @@ export default function MomentsIn60Section({ section }: Props) {
   const eyebrow = section?.content.eyebrow ?? 'Short Highlights';
   const title = section?.content.title ?? 'Discover Our Moments in 60 Seconds';
   const description = section?.content.description ?? "Japan Youth Summit's workshops, cultural night, and sessions — all captured in 60-second highlights straight from Osaka."
+  const colorScheme = section.content.text_color_scheme ?? 'dark';
+  const bgImageUrl = section.content.background_image_url?.trim() || componentsTheme.momentsShorts.cardBackground;
 
   const [startIndex, setStartIndex] = useState(0);
 
@@ -40,7 +42,7 @@ export default function MomentsIn60Section({ section }: Props) {
       <div
         className={componentsTheme.momentsShorts.card}
         style={{
-          backgroundImage: `url(${componentsTheme.momentsShorts.cardBackground})`,
+          backgroundImage: `url(${bgImageUrl})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -52,8 +54,9 @@ export default function MomentsIn60Section({ section }: Props) {
               eyebrow={eyebrow}
               title={title}
               align="left"
+              colorScheme={colorScheme}
             />
-            <p className={componentsTheme.momentsShorts.description}>
+            <p className={`${componentsTheme.momentsShorts.description} ${colorScheme === 'light' ? 'text-white/80' : ''}`}>
               {description}
             </p>
           </div>

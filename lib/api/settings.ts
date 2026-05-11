@@ -45,6 +45,7 @@ type BrandListItem = {
   deletedAt?: string | null;
   websiteUrl?: string | null;
   landingUrl?: string | null;
+  logoUrl?: string | null;
   logoIconUrl?: string | null;
   tagline?: string | null;
   description?: string | null;
@@ -65,7 +66,8 @@ async function fetchAvailableBrands(): Promise<NonNullable<SettingsData['availab
       name: brand.name,
       website_url: brand.websiteUrl ?? null,
       landing_url: brand.landingUrl ?? null,
-      logo_icon_url: brand.logoIconUrl ?? null,
+      logo_url: brand.logoUrl ?? null,
+      logo_icon_url: brand.logoIconUrl ?? brand.logoUrl ?? null,
       tagline: brand.tagline ?? null,
       description: brand.description ?? null,
       location: brand.location ?? null,

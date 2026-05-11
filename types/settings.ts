@@ -46,6 +46,7 @@ export type SettingsAvailableBrand = {
   name: string;
   website_url?: string | null;
   landing_url?: string | null;
+  logo_url?: string | null;
   logo_icon_url?: string | null;
   tagline?: string | null;
   description?: string | null;

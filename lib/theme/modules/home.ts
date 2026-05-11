@@ -41,9 +41,8 @@ export const homeTheme = {
     cardDescription: 'mt-2 text-sm leading-relaxed text-slate-600',
   },
   homeProgramBenefits: {
-    sectionWrapper: 'w-full bg-[#ffffff72] py-16 sm:py-20',
+    sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
     container: 'mx-auto max-w-6xl px-6 lg:px-8',
-    backgroundImage: '/img/bgshorts60.jpg',
     grid: 'mt-10 grid gap-6 md:grid-cols-2 md:gap-1',
     card: 'flex h-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white/95 text-sm text-slate-800 shadow-[0_10px_35px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/80 mx-auto',
     imageWrapper: 'relative -mx-0 -mt-0 mb-0 h-44 w-full overflow-hidden',

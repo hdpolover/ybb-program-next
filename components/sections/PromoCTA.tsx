@@ -12,6 +12,8 @@ export type PromoCTAProps = {
   videoUrl?: string;
   videoTitle?: string;
   videoDescription?: string;
+  /** 'dark' = dark text (default); 'light' = white text for dark/vivid backgrounds */
+  textColorScheme?: 'light' | 'dark';
 };
 
 export default function PromoCTA({
@@ -24,6 +26,7 @@ export default function PromoCTA({
   backgroundImageMobileUrl,
   videoUrl,
   videoTitle,
+  textColorScheme = 'dark',
 }: PromoCTAProps) {
   const resolvedPrimaryCtaHref = normalizeLandingCtaHref(primaryCtaHref);
   const resolvedDesktopBackground = backgroundImageUrl?.trim() || '/img/ctabekground.png';
@@ -31,6 +34,12 @@ export default function PromoCTA({
     backgroundImageMobileUrl?.trim() ||
     backgroundImageUrl?.trim() ||
     '/img/ctabackgroundformobile.png';
+
+  const eyebrowCls = textColorScheme === 'light'
+    ? 'text-white/80'
+    : componentsTheme.promoCta.eyebrow.replace(/text-\S+/g, '').trim() + ' text-slate-700';
+  const titleCls = textColorScheme === 'light' ? 'text-white' : 'text-slate-900';
+  const subtitleCls = textColorScheme === 'light' ? 'text-white/70' : 'text-slate-700';
 
   return (
     <section
@@ -50,14 +59,14 @@ export default function PromoCTA({
       <div className={componentsTheme.promoCta.container}>
         <div className={componentsTheme.promoCta.leftCol}>
           {eyebrow && (
-            <p className={`${componentsTheme.promoCta.eyebrow} break-words`}>
+            <p className={`text-sm font-semibold uppercase tracking-[0.18em] break-words ${eyebrowCls}`}>
               {eyebrow}
             </p>
           )}
-          <h2 className={`${componentsTheme.promoCta.title} break-words`}>
+          <h2 className={`text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl break-words ${titleCls}`}>
             {title}
           </h2>
-          <p className={`${componentsTheme.promoCta.subtitle} break-words`}>
+          <p className={`mt-4 max-w-xl break-words ${subtitleCls}`}>
             {subtitle}
           </p>
           <div className={componentsTheme.promoCta.actionsRow}>

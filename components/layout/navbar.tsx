@@ -49,6 +49,20 @@ type HomeApiResponse = {
   };
 };
 
+function pickCurrentProgramLogo(settings: ReturnType<typeof useSettings>['settings']): string | null {
+  return (
+    settings?.active_program?.logo_icon_url?.trim() ||
+    settings?.active_program?.logo_url?.trim() ||
+    settings?.brand?.logo_icon_url?.trim() ||
+    settings?.brand?.logo_url?.trim() ||
+    null
+  );
+}
+
+function pickAvailableBrandLogo(brand: SettingsAvailableBrand): string | null {
+  return brand.logo_icon_url?.trim() || brand.logo_url?.trim() || null;
+}
+
 function chunkItems<T>(items: T[], chunkSize: number): T[][] {
   if (chunkSize <= 0) return [items];
 
@@ -144,7 +158,7 @@ export function Navbar() {
     name: brand.name,
     href: toBrandProgramsHref(brand),
     host: extractHost(brand.landing_url || brand.website_url || ''),
-    logoIconUrl: brand.logo_icon_url?.trim() || null,
+    logoIconUrl: pickAvailableBrandLogo(brand),
     location:
       normalizeOptionalText(
         brand.location ||
@@ -382,6 +396,7 @@ export function Navbar() {
 
   const ctaHref = isAuthenticated ? '/dashboard' : '/login';
   const ctaLabel = isAuthenticated ? 'DASHBOARD' : 'REGISTER NOW';
+  const currentProgramLogo = pickCurrentProgramLogo(settings);
 
   const logoSrc =
     settings?.brand?.logo_url?.trim() ||
@@ -538,9 +553,9 @@ export function Navbar() {
                                   >
                                     <div className="flex items-start justify-between gap-4">
                                       <div className="flex min-w-0 items-center gap-3">
-                                        {settings?.brand?.logo_icon_url ? (
+                                        {currentProgramLogo ? (
                                           <Image
-                                            src={settings.brand.logo_icon_url}
+                                            src={currentProgramLogo}
                                             alt={`${settings?.brand?.name || 'Current Program'} logo`}
                                             width={52}
                                             height={52}

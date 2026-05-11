@@ -195,6 +195,9 @@ export type ProgramShortsSection = {
     title: string;
     description: string;
     items: { id: string; title: string | null; embed_url: string | null }[];
+    background_image_url?: string | null;
+    /** 'dark' = dark text (default); 'light' = white text for dark backgrounds */
+    text_color_scheme?: 'light' | 'dark';
   };
 };
 
@@ -223,6 +226,10 @@ export type ProgramBenefitsSection = {
     eyebrow: string;
     title: string;
     groups: { id: string; title: string; imageUrl: string; items: string[] }[];
+    background_image_url?: string | null;
+    background_image_mobile_url?: string | null;
+    /** 'dark' = dark text (default); 'light' = white text for dark backgrounds */
+    text_color_scheme?: 'light' | 'dark';
   };
 };
 
@@ -300,6 +307,8 @@ export type FurtherInformationSection = {
     background_image_url: string | null;
     background_image_mobile_url: string | null;
     mockup_image_url: string | null;
+    /** 'dark' = dark text (default); 'light' = white text for dark backgrounds */
+    text_color_scheme?: 'light' | 'dark';
   };
 };
 
@@ -316,6 +325,8 @@ export type PromoCTASection = {
     video_url: string | null;
     video_title: string | null;
     video_description: string | null;
+    /** 'dark' = dark text (default); 'light' = white text for dark backgrounds */
+    text_color_scheme?: 'light' | 'dark';
   };
 };
 

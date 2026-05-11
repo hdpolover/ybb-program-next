@@ -5,7 +5,7 @@ import { getSettingsForBrandDomain } from '@/lib/api/settings';
 type ProgramDestination = {
   id: string;
   name: string;
-  logoIconUrl: string | null;
+  logoUrl: string | null;
   href: string | null;
 };
 
@@ -41,6 +41,16 @@ function initial(name: string): string {
   return cleaned ? cleaned.charAt(0).toUpperCase() : '?';
 }
 
+function pickCurrentProgramLogo(settings: Awaited<ReturnType<typeof getSettingsForBrandDomain>>): string | null {
+  return (
+    settings?.active_program?.logo_icon_url?.trim() ||
+    settings?.active_program?.logo_url?.trim() ||
+    settings?.brand?.logo_icon_url?.trim() ||
+    settings?.brand?.logo_url?.trim() ||
+    null
+  );
+}
+
 function readSearchTerm(value: string | string[] | undefined): { raw: string; normalized: string } {
   const raw = Array.isArray(value) ? (value[0] || '').trim() : (value || '').trim();
   return { raw, normalized: raw.toLowerCase() };
@@ -53,7 +63,7 @@ export default async function DiscoverProgramsPage({ searchParams }: DiscoverPro
   const { raw: searchTerm, normalized: normalizedSearchTerm } = readSearchTerm(resolvedSearchParams.q);
 
   const currentName = settings?.brand?.name || 'Current Program';
-  const currentLogo = settings?.brand?.logo_icon_url || null;
+  const currentLogo = pickCurrentProgramLogo(settings);
   const normalizedCurrentHost = extractHost(host);
   const currentNameLower = currentName.trim().toLowerCase();
 
@@ -61,7 +71,7 @@ export default async function DiscoverProgramsPage({ searchParams }: DiscoverPro
     .map((entry) => ({
       id: entry.id,
       name: entry.name,
-      logoIconUrl: entry.logo_icon_url?.trim() || null,
+      logoUrl: entry.logo_icon_url?.trim() || entry.logo_url?.trim() || null,
       href: toProgramsHref(entry.landing_url || entry.website_url),
       host: extractHost(entry.landing_url || entry.website_url),
     }))
@@ -70,7 +80,12 @@ export default async function DiscoverProgramsPage({ searchParams }: DiscoverPro
       const sameName = entry.name.trim().toLowerCase() === currentNameLower;
       return !sameHost && !sameName;
     })
-    .map(({ host: _ignored, ...entry }) => entry);
+    .map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+      logoUrl: entry.logoUrl,
+      href: entry.href,
+    }));
 
   const filtered = normalizedSearchTerm
     ? others.filter((entry) => entry.name.toLowerCase().includes(normalizedSearchTerm))
@@ -139,9 +154,9 @@ export default async function DiscoverProgramsPage({ searchParams }: DiscoverPro
                   className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-[var(--brand-accent)] hover:bg-[var(--brand-accent-soft)]/50"
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    {entry.logoIconUrl ? (
+                    {entry.logoUrl ? (
                       <Image
-                        src={entry.logoIconUrl}
+                        src={entry.logoUrl}
                         alt={`${entry.name} logo`}
                         width={32}
                         height={32}
@@ -174,9 +189,9 @@ export default async function DiscoverProgramsPage({ searchParams }: DiscoverPro
                   className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-400"
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    {entry.logoIconUrl ? (
+                    {entry.logoUrl ? (
                       <Image
-                        src={entry.logoIconUrl}
+                        src={entry.logoUrl}
                         alt={`${entry.name} logo`}
                         width={32}
                         height={32}

@@ -25,7 +25,8 @@ export default async function AppleIcon() {
     const host = await resolveBrandDomain();
     const settings = await getSettingsForBrandDomain(host);
     const brandIconUrl = pickBrandAppleIconUrl(settings);
-    brandIconDataUrl = brandIconUrl ? await toDataUrl(brandIconUrl) : null;
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+    brandIconDataUrl = brandIconUrl ? await toDataUrl(brandIconUrl, `${protocol}://${host}`) : null;
   } catch {
     // Keep safe defaults if settings lookup fails.
   }

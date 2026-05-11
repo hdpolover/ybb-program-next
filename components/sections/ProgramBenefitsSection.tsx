@@ -18,22 +18,35 @@ export default function ProgramBenefitsSection({ section }: Props) {
   const eyebrow = section.content.eyebrow ?? 'Program Benefits';
   const title = section.content.title ?? 'for Students, University Students, and Professional';
   const groups = section.content.groups;
+  const colorScheme = section.content.text_color_scheme ?? 'dark';
+  const desktopBg = section.content.background_image_url?.trim() || null;
+  const mobileBg = section.content.background_image_mobile_url?.trim() || desktopBg;
 
   return (
     <section
       className={theme.sectionWrapper}
-      style={{
-        backgroundImage: `url('${theme.backgroundImage}')`,
+      style={desktopBg ? {
+        backgroundImage: `url('${desktopBg}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-      }}
+      } : undefined}
     >
-      <div className={theme.container}>
+      {/* Mobile background override */}
+      {mobileBg && mobileBg !== desktopBg && (
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
+          style={{ backgroundImage: `url('${mobileBg}')` }}
+          aria-hidden="true"
+        />
+      )}
+
+      <div className={`${theme.container} relative z-10`}>
         <SectionHeader
           eyebrow={eyebrow}
           title={title}
           align="center"
+          colorScheme={colorScheme}
         />
 
         <div className={theme.grid}>

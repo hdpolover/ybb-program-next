@@ -18,6 +18,8 @@ interface FurtherInformationProps {
   mobileBackgroundImageUrl?: string;
   mockupImageUrl?: string;
   guidebooks?: GuidelineLink[];
+  /** 'dark' = dark text (default); 'light' = white text for dark/vivid backgrounds */
+  textColorScheme?: 'light' | 'dark';
 }
 
 const DEFAULT_GUIDELINES: GuidelineLink[] = [
@@ -41,6 +43,7 @@ export default function FurtherInformationSection({
   mobileBackgroundImageUrl = '/img/backgroundformobile.png',
   mockupImageUrl = '/img/mockupjapan.png',
   guidebooks = DEFAULT_GUIDELINES,
+  textColorScheme = 'dark',
 }: FurtherInformationProps) {
   if (!guidebooks || guidebooks.length === 0 || guidebooks.every(g => !g.href || g.href === '#')) return null;
   const resolvedDesktopBackground = desktopBackgroundImageUrl?.trim() || '/img/halfback.png';
@@ -70,12 +73,12 @@ export default function FurtherInformationSection({
         <div className={componentsTheme.furtherInfo.innerGrid}>
           <div className={componentsTheme.furtherInfo.leftCol}>
             <div className="sm:hidden">
-              <SectionHeader eyebrow={eyebrow} title={title} align="center" />
+              <SectionHeader eyebrow={eyebrow} title={title} align="center" colorScheme={textColorScheme} />
             </div>
             <div className="hidden sm:block">
-              <SectionHeader eyebrow={eyebrow} title={title} align="left" />
+              <SectionHeader eyebrow={eyebrow} title={title} align="left" colorScheme={textColorScheme} />
             </div>
-            <p className={`${componentsTheme.furtherInfo.description} break-words`}>{subtitle}</p>
+            <p className={`${componentsTheme.furtherInfo.description} break-words ${textColorScheme === 'light' ? 'text-white/80' : ''}`}>{subtitle}</p>
 
             <div className={componentsTheme.furtherInfo.buttonsCol}>
               {guidebooks.map((link, index) => (

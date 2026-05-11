@@ -19,14 +19,14 @@ export function initialLetters(value: string | null | undefined): string {
 
 export function pickBrandIconUrl(settings: SettingsData | null | undefined): string | null {
   const candidates = [
-    settings?.brand?.favicon_url,
-    settings?.brand?.apple_icon_url,
-    settings?.brand?.logo_icon_url,
     settings?.active_program?.favicon_url,
     settings?.active_program?.apple_icon_url,
     settings?.active_program?.logo_icon_url,
-    settings?.brand?.logo_url,
     settings?.active_program?.logo_url,
+    settings?.brand?.favicon_url,
+    settings?.brand?.apple_icon_url,
+    settings?.brand?.logo_icon_url,
+    settings?.brand?.logo_url,
   ];
 
   for (const candidate of candidates) {
@@ -39,12 +39,12 @@ export function pickBrandIconUrl(settings: SettingsData | null | undefined): str
 
 export function pickBrandFaviconUrl(settings: SettingsData | null | undefined): string | null {
   const candidates = [
-    settings?.brand?.favicon_url,
     settings?.active_program?.favicon_url,
-    settings?.brand?.logo_icon_url,
     settings?.active_program?.logo_icon_url,
-    settings?.brand?.logo_url,
     settings?.active_program?.logo_url,
+    settings?.brand?.logo_icon_url,
+    settings?.brand?.favicon_url,
+    settings?.brand?.logo_url,
   ];
 
   for (const candidate of candidates) {
@@ -57,12 +57,12 @@ export function pickBrandFaviconUrl(settings: SettingsData | null | undefined): 
 
 export function pickBrandAppleIconUrl(settings: SettingsData | null | undefined): string | null {
   const candidates = [
-    settings?.brand?.apple_icon_url,
     settings?.active_program?.apple_icon_url,
-    settings?.brand?.logo_icon_url,
     settings?.active_program?.logo_icon_url,
-    settings?.brand?.logo_url,
     settings?.active_program?.logo_url,
+    settings?.brand?.logo_icon_url,
+    settings?.brand?.apple_icon_url,
+    settings?.brand?.logo_url,
   ];
 
   for (const candidate of candidates) {
@@ -73,9 +73,12 @@ export function pickBrandAppleIconUrl(settings: SettingsData | null | undefined)
   return null;
 }
 
-export async function toDataUrl(src: string): Promise<string | null> {
+export async function toDataUrl(src: string, baseUrl?: string): Promise<string | null> {
   try {
-    const response = await fetch(src, { cache: 'no-store' });
+    const url = resolveAssetUrl(src, baseUrl);
+    if (!url) return null;
+
+    const response = await fetch(url, { cache: 'no-store' });
     if (!response.ok) return null;
 
     const contentType = response.headers.get('content-type') || 'image/png';
@@ -85,4 +88,13 @@ export async function toDataUrl(src: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+function resolveAssetUrl(src: string, baseUrl?: string): string | null {
+  const raw = src.trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('//')) return `https:${raw}`;
+  if (raw.startsWith('/') && baseUrl) return new URL(raw, baseUrl).toString();
+  return null;
 }
