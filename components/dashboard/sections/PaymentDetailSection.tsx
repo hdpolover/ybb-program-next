@@ -141,9 +141,55 @@ function isUnknownMethod(value: string | null | undefined): boolean {
   return !normalized || normalized === 'unknown' || normalized === 'n/a' || normalized === '-';
 }
 
-function toMethodDisplayLabel(value: string | null | undefined): string {
-  if (isUnknownMethod(value)) return '';
-  return toTitleCaseFromToken(value);
+interface PaymentMethodMeta {
+  code: string;
+  displayName: string;
+  icon: string | null;
+}
+
+function toPaymentMethodMeta(value: unknown): PaymentMethodMeta | null {
+  if (!isRecord(value)) return null;
+  const code = typeof value.code === 'string' && value.code.trim().length > 0 ? value.code.trim() : null;
+  if (!code) return null;
+  const displayName =
+    typeof value.display_name === 'string' && value.display_name.trim().length > 0
+      ? value.display_name.trim()
+      : code;
+  const icon =
+    typeof value.icon === 'string' && value.icon.trim().length > 0 ? value.icon.trim() : null;
+  return { code, displayName, icon };
+}
+
+function normalizePaymentMethodPayload(payload: unknown): PaymentMethodMeta[] {
+  const source = Array.isArray(payload)
+    ? payload
+    : isRecord(payload) && Array.isArray(payload.data)
+      ? payload.data
+      : isRecord(payload) && Array.isArray(payload.methods)
+        ? payload.methods
+        : [];
+  return source
+    .map(toPaymentMethodMeta)
+    .filter((m): m is PaymentMethodMeta => m !== null);
+}
+
+function buildMethodCatalog(methods: PaymentMethodMeta[]): Map<string, PaymentMethodMeta> {
+  return new Map(methods.map(m => [m.code.toLowerCase(), m]));
+}
+
+// Resolve a raw method token (typically a code like "mandiri_gm84xd") into the
+// admin-curated display name + icon, falling back to a title-cased token when
+// the catalog has nothing for it. Centralized so pending submission and history
+// share the same rendering rules.
+function resolveMethodMeta(
+  raw: string | null | undefined,
+  catalog: Map<string, PaymentMethodMeta>,
+): { label: string; icon: string | null } {
+  if (isUnknownMethod(raw)) return { label: '', icon: null };
+  const token = String(raw).trim();
+  const match = catalog.get(token.toLowerCase());
+  if (match) return { label: match.displayName, icon: match.icon };
+  return { label: toTitleCaseFromToken(token), icon: null };
 }
 
 function normalizeInvoiceStatus(value: unknown): InvoiceData['status'] {
@@ -305,6 +351,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   );
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodMeta[]>([]);
   const [loading, setLoading] = useState(paymentPreview === null);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -396,6 +443,29 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
       cancelled = true;
     };
   }, [paymentId]);
+
+  // Fetch the admin-managed payment method catalog so we can render proper
+  // display names + icons instead of raw codes like "mandiri_gm84xd".
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/portal/payment-methods', { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = (await res.json().catch(() => null)) as unknown;
+        const payload = getEnvelopeData(json);
+        const methods = normalizePaymentMethodPayload(payload);
+        if (!cancelled) setPaymentMethods(methods);
+      } catch {
+        // Catalog is enhancement-only; fall back to title-cased token on failure.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const methodCatalog = buildMethodCatalog(paymentMethods);
 
   if (loading) {
     return <PaymentPageSkeleton variant="payment-detail" />;
@@ -490,7 +560,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
             : h.status === 'processing'
               ? 'Payment Update'
               : 'Payment Created',
-    method: toMethodDisplayLabel(h.method),
+    method: resolveMethodMeta(h.method, methodCatalog).label,
     amountLabel: h.amountLabel ?? formatInvoiceAmount(h.amount),
     date: h.dateTime ? formatDateLabel(h.dateTime) : formatDateLabel(h.date),
     time: h.dateTime ? formatTimeLabel(h.dateTime) : h.time,
@@ -504,7 +574,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     details: {
       invoiceId: h.invoiceId ?? invoice?.id ?? paymentId,
       transactionId: h.transactionId ?? h.code ?? `TR-${h.id}`,
-      paymentMethod: toMethodDisplayLabel(h.paymentMethod ?? h.method) || 'Not specified',
+      paymentMethod: resolveMethodMeta(h.paymentMethod ?? h.method, methodCatalog).label || 'Not specified',
       dateTime: h.paymentDate
         ? formatDateLabel(h.paymentDate)
         : h.dateTime
@@ -638,6 +708,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
             <PendingSubmissionCard
               submission={invoice.pendingSubmission}
               fallbackDateLabel={formatDateLabel}
+              methodCatalog={methodCatalog}
             />
           ) : null}
 
@@ -818,10 +889,12 @@ function TagRow({ label, tag, icon }: TagRowProps) {
 interface PendingSubmissionCardProps {
   submission: PendingSubmissionData;
   fallbackDateLabel: (value?: string | null) => string;
+  methodCatalog: Map<string, PaymentMethodMeta>;
 }
 
-function PendingSubmissionCard({ submission, fallbackDateLabel }: PendingSubmissionCardProps) {
-  const paymentMethodLabel = toMethodDisplayLabel(submission.paymentMethod) || 'Not specified';
+function PendingSubmissionCard({ submission, fallbackDateLabel, methodCatalog }: PendingSubmissionCardProps) {
+  const methodMeta = resolveMethodMeta(submission.paymentMethod, methodCatalog);
+  const paymentMethodLabel = methodMeta.label || 'Not specified';
   const paymentDateLabel = submission.paymentDate
     ? fallbackDateLabel(submission.paymentDate)
     : 'Not provided';
@@ -845,11 +918,25 @@ function PendingSubmissionCard({ submission, fallbackDateLabel }: PendingSubmiss
       </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <InfoRow
-          label="Payment Method"
-          value={paymentMethodLabel}
-          icon={<Wallet className="h-4 w-4" />}
-        />
+        <div className="flex gap-3">
+          <div className="mt-1 text-primary">
+            <Wallet className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Payment Method</p>
+            <div className="mt-1 flex items-center gap-2">
+              {methodMeta.icon ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={methodMeta.icon}
+                  alt={paymentMethodLabel}
+                  className="h-5 w-5 rounded object-contain"
+                />
+              ) : null}
+              <p className="text-sm text-slate-700">{paymentMethodLabel}</p>
+            </div>
+          </div>
+        </div>
         <InfoRow
           label="Source / Account"
           value={submission.sourceName || 'Not provided'}
