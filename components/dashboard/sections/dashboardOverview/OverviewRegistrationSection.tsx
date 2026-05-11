@@ -211,16 +211,29 @@ export default function OverviewRegistrationSection() {
               </h2>
             </div>
 
-            <p className="mb-4 text-sm text-slate-600">
-              You are about to switch your registration category from{" "}
+            <p className="mb-3 text-sm text-slate-600">
+              This will switch your registration category from{" "}
               <span className="font-medium capitalize">{currentCategory?.replace("_", " ")}</span> to{" "}
-              <span className="font-medium">{switchTargetLabel}</span>. This will change your payment
-              requirements and program participation terms.
+              <span className="font-medium">{switchTargetLabel}</span>. Your payment requirements and
+              program participation terms will change accordingly.
             </p>
 
-            <p className="mb-6 text-sm font-medium text-slate-700">
-              This action cannot be undone if you have existing payments.
-            </p>
+            <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              <p className="mb-2 font-semibold">What happens to your existing payments</p>
+              <ul className="ml-4 list-disc space-y-1 text-xs">
+                <li>
+                  Any <span className="font-medium">unpaid</span> invoices on your current category will
+                  be automatically <span className="font-medium">cancelled</span>.
+                </li>
+                <li>
+                  Payments that are <span className="font-medium">processing</span> (awaiting admin
+                  verification) will block the switch — cancel them from the Payments page first.
+                </li>
+                <li>
+                  Already <span className="font-medium">paid</span> payments will block the switch.
+                </li>
+              </ul>
+            </div>
 
             {error && (
               <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>
