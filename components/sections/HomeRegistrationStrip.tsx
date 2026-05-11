@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
-import Image from 'next/image';
 import { componentsTheme } from '@/lib/theme/components';
 
 type InstagramFeedItem = {
@@ -200,7 +199,7 @@ function extractInstagramPermalink(input?: string | null): string | null {
 
 function buildInstagramEmbedHtml(permalink: string): string {
   const safePermalink = escapeHtml(permalink);
-  return `<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${safePermalink}" data-instgrm-version="14"><a href="${safePermalink}" target="_blank" rel="noreferrer">View this post on Instagram</a></blockquote>`;
+  return `<blockquote class="instagram-media" data-instgrm-permalink="${safePermalink}" data-instgrm-version="14"><a href="${safePermalink}" target="_blank" rel="noreferrer">View this post on Instagram</a></blockquote>`;
 }
 
 function resolveInstagramEmbedPermalink(post: InstagramFeedItem | null): string | null {
@@ -210,14 +209,6 @@ function resolveInstagramEmbedPermalink(post: InstagramFeedItem | null): string 
     extractInstagramPermalink(post.embedHtml) ??
     extractInstagramPermalink(post.imageUrl) ??
     extractInstagramPermalink(post.permalink)
-  );
-}
-
-function hasExplicitInstagramEmbed(post: InstagramFeedItem | null): boolean {
-  if (!post) return false;
-  return Boolean(
-    extractInstagramPermalink(post.embedHtml) ||
-      extractInstagramPermalink(post.imageUrl),
   );
 }
 
@@ -234,12 +225,8 @@ export default function HomeRegistrationStrip({
   registrationTypes,
   guidelines,
 }: HomeRegistrationStripProps) {
-  if (!registrationTypes || registrationTypes.length === 0) return null;
-  const [currentNow, setCurrentNow] = useState<Date | null>(null);
-
-  useEffect(() => {
-    setCurrentNow(new Date());
-  }, []);
+  const safeRegistrationTypes = registrationTypes ?? [];
+  const [currentNow] = useState<Date>(() => new Date());
 
   const posts = useMemo(
     () =>
@@ -250,7 +237,6 @@ export default function HomeRegistrationStrip({
     [igFeed],
   );
   const [activePostIndex, setActivePostIndex] = useState(0);
-  const [fallbackImageFailed, setFallbackImageFailed] = useState(false);
   const [descriptionDialog, setDescriptionDialog] = useState<{
     title: string;
     descriptionHtml: string;
@@ -264,11 +250,6 @@ export default function HomeRegistrationStrip({
   const [showSecondaryReadDetails, setShowSecondaryReadDetails] = useState(false);
 
   useEffect(() => {
-    setActivePostIndex(0);
-    setFallbackImageFailed(false);
-  }, [posts.length]);
-
-  useEffect(() => {
     if (posts.length <= 1) return;
 
     const timer = window.setInterval(() => {
@@ -278,23 +259,16 @@ export default function HomeRegistrationStrip({
     return () => window.clearInterval(timer);
   }, [posts.length]);
 
-  useEffect(() => {
-    setFallbackImageFailed(false);
-  }, [activePostIndex, posts]);
-
-  const activePost = posts[activePostIndex] ?? null;
+  const normalizedActivePostIndex =
+    activePostIndex >= 0 && activePostIndex < posts.length ? activePostIndex : 0;
+  const activePost = posts[normalizedActivePostIndex] ?? null;
   const activePostEmbedPermalink = resolveInstagramEmbedPermalink(activePost);
-  const showInstagramEmbed =
-    Boolean(activePostEmbedPermalink) &&
-    (hasExplicitInstagramEmbed(activePost) ||
-      fallbackImageFailed ||
-      !activePost?.imageUrl?.trim());
   const activePostEmbedHtml = activePostEmbedPermalink
     ? buildInstagramEmbedHtml(activePostEmbedPermalink)
     : '';
 
   useEffect(() => {
-    if (!showInstagramEmbed) return;
+    if (!activePostEmbedHtml) return;
 
     const processEmbeds = () => {
       (window as InstagramWindow).instgrm?.Embeds?.process();
@@ -319,7 +293,7 @@ export default function HomeRegistrationStrip({
       window.cancelAnimationFrame(frameId);
       script.onload = null;
     };
-  }, [showInstagramEmbed]);
+  }, [activePostEmbedHtml]);
 
   useEffect(() => {
     if (!descriptionDialog) return;
@@ -338,7 +312,7 @@ export default function HomeRegistrationStrip({
     };
   }, [descriptionDialog]);
 
-  const registrationFeeTypes = registrationTypes.filter(isRegistrationFeeTier);
+  const registrationFeeTypes = safeRegistrationTypes.filter(isRegistrationFeeTier);
   const primaryType = pickRegistrationTier(registrationFeeTypes, 'self_funded');
   const secondaryType = pickRegistrationTier(registrationFeeTypes, 'fully_funded', primaryType?.id);
   const primaryDescriptionHtml = toRichHtml(primaryType?.description);
@@ -391,6 +365,8 @@ export default function HomeRegistrationStrip({
     return () => window.removeEventListener('resize', checkOverflow);
   }, [primaryDescriptionHtml, secondaryDescriptionHtml, primaryRequirements, secondaryRequirements, primaryBenefits, secondaryBenefits]);
 
+  if (safeRegistrationTypes.length === 0) return null;
+
   return (
     <section className={`${componentsTheme.homeRegistration.sectionWrapper} overflow-x-hidden`}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -399,42 +375,15 @@ export default function HomeRegistrationStrip({
             <div className={`${componentsTheme.homeRegistration.instagramCard} flex min-h-0 flex-1 flex-col p-0`}>
               {activePost ? (
                 <div className="flex h-full min-h-0 flex-col p-4">
-                  {showInstagramEmbed ? (
+                  {activePostEmbedHtml ? (
                     <div className="flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                      <div className="flex h-[420px] items-start justify-center overflow-y-auto bg-white p-2 sm:h-[500px] sm:p-3 lg:h-[540px]">
+                      <div className="flex h-[340px] items-start justify-center overflow-y-auto bg-white p-2 sm:h-[400px] sm:p-3 lg:h-[440px]">
                         <div
                           className="w-full [&_.instagram-media]:!m-0 [&_.instagram-media]:!w-full [&_.instagram-media]:!max-w-none [&_.instagram-media]:!min-w-0 [&_.instagram-media]:!rounded-none [&_.instagram-media]:!border-0 [&_.instagram-media]:!shadow-none [&_iframe]:!w-full"
                           dangerouslySetInnerHTML={{ __html: activePostEmbedHtml }}
                         />
                       </div>
                     </div>
-                  ) : activePost.imageUrl?.trim() && !fallbackImageFailed ? (
-                    <a
-                      href={activePost.permalink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group block flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white"
-                    >
-                      <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100 lg:h-full lg:min-h-[420px] lg:aspect-auto">
-                        <Image
-                          src={activePost.imageUrl}
-                          alt={activePost.caption || 'Instagram post'}
-                          fill
-                          sizes="(min-width: 1280px) 420px, (min-width: 1024px) 34vw, 100vw"
-                          className="object-cover transition duration-500 group-hover:scale-[1.03]"
-                          unoptimized={activePost.imageUrl.startsWith('http')}
-                          onError={() => setFallbackImageFailed(true)}
-                        />
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-transparent p-4">
-                          <div className="inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-900">
-                            Instagram
-                          </div>
-                          <p className="mt-3 line-clamp-3 text-sm font-medium text-white">
-                            {activePost.caption?.trim() || 'Open this post on Instagram'}
-                          </p>
-                        </div>
-                      </div>
-                    </a>
                   ) : (
                     <a
                       href={activePost.permalink}
@@ -460,7 +409,7 @@ export default function HomeRegistrationStrip({
                           aria-label={`Show Instagram post ${index + 1}`}
                           onClick={() => setActivePostIndex(index)}
                           className={`h-2.5 rounded-full transition-all ${
-                            index === activePostIndex ? 'w-7 bg-primary' : 'w-2.5 bg-slate-300 hover:bg-slate-400'
+                            index === normalizedActivePostIndex ? 'w-7 bg-primary' : 'w-2.5 bg-slate-300 hover:bg-slate-400'
                           }`}
                         />
                       ))}
