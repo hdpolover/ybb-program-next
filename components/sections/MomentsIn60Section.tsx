@@ -19,7 +19,7 @@ export default function MomentsIn60Section({ section }: Props) {
   const title = section?.content.title ?? 'Discover Our Moments in 60 Seconds';
   const description = section?.content.description ?? "Japan Youth Summit's workshops, cultural night, and sessions — all captured in 60-second highlights straight from Osaka."
   const colorScheme = section.content.text_color_scheme ?? 'dark';
-  const bgImageUrl = section.content.background_image_url?.trim() || componentsTheme.momentsShorts.cardBackground;
+  const bgImageUrl = section.content.background_image_url?.trim() || undefined;
 
   const [startIndex, setStartIndex] = useState(0);
 
@@ -41,12 +41,12 @@ export default function MomentsIn60Section({ section }: Props) {
     <section className={componentsTheme.momentsShorts.sectionWrapper}>
       <div
         className={componentsTheme.momentsShorts.card}
-        style={{
+        style={bgImageUrl ? {
           backgroundImage: `url(${bgImageUrl})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-        }}
+        } : undefined}
       >
         <div className="grid grid-cols-1 items-center gap-8 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)]">
           <div>

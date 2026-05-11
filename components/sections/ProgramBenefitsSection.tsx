@@ -53,15 +53,19 @@ export default function ProgramBenefitsSection({ section }: Props) {
           {groups.map(group => (
             <article key={group.id} className={theme.card}>
               <div className={theme.imageWrapper}>
-                <Image
-                  src={group.imageUrl || '/img/programoverview.png'}
-                  alt={group.title}
-                  fill={false}
-                  width={640}
-                  height={360}
-                  className={theme.image}
-                  unoptimized={group.imageUrl?.startsWith('http')}
-                />
+                {group.imageUrl ? (
+                  <Image
+                    src={group.imageUrl}
+                    alt={group.title}
+                    fill={false}
+                    width={640}
+                    height={360}
+                    className={theme.image}
+                    unoptimized={group.imageUrl?.startsWith('http')}
+                  />
+                ) : (
+                  <div className="h-full w-full bg-primary/10" />
+                )}
               </div>
               <h3 className={theme.cardTitle}>{group.title}</h3>
               <ul className={theme.list}>

@@ -2,7 +2,7 @@ export const homeTheme = {
   momentsShorts: {
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-20 sm:py-24',
     card: 'mx-auto max-w-7xl overflow-hidden rounded-3xl px-6 py-12 text-accent-foreground shadow-[0_18px_60px_rgba(15,23,42,0.35)] sm:px-10 lg:px-16',
-    cardBackground: '/img/bgshorts60.jpg',
+    cardBackground: undefined as string | undefined,
     title: 'text-2xl font-extrabold leading-tight text-slate-900 sm:text-3xl lg:text-4xl',
     description: 'mt-3 max-w-md text-sm leading-relaxed text-slate-900/90 sm:text-base lg:text-lg',
     shortsRow:
@@ -206,7 +206,7 @@ export const homeTheme = {
     ctaButton:
       'inline-flex items-center justify-center rounded-md bg-[var(--brand-accent)] px-5 py-3 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:ring-offset-2',
     sectionWrapper:
-      "relative min-h-[520px] w-full bg-[url('/img/bgourprogram.png')] bg-cover bg-center bg-no-repeat py-20 sm:py-20",
+      'relative min-h-[520px] w-full py-20 sm:py-20',
     blurTop:
       'pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-[var(--brand-accent-soft)]/60 blur-2xl',
     blurBottom:

@@ -41,14 +41,14 @@ export default function FurtherInformationSection({
   subtitle = 'The complete information regarding this program can be seen in the guideline below.',
   desktopBackgroundImageUrl,
   mobileBackgroundImageUrl,
-  mockupImageUrl = '/img/mockupjapan.png',
+  mockupImageUrl,
   guidebooks = DEFAULT_GUIDELINES,
   textColorScheme = 'dark',
 }: FurtherInformationProps) {
   if (!guidebooks || guidebooks.length === 0 || guidebooks.every(g => !g.href || g.href === '#')) return null;
   const resolvedDesktopBackground = desktopBackgroundImageUrl?.trim() || undefined;
   const resolvedMobileBackground = mobileBackgroundImageUrl?.trim() || resolvedDesktopBackground;
-  const resolvedMockupImage = mockupImageUrl?.trim() || '/img/mockupjapan.png';
+  const resolvedMockupImage = mockupImageUrl?.trim() || undefined;
   return (
     <section
       className={`${componentsTheme.furtherInfo.sectionWrapper} min-h-[760px] overflow-hidden py-14 sm:min-h-0 sm:py-28`}

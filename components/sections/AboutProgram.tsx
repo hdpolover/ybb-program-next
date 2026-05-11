@@ -10,15 +10,16 @@ type AboutProgramProps = {
   vision?: string;
   mission?: string;
   images?: { url: string; caption?: string }[];
+  backgroundImageUrl?: string;
 };
 
-export default function AboutProgram({ about, vision, mission, images }: AboutProgramProps) {
+export default function AboutProgram({ about, vision, mission, images, backgroundImageUrl }: AboutProgramProps) {
   const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
-  const imageMain = images?.[0]?.url ?? '/img/programoverview.png';
-  const imageSecondary = images?.[1]?.url ?? '/img/bgprogramoverview.png';
-  const imageThird = images?.[2]?.url ?? '/img/programoverview.png';
+  const imageMain = images?.[0]?.url;
+  const imageSecondary = images?.[1]?.url;
+  const imageThird = images?.[2]?.url;
   const ABOUT_PREVIEW_MAX_CHARS = 520;
 
   const isHtmlContent = (value?: string) => {
@@ -83,7 +84,10 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
   }, [isAboutModalOpen]);
 
   return (
-    <section className={componentsTheme.aboutProgram.sectionWrapper}>
+    <section
+      className={componentsTheme.aboutProgram.sectionWrapper}
+      style={backgroundImageUrl ? { backgroundImage: `url(${backgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}
+    >
       <div className={componentsTheme.aboutProgram.blurTop} />
       <div className={componentsTheme.aboutProgram.blurBottom} />
       <div className={componentsTheme.aboutProgram.container}>
@@ -172,37 +176,49 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
                 <div
                   className={`${componentsTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
                 >
-                  <Image
-                    src={imageMain}
-                    alt="Japan Youth Summit main program"
-                    fill
-                    sizes="(min-width:1024px) 420px, 100vw"
-                    className={componentsTheme.aboutProgram.collageImage}
-                  />
+                  {imageMain ? (
+                    <Image
+                      src={imageMain}
+                      alt="Japan Youth Summit main program"
+                      fill
+                      sizes="(min-width:1024px) 420px, 100vw"
+                      className={componentsTheme.aboutProgram.collageImage}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
+                  )}
                 </div>
 
                 {/* Dua gambar kecil kanan */}
                 <div
                   className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
                 >
-                  <Image
-                    src={imageSecondary}
-                    alt="Japan Youth Summit activity"
-                    fill
-                    sizes="(min-width:1024px) 260px, 50vw"
-                    className={componentsTheme.aboutProgram.collageImage}
-                  />
+                  {imageSecondary ? (
+                    <Image
+                      src={imageSecondary}
+                      alt="Japan Youth Summit activity"
+                      fill
+                      sizes="(min-width:1024px) 260px, 50vw"
+                      className={componentsTheme.aboutProgram.collageImage}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
+                  )}
                 </div>
                 <div
                   className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
                 >
-                  <Image
-                    src={imageThird}
-                    alt="Japan Youth Summit highlight"
-                    fill
-                    sizes="(min-width:1024px) 260px, 50vw"
-                    className={componentsTheme.aboutProgram.collageImage}
-                  />
+                  {imageThird ? (
+                    <Image
+                      src={imageThird}
+                      alt="Japan Youth Summit highlight"
+                      fill
+                      sizes="(min-width:1024px) 260px, 50vw"
+                      className={componentsTheme.aboutProgram.collageImage}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
+                  )}
                 </div>
               </div>
             </div>
@@ -227,36 +243,48 @@ export default function AboutProgram({ about, vision, mission, images }: AboutPr
                 <div
                   className={`${componentsTheme.aboutProgram.collageLargeCard} col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto`}
                 >
-                  <Image
-                    src={imageMain}
-                    alt="Japan Youth Summit main program"
-                    fill
-                    sizes="100vw"
-                    className={componentsTheme.aboutProgram.collageImage}
-                  />
+                  {imageMain ? (
+                    <Image
+                      src={imageMain}
+                      alt="Japan Youth Summit main program"
+                      fill
+                      sizes="100vw"
+                      className={componentsTheme.aboutProgram.collageImage}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
+                  )}
                 </div>
 
                 <div
                   className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-1 sm:col-start-auto sm:row-start-auto`}
                 >
-                  <Image
-                    src={imageSecondary}
-                    alt="Japan Youth Summit activity"
-                    fill
-                    sizes="50vw"
-                    className={componentsTheme.aboutProgram.collageImage}
-                  />
+                  {imageSecondary ? (
+                    <Image
+                      src={imageSecondary}
+                      alt="Japan Youth Summit activity"
+                      fill
+                      sizes="50vw"
+                      className={componentsTheme.aboutProgram.collageImage}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
+                  )}
                 </div>
                 <div
                   className={`${componentsTheme.aboutProgram.collageSmallCard} col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto`}
                 >
-                  <Image
-                    src={imageThird}
-                    alt="Japan Youth Summit highlight"
-                    fill
-                    sizes="50vw"
-                    className={componentsTheme.aboutProgram.collageImage}
-                  />
+                  {imageThird ? (
+                    <Image
+                      src={imageThird}
+                      alt="Japan Youth Summit highlight"
+                      fill
+                      sizes="50vw"
+                      className={componentsTheme.aboutProgram.collageImage}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
+                  )}
                 </div>
               </div>
             </div>

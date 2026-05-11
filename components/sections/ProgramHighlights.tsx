@@ -67,13 +67,7 @@ export default function ProgramHighlights({
                       className="object-cover"
                     />
                   ) : (
-                    <Image
-                      src="/img/programhighlight1.jpg"
-                      alt="Delegates during program sessions"
-                      fill
-                      sizes="(min-width:1024px) 420px, 100vw"
-                      className="object-cover"
-                    />
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
                   )}
                 </div>
 
@@ -90,13 +84,7 @@ export default function ProgramHighlights({
                       className="object-cover"
                     />
                   ) : (
-                    <Image
-                      src="/img/programoverview.png"
-                      alt="Overview of program"
-                      fill
-                      sizes="(min-width:1024px) 260px, 50vw"
-                      className="object-cover"
-                    />
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
                   )}
                 </div>
                 <div
@@ -111,13 +99,7 @@ export default function ProgramHighlights({
                       className="object-cover"
                     />
                   ) : (
-                    <Image
-                      src="/img/benefits.png"
-                      alt="Benefits and networking opportunities for delegates"
-                      fill
-                      sizes="(min-width:1024px) 260px, 50vw"
-                      className="object-cover"
-                    />
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
                   )}
                 </div>
               </div>

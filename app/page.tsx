@@ -178,6 +178,7 @@ export default async function Home() {
         vision={programOverviewSection?.content.vision_mission.vision}
         mission={programOverviewSection?.content.vision_mission.mission}
         images={(programHighlightsSection?.content.gallery ?? programHighlightsSection?.content.image_gallery)?.slice(0, 3).map(img => ({ url: img.url, caption: img.caption }))}
+        backgroundImageUrl={programOverviewSection?.content.background_image_url}
       />
       <ProgramHighlights
         imageGallery={objectivesImageGallery}

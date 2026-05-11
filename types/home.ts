@@ -74,6 +74,7 @@ export type ProgramOverviewSection = {
       vision: string;
       mission: string;
     };
+    background_image_url?: string;
   };
 };
 
