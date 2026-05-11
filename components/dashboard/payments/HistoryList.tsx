@@ -36,6 +36,37 @@ function isUnknownMethod(value?: string | null) {
   return !normalized || normalized === "unknown" || normalized === "n/a" || normalized === "-";
 }
 
+// Stacked label/value cell used inside the transaction details drawer.
+// `mono` formats values like IDs in a monospace face so long hashes wrap
+// predictably. `emphasis` gives the amount slightly more weight so it
+// reads as the headline value of the Payment Information group.
+function Field({
+  label,
+  value,
+  mono,
+  emphasis,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  emphasis?: boolean;
+}) {
+  return (
+    <div>
+      <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+        {label}
+      </dt>
+      <dd
+        className={`mt-1 break-words text-slate-900 ${mono ? 'font-mono text-[13px]' : 'text-sm'} ${
+          emphasis ? 'text-base font-bold' : ''
+        }`}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
 export default function HistoryList({
   items,
   pageSize = 2,
@@ -79,52 +110,48 @@ export default function HistoryList({
           <div className="space-y-4">
             <p className="text-base font-extrabold text-slate-900">Transaction Details</p>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="grid gap-6 md:grid-cols-2">
+              <section className="space-y-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
                   Transaction Information
                 </p>
-                <div className={paymentsTheme.historyModalSectionBody}>
+                <dl className="space-y-3.5">
                   {active.details?.invoiceId ? (
-                    <div>
-                      <span className="font-semibold">Invoice ID:</span>{" "}
-                      {active.details.invoiceId}
-                    </div>
+                    <Field label="Invoice ID" value={active.details.invoiceId} mono />
                   ) : null}
-                  <div>
-                    <span className="font-semibold">Transaction ID:</span>{" "}
-                    {active.details?.transactionId ?? '-'}
-                  </div>
-                  <div>
-                    <span className="font-semibold">Payment Method:</span>{" "}
-                    {isUnknownMethod(active.details?.paymentMethod ?? active.method)
-                      ? "Not specified"
-                      : (active.details?.paymentMethod ?? active.method)}
-                  </div>
-                  <div>
-                    <span className="font-semibold">Date:</span>{" "}
-                    {active.details?.dateTime ?? `${active.date} ${active.time}`}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <Field
+                    label="Transaction ID"
+                    value={active.details?.transactionId ?? '-'}
+                    mono
+                  />
+                  <Field
+                    label="Payment Method"
+                    value={
+                      isUnknownMethod(active.details?.paymentMethod ?? active.method)
+                        ? 'Not specified'
+                        : (active.details?.paymentMethod ?? active.method)
+                    }
+                  />
+                  <Field
+                    label="Date"
+                    value={active.details?.dateTime ?? `${active.date} ${active.time}`}
+                  />
+                </dl>
+              </section>
+              <section className="space-y-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
                   Payment Information
                 </p>
-                <div className={paymentsTheme.historyModalSectionBody}>
-                  <div>
-                    <span className="font-semibold">Account Name:</span>{" "}
-                    {active.details?.accountName ?? '-'}
-                  </div>
-                  <div>
-                    <span className="font-semibold">Amount:</span>{" "}
-                    {active.details?.amountLabel ?? active.amountLabel}
-                  </div>
-                  <div>
-                    <span className="font-semibold">Source:</span> {active.details?.source ?? '-'}
-                  </div>
-                </div>
-              </div>
+                <dl className="space-y-3.5">
+                  <Field label="Account Name" value={active.details?.accountName || '-'} />
+                  <Field
+                    label="Amount"
+                    value={active.details?.amountLabel ?? active.amountLabel}
+                    emphasis
+                  />
+                  <Field label="Source" value={active.details?.source || '-'} />
+                </dl>
+              </section>
             </div>
 
             <div>

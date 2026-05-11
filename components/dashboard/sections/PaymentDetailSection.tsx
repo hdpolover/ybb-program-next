@@ -57,6 +57,12 @@ interface InvoiceData {
   currency?: string;
   transactionId?: string;
   intentId?: string;
+  // Dual-price snapshots taken at intent creation. Used to override the
+  // canonical display when a legacy manual invoice still carries USD as its
+  // amount/currency — the participant actually wired the IDR snapshot.
+  usdPrice?: number;
+  idrPrice?: number;
+  paymentMethod?: string;
   pendingSubmission?: PendingSubmissionData;
 }
 
@@ -145,6 +151,9 @@ interface PaymentMethodMeta {
   code: string;
   displayName: string;
   icon: string | null;
+  // 'manual' = bank transfer with proof upload, 'automatic' = gateway-routed.
+  // Used to decide whether to render a legacy USD invoice in its IDR snapshot.
+  type: 'manual' | 'automatic' | null;
 }
 
 function toPaymentMethodMeta(value: unknown): PaymentMethodMeta | null {
@@ -157,7 +166,10 @@ function toPaymentMethodMeta(value: unknown): PaymentMethodMeta | null {
       : code;
   const icon =
     typeof value.icon === 'string' && value.icon.trim().length > 0 ? value.icon.trim() : null;
-  return { code, displayName, icon };
+  const rawType = typeof value.type === 'string' ? value.type.trim().toLowerCase() : '';
+  const type: PaymentMethodMeta['type'] =
+    rawType === 'manual' ? 'manual' : rawType === 'automatic' ? 'automatic' : null;
+  return { code, displayName, icon, type };
 }
 
 function normalizePaymentMethodPayload(payload: unknown): PaymentMethodMeta[] {
@@ -307,6 +319,18 @@ function toInvoiceData(value: unknown): InvoiceData | null {
     currency: typeof value.currency === 'string' ? value.currency.toUpperCase() : 'USD',
     transactionId: typeof value.transactionId === 'string' ? value.transactionId : undefined,
     intentId: typeof value.intentId === 'string' ? value.intentId : undefined,
+    usdPrice:
+      typeof value.usdPrice === 'number' && Number.isFinite(value.usdPrice)
+        ? value.usdPrice
+        : undefined,
+    idrPrice:
+      typeof value.idrPrice === 'number' && Number.isFinite(value.idrPrice)
+        ? value.idrPrice
+        : undefined,
+    paymentMethod:
+      typeof value.paymentMethod === 'string' && value.paymentMethod.trim().length > 0
+        ? value.paymentMethod.trim()
+        : undefined,
     pendingSubmission: toPendingSubmissionData(value.pendingSubmission),
   };
 }
@@ -507,7 +531,24 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   }
 
   const effectiveStatus = invoice?.status ?? paymentPreview?.status ?? 'unpaid';
-  const invoiceCurrency = (invoice?.currency || 'USD').toUpperCase();
+
+  // Settlement override: when the participant chose a manual method and we
+  // have an IDR snapshot from the tier, render in IDR — even on legacy rows
+  // where the canonical amount/currency is still USD because the invoice was
+  // settled before the dual-pricing handler shipped. New manual confirms
+  // already write IDR to amount/currency, so this override is idempotent for
+  // them and load-bearing for the historical rows.
+  const invoiceMethodType = invoice?.paymentMethod
+    ? methodCatalog.get(invoice.paymentMethod.toLowerCase())?.type ?? null
+    : null;
+  const useIdrSettlement =
+    invoiceMethodType === 'manual'
+    && typeof invoice?.idrPrice === 'number'
+    && invoice.idrPrice > 0;
+  const invoiceCurrency = useIdrSettlement ? 'IDR' : (invoice?.currency || 'USD').toUpperCase();
+  const effectiveAmount = useIdrSettlement
+    ? (invoice?.idrPrice ?? invoice?.amount ?? 0)
+    : (invoice?.amount ?? 0);
   const formatInvoiceAmount = (value: number) => formatCurrencyValue(value, invoiceCurrency);
   const categoryLabel = toTitleCaseFromToken(invoice?.category ?? paymentPreview?.paymentType);
   const dueDateLabel = invoice ? formatDateLabel(invoice.dueDate) : 'Loading details...';
@@ -522,7 +563,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
       effectiveStatus !== 'paid'
   );
   const amountLabel = invoice
-    ? formatInvoiceAmount(invoice.amount)
+    ? formatInvoiceAmount(effectiveAmount)
     : paymentPreview?.amountLabel || 'Loading amount...';
   const primaryTransactionId = invoice?.transactionId ?? history.find(entry => entry.transactionId)?.transactionId;
   const handleDownloadInvoice = () => {
@@ -548,6 +589,13 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     URL.revokeObjectURL(url);
   };
 
+  // When the IDR override is active, the backend's per-entry amountLabel
+  // ("USD 15.00" on legacy rows) lies about the true settlement. Always
+  // re-derive from the invoice's effective amount/currency so the row badge,
+  // the row meta, and the modal all read the same number.
+  const historyAmountLabel = (h: HistoryEntry): string =>
+    useIdrSettlement ? formatInvoiceAmount(effectiveAmount) : (h.amountLabel ?? formatInvoiceAmount(h.amount));
+
   const items: HistoryItem[] = history.map(h => ({
     id: h.id,
     title:
@@ -561,7 +609,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
               ? 'Payment Update'
               : 'Payment Created',
     method: resolveMethodMeta(h.method, methodCatalog).label,
-    amountLabel: h.amountLabel ?? formatInvoiceAmount(h.amount),
+    amountLabel: historyAmountLabel(h),
     date: h.dateTime ? formatDateLabel(h.dateTime) : formatDateLabel(h.date),
     time: h.dateTime ? formatTimeLabel(h.dateTime) : h.time,
     badge:
@@ -581,7 +629,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
         ? formatDateTimeLabel(h.dateTime)
         : `${formatDateLabel(h.date)} ${h.time}`,
       accountName: h.accountName ?? '',
-      amountLabel: h.amountLabel ?? formatInvoiceAmount(h.amount),
+      amountLabel: historyAmountLabel(h),
       source: h.sourceName ?? 'Participant Dashboard',
       proofUrl: h.proofUrl,
     },
