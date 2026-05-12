@@ -13,7 +13,7 @@ import { componentsTheme } from "@/lib/theme/components";
 const submissionTheme = componentsTheme.dashboardSubmission;
 
 interface PhoneFieldProps {
-  value: string; // E.164 string, e.g. "+6281234567890"
+  value: string;
   onChange: (e164: string) => void;
   hasError?: boolean;
   disabled?: boolean;
@@ -23,7 +23,7 @@ type CountryChoice = {
   code: CountryCode;
   name: string;
   flag: string;
-  dial: string; // e.g. "+62"
+  dial: string; 
 };
 
 const DEFAULT_COUNTRY: CountryCode = "ID";
@@ -52,8 +52,6 @@ export function PhoneField({
   disabled,
 }: PhoneFieldProps) {
   const countries = useMemo(() => allCountries(), []);
-
-  // Parse incoming value once on mount / when external changes happen.
   const parsed = useMemo(() => {
     if (!value) return null;
     try {
@@ -70,10 +68,21 @@ export function PhoneField({
   const [number, setNumber] = useState<string>(initialNumber);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const dropdownHeight = 280;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      
+      setDropdownPosition(spaceBelow < dropdownHeight && spaceAbove > spaceBelow ? 'top' : 'bottom');
+    }
+    
     function onClickAway(event: MouseEvent) {
       if (
         containerRef.current &&
@@ -85,6 +94,27 @@ export function PhoneField({
     document.addEventListener("mousedown", onClickAway);
     return () => document.removeEventListener("mousedown", onClickAway);
   }, [open]);
+
+  useEffect(() => {
+    if (!value) {
+      setTimeout(() => {
+        setCountry(DEFAULT_COUNTRY);
+        setNumber("");
+      }, 0);
+      return;
+    }
+    
+    const parsed = parsePhoneNumberFromString(value);
+    if (parsed && parsed.country) {
+      const newCountry = parsed.country;
+      const newNumber = parsed.nationalNumber?.toString() ?? "";
+      
+      setTimeout(() => {
+        setCountry(newCountry);
+        setNumber(newNumber);
+      }, 0);
+    }
+  }, [value]);
 
   function emit(nextCountry: CountryCode, nextNumber: string) {
     const digits = nextNumber.replace(/\D+/g, "");
@@ -115,10 +145,10 @@ export function PhoneField({
 
   const outerClass = `${submissionTheme.editInputBase}${
     hasError ? " border-red-500 focus:border-red-500 focus:ring-red-200" : ""
-  } flex items-stretch gap-0 p-0 overflow-hidden`;
+  } flex items-stretch gap-0 p-0`;
 
   return (
-    <div className={outerClass}>
+    <div className={`${outerClass} relative`}>
       <div ref={containerRef} className="relative">
         <button
           type="button"
@@ -135,7 +165,9 @@ export function PhoneField({
           <span className="text-slate-400">▾</span>
         </button>
         {open && (
-          <div className="absolute z-20 mt-1 w-72 rounded-lg border border-slate-300 bg-white shadow-lg">
+          <div className={`absolute z-20 w-72 rounded-lg border border-slate-300 bg-white shadow-lg ${
+            dropdownPosition === 'top' ? 'bottom-full mb-1' : 'mt-1'
+          }`}>
             <input
               autoFocus
               type="text"

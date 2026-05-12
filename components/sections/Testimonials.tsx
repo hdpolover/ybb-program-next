@@ -1,5 +1,5 @@
 'use client';
-import { useState, type CSSProperties } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import Image from 'next/image';
 import { componentsTheme } from '@/lib/theme/components';
@@ -24,7 +24,7 @@ type MarqueeStyle = CSSProperties & {
 };
 
 const MARQUEE_STYLE: MarqueeStyle = {
-  '--duration': '55s',
+  '--duration': '60s',
 };
 
 function getAvatarSrc(photo: string | undefined, name: string) {
@@ -32,10 +32,26 @@ function getAvatarSrc(photo: string | undefined, name: string) {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=96&background=f1f5f9&color=0f172a`;
 }
 
-export default function Testimonials({ section }: Props) {
-  if (!section || !section.content.items || section.content.items.length === 0) return null;
+function truncateWords(text: string, maxWords: number) {
+  const normalized = (text || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+  const words = normalized.split(' ');
+  if (words.length <= maxWords) return normalized;
+  return `${words.slice(0, maxWords).join(' ')}...`;
+}
 
+export default function Testimonials({ section }: Props) {
   const [active, setActive] = useState<Testimonial | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  if (!section || !section.content.items || section.content.items.length === 0) return null;
 
   const allItems: Testimonial[] = section.content.items.map(t => ({
     name: t.name,
@@ -55,12 +71,9 @@ export default function Testimonials({ section }: Props) {
           Real stories from participants who've experienced transformational results with our
           program
         </p>
-
-        {/* Full card dari ujung kanan ke kiri ( animasi geser ) */}
       </div>
       <div className={componentsTheme.testimonialsHome.rowsWrapper}>
         <div className={componentsTheme.testimonialsHome.rowOuter}>
-          {/* fade mask kiri/kanan biar ga keliatan 'mentok' */}
           <div className={componentsTheme.testimonialsHome.fadeLeft} />
           <div className={componentsTheme.testimonialsHome.fadeRight} />
           <div
@@ -74,7 +87,9 @@ export default function Testimonials({ section }: Props) {
                 className={componentsTheme.testimonialsHome.card}
                 onClick={() => setActive(t)}
               >
-                <p className={componentsTheme.testimonialsHome.quote}>“{t.quote}”</p>
+                <p className={componentsTheme.testimonialsHome.quote}>
+                  "{truncateWords(t.quote, isMobile ? 35 : 50)}"
+                </p>
                 <div className={componentsTheme.testimonialsHome.metaRow}>
                   <div className={componentsTheme.testimonialsHome.profileRow}>
                     <div className={componentsTheme.testimonialsHome.avatarWrapper}>
@@ -160,8 +175,6 @@ export default function Testimonials({ section }: Props) {
           </div>
         </div>
       )}
-
-      {/* Animasi sekarang pakai util tailwind animate-marquee biar stabil */}
     </section>
   );
 }

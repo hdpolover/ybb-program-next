@@ -10,8 +10,6 @@ type ProgramSchedulesProps = {
   dates?: ProgramImportantDatesSection['content'];
 };
 
-type ScheduleItem = ProgramImportantDatesSection['content']['items'][number];
-
 function mapStatus(status?: string, isActive?: boolean): VisualStatus {
   const s = status?.toLowerCase() ?? '';
   if (isActive) return 'active';
@@ -83,28 +81,6 @@ function StatusBadge({ visualStatus, label }: { visualStatus: VisualStatus; labe
   );
 }
 
-function renderScheduleCard(item: ScheduleItem) {
-  const visualStatus = mapStatus(item.status, item.is_active);
-  const dateLabel = formatDateDisplay(item.date_display);
-
-  return (
-    <article key={`${item.name}-${item.date_display}`} className={componentsTheme.programsSchedules.card}>
-      <div className={componentsTheme.programsSchedules.cardHeader}>
-        <p className={componentsTheme.programsSchedules.cardDate}>{dateLabel}</p>
-        <StatusBadge visualStatus={visualStatus} label={item.status} />
-      </div>
-      <h3 className={componentsTheme.programsSchedules.cardTitle}>
-        {item.name || DATA_NOT_ADDED}
-      </h3>
-      {isMeaningfulDescription(item.name, item.description) && (
-        <p className={componentsTheme.programsSchedules.cardDescription}>
-          {item.description}
-        </p>
-      )}
-    </article>
-  );
-}
-
 export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
   if (!dates) return null;
 
@@ -141,15 +117,43 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
 
         <div className={componentsTheme.programsSchedules.listWrapper}>
           {sections.map((section) => (
-            <div key={section.key} className={componentsTheme.programsSchedules.groupSection}>
+            <div key={section.key}>
               <div className={componentsTheme.programsSchedules.groupHeader}>
                 <h3 className={componentsTheme.programsSchedules.groupTitle}>{section.title}</h3>
                 <span className={componentsTheme.programsSchedules.groupCount}>
-                  {section.items.length} item{section.items.length > 1 ? 's' : ''}
+                  {section.items.length} schedule{section.items.length > 1 ? 's' : ''}
                 </span>
               </div>
-              <div className={componentsTheme.programsSchedules.cardsGrid}>
-                {section.items.map((item) => renderScheduleCard(item))}
+              <div className={componentsTheme.programsSchedules.timelineWrapper}>
+                {section.items.map((item) => {
+                  const visualStatus = mapStatus(item.status, item.is_active);
+                  const dateLabel = formatDateDisplay(item.date_display);
+                  const dotClass = visualStatus === 'active'
+                    ? componentsTheme.programsSchedules.timelineDotActive
+                    : visualStatus === 'upcoming'
+                      ? componentsTheme.programsSchedules.timelineDotUpcoming
+                      : componentsTheme.programsSchedules.timelineDotClosed;
+
+                  return (
+                    <div key={`${item.name}-${item.date_display}`} className={componentsTheme.programsSchedules.timelineItem}>
+                      <span className={`${componentsTheme.programsSchedules.timelineDot} ${dotClass}`} />
+                      <article className={componentsTheme.programsSchedules.card}>
+                        <div className={componentsTheme.programsSchedules.cardHeader}>
+                          <p className={componentsTheme.programsSchedules.cardDate}>{dateLabel}</p>
+                          <StatusBadge visualStatus={visualStatus} label={item.status} />
+                        </div>
+                        <h3 className={componentsTheme.programsSchedules.cardTitle}>
+                          {item.name || DATA_NOT_ADDED}
+                        </h3>
+                        {isMeaningfulDescription(item.name, item.description) && (
+                          <p className={componentsTheme.programsSchedules.cardDescription}>
+                            {item.description}
+                          </p>
+                        )}
+                      </article>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}

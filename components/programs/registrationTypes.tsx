@@ -1,14 +1,18 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import {
   Calendar,
   Check,
   CreditCard,
   MapPin,
-  Users,
   ShieldCheck,
   AlertTriangle,
   ClipboardCheck,
   BarChart3,
+  ArrowRight,
+  X,
 } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import type {
@@ -105,14 +109,69 @@ export default function RegistrationTypePrograms({
   status,
   registrationDates,
 }: RegistrationTypeProgramsProps) {
-  if (!pricingTiers && !instructions) return null;
+  const [descriptionDialog, setDescriptionDialog] = useState<{
+    title: string;
+    requirements: string[];
+    benefits: string[];
+    benefitsLabel: string;
+  } | null>(null);
+  const primaryContentRef = useRef<HTMLDivElement | null>(null);
+  const secondaryContentRef = useRef<HTMLDivElement | null>(null);
+  const [showPrimaryReadDetails, setShowPrimaryReadDetails] = useState(false);
+  const [showSecondaryReadDetails, setShowSecondaryReadDetails] = useState(false);
 
-  const registrationFeeTypes = (pricingTiers ?? []).filter(isRegistrationFeeTier);
-  const primaryType = pickRegistrationTier(registrationFeeTypes, 'self_funded');
-  const secondaryType = pickRegistrationTier(registrationFeeTypes, 'fully_funded', primaryType?.id);
+  const hasData = Boolean(pricingTiers?.length || instructions?.length);
 
-  const primaryBenefits = primaryType?.benefits ?? [];
-  const secondaryBenefits = secondaryType?.benefits ?? [];
+  const registrationFeeTypes = useMemo(() => (pricingTiers ?? []).filter(isRegistrationFeeTier), [pricingTiers]);
+  const primaryType = useMemo(() => pickRegistrationTier(registrationFeeTypes, 'self_funded'), [registrationFeeTypes]);
+  const secondaryType = useMemo(() => pickRegistrationTier(registrationFeeTypes, 'fully_funded', primaryType?.id), [registrationFeeTypes, primaryType?.id]);
+
+  const primaryBenefits = useMemo(() => primaryType?.benefits ?? [], [primaryType?.benefits]);
+  const secondaryBenefits = useMemo(() => secondaryType?.benefits ?? [], [secondaryType?.benefits]);
+
+  const selfFundedRequirements = useMemo(
+    () =>
+      primaryType?.requirements?.length
+        ? primaryType.requirements
+        : [
+            'Complete registration form and documentation',
+            'Submit required documents on time',
+            'Pay fees according to scheduled payment batches',
+          ],
+    [primaryType?.requirements],
+  );
+
+  const fullyFundedRequirements = useMemo(
+    () =>
+      secondaryType?.requirements?.length
+        ? secondaryType.requirements
+        : [
+            'Complete registration form and documentation',
+            'Submit detailed essays and applications',
+            'Participate in interviews and evaluations',
+          ],
+    [secondaryType?.requirements],
+  );
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      const primaryElement = primaryContentRef.current;
+      const secondaryElement = secondaryContentRef.current;
+
+      setShowPrimaryReadDetails(
+        Boolean(primaryElement && primaryElement.scrollHeight > primaryElement.clientHeight),
+      );
+      setShowSecondaryReadDetails(
+        Boolean(secondaryElement && secondaryElement.scrollHeight > secondaryElement.clientHeight),
+      );
+    };
+
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [selfFundedRequirements, fullyFundedRequirements, primaryBenefits, secondaryBenefits]);
+
+  if (!hasData) return null;
 
   const isOpen = (status || '').toLowerCase() === 'open';
 
@@ -152,22 +211,6 @@ export default function RegistrationTypePrograms({
   const infoInstructions: RegistrationInfoInstruction[] =
     instructions && instructions.length > 0 ? instructions : [];
 
-  const selfFundedRequirements = primaryType?.requirements?.length
-    ? primaryType.requirements
-    : [
-        'Complete registration form and documentation',
-        'Submit required documents on time',
-        'Pay fees according to scheduled payment batches',
-      ];
-
-  const fullyFundedRequirements = secondaryType?.requirements?.length
-    ? secondaryType.requirements
-    : [
-        'Complete registration form and documentation',
-        'Submit detailed essays and applications',
-        'Participate in interviews and evaluations',
-      ];
-
   const renderInstructionIcon = (icon: string) => {
     switch (icon) {
       case 'calendar':
@@ -192,11 +235,14 @@ export default function RegistrationTypePrograms({
           subtitle={description}
         />
 
-        <div className={componentsTheme.homeRegistration.mainGrid}>
-          {/* Kiri: kartu tipe registrasi (replikasi dari Registration Types di homepage) */}
-          <div className={componentsTheme.homeRegistration.cardsGrid}>
+        <div className="relative">
+          <p className="mb-2 flex items-center justify-end gap-1 text-xs font-medium text-slate-500 lg:hidden">
+            Swipe for more
+            <ArrowRight className="h-3.5 w-3.5" />
+          </p>
+          <div className="flex w-full min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pl-1 pr-8 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:overflow-visible lg:pb-0 lg:pr-0 lg:pt-0">
             {/* Self Funded */}
-            <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.5rem)] snap-start lg:min-w-0`}>
+            <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.75rem)] snap-start lg:min-w-0`}>
               <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
                 <div className={componentsTheme.applyRegistrationTypes.headerRow}>
                   <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
@@ -239,44 +285,70 @@ export default function RegistrationTypePrograms({
                   </div>
                 )}
               </div>
-              <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
-                <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>
-                  Requirements
-                </p>
-                <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {selfFundedRequirements.map((label, idx) => (
-                    <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span
-                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                      >
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>
-                        {label}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                {primaryBenefits.length > 0 && (
-                  <>
-                    <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
-                      Benefit
-                    </p>
-                    <ul className={componentsTheme.applyRegistrationTypes.list}>
-                      {primaryBenefits.map((label, idx) => (
-                        <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                          <span
-                            className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                          >
-                            <Check className="h-3 w-3" />
-                          </span>
-                          <span className={componentsTheme.applyRegistrationTypes.listItemText}>
-                            {label}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
+              <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
+                <div ref={primaryContentRef} className="relative h-[360px] overflow-hidden">
+                  <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>
+                    Requirements
+                  </p>
+                  <ul className={componentsTheme.applyRegistrationTypes.list}>
+                    {selfFundedRequirements.map((label, idx) => (
+                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                        <span
+                          className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                        >
+                          <Check className="h-3 w-3" />
+                        </span>
+                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>
+                          {label}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {primaryBenefits.length > 0 && (
+                    <>
+                      <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+                        Benefit
+                      </p>
+                      <ul className={componentsTheme.applyRegistrationTypes.list}>
+                        {primaryBenefits.map((label, idx) => (
+                          <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                            <span
+                              className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                            >
+                              <Check className="h-3 w-3" />
+                            </span>
+                            <span className={componentsTheme.applyRegistrationTypes.listItemText}>
+                              {label}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {showPrimaryReadDetails && (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/95 to-transparent"
+                    />
+                  )}
+                </div>
+                {showPrimaryReadDetails && (
+                  <div className="mt-auto pt-3 flex justify-end">
+                    <button
+                      type="button"
+                      className="text-xs font-semibold text-primary transition hover:text-primary/80"
+                      onClick={() =>
+                        setDescriptionDialog({
+                          title: primaryType?.name ?? 'Self Funded',
+                          requirements: selfFundedRequirements,
+                          benefits: primaryBenefits,
+                          benefitsLabel: 'Benefit',
+                        })
+                      }
+                    >
+                      Read details
+                    </button>
+                  </div>
                 )}
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
@@ -337,42 +409,68 @@ export default function RegistrationTypePrograms({
                   </div>
                 )}
               </div>
-              <div className={componentsTheme.applyRegistrationTypes.bodyWrapper}>
-                <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
-                <ul className={componentsTheme.applyRegistrationTypes.list}>
-                  {fullyFundedRequirements.map((label, idx) => (
-                    <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                      <span
-                        className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                      >
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span className={componentsTheme.applyRegistrationTypes.listItemText}>
-                        {label}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                {secondaryBenefits.length > 0 && (
-                  <>
-                    <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
-                      Benefit (If Selected)
-                    </p>
-                    <ul className={componentsTheme.applyRegistrationTypes.list}>
-                      {secondaryBenefits.map((label, idx) => (
-                        <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                          <span
-                            className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
-                          >
-                            <Check className="h-3 w-3" />
-                          </span>
-                          <span className={componentsTheme.applyRegistrationTypes.listItemText}>
-                            {label}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
+              <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
+                <div ref={secondaryContentRef} className="relative h-[360px] overflow-hidden">
+                  <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+                  <ul className={componentsTheme.applyRegistrationTypes.list}>
+                    {fullyFundedRequirements.map((label, idx) => (
+                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                        <span
+                          className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                        >
+                          <Check className="h-3 w-3" />
+                        </span>
+                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>
+                          {label}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {secondaryBenefits.length > 0 && (
+                    <>
+                      <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+                        Benefit (If Selected)
+                      </p>
+                      <ul className={componentsTheme.applyRegistrationTypes.list}>
+                        {secondaryBenefits.map((label, idx) => (
+                          <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                            <span
+                              className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}
+                            >
+                              <Check className="h-3 w-3" />
+                            </span>
+                            <span className={componentsTheme.applyRegistrationTypes.listItemText}>
+                              {label}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {showSecondaryReadDetails && (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/95 to-transparent"
+                    />
+                  )}
+                </div>
+                {showSecondaryReadDetails && (
+                  <div className="mt-auto pt-3 flex justify-end">
+                    <button
+                      type="button"
+                      className="text-xs font-semibold text-primary transition hover:text-primary/80"
+                      onClick={() =>
+                        setDescriptionDialog({
+                          title: secondaryType?.name ?? 'Fully Funded',
+                          requirements: fullyFundedRequirements,
+                          benefits: secondaryBenefits,
+                          benefitsLabel: 'Benefit (If Selected)',
+                        })
+                      }
+                    >
+                      Read details
+                    </button>
+                  </div>
                 )}
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
@@ -401,7 +499,7 @@ export default function RegistrationTypePrograms({
           </div>
 
           {/* Kanan: informasi tambahan seputar registrasi */}
-          <div className={componentsTheme.homeImportantPayment.infoSideWrapper}>
+          <div className={`${componentsTheme.homeImportantPayment.infoSideWrapper} mt-8`}>
             <div className={componentsTheme.homeImportantPayment.infoSideCard}>
               <div>
                 <h3 className={componentsTheme.homeImportantPayment.infoTitle}>
@@ -442,6 +540,58 @@ export default function RegistrationTypePrograms({
           </div>
         </div>
       </div>
+
+      {/* Description Dialog Modal */}
+      {descriptionDialog && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
+          onClick={() => setDescriptionDialog(null)}
+        >
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 p-4">
+              <h3 className="text-lg font-extrabold text-slate-900">{descriptionDialog.title}</h3>
+              <button
+                type="button"
+                onClick={() => setDescriptionDialog(null)}
+                className="rounded-md bg-slate-100 px-2 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-5">
+              <p className="text-sm font-semibold text-slate-900">Requirements</p>
+              <ul className="mt-2 space-y-2">
+                {descriptionDialog.requirements.map((req, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
+                    <span className="mt-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    {req}
+                  </li>
+                ))}
+              </ul>
+              {descriptionDialog.benefits.length > 0 && (
+                <>
+                  <p className="mt-4 text-sm font-semibold text-slate-900">{descriptionDialog.benefitsLabel}</p>
+                  <ul className="mt-2 space-y-2">
+                    {descriptionDialog.benefits.map((benefit, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
+                        <span className="mt-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <Check className="h-3 w-3" />
+                        </span>
+                        {benefit}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
