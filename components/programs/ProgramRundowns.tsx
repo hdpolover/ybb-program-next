@@ -30,13 +30,13 @@ export default function ProgramRundowns({
   if (!days || days.length === 0) return null;
 
   return (
-    <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <section className={componentsTheme.programRundowns.sectionWrapper}>
+      <div className={componentsTheme.programRundowns.container}>
         <SectionHeader eyebrow={title} title={subtitle} align="center" />
 
         {/* tab hari */}
-        <div className="mx-auto mt-2 w-full overflow-hidden rounded-2xl border border-blue-100 bg-white">
-          <div className="grid grid-cols-4">
+        <div className={componentsTheme.programRundowns.tabWrapper}>
+          <div className={componentsTheme.programRundowns.tabGrid}>
             {days.map((d, i) => (
               <button
                 key={d.label}
@@ -47,14 +47,14 @@ export default function ProgramRundowns({
                 }`}
                 aria-current={i === active}
               >
-                <span className="inline-flex items-center justify-center gap-2">
+                <span className={componentsTheme.programRundowns.tabLabel}>
                   <CalendarDays className={componentsTheme.programRundowns.tabLabelIcon} />
                   <span>{d.label}</span>
                 </span>
                 {i === active ? (
                   <span className={componentsTheme.programRundowns.tabActiveUnderline} />
                 ) : (
-                  <span className="absolute inset-y-3 right-0 hidden w-px bg-blue-100 last:hidden sm:block" />
+                  <span className={componentsTheme.programRundowns.tabDivider} />
                 )}
               </button>
             ))}
@@ -62,39 +62,31 @@ export default function ProgramRundowns({
         </div>
 
         {/* daftar rundown */}
-        <div className="mt-6 space-y-5">
+        <div className={componentsTheme.programRundowns.listWrapper}>
           {days[active]?.items.map((it, idx) => (
             <div
               key={idx}
-              className="min-h-[170px] rounded-2xl bg-blue-50/70 p-5 ring-1 ring-blue-100 sm:min-h-[150px]"
+              className={componentsTheme.programRundowns.card}
             >
-              <div className="flex h-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className={componentsTheme.programRundowns.cardInner}>
                 {/* konten kiri */}
                 <div>
-                  <h3 className="text-lg font-extrabold text-blue-900">{it.title}</h3>
-                  <p
-                    className="mt-1 max-w-3xl text-sm leading-6 text-slate-700"
-                    style={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical' as const,
-                      overflow: 'hidden',
-                    }}
-                  >
+                  <h3 className={componentsTheme.programRundowns.cardTitle}>{it.title}</h3>
+                  <p className={componentsTheme.programRundowns.cardDescription}>
                     {it.description}
                   </p>
                 </div>
                 {/* meta kanan */}
-                <div className="flex flex-col gap-2 sm:text-right">
-                  <div className="inline-flex items-center gap-2 text-sm font-semibold text-blue-900">
+                <div className={componentsTheme.programRundowns.metaRow}>
+                  <div className={`${componentsTheme.programRundowns.metaItem} ${componentsTheme.programRundowns.metaItemDate}`}>
                     <CalendarDays className="h-4 w-4" />
                     <span>{it.dateLabel}</span>
                   </div>
-                  <div className="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <div className={`${componentsTheme.programRundowns.metaItem} ${componentsTheme.programRundowns.metaItemTime}`}>
                     <Clock className="h-4 w-4" />
                     <span>{it.timeRange}</span>
                   </div>
-                  <div className="inline-flex items-center gap-2 text-xs text-slate-500">
+                  <div className={`${componentsTheme.programRundowns.metaItem} ${componentsTheme.programRundowns.metaItemDuration}`}>
                     <Info className="h-4 w-4" />
                     <span>{it.duration}</span>
                   </div>
@@ -106,9 +98,9 @@ export default function ProgramRundowns({
 
         {/* catatan di bawah tab */}
         {note ? (
-          <div className="mt-4 flex items-start gap-3 rounded-xl bg-blue-50 p-4 ring-1 ring-blue-200">
+          <div className={componentsTheme.programRundowns.noteWrapper}>
             <Info className={componentsTheme.programRundowns.noteIcon} />
-            <p className="text-sm leading-6 text-blue-900">{note}</p>
+            <p className={componentsTheme.programRundowns.noteText}>{note}</p>
           </div>
         ) : null}
       </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { CalendarDays, Calendar, MapPin, Square } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
@@ -54,11 +55,23 @@ function formatDateRange(start?: string | null, end?: string | null): string | n
 }
 
 export default function CurrentProgram({ overview, coverImage, guidebooks: backendGuidebooks }: CurrentProgramProps) {
+  const [subthemesExpanded, setSubthemesExpanded] = useState(false);
+
+  const subthemes = useMemo(() => {
+    const list = overview?.subthemes;
+    return list && list.length > 0 ? list : null;
+  }, [overview?.subthemes]);
+
+  const visibleSubthemes = useMemo(() => {
+    if (!subthemes) return [];
+    if (subthemesExpanded) return subthemes;
+    return subthemes.slice(0, 2);
+  }, [subthemes, subthemesExpanded]);
+
   if (!overview) return null;
 
   const description = overview.description;
   const theme = overview.theme;
-  const subthemes = overview.subthemes && overview.subthemes.length > 0 ? overview.subthemes : null;
   const location = overview.location;
   const duration = overview.duration;
   const programFormatLabel = (() => {
@@ -116,14 +129,16 @@ export default function CurrentProgram({ overview, coverImage, guidebooks: backe
                 {theme && (
                   <div>
                     <h3 className={componentsTheme.programsCurrent.themeHeading}>Program Theme</h3>
-                    <p className={componentsTheme.programsCurrent.themeTitle}>{theme}</p>
+                    <div className={componentsTheme.programsCurrent.themeCard}>
+                      <p className={componentsTheme.programsCurrent.themeTitle}>{theme}</p>
+                    </div>
                   </div>
                 )}
                 {subthemes && (
                   <div>
                     <h3 className={componentsTheme.programsCurrent.themeHeading}>Subthemes</h3>
                     <div className={componentsTheme.programsCurrent.subthemesGrid}>
-                      {subthemes.map(subtheme => (
+                      {(visibleSubthemes ?? []).map(subtheme => (
                         <div
                           key={subtheme.id}
                           className={componentsTheme.programsCurrent.subthemeCard}
@@ -139,6 +154,18 @@ export default function CurrentProgram({ overview, coverImage, guidebooks: backe
                         </div>
                       ))}
                     </div>
+
+                    {subthemes.length > 2 && (
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          className="text-sm font-semibold text-primary hover:underline"
+                          onClick={() => setSubthemesExpanded((v) => !v)}
+                        >
+                          {subthemesExpanded ? 'Show less' : 'Read more'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

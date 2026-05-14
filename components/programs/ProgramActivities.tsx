@@ -1,4 +1,4 @@
-import { Calendar, Clock3, Hourglass, Check } from 'lucide-react';
+import { Calendar, Clock3, Hourglass, Check, ArrowRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramActivitiesSection, ProgramActivitiesItem } from '@/types/programs';
@@ -172,6 +172,13 @@ export default function ProgramActivities({ activities }: ProgramActivitiesProps
             return (
               <div key={group.key} className="space-y-4">
                 <h3 className="text-lg font-bold text-slate-900 sm:text-xl">{heading}</h3>
+                {/* Swipe indicator for mobile */}
+                {group.items.length > 1 && (
+                  <p className="flex items-center justify-end gap-1 text-xs font-medium text-slate-500 sm:hidden">
+                    Swipe for more
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </p>
+                )}
                 <div className={componentsTheme.programsActivities.cardsGrid}>
                   {group.items.map((item, itemIndex) => {
                     const dateLabel = formatDateForMeta(item.date);

@@ -8,17 +8,20 @@ if (!API_BASE_URL) {
 const MAINTENANCE_CACHE_TTL_MS = 30_000;
 const maintenanceModeCache = new Map<string, { value: boolean; expiresAt: number }>();
 
-// Get default brand URL from env (optional for multi-brand)
+const REFERRAL_PARAMS = ['t', 'c', 's', 'q', 'ref'] as const;
+const REFERRAL_COOKIE_NAME = 'ybb_referral_code';
+const REFERRAL_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; 
+
 const getDefaultBrandUrl = (): string | null => {
   const raw = process.env.NEXT_PUBLIC_BRAND_DOMAIN || process.env.YBB_BRAND_DOMAIN;
   if (!raw) return null;
   return raw.trim().replace(/\/+$/, '').replace(/^https?:\/\//, '');
 };
 
-// Resolve brand URL from request (for multi-brand support)
+
 const resolveBrandUrl = (request: NextRequest): string => {
   const hostname = request.headers.get('host') || '';
-  const cleanHostname = hostname.split(':')[0]; // Remove port
+  const cleanHostname = hostname.split(':')[0]; 
   
   if (!cleanHostname || cleanHostname.startsWith('localhost') || cleanHostname.startsWith('127.0.0.1')) {
     return getDefaultBrandUrl() || 'localhost';
@@ -76,8 +79,6 @@ async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
     return false;
   }
 }
-
-const REFERRAL_COOKIE_NAME = 'ybb_referral_code';
 
 const getDirectReferralCode = (request: NextRequest): string | null => {
   const code =
@@ -142,6 +143,42 @@ const attachReferralCookie = async (
 };
 
 export async function proxy(request: NextRequest) {
+  const { nextUrl } = request;
+  const searchParams = new URLSearchParams(nextUrl.search);
+
+  let referralToken: string | null = null;
+  let matchedParam: string | null = null;
+
+  for (const param of REFERRAL_PARAMS) {
+    const value = searchParams.get(param);
+    if (value && value.trim().length > 0) {
+      referralToken = value.trim().toUpperCase();
+      matchedParam = param;
+      break;
+    }
+  }
+
+  if (referralToken && matchedParam) {
+    searchParams.delete(matchedParam);
+    const cleanSearch = searchParams.toString();
+    const cleanUrl = new URL(nextUrl.pathname + (cleanSearch ? `?${cleanSearch}` : ''), nextUrl.origin);
+
+    const response = NextResponse.redirect(cleanUrl);
+
+    const existing = request.cookies.get(REFERRAL_COOKIE_NAME);
+    if (!existing) {
+      response.cookies.set(REFERRAL_COOKIE_NAME, referralToken, {
+        maxAge: REFERRAL_COOKIE_MAX_AGE,
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      });
+    }
+
+    return response;
+  }
+
   // Resolve brand URL dynamically from request (multi-brand support)
   const brandUrl = resolveBrandUrl(request);
   

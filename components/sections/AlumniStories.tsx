@@ -82,7 +82,8 @@ export default function AlumniStoriesSection({
 	useEffect(() => {
 		if (typeof window === 'undefined') return;
 		const query = window.matchMedia('(min-width: 640px)');
-		const apply = () => setPageSize(query.matches ? REELS_PAGE_SIZE : 1);
+		// Mobile: show 2 items for 2-column grid, Desktop: show 4 items
+		const apply = () => setPageSize(query.matches ? REELS_PAGE_SIZE : 2);
 		apply();
 		query.addEventListener('change', apply);
 		return () => query.removeEventListener('change', apply);
@@ -162,12 +163,18 @@ export default function AlumniStoriesSection({
 					{/* Left: main video */}
 					<div>
 						<div className={componentsTheme.alumniStories.mainVideoCard}>
+							{/* Header: Featured Story label only */}
 							<div className={componentsTheme.alumniStories.mainVideoHeader}>
 								<p className={componentsTheme.alumniStories.mainVideoLabel}>Featured Story</p>
+								{/* Name shown on desktop (sm+) only, in header */}
 								{activeItem?.name && (
-									<p className={componentsTheme.alumniStories.mainVideoName}>{activeItem.name}</p>
+									<p className="hidden truncate text-sm font-semibold text-slate-700 sm:block">
+										{activeItem.name}
+									</p>
 								)}
 							</div>
+
+							{/* Video */}
 							<div className={componentsTheme.alumniStories.mainVideoWrapper}>
 								{activeItem && activeItem.type === 'video' && toEmbedUrl(activeItem.video_url) ? (
 									<iframe
@@ -184,6 +191,15 @@ export default function AlumniStoriesSection({
 									</div>
 								)}
 							</div>
+
+							{/* Name shown on mobile only, below video and right-aligned */}
+							{activeItem?.name && (
+								<div className="mt-2 flex justify-end sm:hidden">
+									<p className="truncate text-sm font-semibold text-slate-700">
+										{activeItem.name}
+									</p>
+								</div>
+							)}
 						</div>
 					</div>
 

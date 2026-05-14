@@ -66,15 +66,15 @@ export const homeTheme = {
       'pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent',
     fadeRight:
       'pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent',
-    marqueeRowBase: 'flex items-start gap-4 whitespace-nowrap sm:gap-6',
-    card: 'my-2 inline-flex w-[280px] shrink-0 cursor-pointer flex-col overflow-hidden rounded-2xl bg-white p-5 text-left shadow-[0_10px_32px_rgba(2,6,23,0.07)] ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(2,6,23,0.11)] sm:w-[320px] sm:p-6 md:w-[350px] lg:w-[380px]',
+    marqueeRowBase: 'flex min-w-max items-start gap-4 whitespace-nowrap sm:gap-6',
+    card: 'my-2 inline-flex h-[340px] w-[280px] shrink-0 cursor-pointer flex-col overflow-hidden rounded-2xl bg-white p-5 text-left shadow-[0_10px_32px_rgba(2,6,23,0.07)] ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(2,6,23,0.11)] sm:h-[360px] sm:w-[320px] sm:p-6 md:w-[350px] lg:w-[380px]',
     cardHeaderRow: 'flex items-start justify-between gap-3',
     profileRow: 'flex min-w-0 items-center gap-3',
     avatarWrapper: 'relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200',
     avatarImg: 'object-cover',
     profileMetaCol: 'min-w-0',
-    quote: 'whitespace-normal break-words text-[15px] italic leading-8 text-slate-700',
-    metaRow: 'mt-5 flex items-end justify-between gap-3 border-t border-slate-100 pt-4',
+    quote: 'flex-1 whitespace-normal break-words text-[15px] italic leading-7 text-slate-700',
+    metaRow: 'mt-auto flex items-end justify-between gap-3 border-t border-slate-100 pt-4',
     nameRow: 'truncate text-base font-semibold leading-tight text-slate-900',
     nameFlag: 'text-base',
     roleText: 'line-clamp-2 mt-1 text-xs leading-5 text-slate-500',
@@ -104,18 +104,18 @@ export const homeTheme = {
     layoutGrid: 'grid gap-10 items-start',
     mainVideoCard:
       'rounded-2xl bg-white/90 p-3 shadow-[0_16px_46px_rgba(15,23,42,0.10)] ring-1 ring-slate-200 sm:p-4',
-    mainVideoHeader: 'mb-3 flex items-center justify-between gap-3 px-1',
+    mainVideoHeader: 'mb-3 flex flex-col gap-2 px-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3',
     mainVideoLabel:
-      'inline-flex items-center rounded-full bg-[var(--brand-accent-soft)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-accent)] ring-1 ring-[var(--brand-border)]',
-    mainVideoName: 'truncate text-sm font-semibold text-slate-700',
+      'inline-flex items-center self-start whitespace-nowrap rounded-full bg-[var(--brand-accent-soft)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--brand-accent)] ring-1 ring-[var(--brand-border)] sm:self-auto sm:px-2.5 sm:py-1 sm:text-[10px]',
+    mainVideoName: 'truncate text-sm font-semibold text-slate-700 sm:order-none order-1 mt-2 sm:mt-0',
     mainVideoWrapper:
       'relative aspect-video w-full max-w-4xl overflow-hidden rounded-2xl bg-slate-900/5 ring-1 ring-slate-200 mx-auto',
     mainIframe: 'absolute inset-0 h-full w-full border-0 rounded-2xl',
     reelsTitle: 'text-sm font-semibold uppercase tracking-wide text-[var(--brand-accent)]',
     reelsGrid:
-      'mt-4 flex gap-3 overflow-x-auto pb-2 pt-1 px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:pb-0 sm:pt-0 md:grid-cols-4',
+      'mt-4 grid grid-cols-2 gap-3 pb-2 pt-1 px-1 sm:grid-cols-3 sm:gap-3 md:grid-cols-4',
     reelItem:
-      'relative aspect-[9/16] w-56 flex-shrink-0 snap-start overflow-hidden rounded-xl sm:w-full sm:max-w-[270px] sm:mx-auto',
+      'relative aspect-[9/16] w-full overflow-hidden rounded-xl',
     reelVideo: 'h-full w-full object-cover',
     reelSkeleton: 'absolute inset-0 animate-pulse bg-slate-200',
   },
