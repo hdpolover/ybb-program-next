@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
+import { resolveAnnouncementHref } from '@/lib/announcements';
 import { getFaqsPageData } from '@/lib/api/faqs';
 import type { AnnouncementListSection } from '@/types/announcements';
 import type { FaqListSection } from '@/types/faqs';
@@ -100,7 +101,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       : [];
   const announcementResults: SearchResult[] = announcementItems
     .map((item) => {
-      const href = item.href?.trim() || '/announcements';
+      const href = resolveAnnouncementHref(item.id, item.href);
       return {
         id: `announcement-${item.id}`,
         title: item.title?.trim() || 'Announcement',

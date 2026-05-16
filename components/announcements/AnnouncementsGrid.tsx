@@ -4,14 +4,12 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
-import { formatAnnouncementDateLabel, isExternalHref } from '@/lib/announcements';
+import {
+  formatAnnouncementCategoryLabel,
+  formatAnnouncementDateLabel,
+  isExternalHref,
+} from '@/lib/announcements';
 import { componentsTheme } from '@/lib/theme/components';
-export type AnnouncementCategory =
-  | 'awards'
-  | 'scholarship'
-  | 'program-news'
-  | 'conference'
-  | 'summit';
 
 export type AnnouncementItem = {
   id: number | string;
@@ -21,7 +19,8 @@ export type AnnouncementItem = {
   author: string;
   date: string;
   href?: string;
-  category?: AnnouncementCategory;
+  category?: string;
+  tags?: string[];
   winners?: string[];
 };
 
@@ -29,13 +28,55 @@ export default function AnnouncementsGrid({
   items,
   title = 'Information Page',
   subtitle = 'Stay updated with the latest news about our programs.',
+  showControls = true,
 }: {
   items: AnnouncementItem[];
   title?: string;
   subtitle?: string;
   showControls?: boolean;
 }) {
-  const showControls = arguments[0]?.showControls ?? true;
+  // search & filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+
+  // tombol load more — biar ga numpuk panjang, tampil bertahap
+  const [visible, setVisible] = useState(Math.min(6, items?.length ?? 0));
+  const categoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          items
+            .map((item) => item.category?.trim())
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ),
+    [items],
+  );
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return items.filter(item => {
+      const matchCategory = activeCategory === 'all' || item.category === activeCategory;
+      const matchSearch =
+        !q ||
+        item.title.toLowerCase().includes(q) ||
+        item.excerpt.toLowerCase().includes(q) ||
+        (item.tags ?? []).some((tag) => tag.toLowerCase().includes(q));
+      return matchCategory && matchSearch;
+    });
+  }, [items, searchQuery, activeCategory]);
+
+  const visibleItems = filteredItems.slice(0, visible);
+
+  const handleChangeCategory = (category: string) => {
+    setActiveCategory(category);
+    setVisible(6);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setVisible(6);
+  };
 
   if (!items || items.length === 0) {
     return (
@@ -56,34 +97,6 @@ export default function AnnouncementsGrid({
       </section>
     );
   }
-  // search & filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'all' | AnnouncementCategory>('all');
-
-  // tombol load more — biar ga numpuk panjang, tampil bertahap
-  const [visible, setVisible] = useState(Math.min(6, items.length));
-
-  const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return items.filter(item => {
-      const matchCategory = activeCategory === 'all' || item.category === activeCategory;
-      const matchSearch =
-        !q || item.title.toLowerCase().includes(q) || item.excerpt.toLowerCase().includes(q);
-      return matchCategory && matchSearch;
-    });
-  }, [items, searchQuery, activeCategory]);
-
-  const visibleItems = filteredItems.slice(0, visible);
-
-  const handleChangeCategory = (category: 'all' | AnnouncementCategory) => {
-    setActiveCategory(category);
-    setVisible(6);
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    setVisible(6);
-  };
 
   return (
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
@@ -115,18 +128,14 @@ export default function AnnouncementsGrid({
 
             {/* Category tabs */}
             <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs font-medium">
-              {[
-                { key: 'all', label: 'All' },
-                { key: 'awards', label: 'Awards' },
-                { key: 'scholarship', label: 'Scholar' },
-                { key: 'program-news', label: 'Program' },
-                { key: 'conference', label: 'Conference' },
-                { key: 'summit', label: 'Summit' },
-              ].map(tab => (
+              {[{ key: 'all', label: 'All' }, ...categoryOptions.map((category) => ({
+                key: category,
+                label: formatAnnouncementCategoryLabel(category),
+              }))].map(tab => (
                 <button
                   key={tab.key}
                   type="button"
-                  onClick={() => handleChangeCategory(tab.key as 'all' | AnnouncementCategory)}
+                  onClick={() => handleChangeCategory(tab.key)}
                   className={`inline-flex items-center justify-center rounded-full border px-3 py-1 transition ${
                     activeCategory === tab.key
                       ? 'border-primary/100 bg-primary/10 text-primary shadow-sm'
@@ -158,17 +167,7 @@ export default function AnnouncementsGrid({
                 <div className="flex flex-1 flex-col p-5">
                   {n.category ? (
                     <p className="mb-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                      {n.category === 'program-news'
-                        ? 'Program'
-                        : n.category === 'scholarship'
-                          ? 'Scholar'
-                          : n.category === 'conference'
-                            ? 'Conference'
-                            : n.category === 'awards'
-                              ? 'Awards'
-                              : n.category === 'summit'
-                                ? 'Summit'
-                                : n.category}
+                      {formatAnnouncementCategoryLabel(n.category)}
                     </p>
                   ) : null}
                   <h3 className="text-xl font-extrabold text-blue-950">{n.title}</h3>
@@ -181,6 +180,18 @@ export default function AnnouncementsGrid({
                   ) : (
                     <p className="mt-2 text-sm leading-6 text-slate-700">{n.excerpt}</p>
                   )}
+                  {n.tags && n.tags.length > 0 ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {n.tags.slice(0, 4).map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-slate-600"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="mt-4 h-px w-full bg-slate-200" />
                   <p className="mt-3 text-xs font-semibold text-blue-900">
                     {n.author} <span className="text-slate-500"> - </span>{' '}

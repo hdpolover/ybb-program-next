@@ -32,7 +32,8 @@ export default async function AnnouncementsPage() {
     author: item.author || 'YBB',
     date: item.date || '',
     href: resolveAnnouncementHref(item.id, item.href),
-    category: (item.category as any) || undefined,
+    category: item.category || undefined,
+    tags: item.tags ?? undefined,
   }));
 
   const awardAnnouncements = items.filter(item => item.category === 'awards');

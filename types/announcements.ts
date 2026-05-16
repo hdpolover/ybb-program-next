@@ -15,11 +15,13 @@ export type AnnouncementApiItem = {
   id: string;
   title?: string | null;
   excerpt?: string | null;
+  content?: string | null;
   image?: string | null;
   author?: string | null;
   date?: string | null;
   href?: string | null;
   category?: string | null;
+  tags?: string[] | null;
 };
 
 export type AnnouncementListSection = {
