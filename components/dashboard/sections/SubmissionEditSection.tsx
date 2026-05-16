@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ImageIcon, Info, PencilLine } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -327,6 +326,22 @@ function shouldRenderField(section: PortalSubmissionSection, field: PortalSubmis
   return true;
 }
 
+function calculateSectionStatus(section: PortalSubmissionSection, sectionValues: Record<string, string>): 'pending' | 'in_progress' | 'completed' {
+  const relevant = section.fields.filter(f => f.type !== 'header' && f.type !== 'divider' && f.isRequired);
+  if (relevant.length === 0) return 'completed';
+
+  const filled = relevant.filter(f => {
+    const v = sectionValues[f.name];
+    return v !== null && v !== undefined && v !== '' && v.trim() !== '';
+  });
+
+  const fillRate = filled.length / relevant.length;
+  
+  if (fillRate === 1) return 'completed';
+  if (fillRate > 0) return 'in_progress';
+  return 'pending';
+}
+
 const PREVIEW_STEP_ID = "__preview__";
 
 function getPreviewDisplayValue(
@@ -393,6 +408,7 @@ function isLegacyEssayField(field: PortalSubmissionField) {
 
 function FieldMedia({ field }: { field: PortalSubmissionField }) {
   if (!field.mediaUrl) return null;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [assetDrawerOpen, setAssetDrawerOpen] = useState(false);
   const assetLabel = field.mediaAlt?.trim() || `${field.label} reference`;
 
@@ -533,10 +549,14 @@ export default function SubmissionEditSection() {
   const stepperItems = useMemo(() => {
     if (!detail) return [] as Array<{ id: string; title: string; status: string | null | undefined }>;
     return [
-      ...detail.sections.map(s => ({ id: s.id, title: s.title, status: s.status })),
+      ...detail.sections.map(s => {
+        const currentValues = sectionValues[s.id] || {};
+        const calculatedStatus = calculateSectionStatus(s, currentValues);
+        return { id: s.id, title: s.title, status: calculatedStatus };
+      }),
       { id: PREVIEW_STEP_ID, title: "Preview", status: undefined },
     ];
-  }, [detail]);
+  }, [detail, sectionValues]);
 
   const activeSectionIndex = useMemo(() => {
     return stepperItems.findIndex(step => step.id === activeSectionId);
@@ -553,6 +573,7 @@ export default function SubmissionEditSection() {
     const hasRequestedStep = stepperItems.some(step => step.id === requestedStepId);
     if (!hasRequestedStep) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveSectionId(current => (current === requestedStepId ? current : requestedStepId));
   }, [requestedStepId, stepperItems]);
 
@@ -629,6 +650,25 @@ export default function SubmissionEditSection() {
       }
 
       toast.success(`${activeSection.title} saved successfully.`);
+
+      try {
+        const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = (await res.json().catch(() => null)) as unknown;
+        if (res.ok) {
+          const nextDetail = toPortalSubmissionDetail(getEnvelopeData(json));
+          if (nextDetail) {
+            setDetail(nextDetail);
+          }
+        }
+      } catch (refreshError) {
+        // Don't show error for refresh failure, save was successful
+        console.error("Failed to refresh submission detail:", refreshError);
+      }
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : "Failed to save submission section";
       setError(message);

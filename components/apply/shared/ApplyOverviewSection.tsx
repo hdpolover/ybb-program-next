@@ -167,8 +167,16 @@ export default function ApplyOverviewSection({ data }: ApplyOverviewSectionProps
             </div>
           </div>
 
-          <div className={componentsTheme.applyOverview.rightColWrapper}>
-            <div className={componentsTheme.applyOverview.rightCard}>
+          <div
+            className={
+              `${componentsTheme.applyOverview.rightColWrapper} mx-auto w-full sm:w-fit`
+            }
+          >
+            <div
+              className={
+                `${componentsTheme.applyOverview.rightCard} w-full rounded-3xl bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80 sm:p-5 sm:w-[380px]`
+              }
+            >
               <div className={componentsTheme.applyOverview.infoList}>
                 <div className={componentsTheme.applyOverview.infoRow}>
                   <MapPin className={componentsTheme.applyOverview.infoIcon} />
