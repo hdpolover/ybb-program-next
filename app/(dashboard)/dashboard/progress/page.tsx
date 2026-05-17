@@ -1,15 +1,50 @@
 "use client";
 
-import { buildProgressSteps, type ProgressStep } from "@/components/dashboard/sections/dashboardOverview/OverviewProgramDetailsSection";
+import { mapSubmissionStatusToProgressStatus, type ProgressStep } from "@/components/dashboard/sections/dashboardOverview/OverviewProgramDetailsSection";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { usePortalSubmissionProgress } from "@/hooks/usePortalSubmissionProgress";
 import { componentsTheme } from "@/lib/theme/components";
-import { useMemo } from "react";
+import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
+import { useMemo, useEffect, useState, useRef } from "react";
+import {
+  appendProgramId,
+  readActiveProgramId,
+} from "@/lib/dashboard/activeProgram";
+import { getEnvelopeData } from "@/lib/api/response";
+import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
+import type { PortalSubmissionDetail, PortalSubmissionSection, PortalSubmissionEssay } from "@/types/portal-submission";
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
 function normalizeStepTitle(value: string) {
   return value.trim().toLowerCase();
+}
+
+function calculateSectionStatus(section: PortalSubmissionSection, essays?: PortalSubmissionEssay[]): 'pending' | 'in_progress' | 'completed' {
+  const relevant = section.fields.filter(f => f.type !== 'header' && f.type !== 'divider' && f.isRequired);
+  if (relevant.length === 0) {
+    if (section.id === 'entry_information' && essays && essays.length > 0) {
+      const requiredEssays = essays.filter(e => e.isRequired);
+      if (requiredEssays.length === 0) return 'completed';
+      const answeredEssays = requiredEssays.filter(e => e.answer && e.answer.trim() !== '');
+      const essayFillRate = answeredEssays.length / requiredEssays.length;
+      if (essayFillRate === 1) return 'completed';
+      if (essayFillRate > 0) return 'in_progress';
+      return 'pending';
+    }
+    return 'completed';
+  }
+
+  const filled = relevant.filter(f => {
+    const v = section.values[f.name];
+    return v !== null && v !== undefined && v !== '' && String(v).trim() !== '';
+  });
+
+  const fillRate = filled.length / relevant.length;
+  
+  if (fillRate === 1) return 'completed';
+  if (fillRate > 0) return 'in_progress';
+  return 'pending';
 }
 
 function getCurrentStepIndex({
@@ -38,55 +73,112 @@ function getCurrentStepIndex({
 export default function DashboardProgressPage() {
   const { dashboardSummary } = useDashboardData();
   const activeApplication = dashboardSummary?.activeApplication ?? null;
-  const { submissionProgress, currentStepIndex, loading, error } = usePortalSubmissionProgress();
-  const progressSteps = buildProgressSteps(submissionProgress?.sections);
+  const { currentStepIndex, error } = usePortalSubmissionProgress();
+  const [submissionDetail, setSubmissionDetail] = useState<PortalSubmissionDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(true);
+  const loadedApplicationIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const selectedProgramId = readActiveProgramId();
+    if (!selectedProgramId) return;
+
+    let cancelled = false;
+    if (loadedApplicationIdRef.current !== selectedProgramId) {
+      loadedApplicationIdRef.current = selectedProgramId;
+      setSubmissionDetail(null);
+      setDetailLoading(true);
+    }
+
+    (async () => {
+      try {
+        const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = (await res.json().catch(() => null)) as unknown;
+        if (!cancelled && res.ok) {
+          const detail = toPortalSubmissionDetail(getEnvelopeData(json));
+          setSubmissionDetail(detail);
+        }
+      } catch (err) {
+        console.error("Failed to load submission detail:", err);
+      } finally {
+        if (!cancelled) {
+          setDetailLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const progressSteps = useMemo(() => {
+    if (!submissionDetail?.sections) return [];
+    
+    const sectionSteps = submissionDetail.sections.map((section, index) => ({
+      id: index + 1,
+      title: section.title,
+      description: section.description || "Complete this part of your application to move forward.",
+      status: mapSubmissionStatusToProgressStatus(calculateSectionStatus(section, submissionDetail.essays)),
+    }));
+    
+    return [
+      ...sectionSteps,
+      {
+        id: sectionSteps.length + 1,
+        title: "Preview",
+        description: "Review your application before submission.",
+        status: "upcoming" as const,
+      },
+    ];
+  }, [submissionDetail]);
 
   const fallbackCurrentIndex = getCurrentStepIndex({ steps: progressSteps, currentStepTitle: null, progressPercentage: 0 });
   const currentIndex = currentStepIndex >= 0 ? Math.min(currentStepIndex, Math.max(0, progressSteps.length - 1)) : fallbackCurrentIndex;
+  const completedSections = submissionDetail?.sections
+    ? submissionDetail.sections.filter(section => calculateSectionStatus(section, submissionDetail.essays) === 'completed').length
+    : 0;
+  const totalSections = submissionDetail?.sections?.length ?? 0;
+  const progressPercentage = totalSections > 0 ? Math.min(100, Math.max(0, Math.round((completedSections / totalSections) * 100))) : 0;
   const totalSteps = progressSteps.length;
-  const completedCount = progressSteps.filter(step => step.status === "done").length;
-  const progressRatio = totalSteps > 0 ? completedCount / totalSteps : 0;
-  const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
-
-  const progressPercentage = useMemo(() => {
-    const pct = submissionProgress?.overallProgress;
-    if (typeof pct !== "number" || Number.isNaN(pct)) return fallbackProgressPercentage;
-    return Math.min(100, Math.max(0, Math.round(pct)));
-  }, [fallbackProgressPercentage, submissionProgress?.overallProgress]);
 
   const chipTranslateX = progressPercentage <= 5 ? '0%' : progressPercentage >= 95 ? '-100%' : '-50%';
 
   const resolvedCurrentStep = progressSteps[currentIndex];
-  const currentStepTitle = resolvedCurrentStep?.title || activeApplication?.currentStep?.trim() || "Application Progress";
+  const currentStepTitle = progressPercentage === 100
+    ? "All Done"
+    : resolvedCurrentStep?.title || activeApplication?.currentStep?.trim() || "Application Progress";
 
   return (
     <section className={overviewTheme.sectionWrapper}>
-      <div className={overviewTheme.progressDetailHeaderRow}>
-        <div>
-          <h1 className={overviewTheme.progressDetailTitle}>Program Progress</h1>
-          <p className={overviewTheme.progressDetailSubtitle}>
-            Track your live submission sections and see exactly what is still pending.
-          </p>
-        </div>
-        <div className={overviewTheme.progressDetailCurrentChip}>
-          <span className={overviewTheme.progressDetailCurrentLabel}>Current step</span>
-          <span className={overviewTheme.progressDetailCurrentValue}>
-            {progressPercentage}% · Step {currentIndex + 1} of {totalSteps}: {currentStepTitle}
-          </span>
-        </div>
-      </div>
+      {detailLoading ? (
+        <DashboardPageSkeleton variant="overview-program-details" className="w-full" />
+      ) : (
+        <>
+          <div className={overviewTheme.progressDetailHeaderRow}>
+            <div>
+              <h1 className={overviewTheme.progressDetailTitle}>Program Progress</h1>
+              <p className={overviewTheme.progressDetailSubtitle}>
+                Track your live submission sections and see exactly what is still pending.
+              </p>
+            </div>
+            <div className={overviewTheme.progressDetailCurrentChip}>
+              <span className={overviewTheme.progressDetailCurrentLabel}>Current step</span>
+              <span className={overviewTheme.progressDetailCurrentValue}>
+                {progressPercentage}% · Step {currentIndex + 1} of {totalSteps}: {currentStepTitle}
+              </span>
+            </div>
+          </div>
 
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
-
-      {loading ? (
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-600 shadow-sm">
-          Loading progress...
-        </div>
-      ) : null}
+          {error ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          ) : null}
 
       <div className={overviewTheme.progressDetailListWrapper}>
         <div className={overviewTheme.programCard}>
@@ -123,7 +215,7 @@ export default function DashboardProgressPage() {
             <div className={overviewTheme.progressStepsCol}>
               {progressSteps.map((step, idx) => {
                 const isCurrent = idx === currentIndex;
-                const isDone = idx < currentIndex;
+                const isDone = step.status === "done";
 
                 const indexCircleCls = isDone
                   ? overviewTheme.progressStepIndexDone
@@ -174,6 +266,8 @@ export default function DashboardProgressPage() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </section>
   );
 }

@@ -6,7 +6,7 @@ import { CalendarDays } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 
@@ -16,11 +16,45 @@ import { componentsTheme } from "@/lib/theme/components";
 
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 
+import {
+  appendProgramId,
+  readActiveProgramId,
+} from "@/lib/dashboard/activeProgram";
+import { getEnvelopeData } from "@/lib/api/response";
+import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
+import type { PortalSubmissionDetail, PortalSubmissionSection, PortalSubmissionEssay } from "@/types/portal-submission";
+
 
 
 const overviewTheme = componentsTheme.dashboardOverview;
 
+function calculateSectionStatus(section: PortalSubmissionSection, essays?: PortalSubmissionEssay[]): 'pending' | 'in_progress' | 'completed' {
+  const relevant = section.fields.filter(f => f.type !== 'header' && f.type !== 'divider' && f.isRequired);
+  if (relevant.length === 0) {
+    // If no fields, check if this is essay section
+    if (section.id === 'entry_information' && essays && essays.length > 0) {
+      const requiredEssays = essays.filter(e => e.isRequired);
+      if (requiredEssays.length === 0) return 'completed';
+      const answeredEssays = requiredEssays.filter(e => e.answer && e.answer.trim() !== '');
+      const essayFillRate = answeredEssays.length / requiredEssays.length;
+      if (essayFillRate === 1) return 'completed';
+      if (essayFillRate > 0) return 'in_progress';
+      return 'pending';
+    }
+    return 'completed';
+  }
 
+  const filled = relevant.filter(f => {
+    const v = section.values[f.name];
+    return v !== null && v !== undefined && v !== '' && String(v).trim() !== '';
+  });
+
+  const fillRate = filled.length / relevant.length;
+  
+  if (fillRate === 1) return 'completed';
+  if (fillRate > 0) return 'in_progress';
+  return 'pending';
+}
 
 type ProgressStatus = "done" | "waiting" | "upcoming";
 
@@ -170,11 +204,64 @@ export default function OverviewProgramDetailsSection({
 
   const activeApplication = dashboardSummary?.activeApplication ?? null;
 
-  const { submissionProgress, currentStepIndex, loading } = usePortalSubmissionProgress();
+  const { currentStepIndex } = usePortalSubmissionProgress();
+  const [submissionDetail, setSubmissionDetail] = useState<PortalSubmissionDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(true);
+  const loadedApplicationIdRef = useRef<string | null>(null);
+
+  // Load submission detail for client-side status calculation
+  useEffect(() => {
+    const selectedProgramId = readActiveProgramId();
+    if (!selectedProgramId) return;
+
+    let cancelled = false;
+
+    // Reset state if program changed
+    if (loadedApplicationIdRef.current !== selectedProgramId) {
+      loadedApplicationIdRef.current = selectedProgramId;
+      setSubmissionDetail(null);
+      setDetailLoading(true);
+    }
+
+    (async () => {
+      try {
+        const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = (await res.json().catch(() => null)) as unknown;
+        if (!cancelled && res.ok) {
+          const detail = toPortalSubmissionDetail(getEnvelopeData(json));
+          setSubmissionDetail(detail);
+        }
+      } catch (err) {
+        console.error("Failed to load submission detail:", err);
+      } finally {
+        if (!cancelled) {
+          setDetailLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
 
 
-  const progressSteps = useMemo(() => buildProgressSteps(submissionProgress?.sections), [submissionProgress?.sections]);
+  const progressSteps = useMemo(() => {
+    if (!submissionDetail?.sections) return [];
+    
+    return submissionDetail.sections.map((section, index) => ({
+      id: index + 1,
+      title: section.title,
+      description: section.description || "Complete this part of your application to move forward.",
+      status: mapSubmissionStatusToProgressStatus(calculateSectionStatus(section, submissionDetail.essays)),
+    }));
+  }, [submissionDetail]);
 
 
 
@@ -190,26 +277,14 @@ export default function OverviewProgramDetailsSection({
 
   const progressRatio = totalSteps > 0 ? completedCount / totalSteps : 0;
 
-
-
-  const fallbackProgressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
-
-
-
-  const progressPercentage = useMemo(() => {
-
-    const pct = submissionProgress?.overallProgress ?? activeApplication?.progress;
-
-    if (typeof pct !== "number" || Number.isNaN(pct)) return fallbackProgressPercentage;
-
-    return Math.min(100, Math.max(0, Math.round(pct)));
-
-  }, [activeApplication?.progress, fallbackProgressPercentage, submissionProgress?.overallProgress]);
+  const progressPercentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
   const progressChipPosition = Math.min(96, Math.max(4, progressPercentage));
 
 
 
-  const currentTitle = currentStep?.title || activeApplication?.currentStep?.trim() || "Application Progress";
+  const currentTitle = progressPercentage === 100
+    ? "All Done"
+    : currentStep?.title || activeApplication?.currentStep?.trim() || "Application Progress";
 
 
 
@@ -261,9 +336,16 @@ export default function OverviewProgramDetailsSection({
 
   }, [currentStep]);
 
+  const statusPillColor = useMemo(() => {
+    if (!currentStep) return "bg-slate-50 text-slate-600 ring-slate-200";
+    if (currentStep.status === "done") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+    if (currentStep.status === "waiting") return "bg-amber-50 text-amber-700 ring-amber-200";
+    return "bg-slate-50 text-slate-600 ring-slate-200";
+  }, [currentStep]);
 
 
-  if (isDashboardSummaryLoading || loading) {
+
+  if (isDashboardSummaryLoading || detailLoading) {
 
     return <DashboardPageSkeleton variant="overview-program-details" className="w-full" />;
 
@@ -355,7 +437,7 @@ export default function OverviewProgramDetailsSection({
 
           <div className={overviewTheme.progressCurrentDetailWrapper}>
 
-            <span className={overviewTheme.progressStatusPill}>{statusLabel}</span>
+            <span className={`${overviewTheme.progressStatusPill} ${statusPillColor}`}>{statusLabel}</span>
 
             <h3 className={overviewTheme.progressCurrentTitle}>{currentTitle}</h3>
 

@@ -33,6 +33,7 @@ import { FieldAssetDrawer } from '@/components/dashboard/sections/FieldAssetDraw
 import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
 import type {
   PortalSubmissionDetail,
+  PortalSubmissionEssay,
   PortalSubmissionField,
   PortalSubmissionFieldOption,
   PortalSubmissionSection,
@@ -183,12 +184,46 @@ function shouldSpanFullWidth(field: PortalSubmissionField) {
 
 // ─── helpers for per-section fill rate ────────────────────────────────────────
 function countSectionFields(section: PortalSubmissionSection) {
-  const relevant = section.fields.filter(f => f.type !== 'header' && f.type !== 'divider');
+  const relevant = section.fields.filter(f => 
+    f.type !== 'header' && 
+    f.type !== 'divider' &&
+    !isProfilePhotoField(f) &&
+    !isViewOnlyMetaField(f) &&
+    !(section.id === 'entry_information' && isLegacyEssayField(f))
+  );
   const filled = relevant.filter(f => {
     const v = section.values[f.name];
     return v !== null && v !== undefined && v !== '';
   });
   return { total: relevant.length, filled: filled.length };
+}
+
+function calculateSectionStatus(section: PortalSubmissionSection, essays?: PortalSubmissionEssay[]): 'pending' | 'in_progress' | 'completed' {
+  const relevant = section.fields.filter(f => f.type !== 'header' && f.type !== 'divider' && f.isRequired);
+  if (relevant.length === 0) {
+    // If no fields, check if this is essay section
+    if (section.id === 'entry_information' && essays && essays.length > 0) {
+      const requiredEssays = essays.filter(e => e.isRequired);
+      if (requiredEssays.length === 0) return 'completed';
+      const answeredEssays = requiredEssays.filter(e => e.answer && e.answer.trim() !== '');
+      const essayFillRate = answeredEssays.length / requiredEssays.length;
+      if (essayFillRate === 1) return 'completed';
+      if (essayFillRate > 0) return 'in_progress';
+      return 'pending';
+    }
+    return 'completed';
+  }
+
+  const filled = relevant.filter(f => {
+    const v = section.values[f.name];
+    return v !== null && v !== undefined && v !== '' && String(v).trim() !== '';
+  });
+
+  const fillRate = filled.length / relevant.length;
+  
+  if (fillRate === 1) return 'completed';
+  if (fillRate > 0) return 'in_progress';
+  return 'pending';
 }
 
 function sectionStatusIcon(status: string) {
@@ -223,7 +258,10 @@ function ProgressDrawer({
 
   if (!open || typeof document === 'undefined') return null;
 
-  const progress = detail.overallProgress;
+  // Calculate progress based on section completion status
+  const completedSections = detail.sections.filter(s => calculateSectionStatus(s, detail.essays) === 'completed').length;
+  const totalSections = detail.sections.length;
+  const progress = totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
   const progressColor =
     progress >= 100
       ? 'bg-emerald-500'
@@ -313,10 +351,11 @@ function ProgressDrawer({
             {detail.sections.map(section => {
               const { total, filled } = countSectionFields(section);
               const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+              const calculatedStatus = calculateSectionStatus(section, detail.essays);
               const sColor =
-                section.status === 'completed'
+                calculatedStatus === 'completed'
                   ? 'bg-emerald-500'
-                  : section.status === 'in_progress'
+                  : calculatedStatus === 'in_progress'
                     ? 'bg-primary'
                     : 'bg-slate-200';
               return (
@@ -325,12 +364,12 @@ function ProgressDrawer({
                   className="rounded-xl border border-slate-100 bg-white px-4 py-3 shadow-sm space-y-2"
                 >
                   <div className="flex items-center gap-2">
-                    {sectionStatusIcon(section.status)}
+                    {sectionStatusIcon(calculatedStatus)}
                     <span className="flex-1 text-sm font-medium text-slate-800">
                       {section.title}
                     </span>
                     <span className="text-xs font-semibold text-slate-500">
-                      {statusLabel[section.status] ?? section.status}
+                      {statusLabel[calculatedStatus] ?? calculatedStatus}
                     </span>
                   </div>
                   {total > 0 && (
@@ -453,6 +492,14 @@ export default function SubmissionReadSection() {
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
   const [programSelectionReady, setProgramSelectionReady] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Calculate progress percentage based on section completion
+  const progressPercentage = useMemo(() => {
+    if (!detail?.sections) return 0;
+    const completedSections = detail.sections.filter(s => calculateSectionStatus(s, detail.essays) === 'completed').length;
+    const totalSections = detail.sections.length;
+    return totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
+  }, [detail?.sections, detail?.essays]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -562,7 +609,7 @@ export default function SubmissionReadSection() {
             >
               <TrendingUp className="h-3.5 w-3.5 text-primary" />
               <span className="font-semibold uppercase tracking-wide text-slate-500">Progress</span>
-              <span className="text-sm font-bold text-slate-900">{detail.overallProgress}%</span>
+              <span className="text-sm font-bold text-slate-900">{progressPercentage}%</span>
               <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
             </button>
           ) : null}

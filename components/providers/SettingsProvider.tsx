@@ -54,7 +54,7 @@ export function SettingsProvider({
   return (
     <SettingsContext.Provider value={{ settings: initialSettings, isLoading: false }}>
       {children}
-      <Toaster position="bottom-right" richColors />
+      <Toaster position="top-center" richColors />
     </SettingsContext.Provider>
   );
 }

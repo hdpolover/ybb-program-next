@@ -96,32 +96,32 @@ export const applyTheme = {
     stagePrice: 'text-sm font-semibold text-slate-900 sm:text-base',
     stagePriceSub: 'text-xs text-slate-600',
     footerWrapper:
-      'mt-6 flex flex-col items-start justify-between gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center',
-    footerNote: 'text-xs text-slate-600 sm:text-sm',
+      'mt-6 flex flex-col items-center justify-center gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:justify-between sm:items-center',
+    footerNote: 'text-center text-xs text-slate-600 sm:text-left sm:text-sm',
     footerNoteEmphasis: 'font-semibold',
     footerCta:
       'inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
   },
   applyPaymentMethods: {
-    sectionWrapper: 'py-14 sm:py-16 md:py-20',
-    container: 'mx-auto max-w-6xl px-6 lg:px-8',
+    sectionWrapper: 'py-12 sm:py-14 md:py-20',
+    container: 'mx-auto max-w-6xl px-4 sm:px-6 lg:px-8',
     headerWrapper: 'mx-auto max-w-2xl text-center',
     headerSubtitle: 'mx-auto -mt-4 text-sm leading-relaxed text-slate-700 sm:text-base',
-    cardsGrid: 'mt-8 grid gap-8 md:grid-cols-2',
+    cardsGrid: 'mt-6 grid gap-6 grid-cols-1 md:grid-cols-2',
     bankCard:
-      'flex h-full flex-col rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.14)] ring-1 ring-slate-200/80',
-    bankHeaderRow: 'flex items-center gap-3',
+      'flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_14px_35px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/80 sm:p-6',
+    bankHeaderRow: 'flex items-start gap-3',
     bankIconCircle: 'flex h-9 w-9 items-center justify-center rounded-full bg-primary/10',
     bankIcon: 'h-4 w-4 text-primary',
     cardTitle: 'text-base font-semibold text-slate-900 sm:text-lg',
-    cardSubtitle: 'text-xs text-slate-600 sm:text-sm',
+    cardSubtitle: 'text-xs leading-relaxed text-slate-600 sm:text-sm',
     banksGrid: 'mt-5 grid grid-cols-2 gap-4',
     bankLogoCard:
       'flex h-16 items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200',
     bankLogoImage: 'h-10 w-auto object-contain',
     intlCard:
-      'flex h-full flex-col rounded-3xl bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.14)] ring-1 ring-slate-200/80',
-    intlHeaderRow: 'flex items-center gap-3',
+      'flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_14px_35px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/80 sm:p-6',
+    intlHeaderRow: 'flex items-start gap-3',
     intlIconCircle: 'flex h-9 w-9 items-center justify-center rounded-full bg-primary/5',
     intlIcon: 'h-4 w-4 text-primary',
     paypalBox: 'mt-5 space-y-4 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200',
@@ -151,7 +151,8 @@ export const applyTheme = {
     leftCol: 'relative z-10',
     title: 'text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl',
     subtitle: 'mt-4 max-w-xl text-slate-900-200',
-    statsRow: 'mt-7 flex items-center gap-8 text-slate-900-200',
+    statsRow:
+      'mt-7 flex flex-col gap-4 text-slate-900-200 sm:flex-row sm:items-center sm:gap-8',
     statGroup: 'flex items-center gap-3',
     statIconCircle: 'flex h-11 w-11 items-center justify-center rounded-full bg-white',
     statIcon: 'h-5 w-5 text-slate-900',
@@ -162,9 +163,9 @@ export const applyTheme = {
     // kanan
     rightCol: 'relative z-10 flex flex-col',
     countdownCard:
-      'rounded-2xl bg-white/95 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/70',
+      'rounded-2xl bg-white/95 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/70 sm:p-5',
     countdownEyebrow: 'text-xs font-semibold uppercase tracking-[0.18em] text-primary',
-    countdownGrid: 'mt-5 grid grid-cols-4 gap-2 sm:gap-3',
+    countdownGrid: 'mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3',
     countdownItem:
       'flex flex-col items-center justify-center rounded-2xl bg-slate-50 px-2 py-3 ring-1 ring-slate-200',
     countdownValue: 'text-lg font-extrabold tracking-tight text-slate-900 sm:text-2xl',
