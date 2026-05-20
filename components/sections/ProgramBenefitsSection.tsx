@@ -10,16 +10,15 @@ const theme = componentsTheme.homeProgramBenefits;
 
 interface Props {
   section?: ProgramBenefitsSectionType;
-  textColorScheme?: 'light' | 'dark';
 }
 
-export default function ProgramBenefitsSection({ section, textColorScheme }: Props) {
+export default function ProgramBenefitsSection({ section }: Props) {
   if (!section || !section.content.groups || section.content.groups.length === 0) return null;
 
   const eyebrow = section.content.eyebrow ?? 'Program Benefits';
   const title = section.content.title ?? 'for Students, University Students, and Professional';
   const groups = section.content.groups;
-  const colorScheme = textColorScheme ?? section.content.text_color_scheme ?? 'dark';
+  const colorScheme = section.content.text_color_scheme ?? 'dark';
   const desktopBg = section.content.background_image_url?.trim() || null;
   const mobileBg = section.content.background_image_mobile_url?.trim() || desktopBg;
 
@@ -33,7 +32,6 @@ export default function ProgramBenefitsSection({ section, textColorScheme }: Pro
         backgroundRepeat: 'no-repeat',
       } : undefined}
     >
-      {/* testing pushh */}
       {mobileBg && mobileBg !== desktopBg && (
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"

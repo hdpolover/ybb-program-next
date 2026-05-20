@@ -211,23 +211,10 @@ export default async function Home() {
         mobileBackgroundImageUrl={furtherInformationSection?.content.background_image_mobile_url ?? undefined}
         mockupImageUrl={furtherInformationSection?.content.mockup_image_url ?? undefined}
         guidebooks={furtherGuidebooks}
-        textColorScheme={
-          (furtherInformationSection?.content.background_image_url ||
-           furtherInformationSection?.content.background_image_mobile_url)
-            ? 'light'
-            : (furtherInformationSection?.content.text_color_scheme ?? 'dark')
-        }
+        textColorScheme={furtherInformationSection?.content.text_color_scheme ?? 'dark'}
       />
       <WhatMakesUsSpecialSection section={programFeaturesSection} />
-      <ProgramBenefitsSection
-        section={programBenefitsSection}
-        textColorScheme={
-          (programBenefitsSection?.content.background_image_url ||
-           programBenefitsSection?.content.background_image_mobile_url)
-            ? 'light'
-            : undefined
-        }
-      />
+      <ProgramBenefitsSection section={programBenefitsSection} />
       <AlumniStoriesSection
         title={alumniStoriesSection?.content.title}
         subtitle={alumniStoriesSection?.content.subtitle}
@@ -260,12 +247,7 @@ export default async function Home() {
           videoUrl={promoCTASection.content.video_url ?? undefined}
           videoTitle={promoCTASection.content.video_title ?? undefined}
           videoDescription={promoCTASection.content.video_description ?? undefined}
-          textColorScheme={
-            (promoCTASection.content.background_image_url ||
-             promoCTASection.content.background_image_mobile_url)
-              ? 'light'
-              : (promoCTASection.content.text_color_scheme ?? 'dark')
-          }
+          textColorScheme={promoCTASection.content.text_color_scheme ?? 'dark'}
         />
       )}
       <GetInTouchSection />

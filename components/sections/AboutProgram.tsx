@@ -41,19 +41,13 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
   };
 
   const sanitizeRichHtml = (value: string): string => {
-    let html = value
+    return value
       .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
       .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, '')
       .replace(/\son\w+="[^"]*"/gi, '')
       .replace(/\son\w+='[^']*'/gi, '')
       .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, '');
-
-    if (hasBackground) {
-      html = html.replace(/\sstyle="[^"]*"/gi, '').replace(/\sstyle='[^']*'/gi, '');
-    }
-
-    return html;
   };
 
   const renderContent = (value?: string) => {
