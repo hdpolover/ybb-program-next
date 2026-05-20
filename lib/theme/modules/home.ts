@@ -17,8 +17,8 @@ export const homeTheme = {
     innerGrid:
       'grid w-full items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)] lg:gap-12',
     leftCol:
-      'order-2 flex w-full max-w-xl flex-col items-center justify-center space-y-4 text-center text-slate-900 sm:items-start sm:text-left lg:order-1 lg:pr-6',
-    description: 'mt-3 max-w-md text-sm leading-relaxed text-slate-900/90 sm:text-base lg:text-lg',
+      'order-2 flex w-full max-w-xl flex-col items-center justify-center space-y-4 text-center sm:items-start sm:text-left lg:order-1 lg:pr-6',
+    description: 'mt-3 max-w-md text-sm leading-relaxed sm:text-base lg:text-lg',
     buttonsCol: 'mt-4 flex flex-col items-center gap-3 sm:items-start',
     guideButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold shadow-sm transition',
@@ -228,8 +228,19 @@ export const homeTheme = {
       'pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#f4f7fb] via-[#f4f7fb]/85 to-transparent',
     readMoreButton:
       'inline-flex items-center text-sm font-semibold text-[var(--brand-accent)] underline decoration-[var(--brand-accent)]/35 underline-offset-4 transition hover:decoration-[var(--brand-accent)]',
+    readMoreButtonOnBg:
+      'inline-flex items-center text-sm font-semibold text-white underline decoration-white/50 underline-offset-4 transition hover:decoration-white',
+    contentWrapperOnBg: 'mt-5 space-y-4 text-sm leading-relaxed text-white/90 sm:text-base',
+    contentPreviewFadeOnBg:
+      'pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 via-black/30 to-transparent',
+    tabContainerOnBg:
+      'mt-4 inline-flex rounded-full bg-white/15 p-1 text-xs shadow-sm ring-1 ring-white/25 backdrop-blur-sm',
+    tabButtonInactiveOnBg: 'text-white/85 hover:text-white',
+    sectionOverlay: 'pointer-events-none absolute inset-0 bg-black/35',
     richText:
       "[&_p]:text-slate-600 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4 [&_ul]:mt-4 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ol]:mt-4 [&_ol]:space-y-2.5 [&_ol]:pl-0 [&_ul>li]:flex [&_ul>li]:items-start [&_ul>li]:gap-3 [&_ul>li]:text-slate-700 [&_ol>li]:flex [&_ol>li]:items-start [&_ol>li]:gap-3 [&_ol>li]:text-slate-700 [&_li>p]:m-0 [&_ul>li::before]:mt-[2px] [&_ul>li::before]:inline-grid [&_ul>li::before]:h-7 [&_ul>li::before]:w-7 [&_ul>li::before]:shrink-0 [&_ul>li::before]:place-items-center [&_ul>li::before]:rounded-full [&_ul>li::before]:bg-primary [&_ul>li::before]:text-[13px] [&_ul>li::before]:font-semibold [&_ul>li::before]:leading-none [&_ul>li::before]:text-white [&_ul>li::before]:content-['✓'] [&_ol>li::before]:mt-[2px] [&_ol>li::before]:inline-grid [&_ol>li::before]:h-7 [&_ol>li::before]:w-7 [&_ol>li::before]:shrink-0 [&_ol>li::before]:place-items-center [&_ol>li::before]:rounded-full [&_ol>li::before]:bg-primary [&_ol>li::before]:text-[13px] [&_ol>li::before]:font-semibold [&_ol>li::before]:leading-none [&_ol>li::before]:text-white [&_ol>li::before]:content-['✓']",
+    richTextOnBg:
+      "[&_*]:!text-white/90 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:!text-white [&_em]:!text-white/90 [&_.ql-align-justify]:text-justify [&_a]:!text-white [&_a]:underline [&_a]:underline-offset-4 [&_ul]:mt-4 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ol]:mt-4 [&_ol]:space-y-2.5 [&_ol]:pl-0 [&_ul>li]:flex [&_ul>li]:items-start [&_ul>li]:gap-3 [&_ol>li]:flex [&_ol>li]:items-start [&_ol>li]:gap-3 [&_li>p]:m-0 [&_ul>li::before]:mt-[2px] [&_ul>li::before]:inline-grid [&_ul>li::before]:h-7 [&_ul>li::before]:w-7 [&_ul>li::before]:shrink-0 [&_ul>li::before]:place-items-center [&_ul>li::before]:rounded-full [&_ul>li::before]:!bg-white [&_ul>li::before]:!text-[var(--brand-accent)] [&_ul>li::before]:text-[13px] [&_ul>li::before]:font-semibold [&_ul>li::before]:leading-none [&_ul>li::before]:content-['✓'] [&_ol>li::before]:mt-[2px] [&_ol>li::before]:inline-grid [&_ol>li::before]:h-7 [&_ol>li::before]:w-7 [&_ol>li::before]:shrink-0 [&_ol>li::before]:place-items-center [&_ol>li::before]:rounded-full [&_ol>li::before]:!bg-white [&_ol>li::before]:!text-[var(--brand-accent)] [&_ol>li::before]:text-[13px] [&_ol>li::before]:font-semibold [&_ol>li::before]:leading-none [&_ol>li::before]:content-['✓']",
     visionLabel: 'font-semibold text-slate-900',
     ctaWrapper: 'mt-6',
     rightCol: 'flex items-center justify-center',

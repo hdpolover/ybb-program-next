@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Search as SearchIcon,
@@ -77,17 +77,18 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [programMenuOpen, setProgramMenuOpen] = useState(false);
-  const [currentHost, setCurrentHost] = useState('');
+  const currentHost = typeof window !== 'undefined' ? window.location.hostname.replace(/^www\./, '').toLowerCase() : '';
   const [query, setQuery] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [pinned, setPinned] = useState(false);
   const [dynamicSearchEntries, setDynamicSearchEntries] = useState<QuickSearchEntry[]>([]);
   const { settings } = useSettings();
   const pathname = usePathname();
   const router = useRouter();
 
+  const navMeasureRef = useRef<HTMLDivElement>(null);
+  const [navHeight, setNavHeight] = useState(84);
   const lastScrollYRef = useRef(0);
   const scrollElRef = useRef<HTMLElement | null>(null);
   const activeScrollElRef = useRef<HTMLElement | null>(null);
@@ -95,6 +96,7 @@ export function Navbar() {
   const scrollDirRef = useRef<'up' | 'down'>('down');
   const scrollAccumRef = useRef(0);
   const dynamicSearchLoadedRef = useRef(false);
+  const openRef = useRef(false);
 
   const hrefFor = (item: string): string => {
     switch (item) {
@@ -217,6 +219,18 @@ export function Navbar() {
     return cleaned ? cleaned.charAt(0).toUpperCase() : '?';
   };
 
+  useLayoutEffect(() => {
+    const node = navMeasureRef.current;
+    if (!node) return;
+
+    const updateHeight = () => setNavHeight(node.offsetHeight);
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [pathname, open, programMenuOpen]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -255,10 +269,9 @@ export function Navbar() {
         const y = active?.scrollTop ?? 0;
         setScrolled(y > 0);
 
-        const PIN_THRESHOLD = 120;
-        const nextPinned = y > PIN_THRESHOLD;
-        setPinned(nextPinned);
-        if (!nextPinned) {
+        const PIN_THRESHOLD = 64;
+        const canAutoHide = y > PIN_THRESHOLD;
+        if (!canAutoHide) {
           setHidden(false);
         }
 
@@ -266,7 +279,7 @@ export function Navbar() {
         const diff = y - lastY;
         lastScrollYRef.current = y;
 
-        if (!nextPinned) return;
+        if (!canAutoHide) return;
 
         // Accumulate scroll distance per direction to support trackpads/momentum
         if (Math.abs(diff) < 1) return;
@@ -279,11 +292,11 @@ export function Navbar() {
 
         scrollAccumRef.current += Math.abs(diff);
 
-        const HIDE_AFTER = 24;
-        const SHOW_AFTER = 12;
+        const HIDE_AFTER = 50;
+        const SHOW_AFTER = 30;
 
         if (dir === 'down' && scrollAccumRef.current >= HIDE_AFTER) {
-          setHidden(true);
+          if (!openRef.current) setHidden(true);
           scrollAccumRef.current = 0;
         }
 
@@ -307,10 +320,6 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    setCurrentHost(window.location.hostname.replace(/^www\./, '').toLowerCase());
-  }, []);
-
-  useEffect(() => {
     return () => {
       if (closeProgramsMenuTimerRef.current !== null) {
         window.clearTimeout(closeProgramsMenuTimerRef.current);
@@ -319,8 +328,9 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    setProgramMenuOpen(false);
-  }, [pathname]);
+    openRef.current = open;
+  }, [open]);
+
 
   useEffect(() => {
     const controller = new AbortController();
@@ -425,7 +435,7 @@ export function Navbar() {
     return [...pageEntries, ...programEntries, ...dynamicSearchEntries];
   }, [brandProgramLinks, dynamicSearchEntries]);
 
-  const previewResults = useMemo(() => {
+  const previewResults = (() => {
     const term = query.trim().toLowerCase();
     if (!term) return quickSearchIndex.slice(0, 6);
 
@@ -445,7 +455,7 @@ export function Navbar() {
       )
       .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
       .slice(0, 8);
-  }, [query, quickSearchIndex]);
+  })();
 
   const queryTrimmed = query.trim();
 
@@ -462,10 +472,8 @@ export function Navbar() {
 
   const navbarContent = (
     <>
-      <div className="h-1 w-full bg-gray-800" />
-
       <nav
-        className={`${'relative z-40 w-full border-b border-gray-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60'} ${scrolled ? 'shadow-sm' : ''}`}
+        className={`relative z-40 w-full border-b border-gray-200 bg-white/90 backdrop-blur-sm supports-[backdrop-filter]:bg-white/72 supports-[backdrop-filter]:backdrop-blur-md ${scrolled ? 'shadow-sm' : ''} ${open ? 'max-md:pb-10' : ''}`}
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between gap-4 md:h-24">
@@ -812,8 +820,8 @@ export function Navbar() {
           </div>
 
           {open && (
-            <div className="md:hidden">
-              <div className="mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+            <div className="md:hidden pb-5">
+              <div className="mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pt-3 pb-6 shadow-sm">
                 <div className="space-y-2">
                   {navItems.map(item => {
                     const href = hrefFor(item);
@@ -926,10 +934,10 @@ export function Navbar() {
                     );
                   })}
                 </div>
-                <div className="my-3 h-px w-full bg-gray-200" />
+                <div className="my-4 h-px w-full bg-gray-200" />
                 <a
                   href={ctaHref}
-                  className="hover:bg-primary/90 mt-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  className="hover:bg-primary/90 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   onClick={() => setOpen(false)}
                 >
                   {ctaLabel}
@@ -944,20 +952,27 @@ export function Navbar() {
 
   return (
     <>
-      <div>{navbarContent}</div>
-
       <div
-        className={`${'fixed left-0 right-0 top-0 z-[70] transition-[transform,opacity] duration-300 will-change-transform'} ${
-          pinned ? 'opacity-100' : 'pointer-events-none opacity-0'
-        } ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
+        aria-hidden
+        className="shrink-0 transition-[height] duration-300 ease-out"
+        style={{ height: hidden ? 0 : navHeight }}
+      />
+
+      <header
+        className={`fixed inset-x-0 top-0 z-[70] transition-[transform] duration-300 ease-out will-change-transform ${
+          hidden ? 'pointer-events-none' : ''
+        }`}
+        style={{
+          transform: hidden ? `translate3d(0, -${navHeight}px, 0)` : 'translate3d(0, 0, 0)',
+        }}
       >
-        {navbarContent}
-      </div>
+        <div ref={navMeasureRef}>{navbarContent}</div>
+      </header>
 
       {/* Overlay buat Searchnya */}
       {searchOpen && (
         <div
-          className="fixed inset-0 z-[70] grid place-items-center bg-blue-900/70 p-4"
+          className="fixed inset-0 z-[70] grid place-items-center bg-white/50 backdrop-blur-sm p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => setSearchOpen(false)}

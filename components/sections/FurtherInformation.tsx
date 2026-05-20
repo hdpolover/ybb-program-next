@@ -43,7 +43,7 @@ export default function FurtherInformationSection({
   mobileBackgroundImageUrl,
   mockupImageUrl,
   guidebooks = DEFAULT_GUIDELINES,
-  textColorScheme = 'dark',
+  textColorScheme = 'light',
 }: FurtherInformationProps) {
   if (!guidebooks || guidebooks.length === 0 || guidebooks.every(g => !g.href || g.href === '#')) return null;
   const resolvedDesktopBackground = desktopBackgroundImageUrl?.trim() || undefined;
@@ -75,14 +75,14 @@ export default function FurtherInformationSection({
 
       <div className={`${componentsTheme.furtherInfo.card} relative z-10`}>
         <div className={componentsTheme.furtherInfo.innerGrid}>
-          <div className={componentsTheme.furtherInfo.leftCol}>
+          <div className={`${componentsTheme.furtherInfo.leftCol} ${textColorScheme === 'light' ? '!text-white' : ''}`}>
             <div className="sm:hidden">
               <SectionHeader eyebrow={eyebrow} title={title} align="center" colorScheme={textColorScheme} />
             </div>
             <div className="hidden sm:block">
               <SectionHeader eyebrow={eyebrow} title={title} align="left" colorScheme={textColorScheme} />
             </div>
-            <p className={`${componentsTheme.furtherInfo.description} break-words ${textColorScheme === 'light' ? 'text-white/80' : ''}`}>{subtitle}</p>
+            <p className={`${componentsTheme.furtherInfo.description} break-words`} style={{ color: textColorScheme === 'light' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(15, 23, 42, 0.9)' }}>{subtitle}</p>
 
             <div className={componentsTheme.furtherInfo.buttonsCol}>
               {guidebooks.map((link, index) => (
