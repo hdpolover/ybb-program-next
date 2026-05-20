@@ -59,7 +59,14 @@ export type ProgramDetail = {
   formFields: { id: string; section: string; label: string; name: string; type: string; isRequired: boolean; order: number }[];
   participationCategories: { id: string; name: string; description: string | null; benefits: string | null; eligibility: string | null; order: number }[];
   resources: { id: string; title: string; description: string | null; fileUrl: string | null; type: string; isPublic: boolean }[];
-  announcements: { id: string; title: string; content: string; isActive: boolean }[];
+  announcements: {
+    id: string;
+    title: string;
+    content: string;
+    targetAudience: string;
+    isPinned: boolean;
+    publishDate: string;
+  }[];
 };
 
 export type ProgramPricingTier = {
