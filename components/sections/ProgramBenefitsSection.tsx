@@ -33,7 +33,7 @@ export default function ProgramBenefitsSection({ section, textColorScheme }: Pro
         backgroundRepeat: 'no-repeat',
       } : undefined}
     >
-      {/* Mobile background override */}
+      {/* testing pushh */}
       {mobileBg && mobileBg !== desktopBg && (
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
