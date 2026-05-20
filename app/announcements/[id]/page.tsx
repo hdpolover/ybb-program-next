@@ -4,12 +4,11 @@ import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
 import {
-  decodePossiblyEncodedHtml,
   formatAnnouncementCategoryLabel,
   formatAnnouncementDateLabel,
   getAnnouncementActionHref,
   isExternalHref,
-  sanitizeAnnouncementHtml,
+  toAnnouncementHtml,
 } from '@/lib/announcements';
 import type { AnnouncementListSection } from '@/types/announcements';
 
@@ -29,7 +28,7 @@ export default async function AnnouncementDetailPage({ params }: { params: Promi
   const author = item.author?.trim() || 'YBB';
   const dateLabel = formatAnnouncementDateLabel(item.date);
   const image = item.image?.trim() || '/img/announcementbackground.png';
-  const content = sanitizeAnnouncementHtml(decodePossiblyEncodedHtml(item.content?.trim() || excerpt));
+  const content = toAnnouncementHtml(item.content?.trim() || excerpt);
   const actionHref = getAnnouncementActionHref(item.href);
   const tags = (item.tags ?? []).filter((tag) => tag.trim().length > 0);
 
@@ -69,7 +68,7 @@ export default async function AnnouncementDetailPage({ params }: { params: Promi
             Full announcement
           </p>
           <div
-            className="prose prose-slate max-w-none prose-headings:text-blue-950 prose-a:text-primary"
+            className="prose prose-slate max-w-none text-slate-700 prose-headings:my-3 prose-headings:text-blue-950 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-a:text-primary prose-a:underline prose-a:underline-offset-4 prose-img:rounded-xl"
             dangerouslySetInnerHTML={{ __html: content }}
           />
           {actionHref ? (
