@@ -32,7 +32,6 @@ export default function ProgramBenefitsSection({ section }: Props) {
         backgroundRepeat: 'no-repeat',
       } : undefined}
     >
-      {/* Mobile background override */}
       {mobileBg && mobileBg !== desktopBg && (
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"

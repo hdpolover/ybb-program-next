@@ -8,8 +8,13 @@ import { componentsTheme } from '@/lib/theme/components';
 type GalleryImage = {
   id: string | number;
   src: string;
-  caption: string;
+  caption?: string;
 };
+
+function galleryImageAlt(caption: string | undefined, index: number): string {
+  const trimmed = caption?.trim();
+  return trimmed || `Gallery photo ${index + 1}`;
+}
 
 type PhotoGalleryProps = {
   mode?: 'home' | 'page';
@@ -63,7 +68,7 @@ export default function PhotoGallery({
                 <span className={componentsTheme.photoGallery.itemImageWrapper}>
                   <Image
                     src={p.src}
-                    alt={p.caption}
+                    alt={galleryImageAlt(p.caption, idx)}
                     fill
                     sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 50vw"
                     className={componentsTheme.photoGallery.itemImage}
@@ -96,7 +101,7 @@ export default function PhotoGallery({
               <div className={componentsTheme.photoGallery.modalImageWrapper}>
                 <Image
                   src={photos[selected].src}
-                  alt={photos[selected].caption}
+                  alt={galleryImageAlt(photos[selected].caption, selected)}
                   width={1920}
                   height={1080}
                   sizes="100vw"

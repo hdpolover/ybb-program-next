@@ -16,6 +16,8 @@ type AboutProgramProps = {
 export default function AboutProgram({ about, vision, mission, images, backgroundImageUrl }: AboutProgramProps) {
   const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const hasBackground = Boolean(backgroundImageUrl?.trim());
+  const t = componentsTheme.aboutProgram;
 
   const imageMain = images?.[0]?.url;
   const imageSecondary = images?.[1]?.url;
@@ -40,19 +42,21 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
 
   const sanitizeRichHtml = (value: string): string => {
     return value
-      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-      .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-      .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, "")
-      .replace(/\son\w+="[^"]*"/gi, "")
-      .replace(/\son\w+='[^']*'/gi, "")
-      .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, "");
+      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
+      .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, '')
+      .replace(/\son\w+="[^"]*"/gi, '')
+      .replace(/\son\w+='[^']*'/gi, '')
+      .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, '');
   };
 
   const renderContent = (value?: string) => {
     if (!value) return null;
-    if (!isHtmlContent(value)) return <p>{value}</p>;
+    if (!isHtmlContent(value)) {
+      return <p className={hasBackground ? 'text-white/90' : undefined}>{value}</p>;
+    }
     const safeHtml = sanitizeRichHtml(decodePossiblyEncodedHtml(value));
-    return <div className={componentsTheme.aboutProgram.richText} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
+    return <div className={hasBackground ? t.richTextOnBg : t.richText} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
   };
 
   const decodedAbout = about ? decodePossiblyEncodedHtml(about) : '';
@@ -85,18 +89,24 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
 
   return (
     <section
-      className={componentsTheme.aboutProgram.sectionWrapper}
-      style={backgroundImageUrl ? { backgroundImage: `url(${backgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}
+      className={t.sectionWrapper}
+      style={hasBackground ? { backgroundImage: `url(${backgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}
     >
-      <div className={componentsTheme.aboutProgram.blurTop} />
-      <div className={componentsTheme.aboutProgram.blurBottom} />
-      <div className={componentsTheme.aboutProgram.container}>
+      {hasBackground ? <div className={t.sectionOverlay} aria-hidden /> : null}
+      {!hasBackground ? <div className={t.blurTop} /> : null}
+      {!hasBackground ? <div className={t.blurBottom} /> : null}
+      <div className={`${t.container} relative z-10`}>
         <div className={componentsTheme.aboutProgram.layoutGrid}>
           {/* Left: Konten dengan Tabs */}
           <div className={componentsTheme.aboutProgram.leftCol}>
-            <SectionHeader align="left" eyebrow="Program Overview" title="About Our Program" />
+            <SectionHeader
+              align="left"
+              eyebrow="Program Overview"
+              title="About Our Program"
+              colorScheme={hasBackground ? 'light' : 'dark'}
+            />
 
-            <div className={componentsTheme.aboutProgram.contentWrapper}>
+            <div className={hasBackground ? t.contentWrapperOnBg : t.contentWrapper}>
               <div
                 className={shouldShowReadMore ? componentsTheme.aboutProgram.aboutPreviewWrapper : undefined}
               >
@@ -121,7 +131,7 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
                 <button
                   type="button"
                   onClick={() => setIsAboutModalOpen(true)}
-                  className={componentsTheme.aboutProgram.readMoreButton}
+                  className={hasBackground ? t.readMoreButtonOnBg : t.readMoreButton}
                 >
                   Read more
                 </button>
@@ -129,14 +139,16 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
             </div>
 
             {/* Tabs for Vision / Mission */}
-            <div className={componentsTheme.aboutProgram.tabContainer}>
+            <div className={hasBackground ? t.tabContainerOnBg : t.tabContainer}>
               <button
                 type="button"
                 onClick={() => setActiveTab('vision')}
-                className={`${componentsTheme.aboutProgram.tabButtonBase} ${
+                className={`${t.tabButtonBase} ${
                   activeTab === 'vision'
-                    ? componentsTheme.aboutProgram.tabButtonActive
-                    : componentsTheme.aboutProgram.tabButtonInactive
+                    ? t.tabButtonActive
+                    : hasBackground
+                      ? t.tabButtonInactiveOnBg
+                      : t.tabButtonInactive
                 }`}
               >
                 Vision
@@ -144,24 +156,26 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
               <button
                 type="button"
                 onClick={() => setActiveTab('mission')}
-                className={`${componentsTheme.aboutProgram.tabButtonBase} ${
+                className={`${t.tabButtonBase} ${
                   activeTab === 'mission'
-                    ? componentsTheme.aboutProgram.tabButtonActive
-                    : componentsTheme.aboutProgram.tabButtonInactive
+                    ? t.tabButtonActive
+                    : hasBackground
+                      ? t.tabButtonInactiveOnBg
+                      : t.tabButtonInactive
                 }`}
               >
                 Mission
               </button>
             </div>
 
-            <div className={`hidden sm:block ${componentsTheme.aboutProgram.contentWrapper}`}>
+            <div className={`hidden sm:block ${hasBackground ? t.contentWrapperOnBg : t.contentWrapper}`}>
               {activeTab === 'vision' ? renderContent(vision) : renderContent(mission)}
             </div>
 
             <div className={`hidden sm:block ${componentsTheme.aboutProgram.ctaWrapper}`}>
               <a
                 href="/apply"
-                className={`${componentsTheme.aboutProgram.ctaButton} w-full justify-center`}
+                className={`${t.ctaButton} w-full justify-center ${hasBackground ? 'ring-2 ring-white/90' : ''}`}
               >
                 I Want To Join
               </a>
@@ -224,13 +238,13 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
             </div>
           </div>
 
-          <div className={`sm:hidden ${componentsTheme.aboutProgram.contentWrapper}`}>
+          <div className={`sm:hidden ${hasBackground ? t.contentWrapperOnBg : t.contentWrapper}`}>
             <div>{activeTab === 'vision' ? renderContent(vision) : renderContent(mission)}</div>
 
             <div className={componentsTheme.aboutProgram.ctaWrapper}>
               <a
                 href="/apply"
-                className={`${componentsTheme.aboutProgram.ctaButton} w-full justify-center`}
+                className={`${t.ctaButton} w-full justify-center ${hasBackground ? 'ring-2 ring-white/90' : ''}`}
               >
                 I Want To Join
               </a>
