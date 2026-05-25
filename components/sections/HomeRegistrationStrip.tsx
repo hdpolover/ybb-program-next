@@ -317,30 +317,50 @@ export default function HomeRegistrationStrip({
   const secondaryType = pickRegistrationTier(registrationFeeTypes, 'fully_funded', primaryType?.id);
   const primaryDescriptionHtml = toRichHtml(primaryType?.description);
   const secondaryDescriptionHtml = toRichHtml(secondaryType?.description);
-  const primaryRequirements = primaryType?.requirements?.length
-    ? primaryType.requirements
-    : [
-        'Complete registration form and documentation',
-        'Submit required documents on time',
-        'Pay fees according to scheduled payment batches',
-      ];
-  const secondaryRequirements = secondaryType?.requirements?.length
-    ? secondaryType.requirements
-    : [
-        'Complete registration form and documentation',
-        'Submit detailed essays and applications',
-        'Participate in interviews and evaluations',
-      ];
-  const primaryBenefits = primaryType?.benefits ?? [
-    'Guaranteed program participation',
-    'Faster application processing',
-    'You pay all scheduled fee batches yourself',
-  ];
-  const secondaryBenefits = secondaryType?.benefits ?? [
-    'Full reimbursement of all payments',
-    'Enhanced program recognition',
-    'Access to exclusive fully funded activities',
-  ];
+
+  const primaryRequirements = useMemo(
+    () =>
+      primaryType?.requirements?.length
+        ? primaryType.requirements
+        : [
+            'Complete registration form and documentation',
+            'Submit required documents on time',
+            'Pay fees according to scheduled payment batches',
+          ],
+    [primaryType],
+  );
+
+  const secondaryRequirements = useMemo(
+    () =>
+      secondaryType?.requirements?.length
+        ? secondaryType.requirements
+        : [
+            'Complete registration form and documentation',
+            'Submit detailed essays and applications',
+            'Participate in interviews and evaluations',
+          ],
+    [secondaryType],
+  );
+
+  const primaryBenefits = useMemo(
+    () =>
+      primaryType?.benefits ?? [
+        'Guaranteed program participation',
+        'Faster application processing',
+        'You pay all scheduled fee batches yourself',
+      ],
+    [primaryType],
+  );
+
+  const secondaryBenefits = useMemo(
+    () =>
+      secondaryType?.benefits ?? [
+        'Full reimbursement of all payments',
+        'Enhanced program recognition',
+        'Access to exclusive fully funded activities',
+      ],
+    [secondaryType],
+  );
 
   const primaryOpen = currentNow ? isRegistrationOpen(primaryType?.validity_periods, currentNow) : false;
   const secondaryOpen = currentNow ? isRegistrationOpen(secondaryType?.validity_periods, currentNow) : false;
@@ -376,11 +396,13 @@ export default function HomeRegistrationStrip({
               {activePost ? (
                 <div className={`flex h-full min-h-0 flex-col ${activePostEmbedHtml ? 'pb-4' : 'p-4'}`}>
                   {activePostEmbedHtml ? (
-                    <div className="flex h-[340px] items-start justify-center overflow-y-auto sm:h-[400px] lg:h-[440px]">
-                      <div
-                        className="w-full [&_.instagram-media]:!m-0 [&_.instagram-media]:!w-full [&_.instagram-media]:!max-w-none [&_.instagram-media]:!min-w-0 [&_.instagram-media]:!rounded-none [&_.instagram-media]:!border-0 [&_.instagram-media]:!shadow-none [&_iframe]:!w-full"
-                        dangerouslySetInnerHTML={{ __html: activePostEmbedHtml }}
-                      />
+                    <div className="flex flex-1 flex-col overflow-y-auto sm:overflow-visible">
+                      <div className="flex min-h-[340px] items-start justify-center sm:min-h-[400px] lg:min-h-[440px]">
+                        <div
+                          className="w-full [&_.instagram-media]:!m-0 [&_.instagram-media]:!w-full [&_.instagram-media]:!max-w-none [&_.instagram-media]:!min-w-0 [&_.instagram-media]:!rounded-none [&_.instagram-media]:!border-0 [&_.instagram-media]:!shadow-none [&_iframe]:!w-full"
+                          dangerouslySetInnerHTML={{ __html: activePostEmbedHtml }}
+                        />
+                      </div>
                     </div>
                   ) : (
                     <a

@@ -6,13 +6,11 @@ import ProgramSteps from '@/components/programs/ProgramSteps';
 import ProgramSchedules from '@/components/programs/ProgramSchedules';
 import PreviousProgramsGrid from '@/components/programs/PreviousProgramsGrid';
 import AdditionalPrograms from '@/components/programs/AdditionalPrograms';
-import MissionVision from '@/components/programs/MissionVision';
-import Objectives from '@/components/programs/Objectives';
-import Benefits from '@/components/programs/Benefits';
-import FAQ from '@/components/sections/FAQ';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
+import StickyBottomBar from '@/components/ui/StickyBottomBar';
 import { getProgramDetail, getProgramsPageData } from '@/lib/api/programs';
 import { getFaqsPageData } from '@/lib/api/faqs';
+import { getHomePageData } from '@/lib/api/home';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
 import MainFAQSection from '@/components/faq/MainFAQSection';
 import { headers } from 'next/headers';
@@ -27,16 +25,18 @@ import type {
   OtherProgramsSection,
 } from '@/types/programs';
 import type { FaqListSection } from '@/types/faqs';
+import type { ProgramImpactSection, RegistrationOverviewSection } from '@/types/home';
 
 export default async function ProgramOverviewPage() {
   const host = (await headers()).get('host') || '';
-  const [programsPage, heroMedia, faqsPage] = await Promise.all([
+  const [programsPage, heroMedia, faqsPage, homePage] = await Promise.all([
     getProgramsPageData(host),
     getLandingHeroMedia(host, 'programs', {
       preferredImages: [],
       fallbackImage: '/img/programsbackground.png',
     }),
     getFaqsPageData(host).catch(() => null),
+    getHomePageData(host).catch(() => null),
   ]);
 
   const heroSection = programsPage.sections.find(
@@ -80,6 +80,17 @@ export default async function ProgramOverviewPage() {
     (section): section is OtherProgramsSection => section.type === 'other_programs',
   );
 
+  const programImpactSection = homePage?.sections.find(
+    (section): section is ProgramImpactSection => section.type === 'program_impact',
+  );
+  const participantsStat = programImpactSection?.content.stats.find((stat) => stat.icon === 'participants');
+  const totalParticipants = participantsStat?.value || null;
+
+  const registrationOverviewSection = homePage?.sections.find(
+    (section): section is RegistrationOverviewSection => section.type === 'registration_overview',
+  );
+  const igFeed = registrationOverviewSection?.content.ig_feed;
+
   const heroTitle =
     heroSection?.type === 'hero' ? heroSection.content.title : 'Istanbul Youth Summit Programs';
   const heroSubtitle =
@@ -118,14 +129,15 @@ export default async function ProgramOverviewPage() {
         subtitle={heroSubtitle}
         bgImage={heroMedia.bgImage ?? heroBgImage}
         galleryImages={heroMedia.galleryImages}
-        breadcrumb={[
-          { href: `/${programsPage.slug}`, label: programsPage.slug },
-          { href: `/${programsPage.slug}`, label: programsPage.title },
-        ]}
+        location={programDetail?.location || null}
+        startDate={programDetail?.startDate || null}
+        endDate={programDetail?.endDate || null}
+        totalParticipants={totalParticipants}
       />
       <CurrentProgram
         overview={programOverviewSection?.content}
         guidebooks={guidelineLinks}
+        igFeed={igFeed}
       />
       <RegistrationTypePrograms
         pricingTiers={registrationInfoSection?.content.pricing_tiers}
@@ -142,9 +154,6 @@ export default async function ProgramOverviewPage() {
       {previousProgramsSection && previousProgramsSection.content.items.length > 0 && (
         <PreviousProgramsGrid previous={previousProgramsSection.content} />
       )}
-      {/* <MissionVision />
-      <Objectives />
-      <Benefits /> */}
       <AdditionalPrograms otherPrograms={otherProgramsSection?.content} />
       <MainFAQSection
         items={
@@ -165,6 +174,10 @@ export default async function ProgramOverviewPage() {
         }
       />
       <ProgramsFurtherInformationSection />
+      <StickyBottomBar
+        deadline={programDetail?.registrationCloseDate || null}
+        registerUrl={`/${programsPage.slug}/register`}
+      />
     </main>
   );
 }
