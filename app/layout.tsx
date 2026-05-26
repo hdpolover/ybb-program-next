@@ -15,7 +15,7 @@ import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
 import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
-import { getProgramDetail } from '@/lib/api/programs';
+import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -59,7 +59,6 @@ function relativeLuminance(hex: string): number {
 }
 
 function pickForeground(hex: string): string {
-  // Threshold tuned to keep readable text on bright accents
   return relativeLuminance(hex) > 0.6 ? '#020617' : '#ffffff';
 }
 
@@ -109,7 +108,7 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch (e) {
     console.error('Failed to fetch metadata', e);
-    // Fallback metadata
+    // Fallback
     return {
       metadataBase: new URL(baseUrl),
       title: 'Home | Youth Summit',
@@ -135,12 +134,51 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     brandAccent = normalizeHex(rawColor);
     gaId = settingsResult.value?.brand?.google_analytics_id || null;
 
-    // Fetch registration close date from active program
+    // Ambil data registrasi deadline dari tipe program yang active
     const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
     if (programSlug) {
       try {
         const program = await getProgramDetail(programSlug, host);
-        registrationCloseDate = program?.registrationCloseDate || null;
+        const programId = program?.id;
+
+        // Ambil dulu dari fully funded, klo gk ada fully funded ambil dari self funded ( jika tanggal nya sudah lewat )
+        if (programId) {
+          try {
+            const pricingTiers = await getProgramPricingTiers(programId, host);
+            const fullyFundedTier = pricingTiers?.find(
+              (tier) => tier.name.toLowerCase().includes('fully funded') || tier.name.toLowerCase().includes('fully-funded')
+            );
+            const selfFundedTier = pricingTiers?.find(
+              (tier) => tier.name.toLowerCase().includes('self funded') || tier.name.toLowerCase().includes('self-funded')
+            );
+
+            const fullyFundedEndDate = fullyFundedTier?.validityPeriods?.[0]?.endDate;
+            const selfFundedEndDate = selfFundedTier?.validityPeriods?.[0]?.endDate;
+
+            // Cek klo fully funded masih buka
+            if (fullyFundedEndDate) {
+              const fullyFundedDate = new Date(fullyFundedEndDate);
+              const now = new Date();
+              if (fullyFundedDate > now) {
+                registrationCloseDate = fullyFundedEndDate;
+              } else if (selfFundedEndDate) {
+                // Klo udh tutup fully funded maka beralih ke self funded
+                registrationCloseDate = selfFundedEndDate;
+              } else {
+                registrationCloseDate = program?.registrationCloseDate || null;
+              }
+            } else if (selfFundedEndDate) {
+              registrationCloseDate = selfFundedEndDate;
+            } else {
+              registrationCloseDate = program?.registrationCloseDate || null;
+            }
+          } catch (pricingError) {
+            console.error('[Layout] Failed to fetch pricing tiers:', pricingError);
+            registrationCloseDate = program?.registrationCloseDate || null;
+          }
+        } else {
+          registrationCloseDate = program?.registrationCloseDate || null;
+        }
       } catch (error) {
         console.error('[Layout] Failed to fetch program detail:', error);
       }
@@ -149,7 +187,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
   }
 
-  // Fallback to env variable or default if API returns null
+  // fallback ke default klo emg gk ada dua dua nya
   if (!brandAccent) {
     brandAccent = normalizeHex(process.env.NEXT_PUBLIC_DEFAULT_BRAND_COLOR) || '#1c57b3';
     console.log('[Layout] Using fallback theme:', brandAccent);

@@ -115,7 +115,7 @@ export default function ParticipantDistribution({
                   projectionConfig={{ scale: 145 }}
                   style={{ width: '100%', height: '100%' }}
                 >
-                  <Geographies geography={GEO_DATA}>
+                  <Geographies geography={GEO_DATA} key="world-map">
                     {({ geographies }: { geographies: WorldGeo[] }) =>
                       geographies.map((geo: WorldGeo) => {
                         const name = geo.properties.name ?? 'Unknown';
