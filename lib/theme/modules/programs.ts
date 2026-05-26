@@ -44,7 +44,7 @@ export const programsTheme = {
     infoItemLabel: 'text-xs',
     infoItemValue: 'mt-1 text-base font-semibold text-gray-900',
     instagramFeedWrapper: 'flex min-h-0 flex-col p-0',
-    instagramEmbedContainer: 'flex h-[280px] items-start justify-center overflow-y-auto sm:overflow-visible sm:h-[320px]',
+    instagramEmbedContainer: 'flex h-[280px] items-start justify-center overflow-hidden sm:h-[320px]',
     instagramEmbed: 'w-full [&_.instagram-media]:!m-0 [&_.instagram-media]:!w-full [&_.instagram-media]:!max-w-none [&_.instagram-media]:!min-w-0 [&_.instagram-media]:!rounded-none [&_.instagram-media]:!border-0 [&_.instagram-media]:!shadow-none [&_iframe]:!w-full',
     instagramFallbackCard: 'block rounded-2xl border border-slate-200 bg-white p-6',
     instagramBadge: 'inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary',

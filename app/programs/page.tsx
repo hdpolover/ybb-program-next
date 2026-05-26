@@ -7,7 +7,6 @@ import ProgramSchedules from '@/components/programs/ProgramSchedules';
 import PreviousProgramsGrid from '@/components/programs/PreviousProgramsGrid';
 import AdditionalPrograms from '@/components/programs/AdditionalPrograms';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
-import StickyBottomBar from '@/components/ui/StickyBottomBar';
 import { getProgramDetail, getProgramsPageData } from '@/lib/api/programs';
 import { getFaqsPageData } from '@/lib/api/faqs';
 import { getHomePageData } from '@/lib/api/home';
@@ -174,10 +173,6 @@ export default async function ProgramOverviewPage() {
         }
       />
       <ProgramsFurtherInformationSection />
-      <StickyBottomBar
-        deadline={programDetail?.registrationCloseDate || null}
-        registerUrl={`/${programsPage.slug}/register`}
-      />
     </main>
   );
 }

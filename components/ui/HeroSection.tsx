@@ -170,26 +170,30 @@ export default function HeroSection({
       />
 
       <div className={componentsTheme.heroSectionBadges.wrapper}>
-        <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.fullyFunded}`}>
-          <Award className={componentsTheme.heroSectionBadges.icon} />
-          <span className={componentsTheme.heroSectionBadges.text}>Fully Funded</span>
+        <div className={componentsTheme.heroSectionBadges.row}>
+          <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.fullyFunded}`}>
+            <Award className={componentsTheme.heroSectionBadges.icon} />
+            <span className={componentsTheme.heroSectionBadges.text}>Fully Funded</span>
+          </div>
         </div>
-        {eventDate && (
-          <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.eventDate}`}>
-            <Calendar className={componentsTheme.heroSectionBadges.icon} />
-            <span className={componentsTheme.heroSectionBadges.text}>
-              {eventDate}
-              {location && ` · ${location}`}
-              {duration && ` · ${duration}`}
-            </span>
-          </div>
-        )}
-        {totalParticipants && (
-          <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.participants}`}>
-            <Users className={componentsTheme.heroSectionBadges.icon} />
-            <span className={componentsTheme.heroSectionBadges.text}>{totalParticipants}</span>
-          </div>
-        )}
+        <div className={componentsTheme.heroSectionBadges.row}>
+          {eventDate && (
+            <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.eventDate}`}>
+              <Calendar className={componentsTheme.heroSectionBadges.icon} />
+              <span className={componentsTheme.heroSectionBadges.text}>
+                {eventDate}
+                {location && ` · ${location}`}
+                {duration && ` · ${duration}`}
+              </span>
+            </div>
+          )}
+          {totalParticipants && (
+            <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.participants}`}>
+              <Users className={componentsTheme.heroSectionBadges.icon} />
+              <span className={componentsTheme.heroSectionBadges.text}>{totalParticipants}</span>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

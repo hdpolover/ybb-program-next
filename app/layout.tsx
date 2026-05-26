@@ -14,6 +14,7 @@ import BackToTop from '@/components/ui/BackToTop';
 import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
 import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
+import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
 import { getProgramDetail } from '@/lib/api/programs';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -189,6 +190,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ClientCTAGate />
             <BackToTop />
             <ClientFooterGate />
+            <StickyBottomBarGate deadline={registrationCloseDate} registerUrl="/register" />
           </PromoCTAProvider>
         </SettingsProvider>
 

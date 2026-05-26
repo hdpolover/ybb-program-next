@@ -175,14 +175,16 @@ export const commonTheme = {
     registerButton: 'flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-primary/90 transition-colors whitespace-nowrap',
   },
 heroSectionBadges: {
-    wrapper: 'absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 gap-1 px-2 sm:bottom-6 sm:gap-2',
-    badge: 'flex items-center gap-1 rounded-full px-1.5 py-0.5 shadow-lg backdrop-blur-sm border border-white/30 whitespace-nowrap sm:gap-1.5 sm:px-2 sm:py-1',
-    icon: 'h-2 w-2 text-white scale-90 sm:h-5 sm:w-5 sm:scale-100',
-    text: 'text-[10px] font-bold text-white uppercase tracking-wider origin-left scale-75 sm:text-xs sm:scale-100', 
+    wrapper: 'absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 flex-col md:flex-row gap-1.5 px-2 sm:bottom-6 sm:gap-2 items-center',
+    row: 'flex flex-row justify-center items-center gap-1 sm:gap-2',
+    badge: 'flex items-center gap-1 rounded-full px-2 py-1 shadow-lg backdrop-blur-sm border border-white/30 sm:gap-1.5 sm:px-3 sm:py-1.5 w-max',
+    icon: 'h-3 w-3 text-white sm:h-5 sm:w-5 shrink-0', 
+    text: 'text-[10px] font-bold text-white uppercase tracking-wider sm:text-xs whitespace-nowrap',
     fullyFunded: 'bg-gradient-to-r from-green-500 to-green-600',
     eventDate: 'bg-gradient-to-r from-amber-500 to-amber-600',
     participants: 'bg-gradient-to-r from-purple-500 to-purple-600',
-  },
+},
+
 
   backToTop: {
     button: 'fixed left-3 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-lg ring-1 ring-primary/30 transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/40 animate-heartbeat sm:bottom-6 sm:left-6',
