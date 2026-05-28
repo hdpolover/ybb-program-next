@@ -1,5 +1,7 @@
 import React from 'react';
+import { Award, Calendar, Users } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
+import { getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
 
 // Komponen Hero reusable biar semua halaman konsisten gaya-nya
 // Pakai ini di tiap page: title, subtitle, dan background bisa diatur
@@ -15,6 +17,10 @@ export default function HeroSection({
   ctaLabel,
   ctaHref,
   textSize = 'default',
+  location,
+  startDate,
+  endDate,
+  totalParticipants,
 }: {
   title: string;
   subtitle?: string;
@@ -27,6 +33,10 @@ export default function HeroSection({
   ctaLabel?: string;
   ctaHref?: string;
   textSize?: 'default' | 'sm';
+  location?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  totalParticipants?: string | null;
 }) {
   const heroTheme = componentsTheme.heroSection;
   const containerHeight = heightClass ?? 'min-h-[360px] md:min-h-[420px]';
@@ -45,6 +55,23 @@ export default function HeroSection({
       : 'text-base text-white/90 sm:text-lg md:text-xl';
   const normalizedGallery = (galleryImages ?? []).filter(Boolean);
   const useGallery = normalizedGallery.length > 1;
+
+  let eventDate = '';
+  let duration = '';
+  if (startDate) {
+    const s = parseApiDate(startDate);
+    if (!Number.isNaN(s.getTime())) {
+      const monthYear = s.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      eventDate = monthYear;
+      if (endDate) {
+        const e = parseApiDate(endDate);
+        if (!Number.isNaN(e.getTime())) {
+          const daySpan = getInclusiveCalendarDaySpan(s, e);
+          duration = daySpan ? `${daySpan} Days` : '';
+        }
+      }
+    }
+  }
 
   return (
     <section className="relative overflow-hidden bg-slate-900">
@@ -141,6 +168,33 @@ export default function HeroSection({
       <div
         className={`pointer-events-none absolute -right-40 top-24 ${decorMidRight} rounded-full bg-white/5 blur-2xl`}
       />
+
+      <div className={componentsTheme.heroSectionBadges.wrapper}>
+        <div className={componentsTheme.heroSectionBadges.row}>
+          <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.fullyFunded}`}>
+            <Award className={componentsTheme.heroSectionBadges.icon} />
+            <span className={componentsTheme.heroSectionBadges.text}>Fully Funded</span>
+          </div>
+        </div>
+        <div className={componentsTheme.heroSectionBadges.row}>
+          {eventDate && (
+            <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.eventDate}`}>
+              <Calendar className={componentsTheme.heroSectionBadges.icon} />
+              <span className={componentsTheme.heroSectionBadges.text}>
+                {eventDate}
+                {location && ` · ${location}`}
+                {duration && ` · ${duration}`}
+              </span>
+            </div>
+          )}
+          {totalParticipants && (
+            <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.participants}`}>
+              <Users className={componentsTheme.heroSectionBadges.icon} />
+              <span className={componentsTheme.heroSectionBadges.text}>{totalParticipants}</span>
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   );
 }

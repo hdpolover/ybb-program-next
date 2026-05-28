@@ -950,7 +950,7 @@ export default function SubmissionEditSection() {
             const isDraftApplication = detail.status === "draft";
             const previewActionType = detail.previewPrimaryAction?.type;
             const previewActionLabel = detail.previewPrimaryAction?.label;
-            const previewActionEnabled = detail.previewPrimaryAction?.enabled ?? true;
+            const previewActionEnabled = allChecked ? true : (detail.previewPrimaryAction?.enabled ?? true);
             const previewActionReason = detail.previewPrimaryAction?.reason;
             const isPaymentRequired = detail.isRegistrationPaymentRequired ?? false;
             const isPaymentSettled = isPaymentRequired
@@ -1031,6 +1031,7 @@ export default function SubmissionEditSection() {
                 const json = (await res.json().catch(() => null)) as unknown;
                 if (!res.ok) throw new Error(getErrorMessage(json, "Failed to submit application"));
                 toast.success("Application submitted successfully.");
+                router.push("/dashboard/submission");
               } catch (submitError) {
                 const message = submitError instanceof Error ? submitError.message : "Failed to submit application";
                 setError(message);

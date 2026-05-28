@@ -16,11 +16,12 @@ import PhotoGallery from '@/components/sections/PhotoGallery';
 import RecognitionAwards from '@/components/sections/AwardeeDelegate';
 import Recognition from '@/components/sections/Recognition';
 import Testimonials from '@/components/sections/Testimonials';
-import FAQ from '@/components/sections/FAQ';
 import GetInTouchSection from '@/components/sections/GetInTouchSection';
 import { getHomePageData } from '@/lib/api/home';
 import { resolveBrandDomain } from '@/lib/server/envContext';
 import PromoCTA from '@/components/sections/PromoCTA';
+import { getProgramDetail } from '@/lib/api/programs';
+import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import type {
   MainBannerSection,
   RegistrationOverviewSection,
@@ -47,6 +48,7 @@ import type {
 export default async function Home() {
   const host = await resolveBrandDomain();
   let homeData: Awaited<ReturnType<typeof getHomePageData>>;
+
   try {
     homeData = await getHomePageData(host);
   } catch (e) {
@@ -56,6 +58,17 @@ export default async function Home() {
       slug: null,
       sections: [],
     } as unknown as Awaited<ReturnType<typeof getHomePageData>>;
+  }
+
+  // Fetch program details from settings and program detail
+  try {
+    const settingsData = await getSettingsForBrandDomain(host);
+    const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
+    if (programSlug) {
+      await getProgramDetail(programSlug, host);
+    }
+  } catch (error) {
+    console.error('[Home] Failed to fetch program details:', error);
   }
 
   const mainBannerSection = homeData.sections.find(
@@ -96,6 +109,7 @@ export default async function Home() {
   const programImpactSection = homeData.sections.find(
     (section): section is ProgramImpactSection => section.type === 'program_impact'
   );
+
   const programFeaturesSection = homeData.sections.find(
     (section): section is ProgramFeaturesSection => section.type === 'program_features'
   );

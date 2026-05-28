@@ -4,7 +4,6 @@ import Script from 'next/script';
 import { getHomePageData } from '@/lib/api/home';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { resolveBrandDomain } from '@/lib/server/envContext';
-import { getFeatureFlags } from '@/lib/server/featureFlags';
 import { SettingsProvider } from '@/components/providers/SettingsProvider';
 import './globals.css';
 import ClientNavbarGate from '@/components/layout/ClientNavbarGate';
@@ -14,6 +13,9 @@ import ClientCTAGate from '@/components/layout/ClientCTAGate';
 import BackToTop from '@/components/ui/BackToTop';
 import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
 import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
+import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
+import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
+import { getProgramDetail } from '@/lib/api/programs';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -117,11 +119,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const host = await resolveBrandDomain();
-  const featureFlags = getFeatureFlags();
   const appVersion = process.env.NEXT_PUBLIC_APP_BUILD_ID || 'development';
 
   let brandAccent: string | null = null;
   let settingsData = null;
+  let registrationCloseDate: string | null = null;
 
   const [settingsResult] = await Promise.allSettled([getSettingsForBrandDomain(host)]);
 
@@ -132,6 +134,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     const rawColor = settingsResult.value?.brand?.primary_color;
     brandAccent = normalizeHex(rawColor);
     gaId = settingsResult.value?.brand?.google_analytics_id || null;
+
+    // Fetch registration close date from active program
+    const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
+    if (programSlug) {
+      try {
+        const program = await getProgramDetail(programSlug, host);
+        registrationCloseDate = program?.registrationCloseDate || null;
+      } catch (error) {
+        console.error('[Layout] Failed to fetch program detail:', error);
+      }
+    }
   } else {
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
   }
@@ -147,7 +160,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const programSlug = process.env.YBB_PROGRAM_SLUG?.trim() || settingsData?.active_program?.slug || 'ybb';
   const defaultChatBotId = '4a9ea369-4638-413f-92d4-9c4600f7c6be';
   const chatBotId = process.env.NEXT_PUBLIC_CHAT_WIDGET_BOT_ID?.trim() || defaultChatBotId;
-  const chatScriptEnabled = featureFlags.enableThirdPartyScriptGating ? Boolean(chatBotId) : true;
 
   const accent = brandAccent;
   const themeStyle =
@@ -172,11 +184,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AppVersionWatcher currentVersion={appVersion} />
         <SettingsProvider initialSettings={settingsData}>
           <PromoCTAProvider>
-<ClientNavbarGate />
+            <ClientNavbarGate />
+            <RegistrationCountdownGate registrationDeadline={registrationCloseDate} />
             {children}
             <ClientCTAGate />
             <BackToTop />
             <ClientFooterGate />
+            <StickyBottomBarGate deadline={registrationCloseDate} registerUrl="/register" />
           </PromoCTAProvider>
         </SettingsProvider>
 
@@ -198,7 +212,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
 
         <ClientChatWidgetGate
-          enabled={chatScriptEnabled}
+          enabled={false}
           botId={chatBotId}
           primaryColor={accent || '#16a34a'}
         />
