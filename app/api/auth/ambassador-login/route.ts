@@ -116,6 +116,13 @@ export async function POST(request: Request) {
       path: '/',
     });
 
+    response.cookies.set('activeRole', 'ambassador', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

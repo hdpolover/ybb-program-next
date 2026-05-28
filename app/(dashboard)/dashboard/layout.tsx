@@ -164,13 +164,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [dashboardSummary, setDashboardSummary] = useState<PortalDashboardSummary | null>(null);
   const [isDashboardSummaryLoading, setIsDashboardSummaryLoading] = useState(true);
   const [ambassadorData, setAmbassadorData] = useState<AmbassadorData | null>(null);
-  // Start as NOT loading if we have a cached ambassador status — avoids nav flicker on repeat visits
-  const [isAmbassadorDataLoading, setIsAmbassadorDataLoading] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return localStorage.getItem('ybb_ambassador_status') === null;
-  });
-  const cachedIsAmbassador = typeof window !== 'undefined' && localStorage.getItem('ybb_ambassador_status') === 'true';
-  const isAmbassador = ambassadorData?.isActive ?? cachedIsAmbassador;
+  // Per-user cache key — prevents the prior user's ambassador status from leaking on shared browsers.
+  const ambassadorCacheKey = me?.userId ? `ybb_ambassador_status:${me.userId}` : null;
+  // Start as NOT loading if we have a cached ambassador status for this user — avoids nav flicker on repeat visits
+  const [isAmbassadorDataLoading, setIsAmbassadorDataLoading] = useState(true);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !ambassadorCacheKey) return;
+    if (localStorage.getItem(ambassadorCacheKey) !== null) {
+      setIsAmbassadorDataLoading(false);
+    }
+  }, [ambassadorCacheKey]);
+  const cachedIsAmbassador =
+    typeof window !== 'undefined' && ambassadorCacheKey
+      ? localStorage.getItem(ambassadorCacheKey) === 'true'
+      : false;
+  const hasAmbassadorRecord = ambassadorData?.isActive ?? cachedIsAmbassador;
+  const hasParticipantRecord = !!participantProfile?.id;
+  // Honor the login entry the user chose. Dual-role users see whichever they signed in as.
+  // Ambassador-only users (no participant record) still get the ambassador view as a fallback so
+  // legacy sessions and ambassador-only accounts aren't bounced to /onboarding.
+  const isAmbassador =
+    hasAmbassadorRecord && (me?.activeRole === 'ambassador' || !hasParticipantRecord);
 
   let sectionLabel: string | null = null;
   let subLabel: string | null = null;
@@ -294,7 +308,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             const profileData = toParticipantMeData(profilePayload);
             setParticipantProfile(profileData);
 
-            if (data && !profileData?.id) {
+            // Don't bounce users who logged in as an ambassador to onboarding —
+            // they may legitimately have no participant record.
+            if (data && !profileData?.id && data.activeRole !== 'ambassador') {
               router.push('/onboarding');
             }
           }
@@ -308,18 +324,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             cache: 'no-store',
           });
 
+          const userId = data?.userId;
+          const cacheKey = userId ? `ybb_ambassador_status:${userId}` : null;
+          const writeCache = (value: 'true' | 'false') => {
+            if (!cacheKey) return;
+            try { localStorage.setItem(cacheKey, value); } catch {}
+          };
+
           if (!cancelled && ambassadorRes.ok) {
             const ambassadorJson = (await ambassadorRes.json().catch(() => null)) as unknown;
             const ambassadorPayload = getEnvelopeData(ambassadorJson);
             const ambassador = toAmbassadorData(ambassadorPayload);
             if (ambassador?.isActive) {
               setAmbassadorData(ambassador);
-              try { localStorage.setItem('ybb_ambassador_status', 'true'); } catch {}
+              writeCache('true');
             } else {
-              try { localStorage.setItem('ybb_ambassador_status', 'false'); } catch {}
+              writeCache('false');
             }
           } else if (!cancelled) {
-            try { localStorage.setItem('ybb_ambassador_status', 'false'); } catch {}
+            writeCache('false');
           }
         } catch {
           // ignore
