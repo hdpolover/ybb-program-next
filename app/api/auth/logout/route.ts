@@ -58,6 +58,14 @@ export async function POST(request: Request) {
       maxAge: 0,
     });
 
+    response.cookies.set('activeRole', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 0,
+    });
+
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

@@ -53,6 +53,8 @@ export type PortalDashboardSummary = {
   stats?: PortalDashboardStats;
 };
 
+export type ActiveRole = 'participant' | 'ambassador';
+
 export type AuthMeData = {
   userId: string;
   email: string;
@@ -68,6 +70,7 @@ export type AuthMeData = {
     applicationStatus?: string;
   }>;
   isProfileCompleted?: boolean;
+  activeRole?: ActiveRole;
 };
 
 export type ParticipantOnboardingData = {
