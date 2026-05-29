@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
+type ActiveRole = 'participant' | 'ambassador';
+
 type AuthMeResponse = {
   statusCode?: number;
   message?: string;
@@ -22,6 +24,7 @@ type AuthMeResponse = {
       applicationStatus?: string;
     }>;
     isProfileCompleted?: boolean;
+    activeRole?: ActiveRole;
   };
 };
 
@@ -29,6 +32,11 @@ export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
+    const activeRoleCookie = cookieStore.get('activeRole')?.value;
+    const activeRole: ActiveRole | undefined =
+      activeRoleCookie === 'ambassador' || activeRoleCookie === 'participant'
+        ? activeRoleCookie
+        : undefined;
 
     const brandDomain = resolveBrandDomainFromRequest(request);
 
@@ -66,7 +74,8 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: json.data ?? null });
+    const data = json.data ? { ...json.data, ...(activeRole ? { activeRole } : {}) } : null;
+    return NextResponse.json({ statusCode: 200, message: 'Success', data });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(

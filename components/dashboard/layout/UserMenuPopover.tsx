@@ -41,6 +41,19 @@ export default function UserMenuPopover({
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
+      try {
+        // Clear ambassador-status caches so the next account on this browser
+        // doesn't start in the previous user's role view.
+        localStorage.removeItem('ybb_ambassador_status');
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('ybb_ambassador_status:')) {
+            localStorage.removeItem(key);
+          }
+        }
+      } catch {
+        // ignore storage errors
+      }
       router.push('/login');
     }
   };
