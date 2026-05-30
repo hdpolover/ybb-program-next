@@ -17,6 +17,11 @@ interface PhoneFieldProps {
   onChange: (e164: string) => void;
   hasError?: boolean;
   disabled?: boolean;
+  /**
+   * Country to default to when the field is empty (e.g. derived from the
+   * participant's selected nationality). Falls back to ID when unset/unsupported.
+   */
+  defaultCountry?: CountryCode;
 }
 
 type CountryChoice = {
@@ -50,8 +55,12 @@ export function PhoneField({
   onChange,
   hasError,
   disabled,
+  defaultCountry,
 }: PhoneFieldProps) {
   const countries = useMemo(() => allCountries(), []);
+  // Empty-field fallback: the caller's defaultCountry (e.g. nationality) if valid, else ID.
+  const fallbackCountry: CountryCode =
+    defaultCountry && isSupportedCountry(defaultCountry) ? defaultCountry : DEFAULT_COUNTRY;
   const parsed = useMemo(() => {
     if (!value) return null;
     try {
@@ -61,7 +70,7 @@ export function PhoneField({
     }
   }, [value]);
 
-  const initialCountry: CountryCode = parsed?.country ?? DEFAULT_COUNTRY;
+  const initialCountry: CountryCode = parsed?.country ?? fallbackCountry;
   const initialNumber: string = parsed?.nationalNumber?.toString() ?? "";
 
   const [country, setCountry] = useState<CountryCode>(initialCountry);
@@ -97,24 +106,25 @@ export function PhoneField({
 
   useEffect(() => {
     if (!value) {
+      // No number entered yet: follow the default country (e.g. nationality).
       setTimeout(() => {
-        setCountry(DEFAULT_COUNTRY);
+        setCountry(fallbackCountry);
         setNumber("");
       }, 0);
       return;
     }
-    
+
     const parsed = parsePhoneNumberFromString(value);
     if (parsed && parsed.country) {
       const newCountry = parsed.country;
       const newNumber = parsed.nationalNumber?.toString() ?? "";
-      
+
       setTimeout(() => {
         setCountry(newCountry);
         setNumber(newNumber);
       }, 0);
     }
-  }, [value]);
+  }, [value, fallbackCountry]);
 
   function emit(nextCountry: CountryCode, nextNumber: string) {
     const digits = nextNumber.replace(/\D+/g, "");

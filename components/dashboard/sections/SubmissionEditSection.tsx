@@ -265,6 +265,32 @@ function getPairedPhoneField(section: PortalSubmissionSection, field: PortalSubm
   );
 }
 
+/**
+ * Derive the participant's country from any nationality/country selector in the
+ * submission so the phone field can default to it (instead of always Indonesia).
+ * Prefers an explicit "nationality" field, then current/origin country.
+ */
+function findNationalityCountryCode(
+  sections: PortalSubmissionSection[],
+  allSectionValues: Record<string, Record<string, string>>,
+): CountryCode | undefined {
+  let best: { priority: number; value: CountryCode } | null = null;
+  for (const sec of sections) {
+    for (const f of sec.fields) {
+      if (!isCountrySelectorField(f)) continue;
+      const raw = (allSectionValues[sec.id]?.[f.name] ?? "").trim().toUpperCase();
+      if (!/^[A-Z]{2}$/.test(raw) || !isSupportedCountry(raw as CountryCode)) continue;
+      const norm = normalizeFieldKey(f.name);
+      const priority =
+        norm === "nationality" || norm === "nationalitycode" ? 0 :
+        norm === "currentcountry" ? 1 :
+        norm === "origincountry" ? 2 : 3;
+      if (!best || priority < best.priority) best = { priority, value: raw as CountryCode };
+    }
+  }
+  return best?.value;
+}
+
 function normalizeDialCode(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return "";
@@ -715,6 +741,8 @@ export default function SubmissionEditSection() {
 
   const renderFieldInput = (section: PortalSubmissionSection, field: PortalSubmissionField) => {
     const value = sectionValues[section.id]?.[field.name] ?? "";
+    // Default phone country follows the participant's selected nationality (else ID).
+    const defaultPhoneCountry = findNationalityCountryCode(detail?.sections ?? [], sectionValues);
     const fieldType = field.type.toLowerCase();
     const isRadioField = fieldType === "radio";
     const treatAsSelect =
@@ -734,6 +762,7 @@ export default function SubmissionEditSection() {
         return (
           <PhoneField
             value={e164}
+            defaultCountry={defaultPhoneCountry}
             onChange={nextE164 => {
               const normalized = splitE164ToDialAndNumber(nextE164);
               updateFieldValue(section.id, pairedCountryField.name, normalized.countryCode);
@@ -810,6 +839,7 @@ export default function SubmissionEditSection() {
       return (
         <PhoneField
           value={value}
+          defaultCountry={defaultPhoneCountry}
           onChange={e164 => updateFieldValue(section.id, field.name, e164)}
         />
       );
