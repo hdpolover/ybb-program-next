@@ -12,6 +12,7 @@ import { useSettings } from '@/components/providers/SettingsProvider';
 import StyledSelect from '@/components/ui/StyledSelect';
 import { FormField } from '@/components/ui/FormField';
 import { User, Users, MapPin, Globe, Building, Gift, Map as MapIcon } from 'lucide-react';
+import EnglishTextInput from '@/components/ui/EnglishTextInput';
 
 
 export default function OnboardingPage() {
@@ -594,12 +595,13 @@ export default function OnboardingPage() {
                       error={bioShowErrors && form.fullName.trim().length === 0}
                     >
                       {(errClass) => (
-                        <input
+                        <EnglishTextInput
                           name="fullName"
                           value={form.fullName}
                           onChange={onChange}
                           type="text"
                           required
+                          restrictMode="name"
                           className={`${componentsTheme.login.input} ${errClass}`}
                           placeholder="Your full name"
                         />
@@ -675,7 +677,7 @@ export default function OnboardingPage() {
                                 disabled={!selectedCountry?.isoCode || statesLoading}
                               />
                             ) : (
-                              <input
+                              <EnglishTextInput
                                 name="state"
                                 value={form.state}
                                 onChange={onChange}
@@ -708,7 +710,7 @@ export default function OnboardingPage() {
                                 disabled={!form.state || citiesLoading}
                               />
                             ) : (
-                              <input
+                              <EnglishTextInput
                                 name="city"
                                 value={form.city}
                                 onChange={onChange}
@@ -800,7 +802,7 @@ export default function OnboardingPage() {
                       required={false}
                     >
                       {(errorClass) => (
-                      <input
+                      <EnglishTextInput
                         name="referralCode"
                         value={form.referralCode}
                         onChange={onChange}

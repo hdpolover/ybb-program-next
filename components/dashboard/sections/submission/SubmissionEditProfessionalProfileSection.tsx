@@ -5,6 +5,8 @@ import { Award, BriefcaseBusiness, Info, MapPin, Upload, Users } from "lucide-re
 import { componentsTheme } from "@/lib/theme/components";
 import type { ProfessionalProfile } from "../SubmissionEditSection";
 import StyledSelect from "@/components/ui/StyledSelect";
+import EnglishTextInput from "@/components/ui/EnglishTextInput";
+import EnglishTextArea from "@/components/ui/EnglishTextArea";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -95,7 +97,7 @@ export default function SubmissionEditProfessionalProfileSection({
 
         <Field label="Institution">
           <InputWrapper icon={<MapPin className="h-4 w-4" />}>
-            <input
+            <EnglishTextInput
               type="text"
               className={`${base} pl-9 ${
                 showErrors && !professional.institution.trim()
@@ -118,7 +120,7 @@ export default function SubmissionEditProfessionalProfileSection({
 
         <Field label="Major">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <input
+            <EnglishTextInput
               type="text"
               className={`${base} pl-9 ${
                 showErrors && !professional.major.trim()
@@ -141,7 +143,7 @@ export default function SubmissionEditProfessionalProfileSection({
 
         <Field label="Occupation">
           <InputWrapper icon={<BriefcaseBusiness className="h-4 w-4" />}>
-            <input
+            <EnglishTextInput
               type="text"
               className={`${base} pl-9 ${
                 showErrors && !professional.occupation.trim()
@@ -164,7 +166,7 @@ export default function SubmissionEditProfessionalProfileSection({
 
         <Field label="Organization">
           <InputWrapper icon={<Users className="h-4 w-4" />}>
-            <input
+            <EnglishTextInput
               type="text"
               className={`${base} pl-9 ${
                 showErrors && !professional.organization.trim()
@@ -187,7 +189,7 @@ export default function SubmissionEditProfessionalProfileSection({
 
         <Field label="Experiences">
           <InputWrapper icon={<BriefcaseBusiness className="h-4 w-4" />}>
-            <textarea
+            <EnglishTextArea
               rows={3}
               className={`${base} pl-9 ${
                 showErrors && !professional.experiences.trim()
@@ -212,7 +214,7 @@ export default function SubmissionEditProfessionalProfileSection({
 
         <Field label="Achievements & Rewards">
           <InputWrapper icon={<Award className="h-4 w-4" />}>
-            <textarea
+            <EnglishTextArea
               rows={3}
               className={`${base} pl-9 ${
                 showErrors && !professional.achievements.trim()

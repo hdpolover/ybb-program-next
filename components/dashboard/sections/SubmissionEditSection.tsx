@@ -30,6 +30,8 @@ import type {
 } from "@/types/portal-submission";
 import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
+import EnglishTextInput from "@/components/ui/EnglishTextInput";
+import EnglishTextArea from "@/components/ui/EnglishTextArea";
 import { CountryField } from "@/components/dashboard/fields/CountryField";
 import { PhoneField } from "@/components/dashboard/fields/PhoneField";
 import { FieldHelpAssets } from "@/components/dashboard/sections/FieldHelpAssets";
@@ -744,7 +746,7 @@ export default function SubmissionEditSection() {
 
     if (field.type === "textarea") {
       return (
-        <textarea
+        <EnglishTextArea
           className={`${submissionTheme.essayTextarea} min-h-[140px]`}
           value={value}
           onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
@@ -814,6 +816,19 @@ export default function SubmissionEditSection() {
     }
 
     const inputType = field.type === "date" || field.type === "url" ? field.type : "text";
+    if (inputType === "text") {
+      const isNameField = /name/i.test(field.name) || /name/i.test(field.label);
+      return (
+        <EnglishTextInput
+          type="text"
+          className={submissionTheme.editInputBase}
+          value={value}
+          onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
+          placeholder={field.placeholder || plainTextFromRichText(field.helpText) || ""}
+          restrictMode={isNameField ? "name" : "general"}
+        />
+      );
+    }
     return (
       <input
         type={inputType}
@@ -1259,7 +1274,7 @@ export default function SubmissionEditSection() {
                       <div key={essay.id} className="space-y-2">
                         <label className={submissionTheme.editFieldLabelWrapper}>
                           <span className={submissionTheme.editFieldLabelText}>{essay.question}</span>
-                          <textarea
+                          <EnglishTextArea
                             className={submissionTheme.essayTextarea}
                             value={essayValues[essay.id] || ""}
                             onChange={event =>

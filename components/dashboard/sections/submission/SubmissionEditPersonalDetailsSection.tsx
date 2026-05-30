@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { Flag, Info, MapPin, Phone, Shirt, User, User2, UserRound } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
 import type { PersonalDetails } from "../SubmissionEditSection";
@@ -9,6 +8,8 @@ import { getCities, getCountries, getGenders, getShirtSizes, getStates } from "@
 import type { CityMetadata, CountryMetadata, ShirtSizeMetadata, StateMetadata } from "@/types/metadata";
 import StyledSelect from "@/components/ui/StyledSelect";
 import { FieldAssetDrawer } from "@/components/dashboard/sections/FieldAssetDrawer";
+import EnglishTextInput from "@/components/ui/EnglishTextInput";
+import EnglishTextArea from "@/components/ui/EnglishTextArea";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -289,8 +290,9 @@ export default function SubmissionEditPersonalDetailsSection({
       <div className={submissionTheme.formGrid}>
         <Field label="Full Name">
           <InputWrapper icon={<User className="h-4 w-4" />}>
-            <input
+            <EnglishTextInput
               type="text"
+              restrictMode="name"
               className={`${base} pl-9 ${
                 showErrors && !personal.fullName.trim() ? submissionTheme.editInputError : ""
               }`}
@@ -310,8 +312,9 @@ export default function SubmissionEditPersonalDetailsSection({
 
         <Field label="Nick Name">
           <InputWrapper icon={<User2 className="h-4 w-4" />}>
-            <input
+            <EnglishTextInput
               type="text"
+              restrictMode="name"
               className={`${base} pl-9 ${
                 showErrors && !personal.nickName.trim() ? submissionTheme.editInputError : ""
               }`}
@@ -391,7 +394,7 @@ export default function SubmissionEditPersonalDetailsSection({
                 searchable
               />
             ) : (
-              <input
+              <EnglishTextInput
                 type="text"
                 className={`${base} pl-9 ${
                   showErrors && !personal.nationality.trim() ? submissionTheme.editInputError : ""
@@ -432,7 +435,7 @@ export default function SubmissionEditPersonalDetailsSection({
                   searchable
                 />
               ) : (
-                <input
+                <EnglishTextInput
                   type="text"
                   className={`${base} pl-9 ${
                     showErrors && !personal.originState.trim() ? submissionTheme.editInputError : ""
@@ -467,7 +470,7 @@ export default function SubmissionEditPersonalDetailsSection({
                   disabled={!personal.originState}
                 />
               ) : (
-                <input
+                <EnglishTextInput
                   type="text"
                   className={`${base} pl-9 ${
                     showErrors && !personal.originCity.trim() ? submissionTheme.editInputError : ""
@@ -515,7 +518,7 @@ export default function SubmissionEditPersonalDetailsSection({
                   searchable
                 />
               ) : (
-                <input
+                <EnglishTextInput
                   type="text"
                   className={`${base} pl-9 ${
                     showErrors && !personal.currentState.trim() ? submissionTheme.editInputError : ""
@@ -550,7 +553,7 @@ export default function SubmissionEditPersonalDetailsSection({
                   disabled={!personal.currentState}
                 />
               ) : (
-                <input
+                <EnglishTextInput
                   type="text"
                   className={`${base} pl-9 ${
                     showErrors && !personal.currentCity.trim() ? submissionTheme.editInputError : ""
@@ -623,7 +626,7 @@ export default function SubmissionEditPersonalDetailsSection({
 
         <Field label="Emergency Contact Relationship">
           <InputWrapper icon={<User className="h-4 w-4" />}>
-            <input
+            <EnglishTextInput
               type="text"
               className={`${base} pl-9 ${
                 showErrors && !personal.emergencyRelationship.trim()
@@ -680,7 +683,7 @@ export default function SubmissionEditPersonalDetailsSection({
 
         <Field label="Disease History">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <textarea
+            <EnglishTextArea
               rows={3}
               className={`${base} pl-9 ${
                 showErrors && !personal.diseaseHistory.trim() ? submissionTheme.editInputError : ""

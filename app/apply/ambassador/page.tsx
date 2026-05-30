@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users, Phone, Building, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
+import EnglishTextInput from '@/components/ui/EnglishTextInput';
 
 interface FormState {
   fullName: string;
@@ -100,7 +101,7 @@ export default function ApplyAmbassadorPage() {
             </label>
             <div className="relative">
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
+              <EnglishTextInput
                 id="fullName"
                 type="text"
                 value={form.fullName}
@@ -109,6 +110,7 @@ export default function ApplyAmbassadorPage() {
                 className="w-full pl-9 pr-4 py-2.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                 required
                 disabled={loading}
+                restrictMode="name"
               />
             </div>
           </div>
@@ -139,7 +141,7 @@ export default function ApplyAmbassadorPage() {
             </label>
             <div className="relative">
               <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
+              <EnglishTextInput
                 id="institution"
                 type="text"
                 value={form.institution}
