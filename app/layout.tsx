@@ -15,7 +15,8 @@ import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
 import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
-import { getProgramDetail } from '@/lib/api/programs';
+import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
+import { resolveActiveRegistrationDeadline } from '@/lib/registration/deadline';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -135,12 +136,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     brandAccent = normalizeHex(rawColor);
     gaId = settingsResult.value?.brand?.google_analytics_id || null;
 
-    // Fetch registration close date from active program
+    // Derive the registration deadline from the program's registration-fee
+    // windows: fully funded close first, then self funded once fully funded
+    // has passed. Falls back to the program-level field when tiers are absent.
     const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
     if (programSlug) {
       try {
         const program = await getProgramDetail(programSlug, host);
-        registrationCloseDate = program?.registrationCloseDate || null;
+        let tierDeadline: string | null = null;
+        if (program?.id) {
+          try {
+            const pricingTiers = await getProgramPricingTiers(program.id, host);
+            tierDeadline = resolveActiveRegistrationDeadline(pricingTiers, new Date());
+          } catch (tierError) {
+            console.error('[Layout] Failed to fetch pricing tiers:', tierError);
+          }
+        }
+        registrationCloseDate = tierDeadline ?? program?.registrationCloseDate ?? null;
       } catch (error) {
         console.error('[Layout] Failed to fetch program detail:', error);
       }

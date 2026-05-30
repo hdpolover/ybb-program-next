@@ -15,11 +15,11 @@ export default function RegistrationCountdownGate({ registrationDeadline }: Regi
     return null;
   }
 
-  // Pake tanggal mockup klo emg gk ada datanya
-  const testDate = new Date();
-  testDate.setDate(testDate.getDate() + 7); // 7 hari dari hari ini
+  // Tanpa deadline beneran, jangan tampilin countdown palsu — biar konsisten
+  // sama StickyBottomBar yang juga sembunyi kalau gk ada tanggalnya.
+  if (!registrationDeadline) {
+    return null;
+  }
 
-  const targetDate = registrationDeadline || testDate.toISOString();
-
-  return <RegistrationCountdown targetDate={targetDate} />;
+  return <RegistrationCountdown targetDate={registrationDeadline} />;
 }
