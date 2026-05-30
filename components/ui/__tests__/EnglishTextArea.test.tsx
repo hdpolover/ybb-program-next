@@ -54,7 +54,7 @@ describe('EnglishTextArea', () => {
         onChange={() => {}}
       />,
     );
-    // No blocked char yet, so no status node — assert the component renders.
+    // No blocked char yet, so no status node. Assert the component renders.
     expect(screen.getByLabelText('ta2')).toBeInTheDocument();
   });
 });

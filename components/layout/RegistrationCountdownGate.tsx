@@ -15,7 +15,7 @@ export default function RegistrationCountdownGate({ registrationDeadline }: Regi
     return null;
   }
 
-  // Tanpa deadline beneran, jangan tampilin countdown palsu — biar konsisten
+  // Tanpa deadline beneran, jangan tampilin countdown palsu. Biar konsisten
   // sama StickyBottomBar yang juga sembunyi kalau gk ada tanggalnya.
   if (!registrationDeadline) {
     return null;

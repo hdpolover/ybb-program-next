@@ -4,7 +4,7 @@ import { forwardRef, useState, type ChangeEvent, type TextareaHTMLAttributes } f
 import { sanitize, type RestrictMode } from '@/lib/text/restricted-input';
 
 const FEEDBACK: Record<RestrictMode, string> = {
-  name: 'Please use the English alphabet only — your name appears on your Letter of Acceptance.',
+  name: 'Please use the English alphabet only. Your name appears on your Letter of Acceptance.',
   general: 'Only standard English characters are allowed.',
 };
 
