@@ -312,7 +312,6 @@ export default function SubmissionEditEntryInformationSection({
                 <InputWrapper icon={<Info className="h-4 w-4" />}>
                   <EnglishTextInput
                     type="text"
-                    feedbackClassName="sr-only"
                     className={`${base} pl-9 ${
                       showErrors && !entry.essayTitle.trim() ? submissionTheme.editInputError : ""
                     }`}

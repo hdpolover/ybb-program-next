@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { Flag, Info, MapPin, Phone, Shirt, User, User2, UserRound } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
 import type { PersonalDetails } from "../SubmissionEditSection";
@@ -294,7 +293,6 @@ export default function SubmissionEditPersonalDetailsSection({
             <EnglishTextInput
               type="text"
               restrictMode="name"
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !personal.fullName.trim() ? submissionTheme.editInputError : ""
               }`}
@@ -317,7 +315,6 @@ export default function SubmissionEditPersonalDetailsSection({
             <EnglishTextInput
               type="text"
               restrictMode="name"
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !personal.nickName.trim() ? submissionTheme.editInputError : ""
               }`}
@@ -399,7 +396,6 @@ export default function SubmissionEditPersonalDetailsSection({
             ) : (
               <EnglishTextInput
                 type="text"
-                feedbackClassName="sr-only"
                 className={`${base} pl-9 ${
                   showErrors && !personal.nationality.trim() ? submissionTheme.editInputError : ""
                 }`}
@@ -441,7 +437,6 @@ export default function SubmissionEditPersonalDetailsSection({
               ) : (
                 <EnglishTextInput
                   type="text"
-                  feedbackClassName="sr-only"
                   className={`${base} pl-9 ${
                     showErrors && !personal.originState.trim() ? submissionTheme.editInputError : ""
                   }`}
@@ -477,7 +472,6 @@ export default function SubmissionEditPersonalDetailsSection({
               ) : (
                 <EnglishTextInput
                   type="text"
-                  feedbackClassName="sr-only"
                   className={`${base} pl-9 ${
                     showErrors && !personal.originCity.trim() ? submissionTheme.editInputError : ""
                   }`}
@@ -526,7 +520,6 @@ export default function SubmissionEditPersonalDetailsSection({
               ) : (
                 <EnglishTextInput
                   type="text"
-                  feedbackClassName="sr-only"
                   className={`${base} pl-9 ${
                     showErrors && !personal.currentState.trim() ? submissionTheme.editInputError : ""
                   }`}
@@ -562,7 +555,6 @@ export default function SubmissionEditPersonalDetailsSection({
               ) : (
                 <EnglishTextInput
                   type="text"
-                  feedbackClassName="sr-only"
                   className={`${base} pl-9 ${
                     showErrors && !personal.currentCity.trim() ? submissionTheme.editInputError : ""
                   }`}
@@ -636,7 +628,6 @@ export default function SubmissionEditPersonalDetailsSection({
           <InputWrapper icon={<User className="h-4 w-4" />}>
             <EnglishTextInput
               type="text"
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !personal.emergencyRelationship.trim()
                   ? submissionTheme.editInputError
@@ -694,7 +685,6 @@ export default function SubmissionEditPersonalDetailsSection({
           <InputWrapper icon={<Info className="h-4 w-4" />}>
             <EnglishTextArea
               rows={3}
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !personal.diseaseHistory.trim() ? submissionTheme.editInputError : ""
               }`}

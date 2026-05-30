@@ -4,7 +4,6 @@ import React from "react";
 import Image from "next/image";
 import {
   AlertTriangle,
-  BookOpen,
   Download,
   FileText,
   ImageIcon,
@@ -85,7 +84,6 @@ export default function SubmissionEditMiscSection({
           <InputWrapper icon={<Info className="h-4 w-4" />}>
             <EnglishTextInput
               type="text"
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !entry.instagramAccount?.trim()
                   ? submissionTheme.editInputError
@@ -135,7 +133,6 @@ export default function SubmissionEditMiscSection({
             <EnglishTextInput
               type="text"
               restrictMode="name"
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !entry.sourceAccountName?.trim()
                   ? submissionTheme.editInputError
@@ -342,7 +339,6 @@ export default function SubmissionEditMiscSection({
                   <InputWrapper icon={<BadgeCheck className="h-4 w-4" />}>
                     <EnglishTextInput
                       type="text"
-                      feedbackClassName="sr-only"
                       className={`${base} pl-9`}
                       value={entry.ambassadorReferralCode ?? ""}
                       onChange={e =>

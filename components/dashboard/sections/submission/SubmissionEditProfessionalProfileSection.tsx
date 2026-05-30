@@ -99,7 +99,6 @@ export default function SubmissionEditProfessionalProfileSection({
           <InputWrapper icon={<MapPin className="h-4 w-4" />}>
             <EnglishTextInput
               type="text"
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !professional.institution.trim()
                   ? submissionTheme.editInputError
@@ -123,7 +122,6 @@ export default function SubmissionEditProfessionalProfileSection({
           <InputWrapper icon={<Info className="h-4 w-4" />}>
             <EnglishTextInput
               type="text"
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !professional.major.trim()
                   ? submissionTheme.editInputError
@@ -147,7 +145,6 @@ export default function SubmissionEditProfessionalProfileSection({
           <InputWrapper icon={<BriefcaseBusiness className="h-4 w-4" />}>
             <EnglishTextInput
               type="text"
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !professional.occupation.trim()
                   ? submissionTheme.editInputError
@@ -171,7 +168,6 @@ export default function SubmissionEditProfessionalProfileSection({
           <InputWrapper icon={<Users className="h-4 w-4" />}>
             <EnglishTextInput
               type="text"
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !professional.organization.trim()
                   ? submissionTheme.editInputError
@@ -195,7 +191,6 @@ export default function SubmissionEditProfessionalProfileSection({
           <InputWrapper icon={<BriefcaseBusiness className="h-4 w-4" />}>
             <EnglishTextArea
               rows={3}
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !professional.experiences.trim()
                   ? submissionTheme.editInputError
@@ -221,7 +216,6 @@ export default function SubmissionEditProfessionalProfileSection({
           <InputWrapper icon={<Award className="h-4 w-4" />}>
             <EnglishTextArea
               rows={3}
-              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !professional.achievements.trim()
                   ? submissionTheme.editInputError
