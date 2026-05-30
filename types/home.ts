@@ -244,7 +244,7 @@ export type DelegateTestimonialsSection = {
       quote: string;
       country: string;
       photo: string;
-      year: number;
+      year: number | null;
     }[];
   };
 };
