@@ -25,6 +25,8 @@ import {
   readActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
 import { upsertCachedPaymentPreview } from "@/lib/dashboard/payments-cache";
+import EnglishTextInput from "@/components/ui/EnglishTextInput";
+import EnglishTextArea from "@/components/ui/EnglishTextArea";
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -1120,9 +1122,10 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       <label className="font-semibold" htmlFor="manual-account-name">
                         Account Name
                       </label>
-                      <input
+                      <EnglishTextInput
                         id="manual-account-name"
                         type="text"
+                        restrictMode="name"
                         className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         value={manualAccountName}
                         onChange={(e) => setManualAccountName(e.target.value)}
@@ -1132,9 +1135,10 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       <label className="font-semibold" htmlFor="manual-source-name">
                         Source Name
                       </label>
-                      <input
+                      <EnglishTextInput
                         id="manual-source-name"
                         type="text"
+                        restrictMode="name"
                         className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         value={manualSourceName}
                         onChange={(e) => setManualSourceName(e.target.value)}
@@ -1167,7 +1171,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                       <label className="font-semibold" htmlFor="manual-notes">
                         Additional Notes
                       </label>
-                      <textarea
+                      <EnglishTextArea
                         id="manual-notes"
                         rows={3}
                         className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
