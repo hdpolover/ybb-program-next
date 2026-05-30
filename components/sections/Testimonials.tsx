@@ -11,7 +11,6 @@ type Testimonial = {
   quote: string;
   flag: string;
   country: string;
-  year: number;
   photo?: string;
 };
 
@@ -59,7 +58,6 @@ export default function Testimonials({ section }: Props) {
     quote: t.quote,
     flag: '',
     country: t.country,
-    year: t.year,
     photo: t.photo || undefined,
   }));
 
@@ -113,9 +111,6 @@ export default function Testimonials({ section }: Props) {
                     <span className={componentsTheme.testimonialsHome.badge}>
                       {t.country || 'Alumni'}
                     </span>
-                    <span className={componentsTheme.testimonialsHome.yearPill}>
-                      Batch {t.year || '-'}
-                    </span>
                   </div>
                 </div>
               </button>
@@ -165,7 +160,7 @@ export default function Testimonials({ section }: Props) {
                   <span>{active.name}</span>
                 </p>
                 <p className={componentsTheme.testimonialsHome.modalMetaSub}>
-                  {active.country} • {active.role} • {active.year}
+                  {active.country} • {active.role}
                 </p>
               </div>
               <div className="sm:col-span-2">
