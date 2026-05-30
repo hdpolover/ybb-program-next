@@ -19,6 +19,7 @@ import {
 import { componentsTheme } from "@/lib/theme/components";
 import type { EntryInfo } from "../SubmissionEditSection";
 import StyledSelect from "@/components/ui/StyledSelect";
+import EnglishTextInput from "@/components/ui/EnglishTextInput";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -82,8 +83,9 @@ export default function SubmissionEditMiscSection({
       <div className={submissionTheme.formGrid}>
         <Field label="Instagram Account">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <input
+            <EnglishTextInput
               type="text"
+              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !entry.instagramAccount?.trim()
                   ? submissionTheme.editInputError
@@ -130,8 +132,10 @@ export default function SubmissionEditMiscSection({
 
         <Field label="Source Account Name">
           <InputWrapper icon={<Info className="h-4 w-4" />}>
-            <input
+            <EnglishTextInput
               type="text"
+              restrictMode="name"
+              feedbackClassName="sr-only"
               className={`${base} pl-9 ${
                 showErrors && !entry.sourceAccountName?.trim()
                   ? submissionTheme.editInputError
@@ -336,8 +340,9 @@ export default function SubmissionEditMiscSection({
               <div className="flex w-full items-center gap-2">
                 <div className="flex-1">
                   <InputWrapper icon={<BadgeCheck className="h-4 w-4" />}>
-                    <input
+                    <EnglishTextInput
                       type="text"
+                      feedbackClassName="sr-only"
                       className={`${base} pl-9`}
                       value={entry.ambassadorReferralCode ?? ""}
                       onChange={e =>

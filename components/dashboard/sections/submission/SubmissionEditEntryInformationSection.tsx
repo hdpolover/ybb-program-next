@@ -6,6 +6,8 @@ import { AlertTriangle, Award, BookOpen, Info, Lock, Users } from "lucide-react"
 import { componentsTheme } from "@/lib/theme/components";
 import type { EntryInfo } from "../SubmissionEditSection";
 import StyledSelect from "@/components/ui/StyledSelect";
+import EnglishTextInput from "@/components/ui/EnglishTextInput";
+import EnglishTextArea from "@/components/ui/EnglishTextArea";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -308,8 +310,9 @@ export default function SubmissionEditEntryInformationSection({
             <div>
               <Field label="Essay Title (Max 15 Words)">
                 <InputWrapper icon={<Info className="h-4 w-4" />}>
-                  <input
+                  <EnglishTextInput
                     type="text"
+                    feedbackClassName="sr-only"
                     className={`${base} pl-9 ${
                       showErrors && !entry.essayTitle.trim() ? submissionTheme.editInputError : ""
                     }`}
@@ -335,7 +338,7 @@ export default function SubmissionEditEntryInformationSection({
             {/* Essay (max 800 words) */}
             <div>
               <Field label="Essay (Max 800 Words)">
-                <textarea
+                <EnglishTextArea
                   className={`${submissionTheme.essayTextarea} w-full`}
                   value={entry.mainEssay}
                   onChange={e =>
@@ -400,7 +403,7 @@ export default function SubmissionEditEntryInformationSection({
 
                   {keywordDropdownOpen && (
                     <div className={submissionTheme.keywordDropdownWrapper}>
-                      <input
+                      <EnglishTextInput
                         type="text"
                         className={submissionTheme.keywordSearchInput}
                         placeholder="Type to search or add keyword, then press Enter"
@@ -471,7 +474,7 @@ export default function SubmissionEditEntryInformationSection({
             {/* Reference (max 100 words) */}
             <div>
               <Field label="Reference (Max 100 Words)">
-                <textarea
+                <EnglishTextArea
                   className={`${submissionTheme.essayTextarea} w-full`}
                   value={entry.reference}
                   onChange={e =>
