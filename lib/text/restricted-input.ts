@@ -1,9 +1,9 @@
 export type RestrictMode = 'name' | 'general';
 
-// name: letters, space, hyphen, apostrophe, period (hyphen escaped)
-const NAME_DISALLOWED = /[^A-Za-z .'\-]/g;
+// name: letters, space, hyphen, apostrophe, period (hyphen last = literal)
+const NAME_DISALLOWED = /[^A-Za-z .'-]/;
 // general: printable ASCII (0x20–0x7E) plus tab, newline, carriage return
-const GENERAL_DISALLOWED = /[^\x20-\x7E\n\r\t]/g;
+const GENERAL_DISALLOWED = /[^\x20-\x7E\n\r\t]/;
 
 function patternFor(mode: RestrictMode): RegExp {
   // Return a fresh RegExp each call to avoid shared lastIndex state.
