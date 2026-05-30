@@ -29,6 +29,8 @@ const EnglishTextInput = forwardRef<HTMLInputElement, EnglishTextInputProps>(
       } else if (clean === '') {
         setBlocked(false);
       }
+      // Mutate the DOM value before calling onChange so the consumer's
+      // e.target.value handler stores the cleaned text (blocked chars never persist).
       if (clean !== e.target.value) {
         e.target.value = clean;
       }
