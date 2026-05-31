@@ -55,6 +55,7 @@ export default function HeroSection({
       : 'text-base text-white/90 sm:text-lg md:text-xl';
   const normalizedGallery = (galleryImages ?? []).filter(Boolean);
   const useGallery = normalizedGallery.length > 1;
+  const hasBreadcrumb = Boolean(breadcrumb && breadcrumb.length > 0);
 
   let eventDate = '';
   let duration = '';
@@ -169,7 +170,11 @@ export default function HeroSection({
         className={`pointer-events-none absolute -right-40 top-24 ${decorMidRight} rounded-full bg-white/5 blur-2xl`}
       />
 
-      <div className={componentsTheme.heroSectionBadges.wrapper}>
+      <div
+        className={`${componentsTheme.heroSectionBadges.wrapper} ${
+          hasBreadcrumb ? 'bottom-14 sm:bottom-16 md:bottom-20' : ''
+        }`}
+      >
         <div className={componentsTheme.heroSectionBadges.row}>
           <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.fullyFunded}`}>
             <Award className={componentsTheme.heroSectionBadges.icon} />
