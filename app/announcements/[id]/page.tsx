@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
 import {
   formatAnnouncementCategoryLabel,
@@ -10,7 +11,76 @@ import {
   isExternalHref,
   toAnnouncementHtml,
 } from '@/lib/announcements';
+import { resolveBrandDomain } from '@/lib/server/envContext';
 import type { AnnouncementListSection } from '@/types/announcements';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const host = await resolveBrandDomain();
+  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+  const baseUrl = `${protocol}://${host}`;
+
+  try {
+    const pageData = await getAnnouncementsPageData(host);
+    const listSection = pageData.sections.find(
+      (section): section is AnnouncementListSection => section.type === 'announcement_list',
+    );
+    const item = listSection?.data.find((entry) => String(entry.id) === id);
+
+    if (!item) {
+      return {
+        metadataBase: new URL(baseUrl),
+        title: 'Announcement Not Found',
+        robots: { index: false, follow: true },
+      };
+    }
+
+    const title = item.title?.trim() || 'Announcement';
+    const description =
+      item.excerpt?.trim() ||
+      item.content?.trim()?.slice(0, 160) ||
+      'Read the latest announcement from Youth Break the Boundaries.';
+    const image = item.image?.trim() || '/img/announcementbackground.png';
+
+    return {
+      metadataBase: new URL(baseUrl),
+      title,
+      description,
+      alternates: {
+        canonical: `/announcements/${encodeURIComponent(String(item.id))}`,
+      },
+      openGraph: {
+        title,
+        description,
+        type: 'article',
+        url: `/announcements/${encodeURIComponent(String(item.id))}`,
+        images: [{ url: image }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [image],
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+    };
+  } catch {
+    return {
+      metadataBase: new URL(baseUrl),
+      title: 'Announcement',
+      alternates: {
+        canonical: `/announcements/${encodeURIComponent(String(id))}`,
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+    };
+  }
+}
 
 export default async function AnnouncementDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
