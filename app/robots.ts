@@ -5,7 +5,7 @@ import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const h = await headers();
-  const hostnameRaw = h.get('x-hostname') || h.get('host') || '';
+  const hostnameRaw = h.get('host') || h.get('x-hostname') || '';
   const fallbackHost = normalizeBrandUrl(getEnvBrandDomain() || new URL(siteConfig.url).host);
   const host = normalizeBrandUrl(hostnameRaw) || fallbackHost;
   const protocol = h.get('x-forwarded-proto') || (process.env.NODE_ENV === 'development' ? 'http' : 'https');

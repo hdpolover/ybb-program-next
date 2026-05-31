@@ -19,7 +19,7 @@ const STATIC_PATHS = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const h = await headers();
-  const hostnameRaw = h.get('x-hostname') || h.get('host') || '';
+  const hostnameRaw = h.get('host') || h.get('x-hostname') || '';
   const fallbackHost = normalizeBrandUrl(getEnvBrandDomain() || new URL(siteConfig.url).host);
   const host = normalizeBrandUrl(hostnameRaw) || fallbackHost;
   const protocol = h.get('x-forwarded-proto') || (process.env.NODE_ENV === 'development' ? 'http' : 'https');
