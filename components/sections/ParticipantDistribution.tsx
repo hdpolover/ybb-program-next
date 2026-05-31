@@ -7,8 +7,10 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { Button } from '@/components/ui/button/button';
 import { componentsTheme } from '@/lib/theme/components';
 import {
+  buildMapDistributionData,
   getParticipantDistributionSummary,
   PARTICIPANT_DISTRIBUTION_DETAILS_HREF,
+  type ParticipantDistributionLevel,
 } from '@/lib/participant-distribution';
 
 const GEO_DATA = countries110m as unknown as Record<string, unknown>;
@@ -20,7 +22,7 @@ type WorldGeo = {
   };
 };
 
-export type Level = 'high' | 'medium' | 'low' | 'none';
+export type Level = ParticipantDistributionLevel;
 
 export type ParticipantDistributionProps = {
   eyebrow?: string;
@@ -28,6 +30,7 @@ export type ParticipantDistributionProps = {
   countryLevels?: Record<string, Level>;
   countryParticipants?: Record<string, number>;
   legend?: { high: string; medium: string; low: string; none: string };
+  showDetailsButton?: boolean;
 };
 
 const DEFAULT_LEGEND = {
@@ -43,6 +46,7 @@ export default function ParticipantDistribution({
   countryLevels,
   countryParticipants,
   legend,
+  showDetailsButton = true,
 }: ParticipantDistributionProps) {
   const [selectedCountry, setSelectedCountry] = useState<{
     name: string;
@@ -50,12 +54,17 @@ export default function ParticipantDistribution({
     participants: number;
   } | null>(null);
 
-  const hasLevels = countryLevels && Object.keys(countryLevels).length > 0;
-  const hasParticipants = countryParticipants && Object.keys(countryParticipants).length > 0;
+  const { participants: mapParticipants, levels: mapLevels } = buildMapDistributionData(
+    countryParticipants,
+    countryLevels,
+  );
+
+  const hasLevels = Object.keys(mapLevels).length > 0;
+  const hasParticipants = Object.keys(mapParticipants).length > 0;
   if (!hasLevels && !hasParticipants) return null;
 
-  const levels = countryLevels ?? {};
-  const participants = countryParticipants ?? {};
+  const levels = mapLevels;
+  const participants = mapParticipants;
   const legendCopy = legend ?? DEFAULT_LEGEND;
   const headerEyebrow = eyebrow;
   const headerTitle = title;
@@ -77,7 +86,7 @@ export default function ParticipantDistribution({
     : '';
 
   const { topEntries, totalParticipants, representedCountries } =
-    getParticipantDistributionSummary(participants);
+    getParticipantDistributionSummary(countryParticipants);
 
   return (
     <section className={componentsTheme.participantDistribution.sectionWrapper}>
@@ -176,7 +185,7 @@ export default function ParticipantDistribution({
                     <p className="text-xs text-slate-500">No country data yet.</p>
                   ) : null}
                 </div>
-                {topEntries.length > 0 ? (
+                {showDetailsButton && topEntries.length > 0 ? (
                   <Button
                     href={PARTICIPANT_DISTRIBUTION_DETAILS_HREF}
                     variant="outline"

@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import ParticipantDistribution from '@/components/sections/ParticipantDistribution';
 import HeroSection from '@/components/ui/HeroSection';
 import { getHomePageData } from '@/lib/api/home';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
@@ -29,6 +30,11 @@ export default async function ParticipantDistributionPage() {
     section?.content.country_participants,
   );
   const topCountry = entries[0]?.name ?? 'No data yet';
+  const topFiveApplications = entries.slice(0, 5).reduce((sum, item) => sum + item.count, 0);
+  const topFiveShare = totalParticipants > 0 ? (topFiveApplications / totalParticipants) * 100 : 0;
+  const averageApplicationsPerCountry = representedCountries > 0
+    ? totalParticipants / representedCountries
+    : 0;
 
   return (
     <main className="relative">
@@ -43,9 +49,18 @@ export default async function ParticipantDistributionPage() {
         ]}
       />
 
+      <ParticipantDistribution
+        eyebrow={section?.content.eyebrow}
+        title={section?.content.title}
+        countryLevels={section?.content.country_levels}
+        countryParticipants={section?.content.country_participants}
+        legend={section?.content.legend}
+        showDetailsButton={false}
+      />
+
       <section className="relative w-full bg-[#ffffff72] py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Total applications</p>
               <p className="mt-1 text-2xl font-extrabold text-slate-900">{totalParticipants.toLocaleString()}</p>
@@ -57,6 +72,13 @@ export default async function ParticipantDistributionPage() {
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Top country</p>
               <p className="mt-1 text-lg font-bold text-slate-900">{topCountry}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Top 5 share</p>
+              <p className="mt-1 text-2xl font-extrabold text-slate-900">{topFiveShare.toFixed(1)}%</p>
+              <p className="mt-1 text-xs text-slate-600">
+                Avg {averageApplicationsPerCountry.toFixed(1)} applications per represented country
+              </p>
             </div>
           </div>
 
