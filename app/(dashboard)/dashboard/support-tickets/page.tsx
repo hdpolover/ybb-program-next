@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
+import EnglishTextInput from '@/components/ui/EnglishTextInput';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'normal' | 'high' | 'urgent';
@@ -1002,7 +1003,7 @@ export default function SupportTicketsPage() {
 
               <label className="block text-xs font-medium text-zinc-600">
                 Subject
-                <input
+                <EnglishTextInput
                   type="text"
                   value={subject}
                   onChange={(event) => setSubject(event.target.value)}

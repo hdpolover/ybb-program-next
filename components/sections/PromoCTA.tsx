@@ -1,6 +1,29 @@
 import { componentsTheme } from '@/lib/theme/components';
 import { normalizeLandingCtaHref } from '@/lib/landing/cta';
 
+function isAbsoluteHttpUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/** Background sources: absolute http(s) URLs or root-relative asset paths. */
+function toBackgroundUrl(value?: string): string | undefined {
+  const raw = value?.trim();
+  if (!raw) return undefined;
+  return isAbsoluteHttpUrl(raw) || raw.startsWith('/') ? raw : undefined;
+}
+
+/** Embed sources must be absolute http(s) URLs (an iframe can't load free text). */
+function toEmbedUrl(value?: string): string | undefined {
+  const raw = value?.trim();
+  if (!raw) return undefined;
+  return isAbsoluteHttpUrl(raw) ? raw : undefined;
+}
+
 export type PromoCTAProps = {
   eyebrow?: string;
   title?: string;
@@ -29,11 +52,12 @@ export default function PromoCTA({
   textColorScheme = 'dark',
 }: PromoCTAProps) {
   const resolvedPrimaryCtaHref = normalizeLandingCtaHref(primaryCtaHref);
-  const resolvedDesktopBackground = backgroundImageUrl?.trim() || undefined;
+  const resolvedDesktopBackground = toBackgroundUrl(backgroundImageUrl);
   const resolvedMobileBackground =
-    backgroundImageMobileUrl?.trim() ||
-    backgroundImageUrl?.trim() ||
-    undefined;
+    toBackgroundUrl(backgroundImageMobileUrl) || toBackgroundUrl(backgroundImageUrl);
+  // Guard against malformed data (e.g. a description pasted into video_url),
+  // which would otherwise be rendered as an iframe src and 404.
+  const resolvedVideoUrl = toEmbedUrl(videoUrl);
 
   const eyebrowCls = textColorScheme === 'light'
     ? 'text-white/80'
@@ -44,12 +68,12 @@ export default function PromoCTA({
   return (
     <section
       className={componentsTheme.promoCta.sectionWrapper}
-      style={resolvedDesktopBackground ? { backgroundImage: `url(${resolvedDesktopBackground})` } : undefined}
+      style={resolvedDesktopBackground ? { backgroundImage: `url("${resolvedDesktopBackground}")` } : undefined}
     >
       {resolvedMobileBackground && (
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
-          style={{ backgroundImage: `url(${resolvedMobileBackground})` }}
+          style={{ backgroundImage: `url("${resolvedMobileBackground}")` }}
           aria-hidden="true"
         />
       )}
@@ -81,12 +105,12 @@ export default function PromoCTA({
           </div>
         </div>
 
-        {videoUrl ? (
+        {resolvedVideoUrl ? (
           <div className={componentsTheme.promoCta.rightCol}>
             <div className={componentsTheme.promoCta.videoCard}>
               <div className={componentsTheme.promoCta.videoFrameWrapper}>
                 <iframe
-                  src={videoUrl}
+                  src={resolvedVideoUrl}
                   title={videoTitle || 'Program Video'}
                   className="absolute inset-0 h-full w-full border-0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

@@ -30,6 +30,8 @@ import type {
 } from "@/types/portal-submission";
 import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
+import EnglishTextInput from "@/components/ui/EnglishTextInput";
+import EnglishTextArea from "@/components/ui/EnglishTextArea";
 import { CountryField } from "@/components/dashboard/fields/CountryField";
 import { PhoneField } from "@/components/dashboard/fields/PhoneField";
 import { FieldHelpAssets } from "@/components/dashboard/sections/FieldHelpAssets";
@@ -37,6 +39,7 @@ import { FieldAssetDrawer } from "@/components/dashboard/sections/FieldAssetDraw
 import { FieldHelpText, plainTextFromRichText } from "@/components/dashboard/sections/FieldHelpText";
 import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
 import { formatSubmissionDateValue, isDateLikeField } from "@/lib/dashboard/dateDisplay";
+import { useAutoSave, loadFromLocalStorage, clearLocalStorage } from "@/hooks/useAutoSave";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -263,6 +266,32 @@ function getPairedPhoneField(section: PortalSubmissionSection, field: PortalSubm
   );
 }
 
+/**
+ * Derive the participant's country from any nationality/country selector in the
+ * submission so the phone field can default to it (instead of always Indonesia).
+ * Prefers an explicit "nationality" field, then current/origin country.
+ */
+function findNationalityCountryCode(
+  sections: PortalSubmissionSection[],
+  allSectionValues: Record<string, Record<string, string>>,
+): CountryCode | undefined {
+  let best: { priority: number; value: CountryCode } | null = null;
+  for (const sec of sections) {
+    for (const f of sec.fields) {
+      if (!isCountrySelectorField(f)) continue;
+      const raw = (allSectionValues[sec.id]?.[f.name] ?? "").trim().toUpperCase();
+      if (!/^[A-Z]{2}$/.test(raw) || !isSupportedCountry(raw as CountryCode)) continue;
+      const norm = normalizeFieldKey(f.name);
+      const priority =
+        norm === "nationality" || norm === "nationalitycode" ? 0 :
+        norm === "currentcountry" ? 1 :
+        norm === "origincountry" ? 2 : 3;
+      if (!best || priority < best.priority) best = { priority, value: raw as CountryCode };
+    }
+  }
+  return best?.value;
+}
+
 function normalizeDialCode(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return "";
@@ -453,6 +482,9 @@ export default function SubmissionEditSection() {
   const [canScrollStepperPrev, setCanScrollStepperPrev] = useState(false);
   const [canScrollStepperNext, setCanScrollStepperNext] = useState(false);
 
+  // Generate localStorage key unik buat tiap user & program
+  const localStorageKey = `submission_autosave_${me?.userId || "guest"}_${selectedProgramId || "default"}`;
+
   useEffect(() => {
     const syncSelectedProgram = () => {
       setSelectedProgramId(
@@ -513,18 +545,40 @@ export default function SubmissionEditSection() {
 
             return nextDetail.sections[0]?.id ?? null;
           });
+
+          // Coba load data dari localStorage dulu (buat restore unsaved data)
+          const defaultSavedData = {
+            sectionValues: {},
+            essayValues: {},
+          };
+          const savedData = loadFromLocalStorage<{
+            sectionValues: Record<string, Record<string, string>>;
+            essayValues: Record<string, string>;
+          }>(localStorageKey, defaultSavedData);
+
+          const serverSectionValues = Object.fromEntries(
+            nextDetail.sections.map(section => [
+              section.id,
+              Object.fromEntries(
+                section.fields.map(field => [field.name, normalizeInputValue(section.values[field.name])]),
+              ),
+            ]),
+          );
+          
+          const serverEssayValues = Object.fromEntries(
+            nextDetail.essays.map(essay => [essay.id, normalizeInputValue(essay.answer)])
+          );
+
+          // Merge data server dengan data localStorage (localStorage lebih prioritas)
           setSectionValues(
-            Object.fromEntries(
-              nextDetail.sections.map(section => [
-                section.id,
-                Object.fromEntries(
-                  section.fields.map(field => [field.name, normalizeInputValue(section.values[field.name])]),
-                ),
-              ]),
-            ),
+            savedData.sectionValues && Object.keys(savedData.sectionValues).length > 0
+              ? savedData.sectionValues
+              : serverSectionValues
           );
           setEssayValues(
-            Object.fromEntries(nextDetail.essays.map(essay => [essay.id, normalizeInputValue(essay.answer)])),
+            savedData.essayValues && Object.keys(savedData.essayValues).length > 0
+              ? savedData.essayValues
+              : serverEssayValues
           );
         }
       } catch (loadError) {
@@ -539,7 +593,11 @@ export default function SubmissionEditSection() {
     return () => {
       cancelled = true;
     };
-  }, [programSelectionReady, selectedProgramId]);
+  }, [programSelectionReady, selectedProgramId, localStorageKey]);
+
+  // Auto-save ke localStorage setiap data berubah (buat jaga kalau device mati)
+  const autoSaveData = { sectionValues, essayValues };
+  useAutoSave(localStorageKey, autoSaveData);
 
   const activeSection = useMemo(() => {
     if (activeSectionId === PREVIEW_STEP_ID) return null;
@@ -651,6 +709,9 @@ export default function SubmissionEditSection() {
 
       toast.success(`${activeSection.title} saved successfully.`);
 
+      // Hapus localStorage setelah save berhasil ke server
+      clearLocalStorage(localStorageKey);
+
       try {
         const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
           method: "GET",
@@ -713,6 +774,8 @@ export default function SubmissionEditSection() {
 
   const renderFieldInput = (section: PortalSubmissionSection, field: PortalSubmissionField) => {
     const value = sectionValues[section.id]?.[field.name] ?? "";
+    // Default phone country follows the participant's selected nationality (else ID).
+    const defaultPhoneCountry = findNationalityCountryCode(detail?.sections ?? [], sectionValues);
     const fieldType = field.type.toLowerCase();
     const isRadioField = fieldType === "radio";
     const treatAsSelect =
@@ -732,6 +795,7 @@ export default function SubmissionEditSection() {
         return (
           <PhoneField
             value={e164}
+            defaultCountry={defaultPhoneCountry}
             onChange={nextE164 => {
               const normalized = splitE164ToDialAndNumber(nextE164);
               updateFieldValue(section.id, pairedCountryField.name, normalized.countryCode);
@@ -744,7 +808,7 @@ export default function SubmissionEditSection() {
 
     if (field.type === "textarea") {
       return (
-        <textarea
+        <EnglishTextArea
           className={`${submissionTheme.essayTextarea} min-h-[140px]`}
           value={value}
           onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
@@ -808,12 +872,26 @@ export default function SubmissionEditSection() {
       return (
         <PhoneField
           value={value}
+          defaultCountry={defaultPhoneCountry}
           onChange={e164 => updateFieldValue(section.id, field.name, e164)}
         />
       );
     }
 
     const inputType = field.type === "date" || field.type === "url" ? field.type : "text";
+    if (inputType === "text") {
+      const isNameField = /name/i.test(field.name) || /name/i.test(field.label);
+      return (
+        <EnglishTextInput
+          type="text"
+          className={submissionTheme.editInputBase}
+          value={value}
+          onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
+          placeholder={field.placeholder || plainTextFromRichText(field.helpText) || ""}
+          restrictMode={isNameField ? "name" : "general"}
+        />
+      );
+    }
     return (
       <input
         type={inputType}
@@ -1259,7 +1337,7 @@ export default function SubmissionEditSection() {
                       <div key={essay.id} className="space-y-2">
                         <label className={submissionTheme.editFieldLabelWrapper}>
                           <span className={submissionTheme.editFieldLabelText}>{essay.question}</span>
-                          <textarea
+                          <EnglishTextArea
                             className={submissionTheme.essayTextarea}
                             value={essayValues[essay.id] || ""}
                             onChange={event =>

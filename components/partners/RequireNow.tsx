@@ -5,6 +5,8 @@ import { Building2, FileText, Mail, Phone, Tag, User } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { useSettings } from '@/components/providers/SettingsProvider';
+import EnglishTextInput from '@/components/ui/EnglishTextInput';
+import EnglishTextArea from '@/components/ui/EnglishTextArea';
 
 type RequireNowSectionProps = {
   slug?: string;
@@ -90,11 +92,12 @@ export default function RequireNowSection({ slug }: RequireNowSectionProps) {
               <span className={componentsTheme.partnersRequire.icon}>
                 <User className="h-4 w-4" />
               </span>
-              <input
+              <EnglishTextInput
                 id="fullName"
                 name="fullName"
                 type="text"
                 required
+                restrictMode="name"
                 className={componentsTheme.partnersRequire.inputWithIcon}
                 placeholder="Enter your full name"
               />
@@ -147,7 +150,7 @@ export default function RequireNowSection({ slug }: RequireNowSectionProps) {
               <span className={componentsTheme.partnersRequire.icon}>
                 <Building2 className="h-4 w-4" />
               </span>
-              <input
+              <EnglishTextInput
                 id="company"
                 name="company"
                 type="text"
@@ -181,7 +184,7 @@ export default function RequireNowSection({ slug }: RequireNowSectionProps) {
                   <option value="Self Funded Affiliate">Self Funded Affiliate</option>
                 </select>
               ) : (
-                <input
+                <EnglishTextInput
                   id="subject"
                   name="subject"
                   type="text"
@@ -201,7 +204,7 @@ export default function RequireNowSection({ slug }: RequireNowSectionProps) {
               <span className={componentsTheme.partnersRequire.icon}>
                 <FileText className="h-4 w-4" />
               </span>
-              <textarea
+              <EnglishTextArea
                 id="description"
                 name="description"
                 required

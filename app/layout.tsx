@@ -15,7 +15,9 @@ import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
 import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
+import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
 import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
+import { resolveActiveRegistrationDeadline } from '@/lib/registration/deadline';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -134,51 +136,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     brandAccent = normalizeHex(rawColor);
     gaId = settingsResult.value?.brand?.google_analytics_id || null;
 
-    // Ambil data registrasi deadline dari tipe program yang active
+    // Derive the registration deadline from the program's registration-fee
+    // windows: fully funded close first, then self funded once fully funded
+    // has passed. Falls back to the program-level field when tiers are absent.
     const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
     if (programSlug) {
       try {
         const program = await getProgramDetail(programSlug, host);
-        const programId = program?.id;
-
-        // Ambil dulu dari fully funded, klo gk ada fully funded ambil dari self funded ( jika tanggal nya sudah lewat )
-        if (programId) {
+        let tierDeadline: string | null = null;
+        if (program?.id) {
           try {
-            const pricingTiers = await getProgramPricingTiers(programId, host);
-            const fullyFundedTier = pricingTiers?.find(
-              (tier) => tier.name.toLowerCase().includes('fully funded') || tier.name.toLowerCase().includes('fully-funded')
-            );
-            const selfFundedTier = pricingTiers?.find(
-              (tier) => tier.name.toLowerCase().includes('self funded') || tier.name.toLowerCase().includes('self-funded')
-            );
-
-            const fullyFundedEndDate = fullyFundedTier?.validityPeriods?.[0]?.endDate;
-            const selfFundedEndDate = selfFundedTier?.validityPeriods?.[0]?.endDate;
-
-            // Cek klo fully funded masih buka
-            if (fullyFundedEndDate) {
-              const fullyFundedDate = new Date(fullyFundedEndDate);
-              const now = new Date();
-              if (fullyFundedDate > now) {
-                registrationCloseDate = fullyFundedEndDate;
-              } else if (selfFundedEndDate) {
-                // Klo udh tutup fully funded maka beralih ke self funded
-                registrationCloseDate = selfFundedEndDate;
-              } else {
-                registrationCloseDate = program?.registrationCloseDate || null;
-              }
-            } else if (selfFundedEndDate) {
-              registrationCloseDate = selfFundedEndDate;
-            } else {
-              registrationCloseDate = program?.registrationCloseDate || null;
-            }
-          } catch (pricingError) {
-            console.error('[Layout] Failed to fetch pricing tiers:', pricingError);
-            registrationCloseDate = program?.registrationCloseDate || null;
+            const pricingTiers = await getProgramPricingTiers(program.id, host);
+            tierDeadline = resolveActiveRegistrationDeadline(pricingTiers, new Date());
+          } catch (tierError) {
+            console.error('[Layout] Failed to fetch pricing tiers:', tierError);
           }
-        } else {
-          registrationCloseDate = program?.registrationCloseDate || null;
         }
+        registrationCloseDate = tierDeadline ?? program?.registrationCloseDate ?? null;
       } catch (error) {
         console.error('[Layout] Failed to fetch program detail:', error);
       }
@@ -254,6 +228,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           botId={chatBotId}
           primaryColor={accent || '#16a34a'}
         />
+        <WhatsAppFloatingButton />
       </body>
     </html>
   );
