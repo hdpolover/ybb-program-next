@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next';
 import { siteConfig } from '@/config/site';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
-import { normalizeBrandUrl } from '@/lib/server/envContext';
+import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 import type { AnnouncementListSection } from '@/types/announcements';
+import { headers } from 'next/headers';
 
 const STATIC_PATHS = [
   '/',
@@ -17,7 +18,12 @@ const STATIC_PATHS = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url).replace(/\/+$/, '');
+  const h = await headers();
+  const hostnameRaw = h.get('x-hostname') || h.get('host') || '';
+  const fallbackHost = normalizeBrandUrl(getEnvBrandDomain() || new URL(siteConfig.url).host);
+  const host = normalizeBrandUrl(hostnameRaw) || fallbackHost;
+  const protocol = h.get('x-forwarded-proto') || (process.env.NODE_ENV === 'development' ? 'http' : 'https');
+  const siteUrl = `${protocol}://${host}`.replace(/\/+$/, '');
   const now = new Date();
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
@@ -28,7 +34,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const host = normalizeBrandUrl(new URL(siteUrl).host);
     const pageData = await getAnnouncementsPageData(host);
     const listSection = pageData.sections.find(
       (section): section is AnnouncementListSection => section.type === 'announcement_list',
