@@ -18,10 +18,6 @@ requireProdEnv(
   'APP_BUILD_ID is required for production builds. Set it in the deployment environment before running next build.',
 );
 requireProdEnv(
-  'NEXT_PUBLIC_API_URL',
-  'NEXT_PUBLIC_API_URL is required for production builds to prevent accidental staging fallback.',
-);
-requireProdEnv(
   'API_INTERNAL_URL',
   'API_INTERNAL_URL is required for production builds to keep server-side calls on the intended backend.',
 );

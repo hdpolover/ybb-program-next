@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
 type SupportedType = 'terms' | 'privacy';
@@ -19,10 +20,7 @@ type LegalDocument = {
 };
 
 function getApiBaseUrl(): string {
-  return (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(
-    /\/v1\/?$/,
-    '',
-  );
+  return getServerApiBaseUrl();
 }
 
 function extractData<T>(payload: unknown): T {

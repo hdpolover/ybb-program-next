@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 export async function GET(
   request: NextRequest,
@@ -19,11 +20,7 @@ export async function GET(
 
     const { id } = await params;
     const brandDomain = resolveBrandDomainFromRequest(request);
-    const apiBase = (
-      process.env.API_INTERNAL_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      'https://staging-api.ybbhub.com'
-    ).replace(/\/v1\/?$/, '');
+    const apiBase = getServerApiBaseUrl();
 
     const apiUrl = new URL(`/v1/portal/payments/${id}/receipt`, apiBase);
     const res = await fetch(apiUrl.toString(), {
