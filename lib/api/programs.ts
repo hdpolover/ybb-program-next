@@ -20,6 +20,63 @@ export async function getProgramsPageData(host: string): Promise<ProgramsPageDat
   });
 }
 
+export type ProgramListItem = {
+  id: string;
+  brandId: string;
+  brandName?: string | null;
+  name: string;
+  slug: string;
+  description: string | null;
+  shortDescription?: string | null;
+  year: number;
+  theme?: string | null;
+  startDate: string;
+  endDate: string;
+  applicationDeadline: string;
+  location: string | null;
+  capacity: number | null;
+  registrationOpenDate?: string | null;
+  registrationCloseDate?: string | null;
+  registrationFee?: number | null;
+  allowRegistration: boolean;
+  requireEmailVerification: boolean;
+  usdInIdr?: number | null;
+  isPublished: boolean;
+  isActive: boolean;
+  status: string;
+  logoUrl?: string | null;
+  bannerUrl?: string | null;
+  thumbnailUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ProgramListResponse = {
+  data: ProgramListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export async function getPreviousProgramsArchive(host: string): Promise<ProgramListItem[]> {
+  const brandUrl = resolveBrand(host);
+  const response = await apiGetWithEnvelope<ProgramListResponse>('/v1/programs', {
+    query: {
+      url: brandUrl,
+      status: 'completed',
+      isPublished: true,
+      limit: 100,
+      page: 1,
+    },
+    headers: {
+      'x-brand-domain': brandUrl,
+    },
+  });
+
+  return response.data;
+}
+
 export type ProgramDetail = {
   id: string;
   name: string;

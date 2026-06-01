@@ -63,9 +63,23 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
 
   if (!program) notFound();
 
-  const isOpen = program.allowRegistration;
-  const ctaLabel = isOpen ? 'Register Now' : 'Registration Closed';
-  const ctaHref = isOpen ? '/apply' : undefined;
+  const endDate = parseValidDate(program.endDate ?? program.startDate);
+  const hasEnded = endDate ? endDate.getTime() < Date.now() : false;
+  const isArchiveProgram = program.status === 'completed' || hasEnded;
+  const isOpen = !isArchiveProgram && program.allowRegistration;
+  const heroEyebrow = isArchiveProgram ? 'Program Archive' : 'Featured Program';
+  const heroCtaLabel = isOpen
+    ? 'Register Now'
+    : isArchiveProgram
+      ? 'View Previous Programs'
+      : 'Registration Closed';
+  const heroCtaHref = isOpen ? '/apply' : isArchiveProgram ? '/programs/previous' : undefined;
+  const applicationTitle = isArchiveProgram ? `Explore ${program.name}` : `Join ${program.name}`;
+  const applicationSubtitle = isArchiveProgram
+    ? 'Browse the highlights, schedule, speakers, and resources from this completed edition.'
+    : 'Secure your spot and be part of an inspiring cohort of young leaders.';
+  const applicationFallbackLabel = isArchiveProgram ? 'Back to Previous Programs' : 'Registration Closed';
+  const applicationFallbackHref = isArchiveProgram ? '/programs/previous' : undefined;
 
   const heroBg = program.bannerUrl ?? '/img/bgprogramoverview.png';
   const programTitle = program.name;
@@ -131,17 +145,17 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
         style={{ backgroundImage: `url('${heroBg}')` }}
       >
         <div className={componentsTheme.programDetail.heroInner}>
-          <p className={componentsTheme.programDetail.heroYearText}>Featured Program</p>
+          <p className={componentsTheme.programDetail.heroYearText}>{heroEyebrow}</p>
           <h1 className={componentsTheme.programDetail.heroTitle}>{programTitle}</h1>
           <p className={componentsTheme.programDetail.heroTagline}>{programTagline}</p>
 
           <div className={componentsTheme.programDetail.heroCtaWrapper}>
-            {ctaHref ? (
-              <a href={ctaHref} className={componentsTheme.programDetail.heroCta}>
-                {ctaLabel}
+            {heroCtaHref ? (
+              <a href={heroCtaHref} className={componentsTheme.programDetail.heroCta}>
+                {heroCtaLabel}
               </a>
             ) : (
-              <span className={componentsTheme.programDetail.heroCtaClosed}>{ctaLabel}</span>
+              <span className={componentsTheme.programDetail.heroCtaClosed}>{heroCtaLabel}</span>
             )}
           </div>
         </div>
@@ -229,20 +243,22 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                 />
               </div>
               <div className={componentsTheme.programDetail.applicationBody}>
-                <h3 className={componentsTheme.programDetail.applicationTitle}>
-                  Join {programTitle}
-                </h3>
+                <h3 className={componentsTheme.programDetail.applicationTitle}>{applicationTitle}</h3>
                 <p className={componentsTheme.programDetail.applicationSubtitle}>
-                  Secure your spot and be part of an inspiring cohort of young leaders.
+                  {applicationSubtitle}
                 </p>
                 <div className={componentsTheme.programDetail.applicationCtaWrapper}>
-                  {ctaHref ? (
-                    <a href={ctaHref} className={componentsTheme.programDetail.applicationPrimaryCta}>
-                      {ctaLabel}
+                  {heroCtaHref ? (
+                    <a href={heroCtaHref} className={componentsTheme.programDetail.applicationPrimaryCta}>
+                      {heroCtaLabel}
+                    </a>
+                  ) : applicationFallbackHref ? (
+                    <a href={applicationFallbackHref} className={componentsTheme.programDetail.applicationPrimaryCta}>
+                      {applicationFallbackLabel}
                     </a>
                   ) : (
                     <span className={componentsTheme.programDetail.applicationSecondaryCta}>
-                      {ctaLabel}
+                      {applicationFallbackLabel}
                     </span>
                   )}
                 </div>
@@ -279,7 +295,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
         </section>
       )}
 
-      <RegistrationTutorial />
+      {!isArchiveProgram && <RegistrationTutorial />}
 
       {speakers.length > 0 && <FeaturedSpeakers speakers={speakers} />}
 
