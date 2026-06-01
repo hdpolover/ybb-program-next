@@ -4,7 +4,63 @@ import { getAnnouncementsPageData } from '@/lib/api/announcements';
 import { resolveAnnouncementHref } from '@/lib/announcements';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { headers } from 'next/headers';
+import type { Metadata } from 'next';
+import { resolveBrandDomain } from '@/lib/server/envContext';
 import type { AnnouncementListSection, AnnouncementsHeroSection } from '@/types/announcements';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const host = await resolveBrandDomain();
+  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+  const baseUrl = `${protocol}://${host}`;
+
+  try {
+    const announcementsPage = await getAnnouncementsPageData(host);
+    const heroSection = announcementsPage.sections.find(
+      (section): section is AnnouncementsHeroSection => section.type === 'hero',
+    );
+    const title = announcementsPage.title?.trim() || 'Announcements';
+    const description =
+      heroSection?.content.subheadline?.trim() ||
+      'Stay informed about the latest Youth Break the Boundaries announcements.';
+
+    return {
+      metadataBase: new URL(baseUrl),
+      title,
+      description,
+      alternates: {
+        canonical: '/announcements',
+      },
+      openGraph: {
+        title,
+        description,
+        type: 'website',
+        url: '/announcements',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+    };
+  } catch {
+    return {
+      metadataBase: new URL(baseUrl),
+      title: 'Announcements',
+      description: 'Latest announcements from Youth Break the Boundaries.',
+      alternates: {
+        canonical: '/announcements',
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+    };
+  }
+}
 
 export default async function AnnouncementsPage() {
   const host = (await headers()).get('host') || '';

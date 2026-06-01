@@ -1,53 +1,57 @@
-"use client";
+'use client';
 
-import { MessageCircle } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useSettings } from "@/components/providers/SettingsProvider";
+import { MessageCircle } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { useSettings } from '@/components/providers/SettingsProvider';
 
-const WHATSAPP_NUMBER = "6285173386622";
+function normalizeWhatsappNumber(value: string | null | undefined): string | null {
+  const digits = value?.replace(/\D/g, '') ?? '';
+  return digits ? digits : null;
+}
 
 export default function WhatsAppFloatingButton() {
   const pathname = usePathname();
   const { settings } = useSettings();
 
   // Hapus icon wa dari pages / routes ini
-  const excludedRoutes = ["/dashboard", "/onboarding", "/login", "/register"];
+  const excludedRoutes = ['/dashboard', '/onboarding', '/login', '/register'];
   const shouldHide = excludedRoutes.some(route => pathname?.startsWith(route));
+  const whatsappNumber = normalizeWhatsappNumber(settings?.brand?.contact_whatsapp);
 
-  if (shouldHide) return null;
+  if (shouldHide || !whatsappNumber) return null;
 
   // Ambil nama program dari beberapa source
-  let programName = "this program";
-  
+  let programName = 'this program';
+
   // Coba ambil dari setting dulu
   if (settings?.active_program?.name) {
     programName = settings.active_program.name;
-  } 
+  }
   // Fallback nya ke body data attribut
-  else if (typeof document !== "undefined") {
-    const bodyProgram = document.body.getAttribute("data-program");
+  else if (typeof document !== 'undefined') {
+    const bodyProgram = document.body.getAttribute('data-program');
     if (bodyProgram) {
       // Map common slugs to names
       const slugToName: Record<string, string> = {
-        "jys": "Japan Youth Summit",
-        "cys": "China Youth Summit",
-        "iys": "Indonesia Youth Summit",
-        "ybb": "Youth Break the Boundaries",
+        jys: 'Japan Youth Summit',
+        cys: 'China Youth Summit',
+        iys: 'Indonesia Youth Summit',
+        ybb: 'Youth Break the Boundaries',
       };
-      
+
       if (slugToName[bodyProgram]) {
         programName = slugToName[bodyProgram];
       } else {
         // Convert teks strip jadi teks normal ( "china-youth-summit-2026" -> "China Youth Summit 2026")
         programName = bodyProgram
-          .split("-")
+          .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(" ");
+          .join(' ');
       }
     }
     // Fallback ke judul dokumen ( document title )
     else {
-      const titleParts = document.title.split("|");
+      const titleParts = document.title.split('|');
       if (titleParts.length > 0) {
         programName = titleParts[0].trim();
       }
@@ -60,7 +64,7 @@ export default function WhatsAppFloatingButton() {
 Please let me know the next steps for registration. Thank you!`
   );
 
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
 
   return (
     <a

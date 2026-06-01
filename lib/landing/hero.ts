@@ -1,5 +1,5 @@
 import { getHomePageData } from '@/lib/api/home';
-import type { ProgramGallerySection } from '@/types/home';
+import type { HomePageData, ProgramGallerySection } from '@/types/home';
 
 export type LandingHeroMedia = {
   bgImage?: string;
@@ -65,9 +65,10 @@ export async function getLandingHeroMedia(
     preferredImages?: Array<string | null | undefined>;
     gallerySize?: number;
     minimumGalleryImages?: number;
+    homeData?: HomePageData | null;
   },
 ): Promise<LandingHeroMedia> {
-  const homeData = await getHomePageData(host).catch(() => null);
+  const homeData = options?.homeData ?? await getHomePageData(host).catch(() => null);
   const galleryImages = extractHomeGalleryImages(homeData);
 
   const imagePool = collectUniqueUrls([

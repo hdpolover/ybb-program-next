@@ -118,12 +118,94 @@ function isLegacyEssayField(field: PortalSubmissionField) {
   return Boolean(hasWordLimitRule || looksLikeEssayPrompt);
 }
 
+type PhonePairKind =
+  | 'primary_country'
+  | 'primary_number'
+  | 'emergency_country'
+  | 'emergency_number';
+
+function getPhonePairKind(field: PortalSubmissionField): PhonePairKind | null {
+  const normalized = normalizeFieldKey(field.name);
+  const inputType = getFieldInputType(field);
+
+  if (inputType === 'phone_country_code') {
+    return normalized.includes('emergency') ? 'emergency_country' : 'primary_country';
+  }
+
+  if (inputType === 'phone_number') {
+    return normalized.includes('emergency') ? 'emergency_number' : 'primary_number';
+  }
+
+  if (normalized === 'phonecountrycode') return 'primary_country';
+  if (normalized === 'phonenumber') return 'primary_number';
+  if (normalized === 'emergencycountrycode' || normalized === 'emergencycontactcountrycode') {
+    return 'emergency_country';
+  }
+  if (
+    normalized === 'emergencyphonenumber' ||
+    normalized === 'emergencycontactphone' ||
+    normalized === 'emergencycontactphonenumber'
+  ) {
+    return 'emergency_number';
+  }
+
+  return null;
+}
+
+function getPairedPhoneField(section: PortalSubmissionSection, field: PortalSubmissionField) {
+  const kind = getPhonePairKind(field);
+  if (!kind) return null;
+
+  const targetKind: PhonePairKind =
+    kind === 'primary_country'
+      ? 'primary_number'
+      : kind === 'primary_number'
+        ? 'primary_country'
+        : kind === 'emergency_country'
+          ? 'emergency_number'
+          : 'emergency_country';
+
+  return (
+    section.fields.find(candidate => candidate.id !== field.id && getPhonePairKind(candidate) === targetKind) ||
+    null
+  );
+}
+
+function normalizeDialCode(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  const digits = trimmed.replace(/\D+/g, '');
+  if (digits.length > 0) return `+${digits}`;
+
+  return '';
+}
+
+function buildE164FromDialAndNumber(countryCode: string, phoneNumber: string) {
+  const rawNumber = phoneNumber.trim();
+  if (!rawNumber) return '';
+  if (rawNumber.startsWith('+')) return rawNumber;
+
+  const digits = rawNumber.replace(/\D+/g, '');
+  if (!digits) return '';
+
+  const dialCode = normalizeDialCode(countryCode);
+  if (!dialCode) return `+${digits}`;
+
+  const normalizedNumber = digits.startsWith('0') ? digits.slice(1) : digits;
+  return `${dialCode}${normalizedNumber}`;
+}
+
 function shouldRenderReadOnlyField(
   section: PortalSubmissionSection,
   field: PortalSubmissionField
 ) {
   if (isProfilePhotoField(field)) return false;
   if (isViewOnlyMetaField(field)) return false;
+  const phonePairKind = getPhonePairKind(field);
+  if (phonePairKind === 'primary_country' || phonePairKind === 'emergency_country') {
+    return getPairedPhoneField(section, field) === null;
+  }
   if (section.id === 'entry_information' && isLegacyEssayField(field)) {
     return false;
   }
@@ -428,10 +510,12 @@ function ProgressDrawer({
 }
 
 function FieldRow({
+  section,
   field,
   value,
   className,
 }: {
+  section: PortalSubmissionSection;
   field: PortalSubmissionField;
   value: unknown;
   className?: string;
@@ -441,7 +525,20 @@ function FieldRow({
   const isLong = isLongFormField(field) || rendered.length > 120;
   const stringValue = value === null || value === undefined ? '' : String(value);
   const isCountry = isCountrySelectorField(field);
-  const isPhone = field.type === 'phone';
+  const phonePairKind = getPhonePairKind(field);
+  const phonePair = getPairedPhoneField(section, field);
+  const isPhone =
+    field.type === 'phone' ||
+    phonePairKind === 'primary_number' ||
+    phonePairKind === 'emergency_number';
+
+  const phoneDisplayValue =
+    isPhone && phonePairKind && (phonePairKind === 'primary_number' || phonePairKind === 'emergency_number')
+      ? buildE164FromDialAndNumber(
+          String(section.values[phonePair?.name ?? ''] ?? ''),
+          stringValue,
+        ) || stringValue
+      : stringValue;
 
   const assetLabel = field.mediaAlt?.trim() || `${field.label} reference`;
 
@@ -454,7 +551,7 @@ function FieldRow({
         </div>
       ) : isPhone ? (
         <div className={submissionTheme.readFieldValue}>
-          <PhoneDisplay value={stringValue} />
+          <PhoneDisplay value={phoneDisplayValue} />
         </div>
       ) : isLong ? (
         <div className={submissionTheme.readFieldValueMultiline}>{rendered}</div>
@@ -691,6 +788,7 @@ export default function SubmissionReadSection() {
                     .map(field => (
                       <FieldRow
                         key={field.id}
+                        section={activeSection}
                         field={field}
                         value={activeSection.values[field.name]}
                         className={shouldSpanFullWidth(field) ? 'md:col-span-2' : undefined}
