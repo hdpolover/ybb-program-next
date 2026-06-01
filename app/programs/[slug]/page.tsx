@@ -10,6 +10,14 @@ import { componentsTheme } from '@/lib/theme/components';
 import { getProgramDetail } from '@/lib/api/programs';
 import { isRichTextHtml, richTextToPlainText, sanitizeRichTextHtml } from '@/lib/content/richText';
 import { formatTokenLabel, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
+import {
+  formatScheduleDate,
+  formatScheduleDuration,
+  formatScheduleTimeRange,
+  parseScheduleDate,
+  SCHEDULE_DATE_META_OPTIONS,
+} from '@/lib/format/datetime';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 import { headers } from 'next/headers';
 
 function parseValidDate(value: unknown): Date | null {
@@ -148,26 +156,33 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
     href: undefined as string | undefined,
   }));
 
-  // Group schedules by day label for ProgramRundowns
+  // Group schedules by day for ProgramRundowns, then sort the tabs chronologically.
   const schedulesByDay = new Map<string, typeof program.schedules>();
   for (const item of (program.schedules ?? [])) {
     const list = schedulesByDay.get(item.day) ?? [];
     list.push(item);
     schedulesByDay.set(item.day, list);
   }
-  const rundownDays = Array.from(schedulesByDay.entries()).map(([label, items]) => ({
-    label,
-    items: items
-      .sort((a, b) => a.order - b.order)
-      .map(s => ({
-        dateLabel: label,
-        activitiesCount: 1,
-        timeRange: s.startTime && s.endTime ? `${s.startTime} - ${s.endTime}` : 'All Day',
-        duration: '',
-        title: s.activity,
-        description: s.description ?? '',
-      })),
-  }));
+  const rundownDays = Array.from(schedulesByDay.entries())
+    .map(([rawDay, items]) => {
+      const parsed = parseScheduleDate(rawDay);
+      return {
+        sortTime: parsed ? parsed.getTime() : Number.MAX_SAFE_INTEGER,
+        label: formatScheduleDate(rawDay, SCHEDULE_DATE_META_OPTIONS, rawDay),
+        items: items
+          .sort((a, b) => a.order - b.order)
+          .map(s => ({
+            dateLabel: formatScheduleDate(s.day, SCHEDULE_DATE_META_OPTIONS, s.day),
+            activitiesCount: 1,
+            timeRange: formatScheduleTimeRange(s.startTime, s.endTime),
+            duration: formatScheduleDuration(s.startTime, s.endTime) ?? '',
+            title: s.activity?.trim() || DATA_NOT_ADDED,
+            description: s.description?.trim() ?? '',
+          })),
+      };
+    })
+    .sort((a, b) => a.sortTime - b.sortTime)
+    .map(({ label, items }) => ({ label, items }));
 
   // Map API faqs → ProgramFAQ groupsOverride format
   const faqGroups = (() => {
