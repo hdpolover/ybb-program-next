@@ -145,6 +145,7 @@ export type PreviousProgramItem = {
   thumbnail: string | null;
   year: number | null;
   location: string | null;
+  summary?: string | null;
 };
 
 export type PreviousProgramsSection = {
