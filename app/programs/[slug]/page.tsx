@@ -1,13 +1,14 @@
 import { CalendarDays, MapPin, Clock, Info, Check, ClipboardCheck, FileText, ChevronDown } from 'lucide-react';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import RegistrationTutorial from '@/components/sections/RegistrationTutorial';
 import FeaturedSpeakers from '@/components/programs/FeaturedSpeakers';
 import ProgramRundowns from '@/components/programs/ProgramRundowns';
 import ProgramFAQ from '@/components/programs/ProgramFAQ';
+import ProgramDetailImage from '@/components/programs/ProgramDetailImage';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { getProgramDetail } from '@/lib/api/programs';
+import { isRichTextHtml, richTextToPlainText, sanitizeRichTextHtml } from '@/lib/content/richText';
 import { formatTokenLabel, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
 import { headers } from 'next/headers';
 
@@ -48,6 +49,15 @@ function calcDuration(start: string | null, end: string | null): string {
   return `${days} Days`;
 }
 
+function firstNonEmpty(...values: Array<string | null | undefined>): string | null {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
 function parseBullets(text: string | null): string[] {
   if (!text) return [];
   return text
@@ -67,6 +77,8 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   const hasEnded = endDate ? endDate.getTime() < Date.now() : false;
   const isArchiveProgram = program.status === 'completed' || hasEnded;
   const isOpen = !isArchiveProgram && program.allowRegistration;
+  const resolvedProgramTitle =
+    firstNonEmpty(program.name, [program.brand?.name, program.year].filter(Boolean).join(' ')) ?? 'Program Archive';
   const heroEyebrow = isArchiveProgram ? 'Program Archive' : 'Featured Program';
   const heroCtaLabel = isOpen
     ? 'Register Now'
@@ -74,24 +86,58 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
       ? 'View Previous Programs'
       : 'Registration Closed';
   const heroCtaHref = isOpen ? '/apply' : isArchiveProgram ? '/programs/previous' : undefined;
-  const applicationTitle = isArchiveProgram ? `Explore ${program.name}` : `Join ${program.name}`;
+  const applicationTitle = isArchiveProgram ? `Explore ${resolvedProgramTitle}` : `Join ${resolvedProgramTitle}`;
   const applicationSubtitle = isArchiveProgram
     ? 'Browse the highlights, schedule, speakers, and resources from this completed edition.'
     : 'Secure your spot and be part of an inspiring cohort of young leaders.';
   const applicationFallbackLabel = isArchiveProgram ? 'Back to Previous Programs' : 'Registration Closed';
   const applicationFallbackHref = isArchiveProgram ? '/programs/previous' : undefined;
 
-  const heroBg = program.bannerUrl ?? '/img/bgprogramoverview.png';
-  const programTitle = program.name;
-  const programTagline = program.shortDescription ?? '';
-  const dateRange = formatDateRange(program.startDate, program.endDate);
-  const duration = calcDuration(program.startDate, program.endDate);
-  const location = program.location ?? 'TBA';
+  const programTitle = resolvedProgramTitle;
+  const heroBg = firstNonEmpty(program.bannerUrl, program.thumbnailUrl, '/img/bgprogramoverview.png')!;
+  const cardImage = firstNonEmpty(program.thumbnailUrl, program.bannerUrl, '/img/programoverview.png')!;
+  const shortDescriptionText = richTextToPlainText(program.shortDescription);
+  const programTagline =
+    shortDescriptionText ||
+    (isArchiveProgram
+      ? 'Explore this completed edition and browse the highlights that were preserved.'
+      : 'Discover the program overview, schedule, and key information for this edition.');
+  const formattedDateRange = formatDateRange(program.startDate, program.endDate);
+  const dateRange = formattedDateRange === 'TBA'
+    ? isArchiveProgram
+      ? 'Archive dates unavailable'
+      : 'Dates to be announced'
+    : formattedDateRange;
+  const formattedDuration = calcDuration(program.startDate, program.endDate);
+  const duration = formattedDuration === 'TBA'
+    ? isArchiveProgram
+      ? 'Duration unavailable'
+      : 'To be announced'
+    : formattedDuration;
+  const location =
+    firstNonEmpty(program.location) ??
+    (isArchiveProgram ? 'Archive location unavailable' : 'Location to be announced');
 
-  const overviewBullets = parseBullets(program.benefitsDescription);
-  const overviewIntro = program.description ?? '';
-  const requirementBullets = parseBullets(program.requirementsDescription);
-  const termsText = program.termsAndConditions?.trim() ?? '';
+  const overviewHtml = isRichTextHtml(program.description) ? sanitizeRichTextHtml(program.description) : '';
+  const overviewIntro = overviewHtml
+    ? ''
+    : richTextToPlainText(program.description) ||
+      (isArchiveProgram
+        ? 'This archived edition does not have a full write-up yet, but you can still explore the preserved schedule, speakers, and other published details below.'
+        : 'A full program overview will appear here once the latest content is published.');
+  const overviewRichListHtml = isRichTextHtml(program.benefitsDescription)
+    ? sanitizeRichTextHtml(program.benefitsDescription)
+    : '';
+  const overviewBullets = overviewRichListHtml ? [] : parseBullets(program.benefitsDescription);
+  const requirementsHtml = isRichTextHtml(program.requirementsDescription)
+    ? sanitizeRichTextHtml(program.requirementsDescription)
+    : '';
+  const requirementBullets = requirementsHtml ? [] : parseBullets(program.requirementsDescription);
+  const plainTermsText = richTextToPlainText(program.termsAndConditions);
+  const termsHtml = isRichTextHtml(program.termsAndConditions)
+    ? sanitizeRichTextHtml(program.termsAndConditions)
+    : '';
+  const termsText = termsHtml ? '' : plainTermsText;
 
   // Map API speakers → FeaturedSpeakers format
   const speakers = (program.speakers ?? []).map(s => ({
@@ -142,7 +188,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
     <main className={componentsTheme.programDetail.mainWrapper}>
       <section
         className={componentsTheme.programDetail.heroSection}
-        style={{ backgroundImage: `url('${heroBg}')` }}
+        style={{ backgroundImage: `url('${heroBg}'), url('/img/bgprogramoverview.png')` }}
       >
         <div className={componentsTheme.programDetail.heroInner}>
           <p className={componentsTheme.programDetail.heroYearText}>{heroEyebrow}</p>
@@ -213,7 +259,14 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                   <Info className={componentsTheme.programDetail.overviewIcon} />
                 </div>
                 <div className={componentsTheme.programDetail.overviewContent}>
-                  <p className={componentsTheme.programDetail.overviewText}>{overviewIntro}</p>
+                  {overviewHtml ? (
+                    <div
+                      className={componentsTheme.programDetail.overviewRichText}
+                      dangerouslySetInnerHTML={{ __html: overviewHtml }}
+                    />
+                  ) : (
+                    <p className={componentsTheme.programDetail.overviewText}>{overviewIntro}</p>
+                  )}
                   {overviewBullets.length > 0 && (
                     <ul className={componentsTheme.programDetail.overviewList}>
                       {overviewBullets.map(bullet => (
@@ -226,6 +279,12 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                       ))}
                     </ul>
                   )}
+                  {!overviewBullets.length && overviewRichListHtml && (
+                    <div
+                      className={componentsTheme.programDetail.overviewRichText}
+                      dangerouslySetInnerHTML={{ __html: overviewRichListHtml }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -233,13 +292,12 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
             {/* application CTA card */}
             <div className={componentsTheme.programDetail.applicationCard}>
               <div className={componentsTheme.programDetail.applicationImageWrapper}>
-                <Image
-                  src={program.thumbnailUrl ?? '/img/program-brochure.png'}
-                  alt={programTitle}
-                  fill
+                <ProgramDetailImage
+                  src={program.thumbnailUrl ?? program.bannerUrl}
+                  fallbackSrc={cardImage}
+                  alt={`${programTitle} cover image`}
                   sizes="(min-width:1024px) 50vw, 100vw"
                   className={componentsTheme.programDetail.applicationImage}
-                  priority={false}
                 />
               </div>
               <div className={componentsTheme.programDetail.applicationBody}>
@@ -268,7 +326,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
         </div>
       </section>
 
-      {requirementBullets.length > 0 && (
+      {(requirementBullets.length > 0 || Boolean(requirementsHtml)) && (
         <section className={componentsTheme.programDetail.requirementsSection}>
           <div className={componentsTheme.programDetail.requirementsContainer}>
             <SectionHeader eyebrow="Requirements" title="Who Can Apply" />
@@ -278,16 +336,23 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                   <ClipboardCheck className={componentsTheme.programDetail.overviewIcon} />
                 </div>
                 <div className={componentsTheme.programDetail.overviewContent}>
-                  <ul className={componentsTheme.programDetail.overviewList}>
-                    {requirementBullets.map(bullet => (
-                      <li key={bullet} className={componentsTheme.programDetail.overviewListItem}>
-                        <span className={componentsTheme.programDetail.overviewBulletIconAlt}>
-                          <Check className={componentsTheme.programDetail.overviewCheckIcon} />
-                        </span>
-                        <span className={componentsTheme.programDetail.overviewText}>{bullet}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {requirementsHtml ? (
+                    <div
+                      className={componentsTheme.programDetail.overviewRichText}
+                      dangerouslySetInnerHTML={{ __html: requirementsHtml }}
+                    />
+                  ) : (
+                    <ul className={componentsTheme.programDetail.overviewList}>
+                      {requirementBullets.map(bullet => (
+                        <li key={bullet} className={componentsTheme.programDetail.overviewListItem}>
+                          <span className={componentsTheme.programDetail.overviewBulletIconAlt}>
+                            <Check className={componentsTheme.programDetail.overviewCheckIcon} />
+                          </span>
+                          <span className={componentsTheme.programDetail.overviewText}>{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             </div>
@@ -303,7 +368,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
 
       {faqGroups.length > 0 && <ProgramFAQ groupsOverride={faqGroups} />}
 
-      {termsText && (
+      {(termsText || termsHtml) && (
         <section className={componentsTheme.programDetail.termsSection}>
           <div className={componentsTheme.programDetail.termsContainer}>
             <details className={componentsTheme.programDetail.termsDetails}>
@@ -313,7 +378,14 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                 <ChevronDown className={componentsTheme.programDetail.termsChevron} />
               </summary>
               <div className={componentsTheme.programDetail.termsBody}>
-                <p className={componentsTheme.programDetail.termsText}>{termsText}</p>
+                {termsHtml ? (
+                  <div
+                    className={componentsTheme.programDetail.termsRichText}
+                    dangerouslySetInnerHTML={{ __html: termsHtml }}
+                  />
+                ) : (
+                  <p className={componentsTheme.programDetail.termsText}>{termsText}</p>
+                )}
               </div>
             </details>
           </div>
