@@ -29,22 +29,28 @@ export class ApiRequestError extends Error {
 
 function getApiBaseUrl(): string {
   if (typeof window === 'undefined') {
-    const serverBaseUrl = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL;
+    const serverBaseUrl = process.env.API_INTERNAL_URL?.trim();
     if (!serverBaseUrl) {
-      throw new Error('API_INTERNAL_URL or NEXT_PUBLIC_API_URL must be configured for server-side API calls.');
+      throw new Error('API_INTERNAL_URL must be configured for server-side API calls.');
     }
-    return serverBaseUrl;
+
+    return serverBaseUrl.replace(/\/+$/, '');
   }
 
-  const publicBaseUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!publicBaseUrl) {
-    throw new Error('NEXT_PUBLIC_API_URL must be configured for client-side API calls.');
+  return window.location.origin;
+}
+
+function buildApiUrl(path: string): URL {
+  if (typeof window === 'undefined') {
+    return new URL(path, getApiBaseUrl());
   }
-  return publicBaseUrl;
+
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return new URL(`/api/proxy${normalizedPath}`, getApiBaseUrl());
 }
 
 export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Promise<T> {
-  const url = new URL(path, getApiBaseUrl());
+  const url = buildApiUrl(path);
 
   if (options.query) {
     Object.entries(options.query).forEach(([key, value]) => {
@@ -72,7 +78,7 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
 }
 
 export async function apiPost<T>(path: string, options: ApiPostOptions = {}): Promise<T> {
-  const url = new URL(path, getApiBaseUrl());
+  const url = buildApiUrl(path);
 
   if (options.query) {
     Object.entries(options.query).forEach(([key, value]) => {

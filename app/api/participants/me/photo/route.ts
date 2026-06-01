@@ -105,10 +105,7 @@ export async function POST(request: Request) {
     if (!fileUrl) {
       const fileId = (fileInfo.id ?? fileInfo.file_id) as string | undefined;
       if (fileId) {
-        const publicBase = (
-          process.env.NEXT_PUBLIC_API_URL || getServerApiBaseUrl()
-        ).replace(/\/v1\/?$/, '');
-        fileUrl = `${publicBase}/v1/files/${fileId}/download`;
+        fileUrl = `/api/proxy/files/${fileId}/download`;
       }
     }
 
