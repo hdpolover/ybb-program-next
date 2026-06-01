@@ -132,6 +132,7 @@ export default async function ProgramOverviewPage() {
         startDate={programDetail?.startDate || null}
         endDate={programDetail?.endDate || null}
         totalParticipants={totalParticipants}
+        showBadges={true}
       />
       <CurrentProgram
         overview={programOverviewSection?.content}

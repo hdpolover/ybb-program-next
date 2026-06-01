@@ -21,6 +21,7 @@ export default function HeroSection({
   startDate,
   endDate,
   totalParticipants,
+  showBadges = false,
 }: {
   title: string;
   subtitle?: string;
@@ -37,6 +38,7 @@ export default function HeroSection({
   startDate?: string | null;
   endDate?: string | null;
   totalParticipants?: string | null;
+  showBadges?: boolean;
 }) {
   const heroTheme = componentsTheme.heroSection;
   const containerHeight = heightClass ?? 'min-h-[360px] md:min-h-[420px]';
@@ -170,36 +172,38 @@ export default function HeroSection({
         className={`pointer-events-none absolute -right-40 top-24 ${decorMidRight} rounded-full bg-white/5 blur-2xl`}
       />
 
-      <div
-        className={`${componentsTheme.heroSectionBadges.wrapper} ${
-          hasBreadcrumb ? 'bottom-14 sm:bottom-16 md:bottom-20' : ''
-        }`}
-      >
-        <div className={componentsTheme.heroSectionBadges.row}>
-          <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.fullyFunded}`}>
-            <Award className={componentsTheme.heroSectionBadges.icon} />
-            <span className={componentsTheme.heroSectionBadges.text}>Fully Funded</span>
+      {showBadges && (
+        <div
+          className={`${componentsTheme.heroSectionBadges.wrapper} ${
+            hasBreadcrumb ? 'bottom-14 sm:bottom-16 md:bottom-20' : ''
+          }`}
+        >
+          <div className={componentsTheme.heroSectionBadges.row}>
+            <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.fullyFunded}`}>
+              <Award className={componentsTheme.heroSectionBadges.icon} />
+              <span className={componentsTheme.heroSectionBadges.text}>Fully Funded</span>
+            </div>
+          </div>
+          <div className={componentsTheme.heroSectionBadges.row}>
+            {eventDate && (
+              <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.eventDate}`}>
+                <Calendar className={componentsTheme.heroSectionBadges.icon} />
+                <span className={componentsTheme.heroSectionBadges.text}>
+                  {eventDate}
+                  {location && ` · ${location}`}
+                  {duration && ` · ${duration}`}
+                </span>
+              </div>
+            )}
+            {totalParticipants && (
+              <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.participants}`}>
+                <Users className={componentsTheme.heroSectionBadges.icon} />
+                <span className={componentsTheme.heroSectionBadges.text}>{totalParticipants}</span>
+              </div>
+            )}
           </div>
         </div>
-        <div className={componentsTheme.heroSectionBadges.row}>
-          {eventDate && (
-            <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.eventDate}`}>
-              <Calendar className={componentsTheme.heroSectionBadges.icon} />
-              <span className={componentsTheme.heroSectionBadges.text}>
-                {eventDate}
-                {location && ` · ${location}`}
-                {duration && ` · ${duration}`}
-              </span>
-            </div>
-          )}
-          {totalParticipants && (
-            <div className={`${componentsTheme.heroSectionBadges.badge} ${componentsTheme.heroSectionBadges.participants}`}>
-              <Users className={componentsTheme.heroSectionBadges.icon} />
-              <span className={componentsTheme.heroSectionBadges.text}>{totalParticipants}</span>
-            </div>
-          )}
-        </div>
-      </div>
+      )}
     </section>
   );
 }

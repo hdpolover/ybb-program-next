@@ -39,6 +39,7 @@ import { FieldAssetDrawer } from "@/components/dashboard/sections/FieldAssetDraw
 import { FieldHelpText, plainTextFromRichText } from "@/components/dashboard/sections/FieldHelpText";
 import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
 import { formatSubmissionDateValue, isDateLikeField } from "@/lib/dashboard/dateDisplay";
+import { useAutoSave, loadFromLocalStorage, clearLocalStorage } from "@/hooks/useAutoSave";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -481,6 +482,9 @@ export default function SubmissionEditSection() {
   const [canScrollStepperPrev, setCanScrollStepperPrev] = useState(false);
   const [canScrollStepperNext, setCanScrollStepperNext] = useState(false);
 
+  // Generate localStorage key unik buat tiap user & program
+  const localStorageKey = `submission_autosave_${me?.userId || "guest"}_${selectedProgramId || "default"}`;
+
   useEffect(() => {
     const syncSelectedProgram = () => {
       setSelectedProgramId(
@@ -541,18 +545,40 @@ export default function SubmissionEditSection() {
 
             return nextDetail.sections[0]?.id ?? null;
           });
+
+          // Coba load data dari localStorage dulu (buat restore unsaved data)
+          const defaultSavedData = {
+            sectionValues: {},
+            essayValues: {},
+          };
+          const savedData = loadFromLocalStorage<{
+            sectionValues: Record<string, Record<string, string>>;
+            essayValues: Record<string, string>;
+          }>(localStorageKey, defaultSavedData);
+
+          const serverSectionValues = Object.fromEntries(
+            nextDetail.sections.map(section => [
+              section.id,
+              Object.fromEntries(
+                section.fields.map(field => [field.name, normalizeInputValue(section.values[field.name])]),
+              ),
+            ]),
+          );
+          
+          const serverEssayValues = Object.fromEntries(
+            nextDetail.essays.map(essay => [essay.id, normalizeInputValue(essay.answer)])
+          );
+
+          // Merge data server dengan data localStorage (localStorage lebih prioritas)
           setSectionValues(
-            Object.fromEntries(
-              nextDetail.sections.map(section => [
-                section.id,
-                Object.fromEntries(
-                  section.fields.map(field => [field.name, normalizeInputValue(section.values[field.name])]),
-                ),
-              ]),
-            ),
+            savedData.sectionValues && Object.keys(savedData.sectionValues).length > 0
+              ? savedData.sectionValues
+              : serverSectionValues
           );
           setEssayValues(
-            Object.fromEntries(nextDetail.essays.map(essay => [essay.id, normalizeInputValue(essay.answer)])),
+            savedData.essayValues && Object.keys(savedData.essayValues).length > 0
+              ? savedData.essayValues
+              : serverEssayValues
           );
         }
       } catch (loadError) {
@@ -567,7 +593,11 @@ export default function SubmissionEditSection() {
     return () => {
       cancelled = true;
     };
-  }, [programSelectionReady, selectedProgramId]);
+  }, [programSelectionReady, selectedProgramId, localStorageKey]);
+
+  // Auto-save ke localStorage setiap data berubah (buat jaga kalau device mati)
+  const autoSaveData = { sectionValues, essayValues };
+  useAutoSave(localStorageKey, autoSaveData);
 
   const activeSection = useMemo(() => {
     if (activeSectionId === PREVIEW_STEP_ID) return null;
@@ -678,6 +708,9 @@ export default function SubmissionEditSection() {
       }
 
       toast.success(`${activeSection.title} saved successfully.`);
+
+      // Hapus localStorage setelah save berhasil ke server
+      clearLocalStorage(localStorageKey);
 
       try {
         const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {

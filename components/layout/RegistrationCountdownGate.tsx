@@ -10,8 +10,8 @@ type RegistrationCountdownGateProps = {
 export default function RegistrationCountdownGate({ registrationDeadline }: RegistrationCountdownGateProps) {
   const pathname = usePathname();
 
-  // Sembunyiin countdown klo di halaman yang mulai dari /dashboard
-  if (pathname?.startsWith('/dashboard')) {
+  // Sembunyiin countdown klo di halaman yang mulai dari /dashboard atau /onboarding
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/onboarding')) {
     return null;
   }
 

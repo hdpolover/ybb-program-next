@@ -15,6 +15,7 @@ import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
 import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
+import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
 import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
 import { resolveActiveRegistrationDeadline } from '@/lib/registration/deadline';
 
@@ -60,7 +61,6 @@ function relativeLuminance(hex: string): number {
 }
 
 function pickForeground(hex: string): string {
-  // Threshold tuned to keep readable text on bright accents
   return relativeLuminance(hex) > 0.6 ? '#020617' : '#ffffff';
 }
 
@@ -110,7 +110,7 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch (e) {
     console.error('Failed to fetch metadata', e);
-    // Fallback metadata
+    // Fallback
     return {
       metadataBase: new URL(baseUrl),
       title: 'Home | Youth Summit',
@@ -161,7 +161,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
   }
 
-  // Fallback to env variable or default if API returns null
+  // fallback ke default klo emg gk ada dua dua nya
   if (!brandAccent) {
     brandAccent = normalizeHex(process.env.NEXT_PUBLIC_DEFAULT_BRAND_COLOR) || '#1c57b3';
     console.log('[Layout] Using fallback theme:', brandAccent);
@@ -228,6 +228,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           botId={chatBotId}
           primaryColor={accent || '#16a34a'}
         />
+        <WhatsAppFloatingButton />
       </body>
     </html>
   );
