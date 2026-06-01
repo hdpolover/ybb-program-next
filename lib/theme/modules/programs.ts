@@ -251,7 +251,7 @@ export const programsTheme = {
     heroCtaClosed:
       'inline-flex items-center justify-center rounded-lg border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/80',
     // Info strip section
-    infoStripSection: 'relative w-full overflow-hidden bg-[#1c57b3] text-white',
+    infoStripSection: 'relative w-full overflow-hidden bg-primary text-white',
     infoStripBlurPrimary:
       'pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/15 blur-3xl',
     infoStripBlurSecondary:
@@ -259,13 +259,13 @@ export const programsTheme = {
     infoStripBlurTertiary:
       'pointer-events-none absolute -bottom-28 left-1/3 h-48 w-48 rotate-12 rounded-xl bg-white/10 blur-2xl',
     infoStripContainer: 'mx-auto max-w-7xl px-6 py-14 lg:px-8',
-    infoStripGrid: 'grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4',
-    infoStripItem: 'flex items-start gap-6 lg:border-r lg:border-blue-800/60 lg:px-6',
+    infoStripGrid: 'grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3',
+    infoStripItem: 'flex items-start gap-6 lg:border-r lg:border-white/20 lg:px-6 last:lg:border-r-0',
     infoStripIconCircle:
-      'flex aspect-square h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-primary/100/80 bg-white/5',
-    infoStripSubtitle: 'text-sm font-semibold uppercase tracking-wider text-primary/60',
+      'flex aspect-square h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-white/35 bg-white/10',
+    infoStripSubtitle: 'text-sm font-semibold uppercase tracking-wider text-white/75',
     infoStripValue: 'mt-1 text-2xl font-extrabold leading-tight',
-    infoStripIcon: 'h-5 w-5 text-primary/60',
+    infoStripIcon: 'h-5 w-5 text-white/80',
     // Guidelines section
     guidelinesSection: 'relative bg-white',
     guidelinesContainer: 'mx-auto max-w-7xl px-6 py-16 lg:px-8',
@@ -291,6 +291,8 @@ export const programsTheme = {
     overviewIcon: 'h-5 w-5 text-primary',
     overviewContent: 'text-gray-700',
     overviewText: 'leading-7',
+    overviewRichText:
+      "[&_p]:leading-7 [&_p:not(:first-child)]:mt-4 [&_.ql-align-justify]:text-justify [&_strong]:font-semibold [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4 [&_ul]:mt-4 [&_ul]:space-y-3 [&_ul]:pl-0 [&_ol]:mt-4 [&_ol]:space-y-3 [&_ol]:pl-0 [&_ul>li]:flex [&_ul>li]:items-start [&_ul>li]:gap-3 [&_ol>li]:flex [&_ol>li]:items-start [&_ol>li]:gap-3 [&_li>p]:m-0 [&_ul>li::before]:mt-[2px] [&_ul>li::before]:inline-grid [&_ul>li::before]:h-7 [&_ul>li::before]:w-7 [&_ul>li::before]:shrink-0 [&_ul>li::before]:place-items-center [&_ul>li::before]:rounded-full [&_ul>li::before]:bg-primary [&_ul>li::before]:text-[13px] [&_ul>li::before]:font-semibold [&_ul>li::before]:leading-none [&_ul>li::before]:text-white [&_ul>li::before]:content-['✓'] [&_ol>li::before]:mt-[2px] [&_ol>li::before]:inline-grid [&_ol>li::before]:h-7 [&_ol>li::before]:w-7 [&_ol>li::before]:shrink-0 [&_ol>li::before]:place-items-center [&_ol>li::before]:rounded-full [&_ol>li::before]:bg-primary [&_ol>li::before]:text-[13px] [&_ol>li::before]:font-semibold [&_ol>li::before]:leading-none [&_ol>li::before]:text-white [&_ol>li::before]:content-['✓']",
     overviewList: 'mt-4 space-y-3',
     overviewListItem: 'flex items-start gap-3',
     overviewBulletIcon:
@@ -324,6 +326,8 @@ export const programsTheme = {
     termsChevron: 'ml-auto h-5 w-5 text-gray-400 transition-transform group-open:rotate-180',
     termsBody: 'border-t border-gray-200 px-6 pb-6 pt-4 sm:px-8 sm:pb-8',
     termsText: 'whitespace-pre-line text-sm leading-7 text-gray-600',
+    termsRichText:
+      '[&_p]:text-sm [&_p]:leading-7 [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4',
   },
   galleryOtherPrograms: {
     subtitle: '-mt-6 mb-8 text-center text-sm text-primary sm:text-base',

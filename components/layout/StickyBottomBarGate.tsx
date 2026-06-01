@@ -2,17 +2,22 @@
 
 import { usePathname } from 'next/navigation';
 import StickyBottomBar from '@/components/ui/StickyBottomBar';
+import { shouldHideRegistrationPrompts } from '@/lib/registration/visibility';
 
 type StickyBottomBarGateProps = {
   deadline?: string | null;
   registerUrl?: string;
+  activeProgramSlug?: string | null;
 };
 
-export default function StickyBottomBarGate({ deadline, registerUrl }: StickyBottomBarGateProps) {
+export default function StickyBottomBarGate({
+  deadline,
+  registerUrl,
+  activeProgramSlug,
+}: StickyBottomBarGateProps) {
   const pathname = usePathname();
 
-  // Hide on dashboard pages
-  if (pathname?.startsWith('/dashboard')) {
+  if (shouldHideRegistrationPrompts(pathname, activeProgramSlug)) {
     return null;
   }
 

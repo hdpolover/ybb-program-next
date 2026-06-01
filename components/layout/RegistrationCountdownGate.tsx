@@ -2,21 +2,23 @@
 
 import { usePathname } from 'next/navigation';
 import RegistrationCountdown from '@/components/ui/RegistrationCountdown';
+import { shouldHideRegistrationPrompts } from '@/lib/registration/visibility';
 
 type RegistrationCountdownGateProps = {
   registrationDeadline?: string | null;
+  activeProgramSlug?: string | null;
 };
 
-export default function RegistrationCountdownGate({ registrationDeadline }: RegistrationCountdownGateProps) {
+export default function RegistrationCountdownGate({
+  registrationDeadline,
+  activeProgramSlug,
+}: RegistrationCountdownGateProps) {
   const pathname = usePathname();
 
-  // Sembunyiin countdown klo di halaman yang mulai dari /dashboard atau /onboarding
-  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/onboarding')) {
+  if (shouldHideRegistrationPrompts(pathname, activeProgramSlug)) {
     return null;
   }
 
-  // Tanpa deadline beneran, jangan tampilin countdown palsu. Biar konsisten
-  // sama StickyBottomBar yang juga sembunyi kalau gk ada tanggalnya.
   if (!registrationDeadline) {
     return null;
   }
