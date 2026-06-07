@@ -125,7 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let brandAccent: string | null = null;
   let settingsData = null;
   let registrationCloseDate: string | null = null;
-  let registerUrl: string = '/register';
+  let activeProgramSlug = process.env.YBB_PROGRAM_SLUG?.trim() || null;
 
   const [settingsResult] = await Promise.allSettled([getSettingsForBrandDomain(host)]);
 
@@ -140,10 +140,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     // Derive the registration deadline from the program's registration-fee
     // windows: fully funded close first, then self funded once fully funded
     // has passed. Falls back to the program-level field when tiers are absent.
-    const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
-    if (programSlug) {
+    activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
+    if (activeProgramSlug) {
       try {
-        const program = await getProgramDetail(programSlug, host);
+        const program = await getProgramDetail(activeProgramSlug, host);
         let tierDeadline: string | null = null;
         let activeCategory: RegistrationCategory | null = null;
         if (program?.id) {
@@ -162,11 +162,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         // Nentuin  URL pendaftarannya berdasarkan kategori aktif.
         if (activeCategory === 'fully_funded') {
-          registerUrl = '/apply/fully-funded';
+          activeProgramSlug = '/apply/fully-funded';
         } else if (activeCategory === 'self_funded') {
-          registerUrl = '/apply/self-funded';
+          activeProgramSlug = '/apply/self-funded';
         } else {
-          registerUrl = '/register';
+          activeProgramSlug = '/register';
         }
       } catch (error) {
         console.error('[Layout] Failed to fetch program detail:', error);
@@ -184,7 +184,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     console.log('[Layout] Theme loaded from API:', brandAccent);
   }
 
-  const programSlug = process.env.YBB_PROGRAM_SLUG?.trim() || settingsData?.active_program?.slug || 'ybb';
+  const programSlug = activeProgramSlug || 'ybb';
   const defaultChatBotId = '4a9ea369-4638-413f-92d4-9c4600f7c6be';
   const chatBotId = process.env.NEXT_PUBLIC_CHAT_WIDGET_BOT_ID?.trim() || defaultChatBotId;
 
@@ -212,12 +212,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SettingsProvider initialSettings={settingsData}>
           <PromoCTAProvider>
             <ClientNavbarGate />
-            <RegistrationCountdownGate registrationDeadline={registrationCloseDate} />
+            <RegistrationCountdownGate
+              registrationDeadline={registrationCloseDate}
+              activeProgramSlug={activeProgramSlug}
+            />
             {children}
             <ClientCTAGate />
             <BackToTop />
             <ClientFooterGate />
-            <StickyBottomBarGate deadline={registrationCloseDate} registerUrl={registerUrl} />
+            <StickyBottomBarGate
+              deadline={registrationCloseDate}
+              registerUrl={activeProgramSlug || '/register'}
+              activeProgramSlug={activeProgramSlug}
+            />
           </PromoCTAProvider>
         </SettingsProvider>
 

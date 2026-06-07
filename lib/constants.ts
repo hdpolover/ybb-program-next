@@ -10,7 +10,7 @@ export const SUPPORTED_LOCALES = ['en', 'id'] as const;
 export const DEFAULT_LOCALE = 'en';
 
 export const API_ENDPOINTS = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || '/api',
+  BASE_URL: '/api',
   HEALTH: '/health',
 } as const;
 

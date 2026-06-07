@@ -21,6 +21,8 @@ const FALLBACK_IMAGES = [
 ];
 
 const DUPLICATE_EMAIL_MESSAGE = 'This email is already registered. Please sign in instead.';
+const EMAIL_NOT_VERIFIED_MESSAGE =
+  'Your email is not verified yet. Please verify your email first, or resend the verification email below.';
 
 type LegalDocumentType = 'terms' | 'privacy';
 
@@ -48,6 +50,9 @@ export default function LoginPage() {
   const [oauthError, setOauthError] = useState<string>('');
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string>('');
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
   const [ambassadorMode, setAmbassadorMode] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string>('');
@@ -74,6 +79,10 @@ export default function LoginPage() {
   const onChangeLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginForm(prev => ({ ...prev, [name]: value }));
+    if (name === 'email') {
+      setShowResendVerification(false);
+      setResendMessage('');
+    }
   };
   const onChangeSignup = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -108,6 +117,8 @@ export default function LoginPage() {
     if (mode === 'login') {
       setLocalLoading(true);
       setLocalError('');
+      setShowResendVerification(false);
+      setResendMessage('');
       try {
         if (ambassadorMode) {
           const res = await fetch('/api/auth/ambassador-login', {
@@ -154,7 +165,12 @@ export default function LoginPage() {
         router.push(json?.data?.redirectTo || '/onboarding');
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Login failed';
-        setLocalError(message);
+        if (/email\s+not\s+verified/i.test(message)) {
+          setLocalError(EMAIL_NOT_VERIFIED_MESSAGE);
+          setShowResendVerification(true);
+        } else {
+          setLocalError(message);
+        }
       } finally {
         setLocalLoading(false);
       }
@@ -212,6 +228,33 @@ export default function LoginPage() {
       setRegisterError(message);
     } finally {
       setRegisterLoading(false);
+    }
+  };
+
+  const onResendVerification = async () => {
+    if (!loginForm.email.trim() || resendLoading) return;
+
+    setResendLoading(true);
+    setResendMessage('');
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: loginForm.email.trim() }),
+      });
+
+      const json = (await res.json().catch(() => ({}))) as { message?: string };
+      if (!res.ok) {
+        throw new Error(json?.message || 'Failed to resend verification email');
+      }
+
+      setResendMessage('Verification email sent. Please check your inbox and spam folder.');
+    } catch (error) {
+      setResendMessage(error instanceof Error ? error.message : 'Failed to resend verification email');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -579,6 +622,21 @@ export default function LoginPage() {
                     )}
                     {localError ? (
                       <p className="mt-3 text-xs font-medium text-primary">{localError}</p>
+                    ) : null}
+                    {showResendVerification && loginForm.email.trim() ? (
+                      <div className="mt-3">
+                        <button
+                          type="button"
+                          onClick={onResendVerification}
+                          className="text-xs font-semibold text-primary underline underline-offset-2 disabled:opacity-60"
+                          disabled={resendLoading}
+                        >
+                          {resendLoading ? 'Sending verification email...' : 'Resend verification email'}
+                        </button>
+                        {resendMessage ? (
+                          <p className="mt-2 text-xs font-medium text-slate-600">{resendMessage}</p>
+                        ) : null}
+                      </div>
                     ) : null}
                     <div className="pt-2">
                       <button

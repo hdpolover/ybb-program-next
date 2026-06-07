@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!API_BASE_URL) {
-  throw new Error('NEXT_PUBLIC_API_URL must be configured for proxy runtime.');
-}
+const API_BASE_URL = getServerApiBaseUrl();
 const MAINTENANCE_CACHE_TTL_MS = 30_000;
 const maintenanceModeCache = new Map<string, { value: boolean; expiresAt: number }>();
 

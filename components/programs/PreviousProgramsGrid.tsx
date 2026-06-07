@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import clsx from 'clsx';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
@@ -24,6 +25,7 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
   const programs = items.map(item => ({
     id: item.id,
     name: item.name,
+    slug: item.slug,
     year: item.year,
     location: item.location,
     thumbnail: item.thumbnail,
@@ -34,57 +36,63 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
 
   const next = () => setActive(i => (i + 1) % total);
   const prev = () => setActive(i => (i - 1 + total) % total);
+  const archiveHref = '/programs/previous';
+
+  const renderCard = (program: (typeof programs)[number]) => (
+    <div className={componentsTheme.programsPrevious.card}>
+      <div className={componentsTheme.programsPrevious.cardImageWrapper}>
+        <Image
+          src={program.thumbnail || '/img/programsbackground.png'}
+          alt={program.name || 'Previous program'}
+          fill
+          sizes="(min-width:1024px) 360px, (min-width:640px) 60vw, 100vw"
+          className={componentsTheme.programsPrevious.cardImage}
+        />
+      </div>
+
+      <div className={componentsTheme.programsPrevious.cardBody}>
+        <h3 className={componentsTheme.programsPrevious.cardTitle}>
+          {program.name || DATA_NOT_ADDED}
+        </h3>
+        <p className={componentsTheme.programsPrevious.cardDate}>
+          {program.year ? String(program.year) : DATA_NOT_ADDED}
+        </p>
+        <p className={componentsTheme.programsPrevious.cardDate}>
+          {program.location?.trim() || 'Location to be announced'}
+        </p>
+
+        <Link
+          href={`/programs/${program.slug}`}
+          className={clsx(
+            componentsTheme.homeRegistration.guidePrimary,
+            'mt-5 flex w-full items-center justify-center text-sm',
+          )}
+        >
+          Read More
+        </Link>
+      </div>
+    </div>
+  );
 
   return (
     <section className={componentsTheme.programsPrevious.sectionWrapper}>
       <div className={componentsTheme.programsPrevious.container}>
-        {/* header section untuk previous programs */}
         <SectionHeader eyebrow="Previous Program" title={title} />
         <p className={componentsTheme.programsPrevious.subtitle}>
           A look back at our previous program editions
         </p>
+        <div className="mb-8 flex justify-center">
+          <Link
+            href={archiveHref}
+            className={componentsTheme.programsCurrent.secondaryCta}
+          >
+            View All Previous Programs
+          </Link>
+        </div>
 
         {total === 1 && (
           <div className="mt-8 flex justify-center">
-            <div className={componentsTheme.programsPrevious.card}>
-              <div className={componentsTheme.programsPrevious.cardImageWrapper}>
-                {programs[0].thumbnail ? (
-                  <Image
-                    src={programs[0].thumbnail}
-                    alt={programs[0].name || 'Previous program'}
-                    fill
-                    sizes="(min-width:1024px) 360px, (min-width:640px) 60vw, 100vw"
-                    className={componentsTheme.programsPrevious.cardImage}
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
-                    Image not added
-                  </div>
-                )}
-              </div>
-
-              <div className={componentsTheme.programsPrevious.cardBody}>
-                <h3 className={componentsTheme.programsPrevious.cardTitle}>
-                  {programs[0].name || DATA_NOT_ADDED}
-                </h3>
-                <p className={componentsTheme.programsPrevious.cardDate}>
-                  {programs[0].year ? String(programs[0].year) : DATA_NOT_ADDED}
-                </p>
-                <p className={componentsTheme.programsPrevious.cardDate}>
-                  {programs[0].location || DATA_NOT_ADDED}
-                </p>
-
-                <button
-                  type="button"
-                  className={clsx(
-                    componentsTheme.homeRegistration.guidePrimary,
-                    'mt-5 flex w-full items-center justify-center text-sm',
-                  )}
-                >
-                  Read More
-                </button>
-              </div>
-            </div>
+            {renderCard(programs[0])}
           </div>
         )}
 
@@ -142,47 +150,7 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
                     className={clsx(componentsTheme.programsPrevious.slideBase, transform, opacity)}
                     style={{ zIndex: z }}
                   >
-                    {/* ===== CARD ===== */}
-                    <div className={componentsTheme.programsPrevious.card}>
-                      <div className={componentsTheme.programsPrevious.cardImageWrapper}>
-                        {item.thumbnail ? (
-                          <Image
-                            src={item.thumbnail}
-                            alt={item.name || 'Previous program'}
-                            fill
-                            sizes="(min-width:1024px) 360px, (min-width:640px) 60vw, 100vw"
-                            className={componentsTheme.programsPrevious.cardImage}
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
-                            Image not added
-                          </div>
-                        )}
-                      </div>
-
-                      <div className={componentsTheme.programsPrevious.cardBody}>
-                        <h3 className={componentsTheme.programsPrevious.cardTitle}>
-                          {item.name || DATA_NOT_ADDED}
-                        </h3>
-                        <p className={componentsTheme.programsPrevious.cardDate}>
-                          {item.year ? String(item.year) : DATA_NOT_ADDED}
-                        </p>
-                        <p className={componentsTheme.programsPrevious.cardDate}>
-                          {item.location || DATA_NOT_ADDED}
-                        </p>
-
-                        <button
-                          type="button"
-                          className={clsx(
-                            componentsTheme.homeRegistration.guidePrimary,
-                            'mt-5 flex w-full items-center justify-center text-sm',
-                          )}
-                        >
-                          Read More
-                        </button>
-                      </div>
-                    </div>
-                    {/* ===== END CARD ===== */}
+                    {renderCard(item)}
                   </div>
                 );
               })}

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 type SubmitPartnershipEnquiryBody = {
   brandId?: string;
@@ -33,8 +34,7 @@ export async function POST(request: Request) {
     }
 
     const brandDomain = resolveBrandDomainFromRequest(request);
-    const apiBase = (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, '');
-    const apiUrl = new URL('/v1/public/brands/default/partnerships/enquiry', apiBase);
+    const apiUrl = new URL('/v1/public/brands/default/partnerships/enquiry', getServerApiBaseUrl());
 
     const response = await fetch(apiUrl.toString(), {
       method: 'POST',

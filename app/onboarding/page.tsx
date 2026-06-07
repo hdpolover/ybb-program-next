@@ -1,6 +1,6 @@
 'use client';
 
-import { OnboardingForm, StepKey, steps, LOGIN_IMAGES, PROGRAM_SOURCES } from "./types";
+import { OnboardingForm, StepKey, steps, LOGIN_IMAGES } from "./types";
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -36,6 +36,7 @@ export default function OnboardingPage() {
   const [statesLoading, setStatesLoading] = useState(false);
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [knowledgeSources, setKnowledgeSources] = useState<string[]>([]);
+  const [knowledgeSourcesError, setKnowledgeSourcesError] = useState(false);
   const brandLogo = settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
   // if user is authenticated and has programs, we could override this, but let's just use settings first
   const [brandName, setBrandName] = useState(settings?.active_program?.name?.trim() || settings?.brand?.name?.trim() || 'Youth Break the Boundaries');
@@ -85,9 +86,16 @@ export default function OnboardingPage() {
     (async () => {
       try {
         const res = await getKnowledgeSources();
-        if (!cancelled) setKnowledgeSources(Array.isArray(res) ? res : []);
+        if (!cancelled) {
+          const options = Array.isArray(res) ? res.filter(Boolean) : [];
+          setKnowledgeSources(options);
+          setKnowledgeSourcesError(options.length === 0);
+        }
       } catch {
-        // fallback to hardcoded list
+        if (!cancelled) {
+          setKnowledgeSources([]);
+          setKnowledgeSourcesError(true);
+        }
       }
     })();
 
@@ -184,12 +192,13 @@ export default function OnboardingPage() {
   }, [genders]);
 
   const programSourceOptions = useMemo(() => {
-    const list = knowledgeSources.length > 0 ? knowledgeSources : PROGRAM_SOURCES;
-    return list.map(source => ({
+    return knowledgeSources.map(source => ({
       value: source,
       label: source,
     }));
   }, [knowledgeSources]);
+
+  const hasKnowledgeSources = knowledgeSources.length > 0;
 
   const displayedProgramSourceOptions = useMemo(() => {
     return programSourceOptions.slice(0, 6);
@@ -352,6 +361,11 @@ export default function OnboardingPage() {
   };
 
   const onContinue = async () => {
+    if (!hasKnowledgeSources) {
+      setSubmitError('Program source options are temporarily unavailable. Please refresh and try again.');
+      return;
+    }
+
     if (!isInfoValid) {
       setInfoShowErrors(true);
       return;
@@ -414,9 +428,8 @@ export default function OnboardingPage() {
     return form.birthDate.trim().length > 0;
   }, [form.birthDate]);
 
-  const isInfoValid = useMemo(() => {
-    return form.programSource.trim().length > 0;
-  }, [form.programSource]);
+  const isInfoValid =
+    form.programSource.trim().length > 0 && knowledgeSources.includes(form.programSource);
 
   const currentIndex = steps.indexOf(activeStep);
 
@@ -755,43 +768,53 @@ export default function OnboardingPage() {
                       <p className={componentsTheme.login.fieldLabel}>
                         PROGRAM SOURCE <span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
                       </p>
-                      
-                      <div className={onboardingTheme.programSourceGrid}>
-                        {displayedProgramSourceOptions.map(opt => {
-                          const selected = form.programSource === opt.value;
-                          const errClass = infoShowErrors && form.programSource.trim().length === 0 ? "!border-red-500 focus:!ring-red-500/20" : "";
-                          return (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => setForm(prev => ({ ...prev, programSource: opt.value }))}
-                              className={`${onboardingTheme.optionButtonBase} ${errClass} ${
-                                selected
-                                  ? onboardingTheme.optionButtonSelected
-                                  : onboardingTheme.optionButtonUnselected
-                              }`}
-                            >
-                              {opt.label}
-                            </button>
-                          );
-                        })}
-                      </div>
 
-                      {programSourceOptions.length > 6 ? (
-                        <div className="flex justify-start">
-                          <button
-                            type="button"
-                            className={onboardingTheme.seeAllButton}
-                            onClick={() => setProgramSourceModalOpen(true)}
-                          >
-                            See all
-                          </button>
-                        </div>
-                      ) : null}
+                      {hasKnowledgeSources ? (
+                        <>
+                          <div className={onboardingTheme.programSourceGrid}>
+                            {displayedProgramSourceOptions.map(opt => {
+                              const selected = form.programSource === opt.value;
+                              const errClass = infoShowErrors && form.programSource.trim().length === 0 ? "!border-red-500 focus:!ring-red-500/20" : "";
+                              return (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => setForm(prev => ({ ...prev, programSource: opt.value }))}
+                                  className={`${onboardingTheme.optionButtonBase} ${errClass} ${
+                                    selected
+                                      ? onboardingTheme.optionButtonSelected
+                                      : onboardingTheme.optionButtonUnselected
+                                  }`}
+                                >
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                          </div>
 
-                      {infoShowErrors && form.programSource.trim().length === 0 && (
-                        <p style={{ marginTop: "6px", fontSize: "12px", color: "#ef4444", display: "flex", alignItems: "center", fontWeight: 500 }}>
-                          Required
+                          {programSourceOptions.length > 6 ? (
+                            <div className="flex justify-start">
+                              <button
+                                type="button"
+                                className={onboardingTheme.seeAllButton}
+                                onClick={() => setProgramSourceModalOpen(true)}
+                              >
+                                See all
+                              </button>
+                            </div>
+                          ) : null}
+
+                          {infoShowErrors && form.programSource.trim().length === 0 && (
+                            <p style={{ marginTop: "6px", fontSize: "12px", color: "#ef4444", display: "flex", alignItems: "center", fontWeight: 500 }}>
+                              Required
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <p className={onboardingTheme.fieldError}>
+                          {knowledgeSourcesError
+                            ? 'Program source options are unavailable right now. Please refresh and try again.'
+                            : 'Program source options are loading.'}
                         </p>
                       )}
                     </div>
@@ -827,7 +850,7 @@ export default function OnboardingPage() {
                       type="button"
                       className={componentsTheme.login.primaryButton}
                       onClick={onContinue}
-                      disabled={submitLoading}
+                      disabled={submitLoading || !hasKnowledgeSources}
                     >
                       {submitLoading ? 'Saving...' : 'Continue'}
                     </button>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { parseApiDate } from '@/lib/utils';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -134,7 +135,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const brandDomain = resolveBrandDomainFromRequest(request);
-    const apiBase = (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, '');
+    const apiBase = getServerApiBaseUrl();
 
     const headers = {
       Accept: 'application/json',
@@ -185,7 +186,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       const brandDomain = resolveBrandDomainFromRequest(request);
 
       if (accessToken) {
-        const apiBase = (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, '');
+        const apiBase = getServerApiBaseUrl();
         const fallbackUrl = new URL('/v1/portal/payments', apiBase);
         const fallbackRes = await fetch(fallbackUrl.toString(), {
           method: 'GET',

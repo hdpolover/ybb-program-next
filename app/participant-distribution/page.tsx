@@ -18,12 +18,12 @@ function extractParticipantDemographics(
 
 export default async function ParticipantDistributionPage() {
   const host = (await headers()).get('host') || '';
-  const [heroMedia, homeData] = await Promise.all([
-    getLandingHeroMedia(host, 'participant-distribution', {
-      fallbackImage: '/img/bgprogramoverview.png',
-    }),
-    getHomePageData(host),
-  ]);
+  const homeData = await getHomePageData(host);
+  const heroMedia = await getLandingHeroMedia(host, 'participant-distribution', {
+    fallbackImage: '/img/bgprogramoverview.png',
+    minimumGalleryImages: 99,
+    homeData,
+  });
 
   const section = extractParticipantDemographics(homeData);
   const { entries, totalParticipants, representedCountries } = getParticipantDistributionSummary(
@@ -42,7 +42,6 @@ export default async function ParticipantDistributionPage() {
         title={section?.content.title || 'Participant Distribution by Country'}
         subtitle="A detailed view of submitted applications across represented countries."
         bgImage={heroMedia.bgImage ?? '/img/bgprogramoverview.png'}
-        galleryImages={heroMedia.galleryImages}
         breadcrumb={[
           { href: '/', label: 'Home' },
           { href: '/participant-distribution', label: 'Participant Distribution' },

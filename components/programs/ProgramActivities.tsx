@@ -3,7 +3,13 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramActivitiesSection, ProgramActivitiesItem } from '@/types/programs';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
-import { parseApiDate } from '@/lib/utils';
+import {
+  formatScheduleDate,
+  formatTimeRange,
+  parseScheduleDate,
+  SCHEDULE_DATE_GROUP_OPTIONS,
+  SCHEDULE_DATE_META_OPTIONS,
+} from '@/lib/format/datetime';
 
 type ProgramActivitiesProps = {
   activities?: ProgramActivitiesSection['content'];
@@ -17,57 +23,13 @@ type ActivityGroup = {
   items: ProgramActivitiesItem[];
 };
 
-function parseDateValue(value: string | null | undefined): Date | null {
-  if (!value) return null;
-  const parsed = parseApiDate(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
+const parseDateValue = parseScheduleDate;
 
-function formatDateForMeta(date: string | null | undefined): string {
-  const parsed = parseDateValue(date);
-  if (!parsed) return DATA_NOT_ADDED;
-  return parsed.toLocaleDateString('en-US', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-}
+const formatDateForMeta = (date: string | null | undefined): string =>
+  formatScheduleDate(date, SCHEDULE_DATE_META_OPTIONS);
 
-function formatDateForGroup(date: string | null | undefined): string {
-  const parsed = parseDateValue(date);
-  if (!parsed) return DATA_NOT_ADDED;
-  return parsed.toLocaleDateString('en-US', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
-function formatClockToken(value: string): string {
-  const normalized = value.trim();
-  const match = normalized.match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return normalized;
-
-  const rawHour = Number(match[1]);
-  const minutes = match[2];
-  if (!Number.isFinite(rawHour) || rawHour < 0 || rawHour > 23) return normalized;
-
-  const suffix = rawHour >= 12 ? 'PM' : 'AM';
-  const hour = ((rawHour + 11) % 12) + 1;
-  return `${hour}:${minutes} ${suffix}`;
-}
-
-function formatTimeRange(value: string | null | undefined): string {
-  const raw = (value ?? '').trim();
-  if (!raw) return DATA_NOT_ADDED;
-
-  const tokens = raw.split(/\s*[-–]\s*/).map((token) => token.trim()).filter(Boolean);
-  if (tokens.length === 2) {
-    return `${formatClockToken(tokens[0])} – ${formatClockToken(tokens[1])}`;
-  }
-  return formatClockToken(raw);
-}
+const formatDateForGroup = (date: string | null | undefined): string =>
+  formatScheduleDate(date, SCHEDULE_DATE_GROUP_OPTIONS);
 
 function parseStartMinutes(value: string | null | undefined): number {
   const raw = (value ?? '').trim();

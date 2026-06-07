@@ -72,9 +72,11 @@ export default function ProgramRundowns({
                 {/* konten kiri */}
                 <div>
                   <h3 className={componentsTheme.programRundowns.cardTitle}>{it.title}</h3>
-                  <p className={componentsTheme.programRundowns.cardDescription}>
-                    {it.description}
-                  </p>
+                  {it.description ? (
+                    <p className={componentsTheme.programRundowns.cardDescription}>
+                      {it.description}
+                    </p>
+                  ) : null}
                 </div>
                 {/* meta kanan */}
                 <div className={componentsTheme.programRundowns.metaRow}>
@@ -86,10 +88,12 @@ export default function ProgramRundowns({
                     <Clock className="h-4 w-4" />
                     <span>{it.timeRange}</span>
                   </div>
-                  <div className={`${componentsTheme.programRundowns.metaItem} ${componentsTheme.programRundowns.metaItemDuration}`}>
-                    <Info className="h-4 w-4" />
-                    <span>{it.duration}</span>
-                  </div>
+                  {it.duration ? (
+                    <div className={`${componentsTheme.programRundowns.metaItem} ${componentsTheme.programRundowns.metaItemDuration}`}>
+                      <Info className="h-4 w-4" />
+                      <span>{it.duration}</span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>

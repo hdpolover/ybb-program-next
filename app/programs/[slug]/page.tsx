@@ -1,14 +1,23 @@
 import { CalendarDays, MapPin, Clock, Info, Check, ClipboardCheck, FileText, ChevronDown } from 'lucide-react';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import RegistrationTutorial from '@/components/sections/RegistrationTutorial';
 import FeaturedSpeakers from '@/components/programs/FeaturedSpeakers';
 import ProgramRundowns from '@/components/programs/ProgramRundowns';
 import ProgramFAQ from '@/components/programs/ProgramFAQ';
+import ProgramDetailImage from '@/components/programs/ProgramDetailImage';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { getProgramDetail } from '@/lib/api/programs';
+import { isRichTextHtml, richTextToPlainText, sanitizeRichTextHtml } from '@/lib/content/richText';
 import { formatTokenLabel, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
+import {
+  formatScheduleDate,
+  formatScheduleDuration,
+  formatScheduleTimeRange,
+  parseScheduleDate,
+  SCHEDULE_DATE_META_OPTIONS,
+} from '@/lib/format/datetime';
+import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 import { headers } from 'next/headers';
 
 function parseValidDate(value: unknown): Date | null {
@@ -48,6 +57,15 @@ function calcDuration(start: string | null, end: string | null): string {
   return `${days} Days`;
 }
 
+function firstNonEmpty(...values: Array<string | null | undefined>): string | null {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
 function parseBullets(text: string | null): string[] {
   if (!text) return [];
   return text
@@ -63,21 +81,71 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
 
   if (!program) notFound();
 
-  const isOpen = program.allowRegistration;
-  const ctaLabel = isOpen ? 'Register Now' : 'Registration Closed';
-  const ctaHref = isOpen ? '/apply' : undefined;
+  const endDate = parseValidDate(program.endDate ?? program.startDate);
+  const hasEnded = endDate ? endDate.getTime() < Date.now() : false;
+  const isArchiveProgram = program.status === 'completed' || hasEnded;
+  const isOpen = !isArchiveProgram && program.allowRegistration;
+  const resolvedProgramTitle =
+    firstNonEmpty(program.name, [program.brand?.name, program.year].filter(Boolean).join(' ')) ?? 'Program Archive';
+  const heroEyebrow = isArchiveProgram ? 'Program Archive' : 'Featured Program';
+  const heroCtaLabel = isOpen
+    ? 'Register Now'
+    : isArchiveProgram
+      ? 'View Previous Programs'
+      : 'Registration Closed';
+  const heroCtaHref = isOpen ? '/apply' : isArchiveProgram ? '/programs/previous' : undefined;
+  const applicationTitle = isArchiveProgram ? `Explore ${resolvedProgramTitle}` : `Join ${resolvedProgramTitle}`;
+  const applicationSubtitle = isArchiveProgram
+    ? 'Browse the highlights, schedule, speakers, and resources from this completed edition.'
+    : 'Secure your spot and be part of an inspiring cohort of young leaders.';
+  const applicationFallbackLabel = isArchiveProgram ? 'Back to Previous Programs' : 'Registration Closed';
+  const applicationFallbackHref = isArchiveProgram ? '/programs/previous' : undefined;
 
-  const heroBg = program.bannerUrl ?? '/img/bgprogramoverview.png';
-  const programTitle = program.name;
-  const programTagline = program.shortDescription ?? '';
-  const dateRange = formatDateRange(program.startDate, program.endDate);
-  const duration = calcDuration(program.startDate, program.endDate);
-  const location = program.location ?? 'TBA';
+  const programTitle = resolvedProgramTitle;
+  const heroBg = firstNonEmpty(program.bannerUrl, program.thumbnailUrl, '/img/bgprogramoverview.png')!;
+  const cardImage = firstNonEmpty(program.thumbnailUrl, program.bannerUrl, '/img/programoverview.png')!;
+  const shortDescriptionText = richTextToPlainText(program.shortDescription);
+  const programTagline =
+    shortDescriptionText ||
+    (isArchiveProgram
+      ? 'Explore this completed edition and browse the highlights that were preserved.'
+      : 'Discover the program overview, schedule, and key information for this edition.');
+  const formattedDateRange = formatDateRange(program.startDate, program.endDate);
+  const dateRange = formattedDateRange === 'TBA'
+    ? isArchiveProgram
+      ? 'Archive dates unavailable'
+      : 'Dates to be announced'
+    : formattedDateRange;
+  const formattedDuration = calcDuration(program.startDate, program.endDate);
+  const duration = formattedDuration === 'TBA'
+    ? isArchiveProgram
+      ? 'Duration unavailable'
+      : 'To be announced'
+    : formattedDuration;
+  const location =
+    firstNonEmpty(program.location) ??
+    (isArchiveProgram ? 'Archive location unavailable' : 'Location to be announced');
 
-  const overviewBullets = parseBullets(program.benefitsDescription);
-  const overviewIntro = program.description ?? '';
-  const requirementBullets = parseBullets(program.requirementsDescription);
-  const termsText = program.termsAndConditions?.trim() ?? '';
+  const overviewHtml = isRichTextHtml(program.description) ? sanitizeRichTextHtml(program.description) : '';
+  const overviewIntro = overviewHtml
+    ? ''
+    : richTextToPlainText(program.description) ||
+      (isArchiveProgram
+        ? 'This archived edition does not have a full write-up yet, but you can still explore the preserved schedule, speakers, and other published details below.'
+        : 'A full program overview will appear here once the latest content is published.');
+  const overviewRichListHtml = isRichTextHtml(program.benefitsDescription)
+    ? sanitizeRichTextHtml(program.benefitsDescription)
+    : '';
+  const overviewBullets = overviewRichListHtml ? [] : parseBullets(program.benefitsDescription);
+  const requirementsHtml = isRichTextHtml(program.requirementsDescription)
+    ? sanitizeRichTextHtml(program.requirementsDescription)
+    : '';
+  const requirementBullets = requirementsHtml ? [] : parseBullets(program.requirementsDescription);
+  const plainTermsText = richTextToPlainText(program.termsAndConditions);
+  const termsHtml = isRichTextHtml(program.termsAndConditions)
+    ? sanitizeRichTextHtml(program.termsAndConditions)
+    : '';
+  const termsText = termsHtml ? '' : plainTermsText;
 
   // Map API speakers → FeaturedSpeakers format
   const speakers = (program.speakers ?? []).map(s => ({
@@ -88,26 +156,33 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
     href: undefined as string | undefined,
   }));
 
-  // Group schedules by day label for ProgramRundowns
+  // Group schedules by day for ProgramRundowns, then sort the tabs chronologically.
   const schedulesByDay = new Map<string, typeof program.schedules>();
   for (const item of (program.schedules ?? [])) {
     const list = schedulesByDay.get(item.day) ?? [];
     list.push(item);
     schedulesByDay.set(item.day, list);
   }
-  const rundownDays = Array.from(schedulesByDay.entries()).map(([label, items]) => ({
-    label,
-    items: items
-      .sort((a, b) => a.order - b.order)
-      .map(s => ({
-        dateLabel: label,
-        activitiesCount: 1,
-        timeRange: s.startTime && s.endTime ? `${s.startTime} - ${s.endTime}` : 'All Day',
-        duration: '',
-        title: s.activity,
-        description: s.description ?? '',
-      })),
-  }));
+  const rundownDays = Array.from(schedulesByDay.entries())
+    .map(([rawDay, items]) => {
+      const parsed = parseScheduleDate(rawDay);
+      return {
+        sortTime: parsed ? parsed.getTime() : Number.MAX_SAFE_INTEGER,
+        label: formatScheduleDate(rawDay, SCHEDULE_DATE_META_OPTIONS, rawDay),
+        items: items
+          .sort((a, b) => a.order - b.order)
+          .map(s => ({
+            dateLabel: formatScheduleDate(s.day, SCHEDULE_DATE_META_OPTIONS, s.day),
+            activitiesCount: 1,
+            timeRange: formatScheduleTimeRange(s.startTime, s.endTime),
+            duration: formatScheduleDuration(s.startTime, s.endTime) ?? '',
+            title: s.activity?.trim() || DATA_NOT_ADDED,
+            description: s.description?.trim() ?? '',
+          })),
+      };
+    })
+    .sort((a, b) => a.sortTime - b.sortTime)
+    .map(({ label, items }) => ({ label, items }));
 
   // Map API faqs → ProgramFAQ groupsOverride format
   const faqGroups = (() => {
@@ -128,20 +203,20 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
     <main className={componentsTheme.programDetail.mainWrapper}>
       <section
         className={componentsTheme.programDetail.heroSection}
-        style={{ backgroundImage: `url('${heroBg}')` }}
+        style={{ backgroundImage: `url('${heroBg}'), url('/img/bgprogramoverview.png')` }}
       >
         <div className={componentsTheme.programDetail.heroInner}>
-          <p className={componentsTheme.programDetail.heroYearText}>Featured Program</p>
+          <p className={componentsTheme.programDetail.heroYearText}>{heroEyebrow}</p>
           <h1 className={componentsTheme.programDetail.heroTitle}>{programTitle}</h1>
           <p className={componentsTheme.programDetail.heroTagline}>{programTagline}</p>
 
           <div className={componentsTheme.programDetail.heroCtaWrapper}>
-            {ctaHref ? (
-              <a href={ctaHref} className={componentsTheme.programDetail.heroCta}>
-                {ctaLabel}
+            {heroCtaHref ? (
+              <a href={heroCtaHref} className={componentsTheme.programDetail.heroCta}>
+                {heroCtaLabel}
               </a>
             ) : (
-              <span className={componentsTheme.programDetail.heroCtaClosed}>{ctaLabel}</span>
+              <span className={componentsTheme.programDetail.heroCtaClosed}>{heroCtaLabel}</span>
             )}
           </div>
         </div>
@@ -199,7 +274,14 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                   <Info className={componentsTheme.programDetail.overviewIcon} />
                 </div>
                 <div className={componentsTheme.programDetail.overviewContent}>
-                  <p className={componentsTheme.programDetail.overviewText}>{overviewIntro}</p>
+                  {overviewHtml ? (
+                    <div
+                      className={componentsTheme.programDetail.overviewRichText}
+                      dangerouslySetInnerHTML={{ __html: overviewHtml }}
+                    />
+                  ) : (
+                    <p className={componentsTheme.programDetail.overviewText}>{overviewIntro}</p>
+                  )}
                   {overviewBullets.length > 0 && (
                     <ul className={componentsTheme.programDetail.overviewList}>
                       {overviewBullets.map(bullet => (
@@ -212,6 +294,12 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                       ))}
                     </ul>
                   )}
+                  {!overviewBullets.length && overviewRichListHtml && (
+                    <div
+                      className={componentsTheme.programDetail.overviewRichText}
+                      dangerouslySetInnerHTML={{ __html: overviewRichListHtml }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -219,30 +307,31 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
             {/* application CTA card */}
             <div className={componentsTheme.programDetail.applicationCard}>
               <div className={componentsTheme.programDetail.applicationImageWrapper}>
-                <Image
-                  src={program.thumbnailUrl ?? '/img/program-brochure.png'}
-                  alt={programTitle}
-                  fill
+                <ProgramDetailImage
+                  src={program.thumbnailUrl ?? program.bannerUrl}
+                  fallbackSrc={cardImage}
+                  alt={`${programTitle} cover image`}
                   sizes="(min-width:1024px) 50vw, 100vw"
                   className={componentsTheme.programDetail.applicationImage}
-                  priority={false}
                 />
               </div>
               <div className={componentsTheme.programDetail.applicationBody}>
-                <h3 className={componentsTheme.programDetail.applicationTitle}>
-                  Join {programTitle}
-                </h3>
+                <h3 className={componentsTheme.programDetail.applicationTitle}>{applicationTitle}</h3>
                 <p className={componentsTheme.programDetail.applicationSubtitle}>
-                  Secure your spot and be part of an inspiring cohort of young leaders.
+                  {applicationSubtitle}
                 </p>
                 <div className={componentsTheme.programDetail.applicationCtaWrapper}>
-                  {ctaHref ? (
-                    <a href={ctaHref} className={componentsTheme.programDetail.applicationPrimaryCta}>
-                      {ctaLabel}
+                  {heroCtaHref ? (
+                    <a href={heroCtaHref} className={componentsTheme.programDetail.applicationPrimaryCta}>
+                      {heroCtaLabel}
+                    </a>
+                  ) : applicationFallbackHref ? (
+                    <a href={applicationFallbackHref} className={componentsTheme.programDetail.applicationPrimaryCta}>
+                      {applicationFallbackLabel}
                     </a>
                   ) : (
                     <span className={componentsTheme.programDetail.applicationSecondaryCta}>
-                      {ctaLabel}
+                      {applicationFallbackLabel}
                     </span>
                   )}
                 </div>
@@ -252,7 +341,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
         </div>
       </section>
 
-      {requirementBullets.length > 0 && (
+      {(requirementBullets.length > 0 || Boolean(requirementsHtml)) && (
         <section className={componentsTheme.programDetail.requirementsSection}>
           <div className={componentsTheme.programDetail.requirementsContainer}>
             <SectionHeader eyebrow="Requirements" title="Who Can Apply" />
@@ -262,16 +351,23 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                   <ClipboardCheck className={componentsTheme.programDetail.overviewIcon} />
                 </div>
                 <div className={componentsTheme.programDetail.overviewContent}>
-                  <ul className={componentsTheme.programDetail.overviewList}>
-                    {requirementBullets.map(bullet => (
-                      <li key={bullet} className={componentsTheme.programDetail.overviewListItem}>
-                        <span className={componentsTheme.programDetail.overviewBulletIconAlt}>
-                          <Check className={componentsTheme.programDetail.overviewCheckIcon} />
-                        </span>
-                        <span className={componentsTheme.programDetail.overviewText}>{bullet}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {requirementsHtml ? (
+                    <div
+                      className={componentsTheme.programDetail.overviewRichText}
+                      dangerouslySetInnerHTML={{ __html: requirementsHtml }}
+                    />
+                  ) : (
+                    <ul className={componentsTheme.programDetail.overviewList}>
+                      {requirementBullets.map(bullet => (
+                        <li key={bullet} className={componentsTheme.programDetail.overviewListItem}>
+                          <span className={componentsTheme.programDetail.overviewBulletIconAlt}>
+                            <Check className={componentsTheme.programDetail.overviewCheckIcon} />
+                          </span>
+                          <span className={componentsTheme.programDetail.overviewText}>{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             </div>
@@ -279,7 +375,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
         </section>
       )}
 
-      <RegistrationTutorial />
+      {!isArchiveProgram && <RegistrationTutorial />}
 
       {speakers.length > 0 && <FeaturedSpeakers speakers={speakers} />}
 
@@ -287,7 +383,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
 
       {faqGroups.length > 0 && <ProgramFAQ groupsOverride={faqGroups} />}
 
-      {termsText && (
+      {(termsText || termsHtml) && (
         <section className={componentsTheme.programDetail.termsSection}>
           <div className={componentsTheme.programDetail.termsContainer}>
             <details className={componentsTheme.programDetail.termsDetails}>
@@ -297,7 +393,14 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                 <ChevronDown className={componentsTheme.programDetail.termsChevron} />
               </summary>
               <div className={componentsTheme.programDetail.termsBody}>
-                <p className={componentsTheme.programDetail.termsText}>{termsText}</p>
+                {termsHtml ? (
+                  <div
+                    className={componentsTheme.programDetail.termsRichText}
+                    dangerouslySetInnerHTML={{ __html: termsHtml }}
+                  />
+                ) : (
+                  <p className={componentsTheme.programDetail.termsText}>{termsText}</p>
+                )}
               </div>
             </details>
           </div>

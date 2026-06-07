@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 
 export const dynamic = 'force-dynamic';
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
 
     const apiUrl = new URL(
       `/v1/applications/${applicationId}/switch-category`,
-      (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, ''),
+      getServerApiBaseUrl(),
     );
 
     const res = await fetch(apiUrl.toString(), {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 interface ApplyAmbassadorBody {
   fullName: string;
@@ -25,10 +26,8 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-
     const brandDomain = resolveBrandDomainFromRequest(request);
-    const apiBase = (process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'https://staging-api.ybbhub.com').replace(/\/v1\/?$/, '');
-    const apiUrl = new URL('/v1/participants/ambassador/apply', apiBase);
+    const apiUrl = new URL('/v1/participants/ambassador/apply', getServerApiBaseUrl());
 
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
