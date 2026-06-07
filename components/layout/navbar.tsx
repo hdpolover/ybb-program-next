@@ -821,7 +821,7 @@ export function Navbar() {
 
           {open && (
             <div className="md:hidden pb-5">
-              <div className="mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pt-3 pb-6 shadow-sm">
+              <div className="mt-2 max-h-[calc(100vh-140px)] overflow-y-auto rounded-2xl border border-gray-200 bg-white px-4 pt-3 pb-6 shadow-sm">
                 <div className="space-y-2">
                   {navItems.map(item => {
                     const href = hrefFor(item);
@@ -842,71 +842,73 @@ export function Navbar() {
                           >
                             {settings?.brand?.name ? `${item} (${settings.brand.name})` : item}
                           </a>
-                          {otherBrandProgramLinks.map(brand =>
-                            brand.href ? (
-                              <a
-                                key={brand.id}
-                                href={brand.href}
-                                className="group flex w-full items-center justify-between gap-3 rounded-xl px-4 py-2.5 pl-7 text-left text-sm font-medium text-slate-700 transition hover:bg-[var(--brand-accent-soft)] hover:text-[var(--brand-accent)]"
-                                onClick={() => setOpen(false)}
-                              >
-                                <div className="flex min-w-0 items-center gap-3">
-                                  {brand.logoIconUrl ? (
-                                    <Image
-                                      src={brand.logoIconUrl}
-                                      alt={`${brand.name} logo`}
-                                      width={36}
-                                      height={36}
-                                      className="h-8 w-8 shrink-0 rounded-full border border-slate-200 object-cover"
-                                      unoptimized
-                                    />
-                                  ) : (
-                                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 bg-slate-50 text-xs font-bold uppercase text-slate-500">
-                                      {brandInitial(brand.name)}
-                                    </span>
-                                  )}
-                                  <div className="min-w-0">
-                                    <div className="truncate text-[15px]">{brand.name}</div>
-                                    <div className="truncate text-xs leading-tight text-slate-600">
-                                      {brand.location}
+                          <div className="max-h-[250px] overflow-y-auto space-y-2">
+                            {otherBrandProgramLinks.slice(0, 1).map(brand =>
+                              brand.href ? (
+                                <a
+                                  key={brand.id}
+                                  href={brand.href}
+                                  className="group flex w-full items-center justify-between gap-3 rounded-xl px-4 py-2.5 pl-7 text-left text-sm font-medium text-slate-700 transition hover:bg-[var(--brand-accent-soft)] hover:text-[var(--brand-accent)]"
+                                  onClick={() => setOpen(false)}
+                                >
+                                  <div className="flex min-w-0 items-center gap-3">
+                                    {brand.logoIconUrl ? (
+                                      <Image
+                                        src={brand.logoIconUrl}
+                                        alt={`${brand.name} logo`}
+                                        width={36}
+                                        height={36}
+                                        className="h-8 w-8 shrink-0 rounded-full border border-slate-200 object-cover"
+                                        unoptimized
+                                      />
+                                    ) : (
+                                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 bg-slate-50 text-xs font-bold uppercase text-slate-500">
+                                        {brandInitial(brand.name)}
+                                      </span>
+                                    )}
+                                    <div className="min-w-0">
+                                      <div className="truncate text-[15px]">{brand.name}</div>
+                                      <div className="truncate text-xs leading-tight text-slate-600">
+                                        {brand.location}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-[var(--brand-accent)]" />
-                              </a>
-                            ) : (
-                              <span
-                                key={brand.id}
-                                className="flex w-full cursor-not-allowed items-center justify-between gap-3 rounded-xl px-4 py-2.5 pl-7 text-left text-sm font-medium text-slate-400"
-                              >
-                                <div className="flex min-w-0 items-center gap-3">
-                                  {brand.logoIconUrl ? (
-                                    <Image
-                                      src={brand.logoIconUrl}
-                                      alt={`${brand.name} logo`}
-                                      width={36}
-                                      height={36}
-                                      className="h-8 w-8 shrink-0 rounded-full border border-slate-200 object-cover"
-                                      unoptimized
-                                    />
-                                  ) : (
-                                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-xs font-bold uppercase text-slate-500">
-                                      {brandInitial(brand.name)}
-                                    </span>
-                                  )}
-                                  <div className="min-w-0">
-                                    <div className="truncate text-[15px]">{brand.name}</div>
-                                    <div className="truncate text-xs leading-tight text-slate-500">
-                                      {brand.location}
+                                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-[var(--brand-accent)]" />
+                                </a>
+                              ) : (
+                                <span
+                                  key={brand.id}
+                                  className="flex w-full cursor-not-allowed items-center justify-between gap-3 rounded-xl px-4 py-2.5 pl-7 text-left text-sm font-medium text-slate-400"
+                                >
+                                  <div className="flex min-w-0 items-center gap-3">
+                                    {brand.logoIconUrl ? (
+                                      <Image
+                                        src={brand.logoIconUrl}
+                                        alt={`${brand.name} logo`}
+                                        width={36}
+                                        height={36}
+                                        className="h-8 w-8 shrink-0 rounded-full border border-slate-200 object-cover"
+                                        unoptimized
+                                      />
+                                    ) : (
+                                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-xs font-bold uppercase text-slate-500">
+                                        {brandInitial(brand.name)}
+                                      </span>
+                                    )}
+                                    <div className="min-w-0">
+                                      <div className="truncate text-[15px]">{brand.name}</div>
+                                      <div className="truncate text-xs leading-tight text-slate-500">
+                                        {brand.location}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                                  Soon
+                                  <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                                    Soon
+                                  </span>
                                 </span>
-                              </span>
-                            )
-                          )}
+                              )
+                            )}
+                          </div>
                           <Link
                             href="/programs/discover"
                             className="block w-full rounded-xl px-4 py-2.5 pl-7 text-left text-sm font-medium text-slate-700 transition hover:bg-[var(--brand-accent-soft)] hover:text-[var(--brand-accent)]"

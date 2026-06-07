@@ -116,37 +116,58 @@ export default function HeroSection({
               <div className={heroTheme.breadcrumbMobileOuter}>
                 <div className={heroTheme.breadcrumbMobilePill}>
                   <div className={heroTheme.breadcrumbMobileRow}>
-                    {breadcrumb.slice(-2).map((b, i, arr) => (
-                      <React.Fragment key={`${b.label}_${i}`}>
-                        <a
-                          href={b.href ?? '#'}
-                          className={heroTheme.breadcrumbMobileLink}
-                          title={b.label}
-                        >
-                          {b.label}
-                        </a>
-                        {i < arr.length - 1 ? (
-                          <span aria-hidden className={heroTheme.breadcrumbMobileSep}>
-                            ›
-                          </span>
-                        ) : null}
-                      </React.Fragment>
-                    ))}
+                    {breadcrumb.slice(-2).map((b, i, arr) => {
+                      const isLast = i === arr.length - 1;
+                      return (
+                        <React.Fragment key={`${b.label}_${i}`}>
+                          {isLast ? (
+                            <span
+                              className={heroTheme.breadcrumbMobileLink}
+                              title={b.label}
+                            >
+                              {b.label}
+                            </span>
+                          ) : (
+                            <a
+                              href={b.href ?? '#'}
+                              className={heroTheme.breadcrumbMobileLink}
+                              title={b.label}
+                            >
+                              {b.label}
+                            </a>
+                          )}
+                          {i < arr.length - 1 ? (
+                            <span aria-hidden className={heroTheme.breadcrumbMobileSep}>
+                              ›
+                            </span>
+                          ) : null}
+                        </React.Fragment>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
               <div className={heroTheme.breadcrumbDesktopOuter}>
-                {breadcrumb.map((b, i) => (
-                  <React.Fragment key={i}>
-                    <a href={b.href ?? '#'} className={heroTheme.breadcrumbDesktopLink}>
-                      {b.label}
-                    </a>
-                    {i < breadcrumb.length - 1 ? (
-                      <span aria-hidden className={heroTheme.breadcrumbDesktopSep} />
-                    ) : null}
-                  </React.Fragment>
-                ))}
+                {breadcrumb.map((b, i) => {
+                  const isLast = i === breadcrumb.length - 1;
+                  return (
+                    <React.Fragment key={i}>
+                      {isLast ? (
+                        <span className={heroTheme.breadcrumbDesktopLink}>
+                          {b.label}
+                        </span>
+                      ) : (
+                        <a href={b.href ?? '#'} className={heroTheme.breadcrumbDesktopLink}>
+                          {b.label}
+                        </a>
+                      )}
+                      {i < breadcrumb.length - 1 ? (
+                        <span aria-hidden className={heroTheme.breadcrumbDesktopSep} />
+                      ) : null}
+                    </React.Fragment>
+                  );
+                })}
               </div>
             </div>
           ) : null}

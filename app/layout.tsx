@@ -17,7 +17,7 @@ import RegistrationCountdownGate from '@/components/layout/RegistrationCountdown
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
 import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
 import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
-import { resolveActiveRegistrationDeadline } from '@/lib/registration/deadline';
+import { resolveActiveRegistrationDeadline, resolveActiveRegistration, RegistrationCategory } from '@/lib/registration/deadline';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -125,6 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let brandAccent: string | null = null;
   let settingsData = null;
   let registrationCloseDate: string | null = null;
+  let registerUrl: string = '/register';
 
   const [settingsResult] = await Promise.allSettled([getSettingsForBrandDomain(host)]);
 
@@ -144,15 +145,29 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       try {
         const program = await getProgramDetail(programSlug, host);
         let tierDeadline: string | null = null;
+        let activeCategory: RegistrationCategory | null = null;
         if (program?.id) {
           try {
             const pricingTiers = await getProgramPricingTiers(program.id, host);
-            tierDeadline = resolveActiveRegistrationDeadline(pricingTiers, new Date());
+            const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
+            if (activeRegistration) {
+              tierDeadline = activeRegistration.deadline;
+              activeCategory = activeRegistration.category;
+            }
           } catch (tierError) {
             console.error('[Layout] Failed to fetch pricing tiers:', tierError);
           }
         }
         registrationCloseDate = tierDeadline ?? program?.registrationCloseDate ?? null;
+
+        // Nentuin  URL pendaftarannya berdasarkan kategori aktif.
+        if (activeCategory === 'fully_funded') {
+          registerUrl = '/apply/fully-funded';
+        } else if (activeCategory === 'self_funded') {
+          registerUrl = '/apply/self-funded';
+        } else {
+          registerUrl = '/register';
+        }
       } catch (error) {
         console.error('[Layout] Failed to fetch program detail:', error);
       }
@@ -202,7 +217,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ClientCTAGate />
             <BackToTop />
             <ClientFooterGate />
-            <StickyBottomBarGate deadline={registrationCloseDate} registerUrl="/register" />
+            <StickyBottomBarGate deadline={registrationCloseDate} registerUrl={registerUrl} />
           </PromoCTAProvider>
         </SettingsProvider>
 

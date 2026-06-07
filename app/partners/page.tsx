@@ -56,8 +56,8 @@ export default async function PartnersSponsorsPage() {
         bgImage={heroMedia.bgImage ?? '/img/sponsorpartnershipbg.png'}
         galleryImages={heroMedia.galleryImages}
         breadcrumb={[
-          { href: `/${partnersPage.slug}`, label: partnersPage.slug },
-          { href: `/${partnersPage.slug}`, label: partnersPage.title },
+          { href: '/', label: 'Home' },
+          { href: '/partners', label: 'Partners & Sponsors' },
         ]}
       />
 

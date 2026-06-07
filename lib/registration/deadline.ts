@@ -91,3 +91,27 @@ export function resolveActiveRegistrationDeadline(
 
   return null;
 }
+
+/**
+ * Selesein kategori pendaftaran aktif sama deadlinenya secara bersamaan.
+ * ngembaliin objek yang isinya kategori sama tenggat waktu, atau kasih null klo gk ada pendaftaran aktif
+ */
+export function resolveActiveRegistration(
+  tiers: DeadlineTier[] | null | undefined,
+  now: Date,
+): { category: RegistrationCategory; deadline: string } | null {
+  if (!tiers || tiers.length === 0) return null;
+  const nowMs = now.getTime();
+
+  const fullyFundedClose = getRegistrationCloseForCategory(tiers, 'fully_funded');
+  if (fullyFundedClose && (parseDate(fullyFundedClose) ?? 0) > nowMs) {
+    return { category: 'fully_funded', deadline: fullyFundedClose };
+  }
+
+  const selfFundedClose = getRegistrationCloseForCategory(tiers, 'self_funded');
+  if (selfFundedClose && (parseDate(selfFundedClose) ?? 0) > nowMs) {
+    return { category: 'self_funded', deadline: selfFundedClose };
+  }
+
+  return null;
+}
