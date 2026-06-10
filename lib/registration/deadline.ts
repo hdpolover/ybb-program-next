@@ -91,3 +91,38 @@ export function resolveActiveRegistrationDeadline(
 
   return null;
 }
+
+/**
+ * Resolve the active registration category and its deadline together.
+ * Returns `{ category, deadline }` for the first open window (fully funded
+ * checked first), or null when no registration window is currently open.
+ */
+export function resolveActiveRegistration(
+  tiers: DeadlineTier[] | null | undefined,
+  now: Date,
+): { category: RegistrationCategory; deadline: string } | null {
+  if (!tiers || tiers.length === 0) return null;
+  const nowMs = now.getTime();
+
+  const fullyFundedClose = getRegistrationCloseForCategory(tiers, 'fully_funded');
+  if (fullyFundedClose) {
+    const ms = parseDate(fullyFundedClose);
+    if (ms === null) {
+      console.warn('[deadline] unparseable fully_funded close date', fullyFundedClose);
+    } else if (ms > nowMs) {
+      return { category: 'fully_funded', deadline: fullyFundedClose };
+    }
+  }
+
+  const selfFundedClose = getRegistrationCloseForCategory(tiers, 'self_funded');
+  if (selfFundedClose) {
+    const ms = parseDate(selfFundedClose);
+    if (ms === null) {
+      console.warn('[deadline] unparseable self_funded close date', selfFundedClose);
+    } else if (ms > nowMs) {
+      return { category: 'self_funded', deadline: selfFundedClose };
+    }
+  }
+
+  return null;
+}

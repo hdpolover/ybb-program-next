@@ -1,10 +1,10 @@
-// Kartu kategori pendaftaran — vibes mirip referensi tapi tetep tema kita
 import StatusBadge from '@/components/dashboard/ui/StatusBadge';
+import type { FundingType } from '@/lib/dashboard/types';
 
 export default function RegistrationCategoryCard({
   funding = 'fully_funded',
 }: {
-  funding?: 'fully_funded' | 'self_funded' | 'partial';
+  funding?: FundingType;
 }) {
   return (
     <div className="overflow-hidden rounded-2xl bg-white p-5 shadow-[0_12px_40px_rgba(2,6,23,0.12)] ring-1 ring-slate-200">

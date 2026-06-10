@@ -17,7 +17,7 @@ import RegistrationCountdownGate from '@/components/layout/RegistrationCountdown
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
 import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
 import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
-import { resolveActiveRegistrationDeadline } from '@/lib/registration/deadline';
+import { resolveActiveRegistrationDeadline, resolveActiveRegistration, RegistrationCategory } from '@/lib/registration/deadline';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -126,6 +126,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let settingsData = null;
   let registrationCloseDate: string | null = null;
   let activeProgramSlug = process.env.YBB_PROGRAM_SLUG?.trim() || null;
+  let registerUrl = '/register';
+  let activeCategory: RegistrationCategory | null = null;
 
   const [settingsResult] = await Promise.allSettled([getSettingsForBrandDomain(host)]);
 
@@ -148,7 +150,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         if (program?.id) {
           try {
             const pricingTiers = await getProgramPricingTiers(program.id, host);
-            tierDeadline = resolveActiveRegistrationDeadline(pricingTiers, new Date());
+            const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
+            if (activeRegistration) {
+              tierDeadline = activeRegistration.deadline;
+              activeCategory = activeRegistration.category;
+            }
           } catch (tierError) {
             console.error('[Layout] Failed to fetch pricing tiers:', tierError);
           }
@@ -158,16 +164,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         console.error('[Layout] Failed to fetch program detail:', error);
       }
     }
+
+    if (activeCategory === 'fully_funded') {
+      registerUrl = '/apply/fully-funded';
+    } else if (activeCategory === 'self_funded') {
+      registerUrl = '/apply/self-funded';
+    }
   } else {
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
   }
 
-  // fallback ke default klo emg gk ada dua dua nya
   if (!brandAccent) {
     brandAccent = normalizeHex(process.env.NEXT_PUBLIC_DEFAULT_BRAND_COLOR) || '#1c57b3';
-    console.log('[Layout] Using fallback theme:', brandAccent);
-  } else {
-    console.log('[Layout] Theme loaded from API:', brandAccent);
   }
 
   const programSlug = activeProgramSlug || 'ybb';
@@ -208,7 +216,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ClientFooterGate />
             <StickyBottomBarGate
               deadline={registrationCloseDate}
-              registerUrl="/register"
+              registerUrl={registerUrl}
               activeProgramSlug={activeProgramSlug}
             />
           </PromoCTAProvider>

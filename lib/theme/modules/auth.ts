@@ -52,7 +52,7 @@ export const authTheme = {
   onboarding: {
     layoutGrid: 'grid min-h-screen w-full grid-cols-1 lg:h-screen lg:overflow-hidden lg:grid-cols-[1fr_minmax(0,45%)]',
     leftCol: 'relative bg-white flex flex-col min-h-screen lg:h-screen lg:rounded-r-3xl',
-    leftCenter: 'flex-1 overflow-y-auto flex flex-col items-center justify-start px-5 pt-0 pb-8 sm:px-6 lg:justify-center lg:px-4 lg:py-2 w-full',
+    leftCenter: 'flex-1 overflow-y-auto flex flex-col items-center px-5 pt-0 pb-8 sm:px-6 sm:pb-10 lg:px-12 lg:py-12 w-full',
     mobileImagePanel: 'relative -mx-5 mb-5 h-36 w-[calc(100%+2.5rem)] overflow-hidden sm:-mx-6 sm:h-40 sm:w-[calc(100%+3rem)] lg:hidden',
     mobileImageOverlay: 'absolute inset-0 bg-gradient-to-t from-slate-900/35 via-slate-900/10 to-transparent',
     logoWrapper: 'mb-5 sm:mb-8',
