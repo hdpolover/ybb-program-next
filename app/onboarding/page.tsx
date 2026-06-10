@@ -532,7 +532,7 @@ export default function OnboardingPage() {
       <div className={onboardingTheme.layoutGrid}>
         <div className={onboardingTheme.leftCol}>
           <div className={onboardingTheme.leftCenter}>
-            <div className="w-full max-w-lg my-auto flex flex-col">
+            <div className="w-full max-w-lg lg:my-auto flex flex-col">
               <div className={onboardingTheme.mobileImagePanel}>
                 <Image
                   src={loginImageSrc}
