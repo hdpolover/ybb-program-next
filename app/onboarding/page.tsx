@@ -11,8 +11,9 @@ import { getCities, getCountries, getGenders, getKnowledgeSources, getStates } f
 import { useSettings } from '@/components/providers/SettingsProvider';
 import StyledSelect from '@/components/ui/StyledSelect';
 import { FormField } from '@/components/ui/FormField';
-import { User, Users, MapPin, Globe, Building, Gift, Map as MapIcon } from 'lucide-react';
+import { User, Users, MapPin, Globe, Building, Gift, Map as MapIcon, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
+import { toast } from 'sonner';
 
 
 export default function OnboardingPage() {
@@ -52,6 +53,7 @@ export default function OnboardingPage() {
   const [programSourceModalOpen, setProgramSourceModalOpen] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [referralStatus, setReferralStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid' | 'unknown'>('idle');
 
   const [form, setForm] = useState<OnboardingForm>({
     fullName: '',
@@ -178,6 +180,27 @@ export default function OnboardingPage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const code = form.referralCode.trim();
+    if (!code) {
+      setReferralStatus('idle');
+      return;
+    }
+    setReferralStatus('checking');
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/referral/validate?code=${encodeURIComponent(code)}`);
+        const json = await res.json().catch(() => ({})) as { valid: boolean | null };
+        if (json.valid === true) setReferralStatus('valid');
+        else if (json.valid === false) setReferralStatus('invalid');
+        else setReferralStatus('unknown');
+      } catch {
+        setReferralStatus('unknown');
+      }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [form.referralCode]);
 
   const loginImageSrc = heroImages[imageIndex] ?? heroImages[0] ?? LOGIN_IMAGES[0];
 
@@ -376,23 +399,43 @@ export default function OnboardingPage() {
     setSubmitError('');
 
     try {
-      const payload = {
+      const basePayload = {
         fullName: form.fullName,
         gender: form.gender,
-        referralCode: form.referralCode || undefined,
         knowledgeSource: form.programSource,
         originCountry: selectedCountry?.isoCode || form.country,
         originCity: form.city,
         birthDate: form.birthDate,
       };
 
-      const res = await fetch('/api/participants/onboarding', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      // Skip referral on submit if it's already confirmed invalid
+      const referralToSend = referralStatus === 'invalid' ? undefined : (form.referralCode || undefined);
+
+      const doSubmit = (referralCode: string | undefined) =>
+        fetch('/api/participants/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...basePayload, referralCode }),
+        });
+
+      let res = await doSubmit(referralToSend);
+
+      if (res.status === 401) {
+        toast.error('Your session has expired. Please sign in again.');
+        router.push('/login');
+        return;
+      }
+
+      // Auto-retry without referral if it failed and a referral code was sent
+      if (!res.ok && referralToSend) {
+        const retryRes = await doSubmit(undefined);
+        if (retryRes.status === 401) {
+          toast.error('Your session has expired. Please sign in again.');
+          router.push('/login');
+          return;
+        }
+        res = retryRes;
+      }
 
       const json = (await res.json().catch(() => ({}))) as {
         statusCode?: number;
@@ -819,22 +862,48 @@ export default function OnboardingPage() {
                       )}
                     </div>
 
-                    <FormField
-                      label="Referral Code"
-                      icon={User}
-                      required={false}
-                    >
-                      {(errorClass) => (
-                      <EnglishTextInput
-                        name="referralCode"
-                        value={form.referralCode}
-                        onChange={onChange}
-                        type="text"
-                        className={`${componentsTheme.login.input} ${errorClass}`}
-                        placeholder="ABC-123"
-                      />
+                    <div>
+                      <FormField
+                        label="Referral Code"
+                        icon={User}
+                        required={false}
+                      >
+                        {(errorClass) => (
+                          <EnglishTextInput
+                            name="referralCode"
+                            value={form.referralCode}
+                            onChange={onChange}
+                            type="text"
+                            className={`${componentsTheme.login.input} ${errorClass} ${
+                              referralStatus === 'valid'
+                                ? '!border-emerald-400 focus:!border-emerald-500 focus:!ring-emerald-500/20'
+                                : referralStatus === 'invalid'
+                                  ? '!border-amber-400 focus:!border-amber-500 focus:!ring-amber-500/20'
+                                  : ''
+                            }`}
+                            placeholder="ABC-123"
+                          />
+                        )}
+                      </FormField>
+                      {form.referralCode.trim() && referralStatus === 'checking' && (
+                        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Checking code…
+                        </p>
                       )}
-                    </FormField>
+                      {referralStatus === 'valid' && (
+                        <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Valid referral code
+                        </p>
+                      )}
+                      {referralStatus === 'invalid' && (
+                        <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          Code not recognized — will be skipped if you continue
+                        </p>
+                      )}
+                    </div>
                   </>
                 ) : null}
 
