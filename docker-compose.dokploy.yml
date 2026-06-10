@@ -31,9 +31,30 @@ services:
       - NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}
       - NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID}
       - NEXT_PUBLIC_BRAND_DOMAIN=${NEXT_PUBLIC_BRAND_DOMAIN}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - API_INTERNAL_URL=${API_INTERNAL_URL}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.services.ybb-program-next.loadbalancer.server.port=3000
+      # middleeastyouthsummit.com
+      - traefik.http.routers.ybb-program-next-meys.rule=Host(`middleeastyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-meys.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-meys.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-meys.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-meys-http.rule=Host(`middleeastyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-meys-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-meys-http.middlewares=redirect-to-https@file
+      # chinayouthsummit.com
+      - traefik.http.routers.ybb-program-next-china.rule=Host(`chinayouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-china.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-china.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-china.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-china-http.rule=Host(`chinayouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-china-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-china-http.middlewares=redirect-to-https@file
     networks:
       - dokploy-network
-    # Dokploy handles Traefik labels and SSL termination automatically via the UI
 
 networks:
   dokploy-network:
