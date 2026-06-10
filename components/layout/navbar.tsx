@@ -843,7 +843,7 @@ export function Navbar() {
                             {settings?.brand?.name ? `${item} (${settings.brand.name})` : item}
                           </a>
                           <div className="max-h-[250px] overflow-y-auto space-y-2">
-                            {otherBrandProgramLinks.slice(0, 1).map(brand =>
+                            {otherBrandProgramLinks.map(brand =>
                               brand.href ? (
                                 <a
                                   key={brand.id}

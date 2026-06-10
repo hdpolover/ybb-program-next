@@ -93,8 +93,9 @@ export function resolveActiveRegistrationDeadline(
 }
 
 /**
- * Selesein kategori pendaftaran aktif sama deadlinenya secara bersamaan.
- * ngembaliin objek yang isinya kategori sama tenggat waktu, atau kasih null klo gk ada pendaftaran aktif
+ * Resolve the active registration category and its deadline together.
+ * Returns `{ category, deadline }` for the first open window (fully funded
+ * checked first), or null when no registration window is currently open.
  */
 export function resolveActiveRegistration(
   tiers: DeadlineTier[] | null | undefined,
@@ -104,13 +105,23 @@ export function resolveActiveRegistration(
   const nowMs = now.getTime();
 
   const fullyFundedClose = getRegistrationCloseForCategory(tiers, 'fully_funded');
-  if (fullyFundedClose && (parseDate(fullyFundedClose) ?? 0) > nowMs) {
-    return { category: 'fully_funded', deadline: fullyFundedClose };
+  if (fullyFundedClose) {
+    const ms = parseDate(fullyFundedClose);
+    if (ms === null) {
+      console.warn('[deadline] unparseable fully_funded close date', fullyFundedClose);
+    } else if (ms > nowMs) {
+      return { category: 'fully_funded', deadline: fullyFundedClose };
+    }
   }
 
   const selfFundedClose = getRegistrationCloseForCategory(tiers, 'self_funded');
-  if (selfFundedClose && (parseDate(selfFundedClose) ?? 0) > nowMs) {
-    return { category: 'self_funded', deadline: selfFundedClose };
+  if (selfFundedClose) {
+    const ms = parseDate(selfFundedClose);
+    if (ms === null) {
+      console.warn('[deadline] unparseable self_funded close date', selfFundedClose);
+    } else if (ms > nowMs) {
+      return { category: 'self_funded', deadline: selfFundedClose };
+    }
   }
 
   return null;

@@ -126,6 +126,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let settingsData = null;
   let registrationCloseDate: string | null = null;
   let activeProgramSlug = process.env.YBB_PROGRAM_SLUG?.trim() || null;
+  let registerUrl = '/register';
+  let activeCategory: RegistrationCategory | null = null;
 
   const [settingsResult] = await Promise.allSettled([getSettingsForBrandDomain(host)]);
 
@@ -145,7 +147,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       try {
         const program = await getProgramDetail(activeProgramSlug, host);
         let tierDeadline: string | null = null;
-        let activeCategory: RegistrationCategory | null = null;
         if (program?.id) {
           try {
             const pricingTiers = await getProgramPricingTiers(program.id, host);
@@ -159,29 +160,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }
         }
         registrationCloseDate = tierDeadline ?? program?.registrationCloseDate ?? null;
-
-        // Nentuin  URL pendaftarannya berdasarkan kategori aktif.
-        if (activeCategory === 'fully_funded') {
-          activeProgramSlug = '/apply/fully-funded';
-        } else if (activeCategory === 'self_funded') {
-          activeProgramSlug = '/apply/self-funded';
-        } else {
-          activeProgramSlug = '/register';
-        }
       } catch (error) {
         console.error('[Layout] Failed to fetch program detail:', error);
       }
+    }
+
+    if (activeCategory === 'fully_funded') {
+      registerUrl = '/apply/fully-funded';
+    } else if (activeCategory === 'self_funded') {
+      registerUrl = '/apply/self-funded';
     }
   } else {
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
   }
 
-  // fallback ke default klo emg gk ada dua dua nya
   if (!brandAccent) {
     brandAccent = normalizeHex(process.env.NEXT_PUBLIC_DEFAULT_BRAND_COLOR) || '#1c57b3';
-    console.log('[Layout] Using fallback theme:', brandAccent);
-  } else {
-    console.log('[Layout] Theme loaded from API:', brandAccent);
   }
 
   const programSlug = activeProgramSlug || 'ybb';
@@ -222,7 +216,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ClientFooterGate />
             <StickyBottomBarGate
               deadline={registrationCloseDate}
-              registerUrl={activeProgramSlug || '/register'}
+              registerUrl={registerUrl}
               activeProgramSlug={activeProgramSlug}
             />
           </PromoCTAProvider>
