@@ -532,7 +532,7 @@ export default function OnboardingPage() {
       <div className={onboardingTheme.layoutGrid}>
         <div className={onboardingTheme.leftCol}>
           <div className={onboardingTheme.leftCenter}>
-            <div className="w-full max-w-lg min-h-full flex flex-col">
+            <div className="w-full max-w-lg my-auto flex flex-col">
               <div className={onboardingTheme.mobileImagePanel}>
                 <Image
                   src={loginImageSrc}
@@ -877,7 +877,7 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <p className="mt-auto pt-6 text-center text-xs text-slate-400">
+              <p className="mt-8 text-center text-xs text-slate-400">
                 Copyright &copy; {new Date().getFullYear()} {brandName}
               </p>
             </div>
