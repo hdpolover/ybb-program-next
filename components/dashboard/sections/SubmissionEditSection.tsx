@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ImageIcon, Info, PencilLine } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ImageIcon, Info, Loader2, PencilLine } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -481,6 +481,9 @@ export default function SubmissionEditSection() {
   const [submitting, setSubmitting] = useState(false);
   const [canScrollStepperPrev, setCanScrollStepperPrev] = useState(false);
   const [canScrollStepperNext, setCanScrollStepperNext] = useState(false);
+  const [referralFieldStatuses, setReferralFieldStatuses] = useState<
+    Record<string, 'idle' | 'checking' | 'valid' | 'invalid' | 'unknown'>
+  >({});
 
   // Generate localStorage key unik buat tiap user & program
   const localStorageKey = `submission_autosave_${me?.userId || "guest"}_${selectedProgramId || "default"}`;
@@ -673,6 +676,43 @@ export default function SubmissionEditSection() {
     }));
   };
 
+  const isReferralField = (fieldName: string) =>
+    /^ref_code/i.test(fieldName) || /referral_code/i.test(fieldName);
+
+  useEffect(() => {
+    const allValues = Object.values(sectionValues).flatMap(sv => Object.entries(sv));
+    const referralEntries = allValues.filter(([name]) => isReferralField(name));
+
+    if (referralEntries.length === 0) return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    for (const [name, code] of referralEntries) {
+      const trimmed = (code as string).trim();
+      if (!trimmed) {
+        setReferralFieldStatuses(prev => ({ ...prev, [name]: 'idle' }));
+        continue;
+      }
+      setReferralFieldStatuses(prev => ({ ...prev, [name]: 'checking' }));
+      const timer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/referral/validate?code=${encodeURIComponent(trimmed)}`);
+          const json = await res.json().catch(() => ({})) as { valid: boolean | null };
+          setReferralFieldStatuses(prev => ({
+            ...prev,
+            [name]: json.valid === true ? 'valid' : json.valid === false ? 'invalid' : 'unknown',
+          }));
+        } catch {
+          setReferralFieldStatuses(prev => ({ ...prev, [name]: 'unknown' }));
+        }
+      }, 700);
+      timers.push(timer);
+    }
+
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sectionValues]);
+
   const saveActiveSection = async () => {
     if (!activeSection) return;
 
@@ -680,28 +720,67 @@ export default function SubmissionEditSection() {
     setError(null);
 
     try {
-      const sectionPayload = sectionValues[activeSection.id] || {};
-      const requests: Promise<Response>[] = [
-        fetch(appendProgramId(`/api/portal/submissions/sections/${activeSection.id}`, selectedProgramId), {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data: sectionPayload }),
-        }),
-      ];
+      const rawPayload = sectionValues[activeSection.id] || {};
 
-      if (activeSection.id === "entry_information" && sectionEssays.length > 0) {
-        requests.push(
-          fetch(appendProgramId("/api/portal/submissions/sections/essays", selectedProgramId), {
+      // Strip referral fields already confirmed invalid so they don't block save
+      const sectionPayload = Object.fromEntries(
+        Object.entries(rawPayload).map(([k, v]) =>
+          isReferralField(k) && referralFieldStatuses[k] === 'invalid' ? [k, ''] : [k, v],
+        ),
+      );
+
+      const buildRequests = (payload: Record<string, unknown>): Promise<Response>[] => {
+        const reqs: Promise<Response>[] = [
+          fetch(appendProgramId(`/api/portal/submissions/sections/${activeSection.id}`, selectedProgramId), {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: Object.fromEntries(sectionEssays.map(essay => [essay.id, essayValues[essay.id] || ""])) }),
+            body: JSON.stringify({ data: payload }),
           }),
-        );
-      }
+        ];
+        if (activeSection.id === "entry_information" && sectionEssays.length > 0) {
+          reqs.push(
+            fetch(appendProgramId("/api/portal/submissions/sections/essays", selectedProgramId), {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ data: Object.fromEntries(sectionEssays.map(essay => [essay.id, essayValues[essay.id] || ""])) }),
+            }),
+          );
+        }
+        return reqs;
+      };
 
-      const responses = await Promise.all(requests);
-      const results = await Promise.all(responses.map(response => response.json().catch(() => null)));
-      const failed = responses.findIndex(response => !response.ok);
+      let responses = await Promise.all(buildRequests(sectionPayload));
+      let results = await Promise.all(responses.map(r => r.json().catch(() => null)));
+      let failed = responses.findIndex(r => !r.ok);
+
+      // Auto-retry: if save failed and section has referral fields with values, strip them and retry
+      if (failed >= 0) {
+        const hasReferralValues = Object.entries(sectionPayload).some(
+          ([k, v]) => isReferralField(k) && typeof v === 'string' && v.trim().length > 0,
+        );
+        if (hasReferralValues) {
+          const strippedPayload = Object.fromEntries(
+            Object.entries(sectionPayload).map(([k, v]) => isReferralField(k) ? [k, ''] : [k, v]),
+          );
+          const retryResponses = await Promise.all(buildRequests(strippedPayload));
+          const retryResults = await Promise.all(retryResponses.map(r => r.json().catch(() => null)));
+          const retryFailed = retryResponses.findIndex(r => !r.ok);
+          if (retryFailed < 0) {
+            // Retry succeeded — mark referral fields as invalid in state so user sees feedback
+            const referralKeys = Object.keys(sectionPayload).filter(isReferralField);
+            setReferralFieldStatuses(prev => ({
+              ...prev,
+              ...Object.fromEntries(referralKeys.map(k => [k, 'invalid' as const])),
+            }));
+            responses = retryResponses;
+            results = retryResults;
+            failed = -1;
+          } else {
+            results = retryResults;
+            failed = retryFailed;
+          }
+        }
+      }
 
       if (failed >= 0) {
         throw new Error(getErrorMessage(results[failed], "Failed to save submission section"));
@@ -881,6 +960,44 @@ export default function SubmissionEditSection() {
     const inputType = field.type === "date" || field.type === "url" ? field.type : "text";
     if (inputType === "text") {
       const isNameField = /name/i.test(field.name) || /name/i.test(field.label);
+
+      if (isReferralField(field.name)) {
+        const status = referralFieldStatuses[field.name] ?? 'idle';
+        return (
+          <div className="w-full">
+            <EnglishTextInput
+              type="text"
+              className={`${submissionTheme.editInputBase} ${
+                status === 'valid'
+                  ? 'border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/20'
+                  : status === 'invalid'
+                    ? 'border-amber-400 focus:border-amber-500 focus:ring-amber-500/20'
+                    : ''
+              }`}
+              value={value}
+              onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
+              placeholder={field.placeholder || "ABC-123"}
+              restrictMode="general"
+            />
+            {value.trim() && status === 'checking' && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
+                <Loader2 className="h-3 w-3 animate-spin" /> Checking code…
+              </p>
+            )}
+            {status === 'valid' && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Valid referral code
+              </p>
+            )}
+            {status === 'invalid' && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
+                <AlertTriangle className="h-3.5 w-3.5" /> Code not recognized — will be skipped when saving
+              </p>
+            )}
+          </div>
+        );
+      }
+
       return (
         <EnglishTextInput
           type="text"
