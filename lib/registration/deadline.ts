@@ -5,11 +5,12 @@ import type { ProgramPricingTier } from '@/lib/api/programs';
  *
  * The deadline shown by the homepage countdowns follows the program's
  * registration-fee windows rather than a single program-level field:
- *   1. While the FULLY FUNDED registration window is still open, count down to
- *      its close date.
- *   2. Once the fully funded window has passed, fall back to the SELF FUNDED
- *      registration close date.
- *   3. When both windows have closed, there is no active deadline (null).
+ *   1. While ANY fully funded registration window is still open, count down to
+ *      the nearest upcoming close date for that category. Fully funded is always
+ *      the anchor — as long as any future period exists, it takes precedence.
+ *   2. Once all fully funded windows have closed, fall back to the nearest
+ *      upcoming self funded registration close date.
+ *   3. When both categories have no future windows, there is no active deadline (null).
  *
  * Dates come from each pricing tier's `validityPeriods`, scoped to tiers whose
  * `feeType` is `registration_fee` and whose `allowedCategories` include the
@@ -47,82 +48,60 @@ function parseDate(value: string | null | undefined): number | null {
 }
 
 /**
- * The registration close date for a category: the latest `endDate` across the
- * validity periods of all registration-fee tiers that allow the category.
- * Returns an ISO string, or null when no valid date is configured.
+ * The nearest upcoming registration close date for a category: the minimum
+ * `endDate` greater than `now` across all matching registration-fee tier
+ * validity periods. Returns an ISO string, or null when no future date exists.
  */
 export function getRegistrationCloseForCategory(
   tiers: DeadlineTier[],
   category: RegistrationCategory,
+  now: Date,
 ): string | null {
-  const endDatesMs = tiers
+  const nowMs = now.getTime();
+  const futureEndDatesMs = tiers
     .filter(isRegistrationFeeTier)
     .filter((tier) => tierAllowsCategory(tier, category))
     .flatMap((tier) => tier.validityPeriods ?? [])
     .map((period) => parseDate(period.endDate))
-    .filter((ms): ms is number => ms !== null);
+    .filter((ms): ms is number => ms !== null && ms > nowMs);
 
-  if (endDatesMs.length === 0) return null;
-  return new Date(Math.max(...endDatesMs)).toISOString();
+  if (futureEndDatesMs.length === 0) return null;
+  return new Date(Math.min(...futureEndDatesMs)).toISOString();
 }
 
 /**
- * Resolve the active registration deadline: fully funded close while it is in
- * the future, otherwise self funded close while it is in the future, otherwise
- * null. `now` is injected so callers control the reference clock (and tests
- * stay deterministic).
+ * Resolve the active registration deadline: fully funded close while any
+ * future window exists, otherwise self funded close, otherwise null.
  */
 export function resolveActiveRegistrationDeadline(
   tiers: DeadlineTier[] | null | undefined,
   now: Date,
 ): string | null {
   if (!tiers || tiers.length === 0) return null;
-  const nowMs = now.getTime();
 
-  const fullyFundedClose = getRegistrationCloseForCategory(tiers, 'fully_funded');
-  if (fullyFundedClose && (parseDate(fullyFundedClose) ?? 0) > nowMs) {
-    return fullyFundedClose;
-  }
-
-  const selfFundedClose = getRegistrationCloseForCategory(tiers, 'self_funded');
-  if (selfFundedClose && (parseDate(selfFundedClose) ?? 0) > nowMs) {
-    return selfFundedClose;
-  }
-
-  return null;
+  return (
+    getRegistrationCloseForCategory(tiers, 'fully_funded', now) ??
+    getRegistrationCloseForCategory(tiers, 'self_funded', now) ??
+    null
+  );
 }
 
 /**
  * Resolve the active registration category and its deadline together.
- * Returns `{ category, deadline }` for the first open window (fully funded
- * checked first), or null when no registration window is currently open.
+ * Fully funded is always checked first; if any future window remains it takes
+ * precedence over self funded. Returns null when no open window exists.
  */
 export function resolveActiveRegistration(
   tiers: DeadlineTier[] | null | undefined,
   now: Date,
 ): { category: RegistrationCategory; deadline: string } | null {
   if (!tiers || tiers.length === 0) return null;
-  const nowMs = now.getTime();
 
-  const fullyFundedClose = getRegistrationCloseForCategory(tiers, 'fully_funded');
-  if (fullyFundedClose) {
-    const ms = parseDate(fullyFundedClose);
-    if (ms === null) {
-      console.warn('[deadline] unparseable fully_funded close date', fullyFundedClose);
-    } else if (ms > nowMs) {
-      return { category: 'fully_funded', deadline: fullyFundedClose };
-    }
-  }
+  const fullyFundedClose = getRegistrationCloseForCategory(tiers, 'fully_funded', now);
+  if (fullyFundedClose) return { category: 'fully_funded', deadline: fullyFundedClose };
 
-  const selfFundedClose = getRegistrationCloseForCategory(tiers, 'self_funded');
-  if (selfFundedClose) {
-    const ms = parseDate(selfFundedClose);
-    if (ms === null) {
-      console.warn('[deadline] unparseable self_funded close date', selfFundedClose);
-    } else if (ms > nowMs) {
-      return { category: 'self_funded', deadline: selfFundedClose };
-    }
-  }
+  const selfFundedClose = getRegistrationCloseForCategory(tiers, 'self_funded', now);
+  if (selfFundedClose) return { category: 'self_funded', deadline: selfFundedClose };
 
   return null;
 }

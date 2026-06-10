@@ -17,7 +17,7 @@ import RegistrationCountdownGate from '@/components/layout/RegistrationCountdown
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
 import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
 import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
-import { resolveActiveRegistrationDeadline, resolveActiveRegistration, RegistrationCategory } from '@/lib/registration/deadline';
+import { resolveActiveRegistration, RegistrationCategory } from '@/lib/registration/deadline';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
