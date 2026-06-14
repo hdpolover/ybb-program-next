@@ -1145,9 +1145,9 @@ export default function SubmissionEditSection() {
             const isDraftApplication = detail.status === "draft";
             const previewActionType = detail.previewPrimaryAction?.type;
             const previewActionLabel = detail.previewPrimaryAction?.label;
-            const previewActionEnabled = allChecked ? true : (detail.previewPrimaryAction?.enabled ?? true);
+            const previewActionEnabled = (detail.previewPrimaryAction?.enabled ?? false) && (checklistItems.length === 0 || allChecked);
             const previewActionReason = detail.previewPrimaryAction?.reason;
-            const isPaymentRequired = detail.isRegistrationPaymentRequired ?? false;
+            const isPaymentRequired = detail.isRegistrationPaymentRequired ?? true;
             const isPaymentSettled = isPaymentRequired
               ? (detail.isRegistrationPaymentSettled ?? false)
               : true;
