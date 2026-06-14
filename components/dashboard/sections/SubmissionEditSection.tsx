@@ -472,6 +472,7 @@ export default function SubmissionEditSection() {
   const [sectionValues, setSectionValues] = useState<Record<string, Record<string, string>>>({});
   const [essayValues, setEssayValues] = useState<Record<string, string>>({});
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [previewVisited, setPreviewVisited] = useState(false);
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
   const [programSelectionReady, setProgramSelectionReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -609,17 +610,32 @@ export default function SubmissionEditSection() {
     return detail?.sections.find(section => section.id === activeSectionId) ?? null;
   }, [activeSectionId, detail?.sections]);
 
+  // Mark the Preview step as visited once the participant opens it, so the
+  // stepper can show it "in progress" (and "done" once the app is submitted).
+  useEffect(() => {
+    if (activeSectionId === PREVIEW_STEP_ID) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPreviewVisited(true);
+    }
+  }, [activeSectionId]);
+
   const stepperItems = useMemo(() => {
     if (!detail) return [] as Array<{ id: string; title: string; status: string | null | undefined }>;
+    const previewOpened = previewVisited || activeSectionId === PREVIEW_STEP_ID;
+    const previewStatus = detail.status !== "draft"
+      ? "completed"
+      : previewOpened
+        ? "in_progress"
+        : undefined;
     return [
       ...detail.sections.map(s => {
         const currentValues = sectionValues[s.id] || {};
         const calculatedStatus = calculateSectionStatus(s, currentValues);
         return { id: s.id, title: s.title, status: calculatedStatus };
       }),
-      { id: PREVIEW_STEP_ID, title: "Preview", status: undefined },
+      { id: PREVIEW_STEP_ID, title: "Preview", status: previewStatus },
     ];
-  }, [detail, sectionValues]);
+  }, [detail, sectionValues, previewVisited, activeSectionId]);
 
   const activeSectionIndex = useMemo(() => {
     return stepperItems.findIndex(step => step.id === activeSectionId);
