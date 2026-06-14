@@ -676,8 +676,41 @@ export default function SubmissionEditSection() {
     }));
   };
 
-  const isReferralField = (fieldName: string) =>
-    /^ref_code/i.test(fieldName) || /referral_code/i.test(fieldName);
+  // Dynamic fields are admin-defined in the DB, so a referral code field can
+  // arrive under any key. Detect it resiliently from the key, the visible
+  // label, or an explicit admin `fieldKind` flag, rather than a single rigid
+  // key pattern. Covers ref_code / ref-code / refCode / referralCode /
+  // "Referral Code" (UUID key) / ambassador_code, etc.
+  const fieldLooksLikeReferral = (field: {
+    name?: string;
+    label?: string;
+    validationRules?: Record<string, unknown> | null;
+  }): boolean => {
+    const kind = (field.validationRules as { fieldKind?: unknown } | null | undefined)?.fieldKind;
+    if (typeof kind === 'string' && /referral|ambassador/i.test(kind)) return true;
+    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const looks = (s: string) =>
+      s.includes('referral') ||
+      s.includes('refcode') ||
+      s.includes('ambassadorcode') ||
+      s.includes('ambassadorreferral');
+    return looks(normalize(field.name ?? '')) || looks(normalize(field.label ?? ''));
+  };
+
+  // Resolve referral fields once from the full field definitions (which carry
+  // label + validationRules), then key all the name-based checks off this set
+  // so detection stays consistent across validation, save-stripping, and render.
+  const referralFieldNames = useMemo(() => {
+    const set = new Set<string>();
+    for (const section of detail?.sections ?? []) {
+      for (const field of section.fields) {
+        if (fieldLooksLikeReferral(field)) set.add(field.name);
+      }
+    }
+    return set;
+  }, [detail?.sections]);
+
+  const isReferralField = (fieldName: string) => referralFieldNames.has(fieldName);
 
   useEffect(() => {
     const allValues = Object.values(sectionValues).flatMap(sv => Object.entries(sv));
@@ -979,6 +1012,11 @@ export default function SubmissionEditSection() {
               placeholder={field.placeholder || "ABC-123"}
               restrictMode="general"
             />
+            {status === 'idle' && (
+              <p className="mt-1.5 text-xs text-slate-400">
+                Optional. You can submit with or without a code.
+              </p>
+            )}
             {value.trim() && status === 'checking' && (
               <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
                 <Loader2 className="h-3 w-3 animate-spin" /> Checking code…
@@ -986,12 +1024,12 @@ export default function SubmissionEditSection() {
             )}
             {status === 'valid' && (
               <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Valid referral code
+                <CheckCircle2 className="h-3.5 w-3.5" /> Valid referral code.
               </p>
             )}
             {status === 'invalid' && (
               <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
-                <AlertTriangle className="h-3.5 w-3.5" /> Code not recognized — will be skipped when saving
+                <AlertTriangle className="h-3.5 w-3.5" /> We don’t recognize this code, but that’s no problem. You can still submit without it.
               </p>
             )}
           </div>
