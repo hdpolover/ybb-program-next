@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Circle,
   Clock,
+  Eye,
   FileText,
   ImageIcon,
   Info,
@@ -710,13 +711,23 @@ export default function SubmissionReadSection() {
               <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
             </button>
           ) : null}
-          <Link
-            href="/dashboard/submission/edit"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 sm:px-4 sm:py-2"
-          >
-            <Pencil className="h-4 w-4" />
-            Fill Form
-          </Link>
+          {detail && detail.status !== 'draft' ? (
+            <Link
+              href="/dashboard/submission/edit"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 sm:px-4 sm:py-2"
+            >
+              <Eye className="h-4 w-4" />
+              View Submission
+            </Link>
+          ) : (
+            <Link
+              href="/dashboard/submission/edit"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 sm:px-4 sm:py-2"
+            >
+              <Pencil className="h-4 w-4" />
+              Fill Form
+            </Link>
+          )}
         </div>
       </div>
 

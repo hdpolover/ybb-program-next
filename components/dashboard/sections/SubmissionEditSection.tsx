@@ -468,6 +468,7 @@ export default function SubmissionEditSection() {
   const { me } = useDashboardData();
   const stepperScrollRef = useRef<HTMLDivElement | null>(null);
   const [detail, setDetail] = useState<PortalSubmissionDetail | null>(null);
+  const isLocked = detail ? detail.status !== "draft" : false;
   const [sectionValues, setSectionValues] = useState<Record<string, Record<string, string>>>({});
   const [essayValues, setEssayValues] = useState<Record<string, string>>({});
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -479,6 +480,7 @@ export default function SubmissionEditSection() {
   const [isPreviewSectionsExpanded, setIsPreviewSectionsExpanded] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [canScrollStepperPrev, setCanScrollStepperPrev] = useState(false);
   const [canScrollStepperNext, setCanScrollStepperNext] = useState(false);
   const [referralFieldStatuses, setReferralFieldStatuses] = useState<
@@ -884,7 +886,16 @@ export default function SubmissionEditSection() {
     };
   }, [activeSectionId, stepperItems.length]);
 
-  const renderFieldInput = (section: PortalSubmissionSection, field: PortalSubmissionField) => {
+  useEffect(() => {
+    if (!showSubmitConfirm) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowSubmitConfirm(false);
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [showSubmitConfirm]);
+
+  const renderFieldInput = (section: PortalSubmissionSection, field: PortalSubmissionField, locked: boolean) => {
     const value = sectionValues[section.id]?.[field.name] ?? "";
     // Default phone country follows the participant's selected nationality (else ID).
     const defaultPhoneCountry = findNationalityCountryCode(detail?.sections ?? [], sectionValues);
@@ -913,6 +924,7 @@ export default function SubmissionEditSection() {
               updateFieldValue(section.id, pairedCountryField.name, normalized.countryCode);
               updateFieldValue(section.id, field.name, normalized.phoneNumber);
             }}
+            disabled={locked}
           />
         );
       }
@@ -925,6 +937,8 @@ export default function SubmissionEditSection() {
           value={value}
           onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
           placeholder={field.placeholder || plainTextFromRichText(field.helpText) || ""}
+          disabled={locked}
+          readOnly={locked}
         />
       );
     }
@@ -944,6 +958,7 @@ export default function SubmissionEditSection() {
                   checked={value === optionValue}
                   onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
                   className="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500"
+                  disabled={locked}
                 />
                 <span>{fieldOptionLabel(option)}</span>
               </div>
@@ -959,6 +974,7 @@ export default function SubmissionEditSection() {
           className={submissionTheme.editInputBase}
           value={value}
           onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
+          disabled={locked}
         >
           <option value="">Select an option</option>
           {(field.options || []).map(option => (
@@ -976,6 +992,7 @@ export default function SubmissionEditSection() {
           value={value}
           onChange={code => updateFieldValue(section.id, field.name, code)}
           placeholder={field.placeholder}
+          disabled={locked}
         />
       );
     }
@@ -986,6 +1003,7 @@ export default function SubmissionEditSection() {
           value={value}
           defaultCountry={defaultPhoneCountry}
           onChange={e164 => updateFieldValue(section.id, field.name, e164)}
+          disabled={locked}
         />
       );
     }
@@ -1011,6 +1029,8 @@ export default function SubmissionEditSection() {
               onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
               placeholder={field.placeholder || "ABC-123"}
               restrictMode="general"
+              disabled={locked}
+              readOnly={locked}
             />
             {status === 'idle' && (
               <p className="mt-1.5 text-xs text-slate-400">
@@ -1044,6 +1064,8 @@ export default function SubmissionEditSection() {
           onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
           placeholder={field.placeholder || plainTextFromRichText(field.helpText) || ""}
           restrictMode={isNameField ? "name" : "general"}
+          disabled={locked}
+          readOnly={locked}
         />
       );
     }
@@ -1054,6 +1076,8 @@ export default function SubmissionEditSection() {
         value={value}
         onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
         placeholder={field.placeholder || plainTextFromRichText(field.helpText) || ""}
+        disabled={locked}
+        readOnly={locked}
       />
     );
   };
@@ -1182,7 +1206,6 @@ export default function SubmissionEditSection() {
             const allChecked = checklistItems.every(item => checkedItems.has(item));
             const isDraftApplication = detail.status === "draft";
             const previewActionType = detail.previewPrimaryAction?.type;
-            const previewActionLabel = detail.previewPrimaryAction?.label;
             const previewActionEnabled = (detail.previewPrimaryAction?.enabled ?? false) && (checklistItems.length === 0 || allChecked);
             const previewActionReason = detail.previewPrimaryAction?.reason;
             const isPaymentRequired = detail.isRegistrationPaymentRequired ?? true;
@@ -1192,12 +1215,8 @@ export default function SubmissionEditSection() {
             const canSubmit = isDraftApplication && allChecked && isPaymentSettled && previewActionEnabled;
             const shouldGoToPayment =
               isDraftApplication && (previewActionType === "complete_payment" || !isPaymentSettled);
-            const shouldShowSubmitButton = isDraftApplication && !shouldGoToPayment;
             const isSubmissionLocked = !isDraftApplication || !previewActionEnabled;
             const validationMessages = [
-              ...(!isDraftApplication
-                ? [previewActionReason || `Application is already in "${detail.status}" status.`]
-                : []),
               ...(isDraftApplication && !previewActionEnabled
                 ? [previewActionReason || "Submission is not available right now."]
                 : []),
@@ -1220,9 +1239,6 @@ export default function SubmissionEditSection() {
 
             const handleSubmit = async () => {
               if (!isDraftApplication) {
-                const reason = previewActionReason || `Application is already in "${detail.status}" status.`;
-                setError(reason);
-                toast.error(reason);
                 return;
               }
 
@@ -1254,6 +1270,10 @@ export default function SubmissionEditSection() {
                 return;
               }
 
+              setShowSubmitConfirm(true);
+            };
+
+            const performSubmit = async () => {
               setSubmitting(true);
               setError(null);
               try {
@@ -1275,6 +1295,7 @@ export default function SubmissionEditSection() {
             };
 
             return (
+              <>
               <div className={submissionTheme.formCard}>
                 <div className={submissionTheme.formSectionWrapper}>
                   <div>
@@ -1304,14 +1325,16 @@ export default function SubmissionEditSection() {
                           <div key={section.id} className="py-3">
                             <div className="mb-2 flex items-center justify-between gap-2">
                               <h4 className={submissionTheme.previewCardTitle}>{section.title}</h4>
-                              <button
-                                type="button"
-                                className={submissionTheme.previewEditButton}
-                                onClick={() => setActiveSectionId(section.id)}
-                              >
-                                <PencilLine className={submissionTheme.previewEditIcon} />
-                                <span>Edit</span>
-                              </button>
+                              {isDraftApplication ? (
+                                <button
+                                  type="button"
+                                  className={submissionTheme.previewEditButton}
+                                  onClick={() => setActiveSectionId(section.id)}
+                                >
+                                  <PencilLine className={submissionTheme.previewEditIcon} />
+                                  <span>Edit</span>
+                                </button>
+                              ) : null}
                             </div>
                             <dl className={submissionTheme.previewDefinitionList}>
                               {section.fields
@@ -1374,6 +1397,16 @@ export default function SubmissionEditSection() {
                     </div>
                   ) : null}
 
+                  {!isDraftApplication ? (
+                    <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
+                      <div>
+                        <p className="font-semibold">Application Submitted</p>
+                        <p className="mt-0.5 text-xs text-emerald-700">Your application has been submitted and can no longer be edited.</p>
+                      </div>
+                    </div>
+                  ) : null}
+
                   {validationMessages.length > 0 ? (
                     <div className="rounded-xl border border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-900">
                       {validationMessages.map(message => (
@@ -1397,14 +1430,15 @@ export default function SubmissionEditSection() {
                       >
                         Complete Payment
                       </Link>
-                    ) : !shouldShowSubmitButton ? (
+                    ) : !isDraftApplication ? (
                       <button
                         type="button"
-                        className={submissionTheme.primaryButton}
+                        className="inline-flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 disabled:cursor-not-allowed"
                         disabled
                         aria-disabled="true"
                       >
-                        {previewActionLabel || "Submit Application"}
+                        <CheckCircle2 className="h-4 w-4" />
+                        Application Submitted
                       </button>
                     ) : (
                       <button
@@ -1419,6 +1453,43 @@ export default function SubmissionEditSection() {
                   </div>
                 </div>
               </div>
+
+              {showSubmitConfirm ? (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                  role="dialog"
+                  aria-modal="true"
+                  onClick={(e) => { if (e.target === e.currentTarget) setShowSubmitConfirm(false); }}
+                >
+                  <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" aria-hidden="true" onClick={() => setShowSubmitConfirm(false)} />
+                  <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+                    <h3 className="text-base font-bold text-slate-900">Submit application?</h3>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Once you submit, your application is final and cannot be edited or undone. Please make sure all your information is correct before continuing.
+                    </p>
+                    <div className="mt-5 flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        className={submissionTheme.secondaryButton}
+                        onClick={() => setShowSubmitConfirm(false)}
+                        disabled={submitting}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className={submissionTheme.primaryButton}
+                        onClick={() => void performSubmit()}
+                        disabled={submitting}
+                        autoFocus
+                      >
+                        {submitting ? "Submitting..." : "Yes, submit"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+              </>
             );
           })() : activeSection ? (
             <div className={submissionTheme.formCard}>
@@ -1429,6 +1500,13 @@ export default function SubmissionEditSection() {
                     <p className={submissionTheme.formSectionSubtitle}>{activeSection.description}</p>
                   ) : null}
                 </div>
+
+                {isLocked ? (
+                  <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                    <span>This application has been submitted and can no longer be edited.</span>
+                  </div>
+                ) : null}
 
                 <div className={`${submissionTheme.formGrid} items-start`}>
                   {activeSection.fields.filter(field => shouldRenderField(activeSection, field)).map(field => {
@@ -1446,7 +1524,7 @@ export default function SubmissionEditSection() {
                           <span dangerouslySetInnerHTML={{ __html: sanitizeInlineHtml(field.label) }} />
                           {field.isRequired ? " *" : ""}
                         </div>
-                        {renderFieldInput(activeSection, field)}
+                        {renderFieldInput(activeSection, field, isLocked)}
                         {selectedDescription ? (
                           <p className={submissionTheme.readSectionSubtitle}>{selectedDescription}</p>
                         ) : null}
@@ -1502,6 +1580,8 @@ export default function SubmissionEditSection() {
                               }))
                             }
                             placeholder={essay.wordLimit ? `Word limit: ${essay.wordLimit}` : "Write your answer"}
+                            disabled={isLocked}
+                            readOnly={isLocked}
                           />
                         </label>
                       </div>
@@ -1533,14 +1613,16 @@ export default function SubmissionEditSection() {
                     Previous
                   </button>
                   <div className="flex gap-3">
-                    <button
-                      type="button"
-                      className={submissionTheme.primaryButton}
-                      onClick={saveActiveSection}
-                      disabled={savingSectionId === activeSection.id}
-                    >
-                      {savingSectionId === activeSection.id ? "Saving..." : "Save Section"}
-                    </button>
+                    {!isLocked ? (
+                      <button
+                        type="button"
+                        className={submissionTheme.primaryButton}
+                        onClick={saveActiveSection}
+                        disabled={savingSectionId === activeSection.id}
+                      >
+                        {savingSectionId === activeSection.id ? "Saving..." : "Save Section"}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       className={submissionTheme.secondaryButton}
