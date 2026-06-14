@@ -885,6 +885,11 @@ export default function OnboardingPage() {
                           />
                         )}
                       </FormField>
+                      {referralStatus === 'idle' && (
+                        <p className="mt-1.5 text-xs text-slate-400">
+                          Optional. You can continue with or without a code.
+                        </p>
+                      )}
                       {form.referralCode.trim() && referralStatus === 'checking' && (
                         <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
                           <Loader2 className="h-3 w-3 animate-spin" />
@@ -894,13 +899,13 @@ export default function OnboardingPage() {
                       {referralStatus === 'valid' && (
                         <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
                           <CheckCircle2 className="h-3.5 w-3.5" />
-                          Valid referral code
+                          Valid referral code. It’ll be applied.
                         </p>
                       )}
                       {referralStatus === 'invalid' && (
                         <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
                           <AlertTriangle className="h-3.5 w-3.5" />
-                          Code not recognized — will be skipped if you continue
+                          We don’t recognize this code, but that’s no problem. You can still continue without it.
                         </p>
                       )}
                     </div>
