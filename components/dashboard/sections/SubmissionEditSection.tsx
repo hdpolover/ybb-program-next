@@ -172,7 +172,11 @@ function normalizeFieldKey(name: string) {
 }
 
 function isCategoryField(field: PortalSubmissionField) {
-  const normalized = normalizeFieldKey(field.name);
+  return isCategoryFieldKey(field.name);
+}
+
+function isCategoryFieldKey(key: string) {
+  const normalized = normalizeFieldKey(key);
   return normalized === "category" || normalized === "applicationcategory" || normalized === "participationcategory" || normalized === "participationcategoryid";
 }
 
@@ -779,9 +783,14 @@ export default function SubmissionEditSection() {
 
       // Strip referral fields already confirmed invalid so they don't block save
       const sectionPayload = Object.fromEntries(
-        Object.entries(rawPayload).map(([k, v]) =>
-          isReferralField(k) && referralFieldStatuses[k] === 'invalid' ? [k, ''] : [k, v],
-        ),
+        Object.entries(rawPayload)
+          // Never send a blank category from a section save — applicationCategory is
+          // owned by the switch-category flow, and an empty value previously wiped it
+          // server-side. A real selection still flows through.
+          .filter(([k, v]) => !(isCategoryFieldKey(k) && (v == null || String(v).trim() === '')))
+          .map(([k, v]) =>
+            isReferralField(k) && referralFieldStatuses[k] === 'invalid' ? [k, ''] : [k, v],
+          ),
       );
 
       const buildRequests = (payload: Record<string, unknown>): Promise<Response>[] => {
