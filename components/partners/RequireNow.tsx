@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { normalizeEmailInput } from '@/lib/utils';
 import { Building2, FileText, Mail, Phone, Tag, User } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
@@ -51,7 +52,7 @@ export default function RequireNowSection({ slug }: RequireNowSectionProps) {
           partnershipType,
           subCategory: slug === 'affiliate-program' ? subject : undefined,
           fullName: String(formData.get('fullName') ?? '').trim(),
-          email: String(formData.get('workEmail') ?? '').trim(),
+          email: normalizeEmailInput(String(formData.get('workEmail') ?? '')),
           whatsappNumber: String(formData.get('phone') ?? '').trim() || undefined,
           company: String(formData.get('company') ?? '').trim() || undefined,
           subject: subject || undefined,

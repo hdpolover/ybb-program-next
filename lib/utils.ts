@@ -119,6 +119,11 @@ export function formatNumber(number: number, locale: string = 'en-US'): string {
   return new Intl.NumberFormat(locale).format(number);
 }
 
+/** Normalize a raw email input: strip all whitespace and lowercase. */
+export function normalizeEmailInput(raw: string): string {
+  return raw.replace(/\s+/g, '').toLowerCase();
+}
+
 /**
  * Format tokenized values like `event_details` into user-friendly labels.
  */

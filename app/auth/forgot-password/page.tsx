@@ -5,6 +5,7 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
+import { normalizeEmailInput } from '@/lib/utils';
 import { useEffect } from 'react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 
@@ -177,7 +178,7 @@ export default function ForgotPasswordPage() {
                       type="email"
                       required
                       value={email}
-                      onChange={e => setEmail(e.target.value)}
+                      onChange={e => setEmail(normalizeEmailInput(e.target.value))}
                       className={componentsTheme.login.input}
                       placeholder="you@example.com"
                     />

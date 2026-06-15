@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { Mail as MailIcon } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
 import { useSettings } from "@/components/providers/SettingsProvider";
 import type { SettingsFooterNavSection } from "@/types/settings";
+import { normalizeEmailInput } from "@/lib/utils";
 
 const FOOTER_DEFAULT_NAV = [
   { label: 'Home', href: '/' },
@@ -16,6 +18,7 @@ const FOOTER_DEFAULT_NAV = [
 
 export default function Footer() {
   const { settings } = useSettings();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
 
   const footerNav: SettingsFooterNavSection[] | null = settings?.footer_navigation ?? null;
   const brand = settings?.brand ?? null;
@@ -237,6 +240,8 @@ export default function Footer() {
                 <input
                   type="email"
                   placeholder="Enter your email"
+                  value={newsletterEmail}
+                  onChange={e => setNewsletterEmail(normalizeEmailInput(e.target.value))}
                   className="w-full bg-white/95 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                 />
                 <button

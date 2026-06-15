@@ -10,6 +10,7 @@ import { useSettings } from '@/components/providers/SettingsProvider';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { normalizeEmailInput } from '@/lib/utils';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -77,7 +78,8 @@ export default function LoginPage() {
   });
 
   const onChangeLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name } = e.target;
+    const value = name === 'email' ? normalizeEmailInput(e.target.value) : e.target.value;
     setLoginForm(prev => ({ ...prev, [name]: value }));
     if (name === 'email') {
       setShowResendVerification(false);
@@ -85,7 +87,8 @@ export default function LoginPage() {
     }
   };
   const onChangeSignup = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name } = e.target;
+    const value = name === 'email' ? normalizeEmailInput(e.target.value) : e.target.value;
     setSignupForm(prev => ({ ...prev, [name]: value }));
   };
 

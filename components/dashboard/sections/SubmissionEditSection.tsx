@@ -40,6 +40,7 @@ import { FieldHelpText, plainTextFromRichText } from "@/components/dashboard/sec
 import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
 import { formatSubmissionDateValue, isDateLikeField } from "@/lib/dashboard/dateDisplay";
 import { useAutoSave, loadFromLocalStorage, clearLocalStorage } from "@/hooks/useAutoSave";
+import { normalizeEmailInput } from "@/lib/utils";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -1090,7 +1091,10 @@ export default function SubmissionEditSection() {
           type="text"
           className={submissionTheme.editInputBase}
           value={value}
-          onChange={event => updateFieldValue(section.id, field.name, event.target.value)}
+          onChange={event => {
+            const raw = event.target.value;
+            updateFieldValue(section.id, field.name, isEmailField(field) ? normalizeEmailInput(raw) : raw);
+          }}
           placeholder={field.placeholder || plainTextFromRichText(field.helpText) || ""}
           restrictMode={isNameField ? "name" : "general"}
           disabled={locked}
