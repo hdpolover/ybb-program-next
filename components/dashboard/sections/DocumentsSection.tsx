@@ -21,6 +21,17 @@ import {
   toDocumentItem,
 } from '@/lib/dashboard/documents';
 
+async function markDocumentViewed(documentId: string): Promise<void> {
+  try {
+    await fetch(`/api/portal/documents/${documentId}/viewed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    console.error('[DocumentsSection] Failed to mark document as viewed:', err);
+  }
+}
+
 const TABS = ['All', 'Upload Required', 'Can Generate', 'Reference'] as const;
 type TabKey = (typeof TABS)[number];
 
@@ -775,6 +786,21 @@ export default function DocumentsSection() {
                       {item.submissionStatus === 'rejected' && item.rejectionReason && (
                         <p className="text-[11px] text-red-600">Rejected: {item.rejectionReason}</p>
                       )}
+                    </div>
+                  )}
+
+                  {item.documentType === 'letter_of_acceptance' && item.fileUrl && (
+                    <div className="mt-2">
+                      <a
+                        href={item.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:underline"
+                        onClick={() => void markDocumentViewed(item.id)}
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        View / Download LoA
+                      </a>
                     </div>
                   )}
                 </div>
