@@ -621,7 +621,11 @@ export default function SubmissionEditSection() {
 
   const stepperItems = useMemo(() => {
     if (!detail) return [] as Array<{ id: string; title: string; status: string | null | undefined }>;
-    const previewOpened = previewVisited || activeSectionId === PREVIEW_STEP_ID;
+    // Use only the monotonic previewVisited flag here. Depending on the live
+    // activeSectionId made this memo reactive to the active tab, which fed the
+    // step<->URL sync effects and caused the Preview tab to flicker (set-state
+    // loop). previewVisited is set once (effect below) and never cleared.
+    const previewOpened = previewVisited;
     const previewStatus = detail.status !== "draft"
       ? "completed"
       : previewOpened
@@ -635,7 +639,7 @@ export default function SubmissionEditSection() {
       }),
       { id: PREVIEW_STEP_ID, title: "Preview", status: previewStatus },
     ];
-  }, [detail, sectionValues, previewVisited, activeSectionId]);
+  }, [detail, sectionValues, previewVisited]);
 
   const activeSectionIndex = useMemo(() => {
     return stepperItems.findIndex(step => step.id === activeSectionId);

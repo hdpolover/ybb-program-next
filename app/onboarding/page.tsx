@@ -717,10 +717,11 @@ export default function OnboardingPage() {
                         icon={MapIcon}
                         required={true}
                         error={domShowErrors && form.state.trim().length === 0 ? "Required" : (selectedCountry?.isoCode && statesFailed ? "Could not load states. You can type manually." : "")}
+                        hint={selectedCountry?.isoCode && !statesLoading && !statesFailed && stateSelectOptions.length === 0 ? "No states/regions listed for this country. Please type yours." : null}
                       >
                        {(errorClass) => (
                           <>
-                            {selectedCountry?.isoCode && !statesFailed ? (
+                            {selectedCountry?.isoCode && !statesFailed && (statesLoading || stateSelectOptions.length > 0) ? (
                               <StyledSelect
                                 value={form.state}
                                 onChange={value =>
@@ -752,10 +753,11 @@ export default function OnboardingPage() {
                         icon={Building}
                         required={true}
                         error={domShowErrors && form.city.trim().length === 0 ? "Required" : (selectedCountry?.isoCode && citiesFailed ? "Could not load cities. You can type manually." : "")}
+                        hint={selectedCountry?.isoCode && form.state && !citiesLoading && !citiesFailed && citySelectOptions.length === 0 ? "No cities listed for this state/region. Please type your city." : null}
                       >
                        {(errorClass) => (
                           <>
-                            {selectedCountry?.isoCode && form.state && !citiesFailed ? (
+                            {selectedCountry?.isoCode && form.state && !citiesFailed && (citiesLoading || citySelectOptions.length > 0) ? (
                               <StyledSelect
                                 value={form.city}
                                 onChange={value => setForm(prev => ({ ...prev, city: value }))}
