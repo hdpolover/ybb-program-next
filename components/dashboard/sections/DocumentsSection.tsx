@@ -789,18 +789,29 @@ export default function DocumentsSection() {
                     </div>
                   )}
 
-                  {item.documentType === 'letter_of_acceptance' && item.fileUrl && (
+                  {item.documentType === 'letter_of_acceptance' && item.downloadable === true && (
                     <div className="mt-2">
+                      {item.documentNumber && (
+                        <p className="mb-1 text-[11px] text-slate-500">
+                          Document No. {item.documentNumber}
+                        </p>
+                      )}
                       <a
-                        href={item.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href="/api/portal/loa/download"
+                        download
                         className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:underline"
-                        onClick={() => void markDocumentViewed(item.id)}
                       >
                         <Download className="h-3.5 w-3.5" />
-                        View / Download LoA
+                        Download Letter of Acceptance
                       </a>
+                    </div>
+                  )}
+
+                  {item.documentType === 'letter_of_acceptance' && item.downloadable === false && (
+                    <div className="mt-2 rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-2 opacity-60">
+                      <p className="text-[11px] text-slate-500">
+                        Your Letter of Acceptance will be available once released.
+                      </p>
                     </div>
                   )}
                 </div>

@@ -7,6 +7,10 @@ export interface DocumentItem {
   description?: string;
   category?: string;
   fileUrl?: string;
+  /** LOA-specific: true = participant is eligible and can download on-demand */
+  downloadable?: boolean;
+  /** LOA-specific: assigned document number (e.g. "LOA-YBB2026-0001") */
+  documentNumber?: string;
   status?: string;
   submissionStatus?: string;
   signedCopyUrl?: string;
@@ -39,6 +43,8 @@ export function toDocumentItem(value: unknown): DocumentItem | null {
     description: typeof value.description === 'string' ? value.description : undefined,
     category: typeof value.category === 'string' ? value.category : undefined,
     fileUrl: typeof value.fileUrl === 'string' ? value.fileUrl : undefined,
+    downloadable: typeof value.downloadable === 'boolean' ? value.downloadable : undefined,
+    documentNumber: typeof value.documentNumber === 'string' ? value.documentNumber : undefined,
     status: typeof value.status === 'string' ? value.status : undefined,
     submissionStatus:
       typeof value.submissionStatus === 'string' ? value.submissionStatus : undefined,
