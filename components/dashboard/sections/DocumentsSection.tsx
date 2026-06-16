@@ -21,17 +21,6 @@ import {
   toDocumentItem,
 } from '@/lib/dashboard/documents';
 
-async function markDocumentViewed(documentId: string): Promise<void> {
-  try {
-    await fetch(`/api/portal/documents/${documentId}/viewed`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (err) {
-    console.error('[DocumentsSection] Failed to mark document as viewed:', err);
-  }
-}
-
 const TABS = ['All', 'Upload Required', 'Can Generate', 'Reference'] as const;
 type TabKey = (typeof TABS)[number];
 
