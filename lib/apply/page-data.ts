@@ -1,4 +1,5 @@
 import { getHomePageData } from '@/lib/api/home';
+import { formatDeadlineWib } from '@/lib/format/deadline';
 import {
   getProgramDetail,
   getProgramPricingTiers,
@@ -76,13 +77,8 @@ function safeText(value: unknown): string {
 
 function formatDate(value?: string | null): string {
   if (!value) return 'Not configured';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Not configured';
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date);
+  const result = formatDeadlineWib(value, { withTime: false });
+  return result === '—' ? 'Not configured' : result;
 }
 
 function formatDateRange(start?: string | null, end?: string | null): string {

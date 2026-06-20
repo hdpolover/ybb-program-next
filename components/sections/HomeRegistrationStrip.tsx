@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
+import { formatDeadlineLocal } from '@/lib/format/deadline';
 
 type InstagramFeedItem = {
   id: string;
@@ -61,14 +62,8 @@ function getActivePeriodLabel(periods: ValidityPeriod[] | undefined, now: Date):
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   };
   const fmt = (d: string) => {
-    const parsed = parse(d);
-    if (!parsed) return 'TBD';
-    return parsed.toLocaleDateString('en-US', {
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric',
-      timeZone: 'UTC',
-    });
+    const result = formatDeadlineLocal(d, { withTime: false });
+    return result === '—' ? 'TBD' : result;
   };
   const active = periods.find((p) => {
     const start = parse(p.start_date);
