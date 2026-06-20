@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
+import { formatDeadlineLocal } from '@/lib/format/deadline';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
@@ -181,13 +182,8 @@ export default function RegistrationTypePrograms({
     const safeFormat = (value: unknown) => {
       const normalized = normalizeDisplayValue(value);
       if (!normalized) return '';
-      const parsed = new Date(normalized);
-      if (Number.isNaN(parsed.getTime())) return normalized;
-      return parsed.toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
+      const result = formatDeadlineLocal(normalized, { withTime: false });
+      return result === '—' ? '' : result;
     };
 
     const openLabel = safeFormat(open);

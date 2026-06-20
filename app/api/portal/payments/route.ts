@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getCalendarDayDifference, parseApiDate } from '@/lib/utils';
+import { formatDeadlineWib } from '@/lib/format/deadline';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { isRecord } from '@/lib/api/response';
 
@@ -127,7 +128,7 @@ export async function GET(request: Request) {
       const explicitCanPay = typeof invRecord.canPay === 'boolean' ? invRecord.canPay : undefined;
       const paidAtLabel =
         paidAt && !Number.isNaN(paidAt.getTime())
-          ? paidAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          ? formatDeadlineWib(paidAt, { withTime: false })
           : '—';
 
       return {

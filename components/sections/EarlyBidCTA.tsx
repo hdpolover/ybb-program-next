@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Hourglass, Users } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
+import { formatDeadlineLocal } from '@/lib/format/deadline';
 
 type Countdown = {
   days: number;
@@ -39,11 +40,10 @@ export default function EarlyBidCTA({
   const getCountdown = () => getTimeRemaining(new Date(targetMs));
   const [timeLeft, setTimeLeft] = useState<Countdown>(() => getCountdown());
   const deadlineLabel = deadlineIso
-    ? new Intl.DateTimeFormat('en-GB', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      }).format(new Date(deadlineIso))
+    ? (() => {
+        const result = formatDeadlineLocal(deadlineIso, { withTime: false });
+        return result === '—' ? 'to be announced' : result;
+      })()
     : 'to be announced';
 
   useEffect(() => {

@@ -36,6 +36,7 @@ import {
 } from '@/lib/dashboard/payments-cache';
 import { toast } from 'sonner';
 import { getCalendarDayDifference, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
+import { formatDeadlineLocal } from '@/lib/format/deadline';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -104,21 +105,11 @@ function toDate(value: unknown): Date | null {
 }
 
 function formatLocalDate(value: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(value);
+  return formatDeadlineLocal(value, { withTime: false });
 }
 
 function formatLocalDateTime(value: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(value);
+  return formatDeadlineLocal(value, { withTime: true });
 }
 
 function formatDaysLeft(dueDate: Date): string {
