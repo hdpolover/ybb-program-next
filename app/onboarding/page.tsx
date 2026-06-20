@@ -11,7 +11,7 @@ import { getCities, getCountries, getGenders, getKnowledgeSources, getStates } f
 import { useSettings } from '@/components/providers/SettingsProvider';
 import StyledSelect from '@/components/ui/StyledSelect';
 import { FormField } from '@/components/ui/FormField';
-import { User, Users, MapPin, Globe, Building, Gift, Map as MapIcon, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { User, Users, Globe, Building, Gift, Map as MapIcon, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
 import { toast } from 'sonner';
 
@@ -22,7 +22,6 @@ export default function OnboardingPage() {
   const searchParams = useSearchParams();
   const { settings } = useSettings();
 
-  const submissionTheme = componentsTheme.dashboardSubmission;
   const onboardingTheme = componentsTheme.onboarding;
 
   const [imageIndex, setImageIndex] = useState(0);
@@ -137,6 +136,7 @@ export default function OnboardingPage() {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally runs once at mount; settings values at mount time are the seed values
   }, []);
 
   useEffect(() => {
@@ -186,6 +186,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     const code = form.referralCode.trim();
     if (!code) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReferralStatus('idle');
       return;
     }
@@ -494,6 +495,7 @@ export default function OnboardingPage() {
 
     const targetIndex = Math.min(Math.max(parsed, 1), steps.length) - 1;
     const targetStep = steps[targetIndex];
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveStep(prev => (prev === targetStep ? prev : targetStep));
   }, [searchParams]);
 

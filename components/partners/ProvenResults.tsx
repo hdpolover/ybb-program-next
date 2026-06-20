@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
@@ -41,7 +42,7 @@ export default function ProvenResultsSection({
 
             <div className={componentsTheme.partnersProven.logosGrid}>
               {/* Logo items - using existing assets to simulate real sponsors */}
-              <a href="/partners/iys-global" className={componentsTheme.partnersProven.logoCard}>
+              <Link href="/partners/iys-global" className={componentsTheme.partnersProven.logoCard}>
                 <Image
                   src="/img/IYSlogo.png"
                   alt="IYS Global"
@@ -50,8 +51,8 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
-              <a href="/partners/kys-education" className={componentsTheme.partnersProven.logoCard}>
+              </Link>
+              <Link href="/partners/kys-education" className={componentsTheme.partnersProven.logoCard}>
                 <Image
                   src="/img/KYSlogo.png"
                   alt="KYS Education"
@@ -60,8 +61,8 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
-              <a href="/partners/meys-media-group" className={componentsTheme.partnersProven.logoCard}>
+              </Link>
+              <Link href="/partners/meys-media-group" className={componentsTheme.partnersProven.logoCard}>
                 <Image
                   src="/img/MEYSlogo.png"
                   alt="MEYS Media Group"
@@ -70,8 +71,8 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
-              <a href="/partners/wys-technology" className={componentsTheme.partnersProven.logoCard}>
+              </Link>
+              <Link href="/partners/wys-technology" className={componentsTheme.partnersProven.logoCard}>
                 <Image
                   src="/img/WYSlogo.png"
                   alt="WYS Technology"
@@ -80,8 +81,8 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
-              <a href="/partners/yaf-foundation" className={componentsTheme.partnersProven.logoCard}>
+              </Link>
+              <Link href="/partners/yaf-foundation" className={componentsTheme.partnersProven.logoCard}>
                 <Image
                   src="/img/YAFlogo.png"
                   alt="YAF Foundation"
@@ -90,8 +91,8 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/partners/youth-beyond-borders-network"
                 className={componentsTheme.partnersProven.logoCard}
               >
@@ -103,8 +104,8 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
-              <a href="/partners/iys-global-partners" className={componentsTheme.partnersProven.logoCard}>
+              </Link>
+              <Link href="/partners/iys-global-partners" className={componentsTheme.partnersProven.logoCard}>
                 <Image
                   src="/img/IYSlogo.png"
                   alt="IYS Global Partners"
@@ -113,8 +114,8 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
-              <a href="/partners/kys-learning-hub" className={componentsTheme.partnersProven.logoCard}>
+              </Link>
+              <Link href="/partners/kys-learning-hub" className={componentsTheme.partnersProven.logoCard}>
                 <Image
                   src="/img/KYSlogo.png"
                   alt="KYS Learning Hub"
@@ -123,8 +124,8 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
-              <a href="/partners/meys-broadcasting" className={componentsTheme.partnersProven.logoCard}>
+              </Link>
+              <Link href="/partners/meys-broadcasting" className={componentsTheme.partnersProven.logoCard}>
                 <Image
                   src="/img/MEYSlogo.png"
                   alt="MEYS Broadcasting"
@@ -133,8 +134,8 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
-              <a href="/partners/wys-digital-studio" className={componentsTheme.partnersProven.logoCard}>
+              </Link>
+              <Link href="/partners/wys-digital-studio" className={componentsTheme.partnersProven.logoCard}>
                 <Image
                   src="/img/WYSlogo.png"
                   alt="WYS Digital Studio"
@@ -143,7 +144,7 @@ export default function ProvenResultsSection({
                   sizes="96px"
                   className={componentsTheme.partnersProven.logoImg}
                 />
-              </a>
+              </Link>
             </div>
           </div>
         </div>

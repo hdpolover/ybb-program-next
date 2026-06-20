@@ -20,8 +20,8 @@ function formatDateLabel(iso?: string): string {
 
 export default function NotificationsPopover() {
   const { dashboardSummary } = useDashboardData();
-  const alerts = dashboardSummary?.alerts ?? [];
-  const announcements = dashboardSummary?.recentAnnouncements ?? [];
+  const alerts = useMemo(() => dashboardSummary?.alerts ?? [], [dashboardSummary?.alerts]);
+  const announcements = useMemo(() => dashboardSummary?.recentAnnouncements ?? [], [dashboardSummary?.recentAnnouncements]);
 
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<TabKey>("alerts");

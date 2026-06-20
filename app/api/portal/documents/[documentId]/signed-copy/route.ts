@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { isRecord, getEnvelopeData } from '@/lib/api/response';
 
 export async function POST(
   request: NextRequest,
@@ -37,13 +38,14 @@ export async function POST(
       body: formData,
     });
 
-    const json = await res.json().catch(() => ({}));
+    const json: unknown = await res.json().catch(() => ({}));
     if (!res.ok) {
+      const j = isRecord(json) ? json : {};
       return NextResponse.json(
         {
-          statusCode: (json as any)?.statusCode ?? res.status,
-          message: (json as any)?.message ?? 'Upload failed',
-          data: (json as any)?.data ?? null,
+          statusCode: typeof j.statusCode === 'number' ? j.statusCode : res.status,
+          message: typeof j.message === 'string' ? j.message : 'Upload failed',
+          data: 'data' in j ? (j.data ?? null) : null,
         },
         { status: res.status },
       );
@@ -52,7 +54,7 @@ export async function POST(
     return NextResponse.json({
       statusCode: 200,
       message: 'Success',
-      data: (json as any)?.data ?? json ?? null,
+      data: getEnvelopeData(json) ?? null,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

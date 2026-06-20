@@ -1,12 +1,11 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { Pause, Play, VolumeX, Volume2, X } from 'lucide-react';
+import { Play, X } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 
 export default function RegistrationTutorial() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -22,25 +21,6 @@ export default function RegistrationTutorial() {
       v.removeEventListener('pause', onPause);
     };
   }, []);
-
-  const toggleMute = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setMuted(v.muted);
-  };
-
-  const togglePlay = async () => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.paused) {
-      try {
-        await v.play();
-      } catch {}
-    } else {
-      v.pause();
-    }
-  };
 
   const steps = [
     'Open the Japan Youth Summit registration page',
@@ -68,7 +48,7 @@ export default function RegistrationTutorial() {
                 className="block aspect-video w-full rounded-2xl object-cover"
                 playsInline
                 // autoplay dimatiin dulu, biar ga langsung jalan
-                muted={muted}
+                muted
                 loop
                 poster="/img/registrasibanner.png"
                 src="/video/tutorialregist_web.mp4"

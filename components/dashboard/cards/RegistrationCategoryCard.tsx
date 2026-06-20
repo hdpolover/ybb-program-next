@@ -1,9 +1,7 @@
 import StatusBadge from '@/components/dashboard/ui/StatusBadge';
 import type { FundingType } from '@/lib/dashboard/types';
 
-export default function RegistrationCategoryCard({
-  funding = 'fully_funded',
-}: {
+export default function RegistrationCategoryCard({}: {
   funding?: FundingType;
 }) {
   return (

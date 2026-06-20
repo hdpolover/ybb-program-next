@@ -1,3 +1,5 @@
+// next.config.js is a CommonJS module (uses module.exports); require() is legitimate here.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const packageJson = require('./package.json');
 
 const fallbackBuildId = `${packageJson.version}-${new Date()

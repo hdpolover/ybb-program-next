@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { componentsTheme } from '@/lib/theme/components';
@@ -39,7 +40,10 @@ export default function LoginPage() {
   const router = useRouter();
   const { settings } = useSettings();
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<'login' | 'signup'>(() => {
+    const requestedMode = searchParams.get('mode');
+    return requestedMode === 'signup' ? 'signup' : 'login';
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showSignupConfirm, setShowSignupConfirm] = useState(false);
@@ -54,7 +58,9 @@ export default function LoginPage() {
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
-  const [ambassadorMode, setAmbassadorMode] = useState(false);
+  const [ambassadorMode, setAmbassadorMode] = useState(() => {
+    return searchParams.get('role') === 'ambassador';
+  });
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string>('');
   const [legalModalOpen, setLegalModalOpen] = useState(false);
@@ -62,10 +68,7 @@ export default function LoginPage() {
   const [legalLoading, setLegalLoading] = useState(false);
   const [legalError, setLegalError] = useState<string>('');
   const [legalDocs, setLegalDocs] = useState<Partial<Record<LegalDocumentType, LegalDocumentPayload>>>({});
-  const [oauthProviderIds, setOauthProviderIds] = useState<Record<string, string>>({});
-  const [authProviders, setAuthProviders] = useState<
-    Array<{ id: string; name: string; displayName: string; isOAuth: boolean; buttonColor?: string }>
-  >([]);
+  const [oauthProviderIds] = useState<Record<string, string>>({});
   const [loginForm, setLoginForm] = useState({
     email: '',
     password: '',
@@ -96,22 +99,27 @@ export default function LoginPage() {
     const requestedMode = searchParams.get('mode');
     const requestedRole = searchParams.get('role');
 
-    if (requestedRole === 'ambassador') {
-      setAmbassadorMode(true);
-      setMode('login');
-      return;
-    }
+    // Defer state updates to avoid synchronous setState in effect body
+    const timer = setTimeout(() => {
+      if (requestedRole === 'ambassador') {
+        setAmbassadorMode(true);
+        setMode('login');
+        return;
+      }
 
-    if (requestedMode === 'signup') {
-      setMode('signup');
-      setAmbassadorMode(false);
-      return;
-    }
+      if (requestedMode === 'signup') {
+        setMode('signup');
+        setAmbassadorMode(false);
+        return;
+      }
 
-    if (requestedMode === 'login') {
-      setMode('login');
-      setAmbassadorMode(false);
-    }
+      if (requestedMode === 'login') {
+        setMode('login');
+        setAmbassadorMode(false);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [searchParams]);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -326,11 +334,13 @@ export default function LoginPage() {
               'Content-Type': 'application/json',
             },
           });
-          const ctxJson = (await ctxRes.json().catch(() => ({}))) as any;
-          const providers = ctxJson?.data?.providers;
+          const ctxJson = (await ctxRes.json().catch(() => ({}))) as Record<string, unknown>;
+          const ctxData = ctxJson?.data;
+          const providers = ctxData && typeof ctxData === 'object' && 'providers' in ctxData ? (ctxData as Record<string, unknown>).providers : undefined;
           if (Array.isArray(providers)) {
-            const google = providers.find((p: any) => p?.isOAuth && p?.name === 'google');
-            if (google?.id) providerId = String(google.id);
+            const google = providers.find((p: unknown) => p && typeof p === 'object' && 'isOAuth' in p && 'name' in p && (p as Record<string, unknown>).isOAuth && (p as Record<string, unknown>).name === 'google');
+            const googleRecord = google && typeof google === 'object' ? (google as Record<string, unknown>) : null;
+            if (googleRecord?.id) providerId = String(googleRecord.id);
           }
         } catch {
           // ignore
@@ -462,7 +472,7 @@ export default function LoginPage() {
           <div className="relative h-[calc(100vh-5rem)] w-full overflow-hidden rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
             {/* Mobile logo - visible only on small screens */}
             <div className="absolute left-6 top-6 z-10 md:hidden">
-              <a href="/" className="inline-block">
+              <Link href="/" className="inline-block">
                 <Image
                   src={settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || "/img/ybb-logo.png"}
                   alt={settings?.brand?.name?.trim() || "Youth Break the Boundaries"}
@@ -472,7 +482,7 @@ export default function LoginPage() {
                   priority
                   unoptimized
                 />
-              </a>
+              </Link>
             </div>
             <Image
               src={loginImageSrc}
@@ -486,7 +496,7 @@ export default function LoginPage() {
 
             <div className={componentsTheme.login.heroTextContainer}>
               <div className={componentsTheme.login.heroLogoWrapper}>
-                <a href="/" className="inline-block">
+                <Link href="/" className="inline-block">
                   <Image
                     src={settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || "/img/ybb-logo.png"}
                     alt={settings?.brand?.name?.trim() || "Youth Break the Boundaries"}
@@ -496,7 +506,7 @@ export default function LoginPage() {
                     priority
                     unoptimized
                   />
-                </a>
+                </Link>
                 <div className="space-y-2 mt-4">
                   <h2 className={componentsTheme.login.heroTitle}>
                     Raise Your Hand,

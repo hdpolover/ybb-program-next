@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import PromoCTA from './PromoCTA';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
 
@@ -19,18 +20,18 @@ export function getCTAPreset(pathname: string | null | undefined) {
             Register for upcoming programs or explore more opportunities tailored for youth leaders.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a
+            <Link
               href="/login"
               className="hover:bg-accent/90 rounded-md bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-sm transition"
             >
               Register Now
-            </a>
-            <a
+            </Link>
+            <Link
               href="/programs"
               className="rounded-md border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
             >
               See All Programs
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -47,18 +48,18 @@ export function getCTAPreset(pathname: string | null | undefined) {
             Stay ahead with analytics, stories, and learnings from our community.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a
+            <Link
               href="/insights"
               className="hover:bg-accent/5 rounded-md bg-white px-5 py-3 text-sm font-semibold text-accent shadow-sm transition"
             >
               Browse Insights
-            </a>
-            <a
+            </Link>
+            <Link
               href="/programs"
               className="rounded-md border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
             >
               See Programs
-            </a>
+            </Link>
           </div>
         </div>
       </section>

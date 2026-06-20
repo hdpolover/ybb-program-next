@@ -82,12 +82,13 @@ const normalizeTabs = (tabs?: ApiVideoTab[]): NormalizedTab[] => {
 };
 
 export default function VideoSection({ title, subtitle, tabs }: ProgramHighlightVideosProps) {
-  if (!tabs || tabs.length === 0) return null;
-
   const normalizedTabs = normalizeTabs(tabs);
   const initialYear = normalizedTabs[0]?.year ?? new Date().getFullYear();
   const [year, setYear] = useState<number>(initialYear);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (!tabs || tabs.length === 0) return null;
+
   const activeTab =
     normalizedTabs.find(tab => tab.year === year) ?? normalizedTabs[0] ?? undefined;
   const currentVideos = activeTab?.videos ?? [];

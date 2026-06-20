@@ -13,6 +13,9 @@ export function useAmbassadorSectionData() {
 
   useEffect(() => {
     if (ambassadorData) {
+      // Syncing context data into local state so this hook can also fetch on its own
+      // when the context hasn't loaded — intentional cascade from external state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setData(ambassadorData);
       setLoading(false);
       setError(null);

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from 'next/image';
 import { FileText, Menu, Search, SearchX, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -159,6 +158,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const searchTheme = componentsTheme.dashboardSearch;
   const [me, setMe] = useState<AuthMeData | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setter intentionally unused; onboarding is read-only in this layout
   const [onboarding, setOnboarding] = useState<ParticipantOnboardingData | null>(null);
   const [participantProfile, setParticipantProfile] = useState<ParticipantMeData | null>(null);
   const [dashboardSummary, setDashboardSummary] = useState<PortalDashboardSummary | null>(null);
@@ -166,11 +166,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [ambassadorData, setAmbassadorData] = useState<AmbassadorData | null>(null);
   // Per-user cache key — prevents the prior user's ambassador status from leaking on shared browsers.
   const ambassadorCacheKey = me?.userId ? `ybb_ambassador_status:${me.userId}` : null;
-  // Start as NOT loading if we have a cached ambassador status for this user — avoids nav flicker on repeat visits
+  // Start as NOT loading if we have a cached ambassador status for this user — avoids nav flicker on repeat
+  // visits. The cache key depends on `me` (loaded async), so the fast-path is resolved in an effect once the
+  // key is known rather than via a lazy useState initializer.
   const [isAmbassadorDataLoading, setIsAmbassadorDataLoading] = useState(true);
   useEffect(() => {
     if (typeof window === 'undefined' || !ambassadorCacheKey) return;
     if (localStorage.getItem(ambassadorCacheKey) !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAmbassadorDataLoading(false);
     }
   }, [ambassadorCacheKey]);
@@ -185,23 +188,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // legacy sessions and ambassador-only accounts aren't bounced to /onboarding.
   const isAmbassador =
     hasAmbassadorRecord && (me?.activeRole === 'ambassador' || !hasParticipantRecord);
-
-  let sectionLabel: string | null = null;
-  let subLabel: string | null = null;
-  if (pathname === '/dashboard') {
-    sectionLabel = 'Overview';
-  } else if (pathname?.startsWith('/dashboard/submission')) {
-    sectionLabel = 'Submission';
-    if (pathname === '/dashboard/submission/edit') {
-      subLabel = 'Edit';
-    }
-  } else if (pathname?.startsWith('/dashboard/payments')) {
-    sectionLabel = 'Payments';
-  } else if (pathname?.startsWith('/dashboard/documents')) {
-    sectionLabel = 'Documents';
-  } else if (pathname?.startsWith('/dashboard/support-tickets')) {
-    sectionLabel = 'Support Tickets';
-  }
 
   let pageTitle = 'Dashboard';
   let pageSubtitle = 'Overview of your program, submissions, and payments.';
@@ -366,6 +352,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router]);
 
   useEffect(() => {
+    // Reset mobile sidebar when navigating to a new route
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileSidebarOpen(false);
   }, [pathname]);
 

@@ -389,6 +389,9 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     const cachedPreview = readCachedPaymentPreview(programId, paymentId);
 
     if (cachedPreview) {
+      // Sync-setting preview from cache to populate the UI immediately before the
+      // async fetch resolves — intentional to avoid a loading flash on revisit.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPaymentPreview(cachedPreview);
       setLoading(false);
     } else {

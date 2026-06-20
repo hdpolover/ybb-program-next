@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { PhoneCall, Mail, Instagram, MapPin } from 'lucide-react';
 
 import { componentsTheme } from '@/lib/theme/components';

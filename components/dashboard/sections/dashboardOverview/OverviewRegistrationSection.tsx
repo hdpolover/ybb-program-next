@@ -23,15 +23,17 @@ export default function OverviewRegistrationSection() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  // Track the category that was active when the user last expanded the description.
+  // When the category changes, the key changes and the expanded state resets to false.
+  const [expandedForCategory, setExpandedForCategory] = useState<string | undefined>(undefined);
+  const isDescriptionExpanded = expandedForCategory === activeApplication?.category;
+  const setIsDescriptionExpanded = (value: boolean) => {
+    setExpandedForCategory(value ? (activeApplication?.category ?? '') : undefined);
+  };
 
   useEffect(() => {
     flushSwitchCategoryFeedback();
   }, []);
-
-  useEffect(() => {
-    setIsDescriptionExpanded(false);
-  }, [activeApplication?.category]);
 
   const categoryUi = useMemo(() => {
     const category = activeApplication?.category;
@@ -140,7 +142,7 @@ export default function OverviewRegistrationSection() {
               <button
                 type="button"
                 className={`${overviewTheme.registrationDescriptionToggle} md:hidden`}
-                onClick={() => setIsDescriptionExpanded(prev => !prev)}
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                 aria-expanded={isDescriptionExpanded}
               >
                 {isDescriptionExpanded ? "Show less" : "Read more"}

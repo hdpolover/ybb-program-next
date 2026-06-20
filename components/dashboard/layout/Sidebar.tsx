@@ -23,7 +23,6 @@ const layoutTheme = componentsTheme.dashboardLayout;
 // Sidebar kiri buat navigasi dashboard — simple dan konsisten sama tema
 export default function Sidebar({
   isAmbassador = false,
-  isAmbassadorDataLoading = false,
   className,
 }: {
   isAmbassador?: boolean;
@@ -50,6 +49,10 @@ export default function Sidebar({
     ambassadorNav.forEach(it => {
       if (it.children && pathname.startsWith(it.href)) next[it.href] = true;
     });
+    // Initializing sidebar open state from localStorage + pathname on mount/navigate —
+    // synchronous setState here is intentional: it runs during the same tick so the
+    // browser only paints the final correct state, preventing a collapsed→expanded flicker.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen(next);
     setMounted(true);
   }, [pathname]);

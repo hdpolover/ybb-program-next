@@ -159,12 +159,13 @@ export default function SettingsSection() {
   };
 
   useEffect(() => {
+    // loadAuthMe calls setState internally; this is intentional fire-on-mount data loading.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAuthMe()
       .catch(() => {
         /* silently ignore */
       })
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hasLocalIdentity = authMe?.identities?.some(

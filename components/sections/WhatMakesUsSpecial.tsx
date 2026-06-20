@@ -5,14 +5,6 @@ import { componentsTheme } from "@/lib/theme/components";
 import SectionHeader from "@/components/ui/SectionHeader";
 import type { ProgramFeaturesSection } from "@/types/home";
 
-type SpecialIconKey =
-  | 'global_impact'
-  | 'networks_partnerships'
-  | 'sustainable_alumni'
-  | 'innovative_programs'
-  | 'goal_oriented'
-  | 'holistic_development';
-
 function resolveSpecialIcon(iconKey: string) {
   switch (iconKey) {
     case 'global_impact':
