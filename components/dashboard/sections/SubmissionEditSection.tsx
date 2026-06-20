@@ -764,15 +764,24 @@ export default function SubmissionEditSection() {
 
     if (referralEntries.length === 0) return;
 
+    // Batch the immediate idle/checking statuses into a single state update
+    // rather than one setState per entry inside the effect body.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setReferralFieldStatuses(prev => {
+      const next = { ...prev };
+      for (const [name, code] of referralEntries) {
+        next[name] = (code as string).trim() ? 'checking' : 'idle';
+      }
+      return next;
+    });
+
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     for (const [name, code] of referralEntries) {
       const trimmed = (code as string).trim();
       if (!trimmed) {
-        setReferralFieldStatuses(prev => ({ ...prev, [name]: 'idle' }));
         continue;
       }
-      setReferralFieldStatuses(prev => ({ ...prev, [name]: 'checking' }));
       const timer = setTimeout(async () => {
         try {
           const res = await fetch(`/api/referral/validate?code=${encodeURIComponent(trimmed)}`);
