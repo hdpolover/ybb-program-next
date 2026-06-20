@@ -9,7 +9,9 @@ export function normalizeBrandUrl(input: string): string {
   if (!trimmed) return '';
   // Strip protocol first, then strip port (localhost:3000 → localhost, domain.com:8080 → domain.com)
   const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
-  return withoutProtocol.split(':')[0];
+  // Strip a trailing dot from a fully-qualified host ("example.com." per RFC 2181);
+  // it would otherwise not match the stored brand domain and 404 the landing lookup.
+  return withoutProtocol.split(':')[0].replace(/\.+$/, '');
 }
 
 function resolveFromHost(hostnameRaw: string, defaultDomain: string | null): string {
