@@ -56,3 +56,6 @@ public/video/*.mp4
 
 # Vendor
 vendor/
+
+# Playwright MCP browser artifacts (downloads, snapshots)
+.playwright-mcp/
