@@ -771,6 +771,7 @@ export default function OnboardingPage() {
                                     className={onboardingTheme.seeAllButton}
                                     onClick={() => {
                                       setStateManual(false);
+                                      setCityManual(false);
                                       setForm(prev => ({ ...prev, state: '', city: '' }));
                                     }}
                                   >
