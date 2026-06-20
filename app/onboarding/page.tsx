@@ -38,6 +38,7 @@ export default function OnboardingPage() {
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [knowledgeSources, setKnowledgeSources] = useState<string[]>([]);
   const [knowledgeSourcesError, setKnowledgeSourcesError] = useState(false);
+  const [cityManual, setCityManual] = useState(false);
   const brandLogo = settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
   // if user is authenticated and has programs, we could override this, but let's just use settings first
   const [brandName, setBrandName] = useState(settings?.active_program?.name?.trim() || settings?.brand?.name?.trim() || 'Youth Break the Boundaries');
@@ -695,14 +696,15 @@ export default function OnboardingPage() {
                       {(errorClass) => (
                         <StyledSelect
                           value={form.country}
-                          onChange={value =>
+                          onChange={value => {
+                            setCityManual(false);
                             setForm(prev => ({
                               ...prev,
                               country: value,
                               state: '',
                               city: '',
-                            }))
-                          }
+                            }));
+                          }}
                           options={countrySelectOptions}
                           placeholder="Select country"
                           className={`${componentsTheme.login.input} ${errorClass}`}
@@ -724,9 +726,10 @@ export default function OnboardingPage() {
                             {selectedCountry?.isoCode && !statesFailed && (statesLoading || stateSelectOptions.length > 0) ? (
                               <StyledSelect
                                 value={form.state}
-                                onChange={value =>
-                                  setForm(prev => ({ ...prev, state: value, city: '' }))
-                                }
+                                onChange={value => {
+                                  setCityManual(false);
+                                  setForm(prev => ({ ...prev, state: value, city: '' }));
+                                }}
                                 options={stateSelectOptions}
                                 placeholder={statesLoading ? 'Loading state/region...' : 'Select state/region'}
                                 className={`${componentsTheme.login.input} ${errorClass}`}
@@ -757,26 +760,55 @@ export default function OnboardingPage() {
                       >
                        {(errorClass) => (
                           <>
-                            {selectedCountry?.isoCode && form.state && !citiesFailed && (citiesLoading || citySelectOptions.length > 0) ? (
-                              <StyledSelect
-                                value={form.city}
-                                onChange={value => setForm(prev => ({ ...prev, city: value }))}
-                                options={citySelectOptions}
-                                placeholder={citiesLoading ? 'Loading city...' : 'Select city'}
-                                className={`${componentsTheme.login.input} ${errorClass}`}
-                                searchable
-                                disabled={!form.state || citiesLoading}
-                              />
+                            {selectedCountry?.isoCode && form.state && !citiesFailed && !cityManual && (citiesLoading || citySelectOptions.length > 0) ? (
+                              <>
+                                <StyledSelect
+                                  value={form.city}
+                                  onChange={value => setForm(prev => ({ ...prev, city: value }))}
+                                  options={citySelectOptions}
+                                  placeholder={citiesLoading ? 'Loading city...' : 'Select city'}
+                                  className={`${componentsTheme.login.input} ${errorClass}`}
+                                  searchable
+                                  disabled={!form.state || citiesLoading}
+                                />
+                                {!citiesLoading && citySelectOptions.length > 0 && (
+                                  <button
+                                    type="button"
+                                    className={onboardingTheme.seeAllButton}
+                                    onClick={() => {
+                                      setCityManual(true);
+                                      setForm(prev => ({ ...prev, city: '' }));
+                                    }}
+                                  >
+                                    Can&apos;t find your city? Type it manually
+                                  </button>
+                                )}
+                              </>
                             ) : (
-                              <EnglishTextInput
-                                name="city"
-                                value={form.city}
-                                onChange={onChange}
-                                type="text"
-                                required
-                                className={`${componentsTheme.login.input} ${errorClass}`}
-                                placeholder="City"
-                              />
+                              <>
+                                <EnglishTextInput
+                                  name="city"
+                                  value={form.city}
+                                  onChange={onChange}
+                                  type="text"
+                                  required
+                                  autoFocus={cityManual}
+                                  className={`${componentsTheme.login.input} ${errorClass}`}
+                                  placeholder="Type your city"
+                                />
+                                {cityManual && citySelectOptions.length > 0 && (
+                                  <button
+                                    type="button"
+                                    className={onboardingTheme.seeAllButton}
+                                    onClick={() => {
+                                      setCityManual(false);
+                                      setForm(prev => ({ ...prev, city: '' }));
+                                    }}
+                                  >
+                                    Choose from the list instead
+                                  </button>
+                                )}
+                              </>
                             )}
                           </>
                        )}
