@@ -26,6 +26,10 @@ type TicketSummary = {
   priority: TicketPriority;
   createdAt: string;
   updatedAt: string;
+  // Optional backend fields for unread admin reply signalling.
+  // If the backend sends unreadCount or hasUnreadAdminReply, they surface here.
+  unreadCount?: number;
+  hasUnreadAdminReply?: boolean;
 };
 
 type TicketDetail = TicketSummary & {
@@ -762,7 +766,11 @@ export default function SupportTicketsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredTickets.map((ticket) => (
+                  filteredTickets.map((ticket) => {
+                    const hasUnread =
+                      (ticket.unreadCount !== undefined && ticket.unreadCount > 0) ||
+                      ticket.hasUnreadAdminReply === true;
+                    return (
                     <tr
                       key={ticket.id}
                       role="button"
@@ -783,16 +791,36 @@ export default function SupportTicketsPage() {
                         <p className="text-[11px] text-zinc-500">{toTitleCaseFromToken(ticket.category)}</p>
                       </td>
                       <td className="px-3 py-2 align-top">
-                        <p className="line-clamp-2 font-medium text-zinc-800">{ticket.subject}</p>
+                        <div className="flex items-center gap-1.5">
+                          {hasUnread ? (
+                            <span
+                              className="inline-block h-2 w-2 flex-shrink-0 rounded-full bg-blue-500"
+                              title="New reply from support team"
+                              aria-label="Unread admin reply"
+                            />
+                          ) : null}
+                          <p className={`line-clamp-2 font-medium ${hasUnread ? 'font-semibold text-zinc-900' : 'text-zinc-800'}`}>
+                            {ticket.subject}
+                          </p>
+                        </div>
                         <p className="line-clamp-1 text-[11px] text-zinc-500">
                           {ticket.subCategory ? toTitleCaseFromToken(ticket.subCategory) : '-'}
                         </p>
                       </td>
-                      <td className="px-3 py-2 align-top text-zinc-700">{toTitleCaseFromToken(ticket.status)}</td>
-                      <td className="px-3 py-2 align-top text-zinc-700">{toTitleCaseFromToken(ticket.priority)}</td>
+                      <td className="px-3 py-2 align-top">
+                        <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold ${getStatusChipClass(ticket.status)}`}>
+                          {toTitleCaseFromToken(ticket.status)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 align-top">
+                        <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold ${getPriorityChipClass(ticket.priority)}`}>
+                          {toTitleCaseFromToken(ticket.priority)}
+                        </span>
+                      </td>
                       <td className="px-3 py-2 align-top text-zinc-600">{formatDateTime(ticket.updatedAt)}</td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -811,7 +839,12 @@ export default function SupportTicketsPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
                   {selectedTicket.ticketNumber}
                 </p>
-                <h3 className="text-base font-semibold text-zinc-900">{selectedTicket.subject}</h3>
+                <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                  <h3 className="text-base font-semibold text-zinc-900">{selectedTicket.subject}</h3>
+                  <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[11px] font-semibold ${getStatusChipClass(selectedTicket.status)}`}>
+                    {toTitleCaseFromToken(selectedTicket.status)}
+                  </span>
+                </div>
                 <div className="mt-3 grid gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 sm:grid-cols-2">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Category</p>
@@ -825,11 +858,15 @@ export default function SupportTicketsPage() {
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Status</p>
-                    <p className="text-sm font-medium text-zinc-800">{toTitleCaseFromToken(selectedTicket.status)}</p>
+                    <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[11px] font-semibold ${getStatusChipClass(selectedTicket.status)}`}>
+                      {toTitleCaseFromToken(selectedTicket.status)}
+                    </span>
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Priority</p>
-                    <p className="text-sm font-medium text-zinc-800">{toTitleCaseFromToken(selectedTicket.priority)}</p>
+                    <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[11px] font-semibold ${getPriorityChipClass(selectedTicket.priority)}`}>
+                      {toTitleCaseFromToken(selectedTicket.priority)}
+                    </span>
                   </div>
                   <div className="sm:col-span-2">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Created</p>
@@ -867,16 +904,30 @@ export default function SupportTicketsPage() {
                           isMainThread
                             ? 'border-amber-200 bg-amber-50/40'
                             : message.isFromAdmin
-                              ? 'border-blue-200 bg-blue-50/50'
+                              ? 'border-blue-300 bg-blue-50'
                               : 'border-zinc-200 bg-white'
                         }`}
                       >
-                        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                        <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-700">
+                            <span
+                              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                                isMainThread
+                                  ? 'border-amber-300 bg-amber-100 text-amber-800'
+                                  : message.isFromAdmin
+                                    ? 'border-blue-300 bg-blue-100 text-blue-800'
+                                    : 'border-zinc-200 bg-white text-zinc-700'
+                              }`}
+                            >
                               {messageTypeLabel}
                             </span>
-                            <p className="text-xs font-semibold text-zinc-700">{message.senderName}</p>
+                            <p
+                              className={`text-xs font-semibold ${
+                                message.isFromAdmin ? 'text-blue-700' : 'text-zinc-700'
+                              }`}
+                            >
+                              {message.senderName}
+                            </p>
                           </div>
                           <p className="text-[11px] text-zinc-500">{formatDateTime(message.createdAt)}</p>
                         </div>
