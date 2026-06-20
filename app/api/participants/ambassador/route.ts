@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { isRecord } from '@/lib/api/response';
 
 export async function GET(request: Request) {
   try {
@@ -26,15 +27,20 @@ export async function GET(request: Request) {
     });
 
     const json = await res.json().catch(() => ({}));
+    const jsonRecord = isRecord(json) ? json : {};
     if (!res.ok) {
       return NextResponse.json(
-        { statusCode: (json as any)?.statusCode ?? res.status, message: (json as any)?.message ?? 'Failed', data: null },
+        {
+          statusCode: typeof jsonRecord.statusCode === 'number' ? jsonRecord.statusCode : res.status,
+          message: typeof jsonRecord.message === 'string' ? jsonRecord.message : 'Failed',
+          data: null,
+        },
         { status: res.status },
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json });
-  } catch (error) {
+    return NextResponse.json({ statusCode: 200, message: 'Success', data: jsonRecord.data ?? json });
+  } catch {
     return NextResponse.json({ statusCode: 500, message: 'Internal Server Error', data: null }, { status: 500 });
   }
 }

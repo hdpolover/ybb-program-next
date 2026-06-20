@@ -291,6 +291,11 @@ function Drawer({
 }) {
   const [visible, setVisible] = useState(false);
 
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(() => onClose(), 200);
+  };
+
   useEffect(() => {
     if (typeof document === "undefined") return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && handleClose();
@@ -302,12 +307,10 @@ function Drawer({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
+    // handleClose is defined above and stable within this render; adding it as a dep
+    // would cause the listener to re-register on every render — intentionally excluded.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleClose = () => {
-    setVisible(false);
-    setTimeout(() => onClose(), 200);
-  };
 
   if (typeof document === "undefined") return null;
 

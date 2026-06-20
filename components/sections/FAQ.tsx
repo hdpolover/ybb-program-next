@@ -45,19 +45,21 @@ export default function FAQ({ title, subtitle, apiItems, groups: groupsProp }: F
   const groups = groupsProp
     ?? (apiItems && apiItems.length > 0 ? groupFaqsByCategory(apiItems) : []);
 
-  if (!groups.length) return null;
-
-  const sectionTitle = title ?? "Got Questions? We've Got Answers.";
-  const sectionSubtitle = subtitle ?? 'Explore frequently asked questions to better understand the program flow, requirements, and important information.';
   const activeGroup = groups[activeTab];
 
   const filteredFaqs = useMemo(() => {
+    if (!activeGroup) return [];
     if (!query.trim()) return activeGroup.faqs;
     const qLower = query.toLowerCase();
     return activeGroup.faqs.filter(
       item => item.q.toLowerCase().includes(qLower) || item.a.toLowerCase().includes(qLower)
     );
   }, [activeGroup, query]);
+
+  if (!groups.length) return null;
+
+  const sectionTitle = title ?? "Got Questions? We've Got Answers.";
+  const sectionSubtitle = subtitle ?? 'Explore frequently asked questions to better understand the program flow, requirements, and important information.';
 
   return (
     <section className="relative w-full py-16 sm:py-20">

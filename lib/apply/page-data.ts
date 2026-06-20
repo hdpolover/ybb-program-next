@@ -4,7 +4,6 @@ import {
   getProgramPricingTiers,
   getProgramsPageData,
   type ProgramDetail,
-  type ProgramPricingTier,
 } from '@/lib/api/programs';
 import type { PaymentInfoSection } from '@/types/home';
 import type {

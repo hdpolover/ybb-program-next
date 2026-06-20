@@ -3,15 +3,7 @@ import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { parseApiDate } from '@/lib/utils';
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object';
-}
-
-function getEnvelopeData(payload: unknown): unknown {
-  if (!isRecord(payload)) return payload;
-  return 'data' in payload ? payload.data ?? null : payload;
-}
+import { isRecord, getEnvelopeData } from '@/lib/api/response';
 
 function toIsoString(value: unknown): string | undefined {
   if (typeof value !== 'string' || value.trim().length === 0) return undefined;
@@ -150,9 +142,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       cache: 'no-store',
     });
 
-    const json = await res.json().catch(() => ({}));
+    const json: unknown = await res.json().catch(() => ({}));
     if (res.ok) {
-      return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json ?? null });
+      return NextResponse.json({ statusCode: 200, message: 'Success', data: getEnvelopeData(json) ?? null });
     }
 
     const fallbackUrl = new URL('/v1/portal/payments', apiBase);
@@ -168,11 +160,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ statusCode: 200, message: 'Success', data: fallbackDetail });
     }
 
+    const j = isRecord(json) ? json : {};
     return NextResponse.json(
       {
-        statusCode: (json as any)?.statusCode ?? res.status,
-        message: (json as any)?.message ?? 'Failed to fetch payment detail',
-        data: (json as any)?.data ?? null,
+        statusCode: typeof j.statusCode === 'number' ? j.statusCode : res.status,
+        message: typeof j.message === 'string' ? j.message : 'Failed to fetch payment detail',
+        data: 'data' in j ? (j.data ?? null) : null,
       },
       { status: res.status },
     );

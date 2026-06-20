@@ -8,7 +8,7 @@ type HeroProps = {
   link?: string;
 };
 
-export default function Hero({ imageUrl, title, subtitle }: HeroProps) {
+export default function Hero({ imageUrl, title }: HeroProps) {
   if (!imageUrl || imageUrl.length === 0) return null;
   const src = imageUrl;
   const alt = title || 'Youth Summit';

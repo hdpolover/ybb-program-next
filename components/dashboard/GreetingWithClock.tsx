@@ -7,7 +7,8 @@ export default function GreetingWithClock({ name }: { name: string }) {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    // Set initial time only on client side
+    // Set initial time and mounted flag only on client side
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentTime(new Date());
     setMounted(true);
 

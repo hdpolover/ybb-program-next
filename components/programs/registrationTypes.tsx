@@ -138,7 +138,7 @@ export default function RegistrationTypePrograms({
             'Submit required documents on time',
             'Pay fees according to scheduled payment batches',
           ],
-    [primaryType?.requirements],
+    [primaryType],
   );
 
   const fullyFundedRequirements = useMemo(
@@ -150,7 +150,7 @@ export default function RegistrationTypePrograms({
             'Submit detailed essays and applications',
             'Participate in interviews and evaluations',
           ],
-    [secondaryType?.requirements],
+    [secondaryType],
   );
 
   useEffect(() => {

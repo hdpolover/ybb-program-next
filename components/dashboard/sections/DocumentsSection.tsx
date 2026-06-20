@@ -256,7 +256,6 @@ export default function DocumentsSection() {
         handleProgramChange as EventListener
       );
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch certificates

@@ -3,14 +3,15 @@
 import { useEffect, useState } from 'react';
 
 export default function DevtoolsGuard() {
-  if (process.env.NODE_ENV !== 'production') return null;
-
   const [show, setShow] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const isProduction = process.env.NODE_ENV === 'production';
+
   useEffect(() => {
+    if (!isProduction) return;
     const listenerOptions: AddEventListenerOptions = { capture: true };
 
     const keyHandler = (e: KeyboardEvent) => {
@@ -41,7 +42,9 @@ export default function DevtoolsGuard() {
       window.removeEventListener('keydown', keyHandler, listenerOptions);
       window.removeEventListener('contextmenu', contextHandler, listenerOptions);
     };
-  }, [unlocked]);
+  }, [unlocked, isProduction]);
+
+  if (!isProduction) return null;
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();

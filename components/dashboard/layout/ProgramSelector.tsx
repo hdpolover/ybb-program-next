@@ -68,6 +68,7 @@ export default function ProgramSelector({
 
   useEffect(() => {
     if (normalizedPrograms.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveId('');
       return;
     }

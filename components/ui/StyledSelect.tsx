@@ -112,6 +112,9 @@ export default function StyledSelect({
 
   React.useEffect(() => {
     if (open) {
+      // Close the dropdown when the controlled value changes externally (e.g. parent
+      // saves the selection) — intentional UX behaviour, not a cascading render bug.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(false);
     }
     // Intentionally only depends on value.

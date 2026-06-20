@@ -34,7 +34,8 @@ export default function EarlyBidCTA({
   registrantsCount = null,
   seatsLeftCount = null,
 }: EarlyBidCTAProps) {
-  const targetMs = deadlineIso ? new Date(deadlineIso).getTime() : Date.now();
+  // Use 0 (epoch) as fallback when no deadline is provided — countdown will display zeros
+  const targetMs = deadlineIso ? new Date(deadlineIso).getTime() : 0;
   const getCountdown = () => getTimeRemaining(new Date(targetMs));
   const [timeLeft, setTimeLeft] = useState<Countdown>(() => getCountdown());
   const deadlineLabel = deadlineIso
@@ -46,11 +47,11 @@ export default function EarlyBidCTA({
     : 'to be announced';
 
   useEffect(() => {
-    setTimeLeft(getCountdown());
     const id = setInterval(() => {
       setTimeLeft(getCountdown());
     }, 1000);
     return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- getCountdown is stable; targetMs is the real dep
   }, [targetMs]);
   return (
     <section className={componentsTheme.applyEarlyBidCta.sectionWrapper}>

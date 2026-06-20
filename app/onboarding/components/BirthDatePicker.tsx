@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { componentsTheme } from '@/lib/theme/components';
-import { FormField } from '@/components/ui/FormField';
-import { Gift } from 'lucide-react';
 
 export function BirthDatePicker({
   value,

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -752,9 +753,11 @@ export default function PaymentsListSection() {
           <div className="space-y-2 md:hidden">
             {payments.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 px-5 py-8 text-center">
-                <img
+                <Image
                   src="/img/tablenotfounds.png"
                   alt="No payments"
+                  width={160}
+                  height={112}
                   className="mb-3 h-auto max-h-28 w-auto"
                 />
                 <p className="text-sm font-extrabold text-slate-900">No payments yet</p>
@@ -857,9 +860,11 @@ export default function PaymentsListSection() {
                   <tr>
                     <td colSpan={8}>
                     <div className="flex flex-col items-center justify-center bg-slate-50 px-6 py-10 text-center">
-                      <img
+                      <Image
                         src="/img/tablenotfounds.png"
                         alt="No payments"
+                        width={160}
+                        height={144}
                         className="mb-4 h-auto max-h-36 w-auto"
                       />
                       <p className="text-base font-extrabold text-slate-900">No payments yet</p>

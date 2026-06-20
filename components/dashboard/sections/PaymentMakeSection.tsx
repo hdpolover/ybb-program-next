@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -250,6 +251,12 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     };
   }, [paymentId]);
 
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodData[]>([]);
+  const [methodsLoading, setMethodsLoading] = useState(false);
+  const [paymentType, setPaymentType] = useState<"gateway" | "manual">("gateway");
+  const [manualMethod, setManualMethod] = useState<string>("");
+  const [gatewayMethod, setGatewayMethod] = useState<string>("");
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -340,12 +347,6 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     };
   }, [programSelectionReady, selectedProgramId, settings?.active_program?.name]);
 
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodData[]>([]);
-  const [methodsLoading, setMethodsLoading] = useState(false);
-
-  const [paymentType, setPaymentType] = useState<"gateway" | "manual">("gateway");
-  const [manualMethod, setManualMethod] = useState<string>("");
-  const [gatewayMethod, setGatewayMethod] = useState<string>("");
   const [manualAccountName, setManualAccountName] = useState("");
   const [manualSourceName, setManualSourceName] = useState("");
   const [manualPaymentDate, setManualPaymentDate] = useState("");
@@ -423,11 +424,14 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
   const isFormComplete = isGatewayComplete || isManualComplete;
 
   useEffect(() => {
+    // Defer setState to avoid synchronous setState in effect body
+    let timer: ReturnType<typeof setTimeout> | null = null;
     if (paymentType === "gateway" && gatewayOptionDisabled && hasManualMethods && !manualOptionDisabled) {
-      setPaymentType("manual");
+      timer = setTimeout(() => setPaymentType("manual"), 0);
     } else if (paymentType === "manual" && manualOptionDisabled && hasGatewayMethods && !gatewayOptionDisabled) {
-      setPaymentType("gateway");
+      timer = setTimeout(() => setPaymentType("gateway"), 0);
     }
+    return () => { if (timer !== null) clearTimeout(timer); };
   }, [gatewayOptionDisabled, manualOptionDisabled, hasGatewayMethods, hasManualMethods, paymentType]);
 
   const handleCancelPendingPayment = useCallback(async () => {
@@ -643,9 +647,12 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
             <div className="mt-4 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Payment Proof</p>
               <a href={pendingPayment?.proofUrl} target="_blank" rel="noreferrer noopener" className="inline-block">
-                <img
-                  src={pendingPayment?.proofUrl}
+                <Image
+                  src={pendingPayment?.proofUrl ?? ""}
                   alt="Manual payment proof"
+                  width={400}
+                  height={288}
+                  unoptimized
                   className="max-h-72 w-auto rounded-xl border border-slate-200 object-contain"
                 />
               </a>
@@ -955,9 +962,12 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                         >
                           <span className={paymentsTheme.bankMethodLogoWrapper}>
                             {method.icon ? (
-                              <img
+                              <Image
                                 src={method.icon}
                                 alt={label}
+                                width={48}
+                                height={24}
+                                unoptimized
                                 className={paymentsTheme.bankMethodLogoImage}
                               />
                             ) : (
@@ -1033,9 +1043,12 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                           >
                             <span className={paymentsTheme.bankMethodLogoWrapper}>
                               {method.icon ? (
-                                <img
+                                <Image
                                   src={method.icon}
                                   alt={label}
+                                  width={48}
+                                  height={24}
+                                  unoptimized
                                   className={paymentsTheme.bankMethodLogoImage}
                                 />
                               ) : (

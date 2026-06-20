@@ -16,7 +16,6 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { componentsTheme } from '@/lib/theme/components';
 import SubmissionReadProfileHeaderSection from './submission/SubmissionReadProfileHeaderSection';
@@ -597,7 +596,7 @@ export default function SubmissionReadSection() {
     const completedSections = detail.sections.filter(s => calculateSectionStatus(s, detail.essays) === 'completed').length;
     const totalSections = detail.sections.length;
     return totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
-  }, [detail?.sections, detail?.essays]);
+  }, [detail]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

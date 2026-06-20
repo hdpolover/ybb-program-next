@@ -26,10 +26,10 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
   const [query, setQuery] = useState('');
 
   const title = fqs?.title || "Got Questions? We've Got Answers.";
-  const items = fqs?.items ?? [];
 
   const groups: FAQGroup[] = useMemo(() => {
     if (groupsOverride && groupsOverride.length) return groupsOverride;
+    const items = fqs?.items ?? [];
     if (!items.length) return [];
     const byCategory = new Map<string, FAQ[]>();
     for (const item of items) {
@@ -42,21 +42,22 @@ export default function ProgramFAQ({ fqs, groupsOverride }: ProgramFAQProps) {
       label: formatTokenLabel(label, 'General'),
       fqs: faqs,
     }));
-  }, [items]);
-
-  if (!fqs && !groupsOverride) return null;
-
-  if (groups.length === 0) return null;
+  }, [fqs?.items, groupsOverride]);
 
   const activeGroup = groups[activeTab];
 
   const filteredFaqs = useMemo(() => {
+    if (!activeGroup) return [];
     if (!query.trim()) return activeGroup.fqs;
     const qLower = query.toLowerCase();
     return activeGroup.fqs.filter(
       item => item.q.toLowerCase().includes(qLower) || item.a.toLowerCase().includes(qLower),
     );
   }, [activeGroup, query]);
+
+  if (!fqs && !groupsOverride) return null;
+
+  if (groups.length === 0) return null;
 
   return (
     <section className="relative w-full py-16 sm:py-20">

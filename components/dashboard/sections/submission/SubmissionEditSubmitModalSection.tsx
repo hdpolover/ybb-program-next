@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { componentsTheme } from "@/lib/theme/components";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
@@ -9,7 +10,7 @@ type Props = {
   onClose: () => void;
 };
 
-export default function SubmissionEditSubmitModalSection({ onClose }: Props) {
+export default function SubmissionEditSubmitModalSection(_props: Props) { // eslint-disable-line @typescript-eslint/no-unused-vars
   return (
     <div className={submissionTheme.modalOverlay}>
       <div className={submissionTheme.modalCard}>
@@ -46,9 +47,9 @@ export default function SubmissionEditSubmitModalSection({ onClose }: Props) {
         </div>
 
         <div className="mt-6 flex justify-center">
-          <a href="/dashboard/payments" className={submissionTheme.modalPrimaryLink}>
+          <Link href="/dashboard/payments" className={submissionTheme.modalPrimaryLink}>
             Go to Payment
-          </a>
+          </Link>
         </div>
       </div>
     </div>

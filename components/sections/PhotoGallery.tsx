@@ -33,8 +33,6 @@ export default function PhotoGallery({
   ctaLabel = 'See All Photos',
   ctaUrl = '/programs/gallery',
 }: PhotoGalleryProps) {
-  if (!images || images.length === 0) return null;
-
   const [selected, setSelected] = useState<number | null>(null);
   const initialVisible = mode === 'home' ? 8 : 12;
   const [visible, setVisible] = useState<number>(initialVisible);
@@ -45,6 +43,9 @@ export default function PhotoGallery({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  if (!images || images.length === 0) return null;
+
   const photos: GalleryImage[] = images ?? [];
 
   return (

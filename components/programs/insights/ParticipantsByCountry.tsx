@@ -41,17 +41,14 @@ const DEFAULT_COUNTRIES: ParticipantsByCountryItem[] = [
   { country: 'United Arab Emirates', count: 42 },
 ];
 
-export default function ParticipantsByCountrySection({
-  copy = DEFAULT_COPY,
-  countries = DEFAULT_COUNTRIES,
-}: ParticipantsByCountryProps) {
-  const data = [...countries].sort((a, b) => b.count - a.count);
-  const max = data[0]?.count || 1;
-  const mid = Math.ceil(data.length / 2);
-  const left = data.slice(0, mid);
-  const right = data.slice(mid);
+type CountryListProps = {
+  items: ParticipantsByCountryItem[];
+  startRank: number;
+  max: number;
+};
 
-  const List = ({ items, startRank }: { items: typeof data; startRank: number }) => (
+function CountryList({ items, startRank, max }: CountryListProps) {
+  return (
     <ul className="space-y-2">
       {items.map((d, i) => {
         const rank = startRank + i;
@@ -79,6 +76,17 @@ export default function ParticipantsByCountrySection({
       })}
     </ul>
   );
+}
+
+export default function ParticipantsByCountrySection({
+  copy = DEFAULT_COPY,
+  countries = DEFAULT_COUNTRIES,
+}: ParticipantsByCountryProps) {
+  const data = [...countries].sort((a, b) => b.count - a.count);
+  const max = data[0]?.count || 1;
+  const mid = Math.ceil(data.length / 2);
+  const left = data.slice(0, mid);
+  const right = data.slice(mid);
 
   return (
     <section className="px-6 py-12 sm:py-14 md:py-16 lg:px-8">
@@ -91,8 +99,8 @@ export default function ParticipantsByCountrySection({
           {copy.descriptionTop}
         </p>
         <div className="grid gap-6 lg:grid-cols-2">
-          <List items={left} startRank={1} />
-          <List items={right} startRank={left.length + 1} />
+          <CountryList items={left} startRank={1} max={max} />
+          <CountryList items={right} startRank={left.length + 1} max={max} />
         </div>
         <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-slate-600">
           {copy.footerText}

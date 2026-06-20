@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { isRecord } from '@/lib/api/response';
 
 export async function GET(request: Request) {
   try {
@@ -33,11 +34,12 @@ export async function GET(request: Request) {
     });
 
     const json = await res.json().catch(() => ({}));
+    const jsonRecord = isRecord(json) ? json : {};
     if (!res.ok) {
       return NextResponse.json(
         {
-          statusCode: (json as any)?.statusCode ?? res.status,
-          message: (json as any)?.message ?? 'Failed to fetch participant profile',
+          statusCode: typeof jsonRecord.statusCode === 'number' ? jsonRecord.statusCode : res.status,
+          message: typeof jsonRecord.message === 'string' ? jsonRecord.message : 'Failed to fetch participant profile',
           data: null,
         },
         { status: res.status },
@@ -47,7 +49,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       statusCode: 200,
       message: 'Success',
-      data: (json as any)?.data ?? json ?? null,
+      data: jsonRecord.data ?? json ?? null,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
