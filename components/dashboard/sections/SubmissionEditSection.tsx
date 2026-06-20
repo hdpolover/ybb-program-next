@@ -656,21 +656,40 @@ export default function SubmissionEditSection() {
     return rawStep === "preview" ? PREVIEW_STEP_ID : rawStep;
   }, [searchParams]);
 
-  useEffect(() => {
-    if (!requestedStepId || stepperItems.length === 0) return;
-    const hasRequestedStep = stepperItems.some(step => step.id === requestedStepId);
-    if (!hasRequestedStep) return;
+  // Stable set of valid step ids derived from `detail` ONLY (the section ids
+  // plus the synthetic Preview step). Deliberately independent of
+  // `sectionValues`/`stepperItems`: keying the URL<->step sync effect off the
+  // volatile stepper (which rebuilds on every keystroke, see its deps) re-entered
+  // the sync effects and drove the Preview tab into a set-state/navigation loop —
+  // visible flicker, and a "Maximum update depth exceeded" crash on click that
+  // the root error boundary surfaced as a full-page error. The earlier
+  // `previewVisited` flag only stopped the preview STATUS from oscillating; it
+  // did not decouple the navigation effects from the stepper.
+  const validStepIds = useMemo(() => {
+    if (!detail) return null;
+    return new Set<string>([...detail.sections.map(s => s.id), PREVIEW_STEP_ID]);
+  }, [detail]);
 
+  useEffect(() => {
+    if (!requestedStepId || !validStepIds || !validStepIds.has(requestedStepId)) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveSectionId(current => (current === requestedStepId ? current : requestedStepId));
-  }, [requestedStepId, stepperItems]);
+  }, [requestedStepId, validStepIds]);
 
+  // Ref guard so our own `router.replace` — which mutates `searchParams`, a dep
+  // of this effect — cannot re-enter and re-fire the navigation in a loop.
+  const lastSyncedStepRef = useRef<string | null>(null);
   useEffect(() => {
     if (!activeSectionId) return;
 
     const stepParamValue = activeSectionId === PREVIEW_STEP_ID ? "preview" : activeSectionId;
-    if (searchParams.get("step") === stepParamValue) return;
+    if (lastSyncedStepRef.current === stepParamValue) return;
+    if (searchParams.get("step") === stepParamValue) {
+      lastSyncedStepRef.current = stepParamValue;
+      return;
+    }
 
+    lastSyncedStepRef.current = stepParamValue;
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.set("step", stepParamValue);
     router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false });
