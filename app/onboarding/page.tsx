@@ -39,6 +39,7 @@ export default function OnboardingPage() {
   const [knowledgeSources, setKnowledgeSources] = useState<string[]>([]);
   const [knowledgeSourcesError, setKnowledgeSourcesError] = useState(false);
   const [cityManual, setCityManual] = useState(false);
+  const [stateManual, setStateManual] = useState(false);
   const brandLogo = settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
   // if user is authenticated and has programs, we could override this, but let's just use settings first
   const [brandName, setBrandName] = useState(settings?.active_program?.name?.trim() || settings?.brand?.name?.trim() || 'Youth Break the Boundaries');
@@ -698,6 +699,7 @@ export default function OnboardingPage() {
                           value={form.country}
                           onChange={value => {
                             setCityManual(false);
+                            setStateManual(false);
                             setForm(prev => ({
                               ...prev,
                               country: value,
@@ -723,29 +725,60 @@ export default function OnboardingPage() {
                       >
                        {(errorClass) => (
                           <>
-                            {selectedCountry?.isoCode && !statesFailed && (statesLoading || stateSelectOptions.length > 0) ? (
-                              <StyledSelect
-                                value={form.state}
-                                onChange={value => {
-                                  setCityManual(false);
-                                  setForm(prev => ({ ...prev, state: value, city: '' }));
-                                }}
-                                options={stateSelectOptions}
-                                placeholder={statesLoading ? 'Loading state/region...' : 'Select state/region'}
-                                className={`${componentsTheme.login.input} ${errorClass}`}
-                                searchable
-                                disabled={!selectedCountry?.isoCode || statesLoading}
-                              />
+                            {selectedCountry?.isoCode && !statesFailed && !stateManual && (statesLoading || stateSelectOptions.length > 0) ? (
+                              <>
+                                <StyledSelect
+                                  value={form.state}
+                                  onChange={value => {
+                                    setCityManual(false);
+                                    setForm(prev => ({ ...prev, state: value, city: '' }));
+                                  }}
+                                  options={stateSelectOptions}
+                                  placeholder={statesLoading ? 'Loading state/region...' : 'Select state/region'}
+                                  className={`${componentsTheme.login.input} ${errorClass}`}
+                                  searchable
+                                  disabled={!selectedCountry?.isoCode || statesLoading}
+                                />
+                                {!statesLoading && stateSelectOptions.length > 0 && (
+                                  <button
+                                    type="button"
+                                    className={onboardingTheme.seeAllButton}
+                                    onClick={() => {
+                                      setStateManual(true);
+                                      setCityManual(false);
+                                      setForm(prev => ({ ...prev, state: '', city: '' }));
+                                    }}
+                                  >
+                                    Can&apos;t find your state/region? Type it manually
+                                  </button>
+                                )}
+                              </>
                             ) : (
-                              <EnglishTextInput
-                                name="state"
-                                value={form.state}
-                                onChange={onChange}
-                                type="text"
-                                required
-                                className={`${componentsTheme.login.input} ${errorClass}`}
-                                placeholder="State/Region"
-                              />
+                              <>
+                                <EnglishTextInput
+                                  name="state"
+                                  value={form.state}
+                                  onChange={onChange}
+                                  type="text"
+                                  required
+                                  autoFocus={stateManual}
+                                  className={`${componentsTheme.login.input} ${errorClass}`}
+                                  placeholder="Type your state/region"
+                                />
+                                {stateManual && stateSelectOptions.length > 0 && (
+                                  <button
+                                    type="button"
+                                    className={onboardingTheme.seeAllButton}
+                                    onClick={() => {
+                                      setStateManual(false);
+                                      setCityManual(false);
+                                      setForm(prev => ({ ...prev, state: '', city: '' }));
+                                    }}
+                                  >
+                                    Choose from the list instead
+                                  </button>
+                                )}
+                              </>
                             )}
                           </>
                        )}
