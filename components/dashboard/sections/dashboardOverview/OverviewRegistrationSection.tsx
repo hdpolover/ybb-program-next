@@ -1,11 +1,11 @@
 "use client";
 
-import { ArrowLeftRight, GraduationCap, AlertTriangle } from "lucide-react";
+import { ArrowLeftRight, GraduationCap, AlertTriangle, Info } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
-import { getErrorMessage, getMessage } from "@/lib/api/response";
+import { getErrorMessage, getMessage, isRecord } from "@/lib/api/response";
 import {
   flushSwitchCategoryFeedback,
   queueSwitchCategoryFeedback,
@@ -21,6 +21,10 @@ export default function OverviewRegistrationSection() {
   const activeApplication = dashboardSummary?.activeApplication ?? null;
 
   const [showModal, setShowModal] = useState(false);
+  // Informational popup shown when the user tries to switch INTO Fully Funded
+  // but its registration period has already closed. Distinct from the standard
+  // confirm modal — no API call is made; the participant stays Self Funded.
+  const [showFfClosedPopup, setShowFfClosedPopup] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Track the category that was active when the user last expanded the description.
@@ -66,6 +70,8 @@ export default function OverviewRegistrationSection() {
   const currentCategory = activeApplication?.category;
   const switchTarget = currentCategory === "self_funded" ? "fully_funded" : "self_funded";
   const switchTargetLabel = switchTarget === "fully_funded" ? "Fully Funded" : "Self Funded";
+  const fullyFundedRegistrationClosed =
+    activeApplication?.fullyFundedRegistrationClosed ?? false;
   const shouldCollapseDescription = categoryUi.description.length > 150;
   const collapsedDescription = `${categoryUi.description.slice(0, 150).trimEnd()}...`;
 
@@ -93,6 +99,20 @@ export default function OverviewRegistrationSection() {
       if (!res.ok) {
         const message = getMessage(json) ?? "Failed to switch category. Please try again.";
         const normalized = message.toLowerCase();
+        // Defense against a race: the dashboard flag may have been stale when
+        // the user clicked, but the authoritative backend guard rejected the
+        // switch because Fully Funded registration has closed. In that case,
+        // suppress the error toast and surface the informational popup instead.
+        const errorCode = isRecord(json) && typeof json.errorCode === "string" ? json.errorCode : "";
+        if (
+          errorCode === "FULLY_FUNDED_REGISTRATION_CLOSED" ||
+          normalized.includes("fully funded registration has closed")
+        ) {
+          setShowModal(false);
+          setError(null);
+          setShowFfClosedPopup(true);
+          return;
+        }
         if (normalized.includes("already in the target category")) {
           queueSwitchCategoryFeedback("info", "Category already switched. Dashboard has been synced.");
           setShowModal(false);
@@ -186,6 +206,14 @@ export default function OverviewRegistrationSection() {
                   className={`${overviewTheme.registrationSwitchButton} disabled:cursor-not-allowed disabled:opacity-50`}
                   onClick={() => {
                     if (!canSwitchCategory) return;
+                    // If the switch targets Fully Funded but its registration
+                    // window has closed, do NOT call the API or open the confirm
+                    // modal — show the informational popup and keep the
+                    // participant on Self Funded.
+                    if (switchTarget === "fully_funded" && fullyFundedRegistrationClosed) {
+                      setShowFfClosedPopup(true);
+                      return;
+                    }
                     setShowModal(true);
                   }}
                   disabled={!canSwitchCategory}
@@ -258,6 +286,37 @@ export default function OverviewRegistrationSection() {
               >
                 <ArrowLeftRight className="h-4 w-4" />
                 {loading ? "Switching…" : `Confirm Switch to ${switchTargetLabel}`}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showFfClosedPopup && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                <Info className="h-5 w-5 text-blue-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Fully Funded registration has closed
+              </h2>
+            </div>
+
+            <p className="mb-5 text-sm text-slate-600">
+              The Fully Funded registration period has ended. You can continue your application as
+              Self Funded.
+            </p>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+                onClick={() => setShowFfClosedPopup(false)}
+              >
+                Got it
               </button>
             </div>
           </div>

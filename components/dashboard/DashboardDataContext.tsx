@@ -30,6 +30,7 @@ export type PortalDashboardSummary = {
     canSwitchCategory?: boolean;
     switchCategoryMessage?: string;
     switchCategoryBlockingInvoiceId?: string;
+    fullyFundedRegistrationClosed?: boolean;
     progress?: number;
     currentStep?: string;
     daysUntilDeadline?: number;

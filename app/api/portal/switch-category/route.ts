@@ -57,6 +57,10 @@ export async function POST(request: Request) {
           statusCode: typeof j.statusCode === 'number' ? j.statusCode : res.status,
           message: typeof j.message === 'string' ? j.message : 'Failed to switch category',
           data: 'data' in j ? j.data ?? null : null,
+          // Forward the machine-readable error code (e.g.
+          // FULLY_FUNDED_REGISTRATION_CLOSED) when the backend supplies one so
+          // the UI can branch on it instead of substring-matching the message.
+          ...(typeof j.errorCode === 'string' ? { errorCode: j.errorCode } : {}),
         },
         { status: res.status, headers: noStoreHeaders },
       );
