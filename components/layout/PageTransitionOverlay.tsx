@@ -27,6 +27,9 @@ export default function PageTransitionOverlay() {
 
     // if this pathname already visited, skip overlay
     if (visited.includes(pathname)) {
+      // Explicitly resetting to false for already-visited paths so any lingering
+      // active state from a previous navigation is cleared synchronously.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsActive(false);
       return;
     }

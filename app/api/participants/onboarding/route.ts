@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
+import { isRecord } from '@/lib/api/response';
 
 function isEmptyData(value: unknown): boolean {
   if (value == null) return true;
@@ -37,6 +38,7 @@ export async function GET(request: Request) {
     });
 
     const json = await res.json().catch(() => ({}));
+    const jsonRecord = isRecord(json) ? json : {};
     if (!res.ok) {
       if (res.status === 404) {
         return NextResponse.json(
@@ -46,15 +48,15 @@ export async function GET(request: Request) {
       }
       return NextResponse.json(
         {
-          statusCode: (json as any)?.statusCode ?? res.status,
-          message: (json as any)?.message ?? 'Failed to fetch onboarding',
+          statusCode: typeof jsonRecord.statusCode === 'number' ? jsonRecord.statusCode : res.status,
+          message: typeof jsonRecord.message === 'string' ? jsonRecord.message : 'Failed to fetch onboarding',
           data: null,
         },
         { status: res.status },
       );
     }
 
-    const data = (json as any)?.data ?? json ?? null;
+    const data = jsonRecord.data ?? json ?? null;
     return NextResponse.json({
       statusCode: 200,
       message: isEmptyData(data) ? 'Data not Added' : 'Success',
@@ -110,18 +112,19 @@ export async function POST(request: Request) {
     });
 
     const json = await res.json().catch(() => ({}));
+    const postJsonRecord = isRecord(json) ? json : {};
     if (!res.ok) {
       return NextResponse.json(
         {
-          statusCode: (json as any)?.statusCode ?? res.status,
-          message: (json as any)?.message ?? 'Failed to submit onboarding',
-          data: (json as any)?.data ?? null,
+          statusCode: typeof postJsonRecord.statusCode === 'number' ? postJsonRecord.statusCode : res.status,
+          message: typeof postJsonRecord.message === 'string' ? postJsonRecord.message : 'Failed to submit onboarding',
+          data: postJsonRecord.data ?? null,
         },
         { status: res.status },
       );
     }
 
-    const data = (json as any)?.data ?? json ?? null;
+    const data = postJsonRecord.data ?? json ?? null;
     return NextResponse.json({
       statusCode: 200,
       message: isEmptyData(data) ? 'Data not Added' : 'Success',

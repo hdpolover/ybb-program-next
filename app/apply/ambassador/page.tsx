@@ -44,10 +44,13 @@ export default function ApplyAmbassadorPage() {
         }),
       });
 
-      const json = (await res.json().catch(() => ({}))) as any;
+      const json: unknown = await res.json().catch(() => ({}));
+      const jsonMessage = typeof json === 'object' && json !== null && 'message' in json && typeof (json as Record<string, unknown>).message === 'string'
+        ? (json as Record<string, unknown>).message as string
+        : null;
 
       if (!res.ok) {
-        throw new Error(json?.message || 'Application failed. Please try again.');
+        throw new Error(jsonMessage ?? 'Application failed. Please try again.');
       }
 
       setSuccess(true);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { isRecord } from '@/lib/api/response';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,19 +49,25 @@ export async function POST(request: Request) {
       cache: 'no-store',
     });
 
-    const json = await res.json().catch(() => ({}));
+    const json: unknown = await res.json().catch(() => ({}));
     if (!res.ok) {
+      const j = isRecord(json) ? json : {};
       return NextResponse.json(
         {
-          statusCode: (json as any)?.statusCode ?? res.status,
-          message: (json as any)?.message ?? 'Failed to switch category',
-          data: (json as any)?.data ?? null,
+          statusCode: typeof j.statusCode === 'number' ? j.statusCode : res.status,
+          message: typeof j.message === 'string' ? j.message : 'Failed to switch category',
+          data: 'data' in j ? j.data ?? null : null,
+          // Forward the machine-readable error code (e.g.
+          // FULLY_FUNDED_REGISTRATION_CLOSED) when the backend supplies one so
+          // the UI can branch on it instead of substring-matching the message.
+          ...(typeof j.errorCode === 'string' ? { errorCode: j.errorCode } : {}),
         },
         { status: res.status, headers: noStoreHeaders },
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json ?? null }, { headers: noStoreHeaders });
+    const j = isRecord(json) ? json : {};
+    return NextResponse.json({ statusCode: 200, message: 'Success', data: 'data' in j ? j.data ?? null : json ?? null }, { headers: noStoreHeaders });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ statusCode: 500, message, data: null }, { status: 500, headers: noStoreHeaders });

@@ -81,8 +81,10 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
 
   if (!program) notFound();
 
+  // eslint-disable-next-line react-hooks/purity -- server component, Date.now() is safe here; function runs once per request, not on re-render
+  const now = Date.now();
   const endDate = parseValidDate(program.endDate ?? program.startDate);
-  const hasEnded = endDate ? endDate.getTime() < Date.now() : false;
+  const hasEnded = endDate ? endDate.getTime() < now : false;
   const isArchiveProgram = program.status === 'completed' || hasEnded;
   const isOpen = !isArchiveProgram && program.allowRegistration;
   const resolvedProgramTitle =

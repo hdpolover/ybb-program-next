@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { componentsTheme } from '@/lib/theme/components';
@@ -91,14 +92,21 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     if (!token) {
-      setStatus('idle');
-      setMessage('');
-      return;
+      // Defer state updates to avoid synchronous setState in effect body
+      const timer = setTimeout(() => {
+        setStatus('idle');
+        setMessage('');
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     let cancelled = false;
-    setStatus('loading');
-    setMessage('');
+    const loadingTimer = setTimeout(() => {
+      if (!cancelled) {
+        setStatus('loading');
+        setMessage('');
+      }
+    }, 0);
 
     (async () => {
       try {
@@ -130,6 +138,7 @@ export default function VerifyEmailPage() {
 
     return () => {
       cancelled = true;
+      clearTimeout(loadingTimer);
     };
   }, [token]);
 
@@ -160,7 +169,7 @@ export default function VerifyEmailPage() {
 
             <div className={componentsTheme.login.heroTextContainer}>
               <div className={componentsTheme.login.heroLogoWrapper}>
-                <a href="/" className="inline-block">
+                <Link href="/" className="inline-block">
                   <Image
                     src={settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png'}
                     alt={settings?.brand?.name?.trim() || 'Youth Break the Boundaries'}
@@ -170,7 +179,7 @@ export default function VerifyEmailPage() {
                     priority
                     unoptimized
                   />
-                </a>
+                </Link>
                 <div className="mt-4 space-y-2">
                   <h2 className={componentsTheme.login.heroTitle}>
                     Raise Your Hand,

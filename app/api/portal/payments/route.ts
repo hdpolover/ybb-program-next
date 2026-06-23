@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getCalendarDayDifference, parseApiDate } from '@/lib/utils';
+import { formatDeadlineWib } from '@/lib/format/deadline';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { isRecord } from '@/lib/api/response';
 
 export async function GET(request: Request) {
   try {
@@ -32,12 +34,13 @@ export async function GET(request: Request) {
     });
 
     const json = await res.json().catch(() => ({}));
+    const jsonRecord = isRecord(json) ? json : {};
     if (!res.ok) {
       return NextResponse.json(
         {
-          statusCode: (json as any)?.statusCode ?? res.status,
-          message: (json as any)?.message ?? 'Failed to fetch payments',
-          data: (json as any)?.data ?? null,
+          statusCode: typeof jsonRecord.statusCode === 'number' ? jsonRecord.statusCode : res.status,
+          message: typeof jsonRecord.message === 'string' ? jsonRecord.message : 'Failed to fetch payments',
+          data: jsonRecord.data ?? null,
         },
         { status: res.status },
       );
@@ -45,11 +48,13 @@ export async function GET(request: Request) {
 
     // Transform API shape { history, outstanding, availableMethods, stats }
     // into what the frontend PaymentsListSection expects: { items, summary }
-    const apiData = (json as any)?.data ?? json ?? {};
-    const history: any[] = apiData.history ?? [];
-    const outstanding: any[] = apiData.outstanding ?? [];
-    const availableMethods: any[] = apiData.availableMethods ?? [];
-    const stats = apiData.stats ?? {};
+    const apiDataRaw: unknown = jsonRecord.data ?? json ?? {};
+    const apiData = isRecord(apiDataRaw) ? apiDataRaw : {};
+    const history: unknown[] = Array.isArray(apiData.history) ? apiData.history : [];
+    const outstanding: unknown[] = Array.isArray(apiData.outstanding) ? apiData.outstanding : [];
+    const availableMethods: unknown[] = Array.isArray(apiData.availableMethods) ? apiData.availableMethods : [];
+    const statsRaw: unknown = apiData.stats ?? {};
+    const stats = isRecord(statsRaw) ? statsRaw : {};
     const now = new Date();
 
     type ItemStatus = 'paid' | 'unpaid' | 'processing' | 'failed';
@@ -110,31 +115,32 @@ export async function GET(request: Request) {
     };
 
 
-    const toItem = (inv: any, fallbackStatus: ItemStatus): MergedItem => {
-      const startDate = toStartDate(inv.startDate);
-      const dueDate = toStartDate(inv.dueDate);
-      const status = normalizeStatus(inv.status, fallbackStatus);
-      const amountValue = Number(inv.amount ?? 0);
-      const currency = String(inv.currency ?? stats.currency ?? 'USD');
-      const rawType = String(inv.type ?? '').toLowerCase();
+    const toItem = (inv: unknown, fallbackStatus: ItemStatus): MergedItem => {
+      const invRecord = isRecord(inv) ? inv : {};
+      const startDate = toStartDate(invRecord.startDate);
+      const dueDate = toStartDate(invRecord.dueDate);
+      const status = normalizeStatus(invRecord.status, fallbackStatus);
+      const amountValue = Number(invRecord.amount ?? 0);
+      const currency = String(invRecord.currency ?? stats.currency ?? 'USD');
+      const rawType = String(invRecord.type ?? '').toLowerCase();
       const fallbackSequenceOrder = getFeeTypePriority(rawType) * 1000;
-      const paidAt = inv.paidAt ? parseApiDate(inv.paidAt) : null;
-      const explicitCanPay = typeof inv.canPay === 'boolean' ? inv.canPay : undefined;
+      const paidAt = invRecord.paidAt ? parseApiDate(String(invRecord.paidAt)) : null;
+      const explicitCanPay = typeof invRecord.canPay === 'boolean' ? invRecord.canPay : undefined;
       const paidAtLabel =
         paidAt && !Number.isNaN(paidAt.getTime())
-          ? paidAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          ? formatDeadlineWib(paidAt, { withTime: false })
           : '—';
 
       return {
-        id: inv.id,
-        label: inv.title ?? 'Payment',
+        id: String(invRecord.id ?? ''),
+        label: typeof invRecord.title === 'string' ? invRecord.title : 'Payment',
         status,
         rawType,
-        paymentType: formatPaymentType(inv.type),
+        paymentType: formatPaymentType(invRecord.type),
         amount: `${currency} ${amountValue.toFixed(2)}`,
         syncDate: paidAtLabel,
         hasInvoice: true,
-        sequenceOrder: Number(inv.sequenceOrder ?? fallbackSequenceOrder),
+        sequenceOrder: Number(invRecord.sequenceOrder ?? fallbackSequenceOrder),
         startTime: startDate?.getTime() ?? 0,
         hasStarted: !startDate || startDate <= now,
         amountValue,
@@ -152,23 +158,24 @@ export async function GET(request: Request) {
     ];
 
     const availableRows: MergedItem[] = availableMethods.map((method) => {
-      const startDate = toStartDate(method.startDate);
-      const dueDate = toStartDate(method.dueDate);
-      const amountValue = Number(method.amount ?? 0);
-      const currency = String(method.currency ?? stats.currency ?? 'USD');
-      const rawType = String(method.type ?? '').toLowerCase();
+      const methodRecord = isRecord(method) ? method : {};
+      const startDate = toStartDate(methodRecord.startDate);
+      const dueDate = toStartDate(methodRecord.dueDate);
+      const amountValue = Number(methodRecord.amount ?? 0);
+      const currency = String(methodRecord.currency ?? stats.currency ?? 'USD');
+      const rawType = String(methodRecord.type ?? '').toLowerCase();
       const fallbackSequenceOrder = getFeeTypePriority(rawType) * 1000;
 
       return {
-        id: `tier:${method.id}`,
-        label: method.title ?? 'Payment',
+        id: `tier:${methodRecord.id}`,
+        label: typeof methodRecord.title === 'string' ? methodRecord.title : 'Payment',
         status: 'unpaid',
         rawType,
-        paymentType: formatPaymentType(method.type),
+        paymentType: formatPaymentType(methodRecord.type),
         amount: `${currency} ${amountValue.toFixed(2)}`,
         syncDate: 'Not paid yet',
         hasInvoice: false,
-        sequenceOrder: Number(method.sequenceOrder ?? fallbackSequenceOrder),
+        sequenceOrder: Number(methodRecord.sequenceOrder ?? fallbackSequenceOrder),
         startTime: startDate?.getTime() ?? 0,
         hasStarted: !startDate || startDate <= now,
         amountValue,
@@ -219,7 +226,19 @@ export async function GET(request: Request) {
         })(),
     ).length;
 
-    const items = stagedItems.map(({ sequenceOrder, startTime, hasStarted, amountValue, currency, rawType, ...rest }) => rest);
+    const items = stagedItems.map(({ id, label, status, paymentType, amount, syncDate, hasInvoice, startDate, dueDate, paidAt, canPay }) => ({
+      id,
+      label,
+      status,
+      paymentType,
+      amount,
+      syncDate,
+      hasInvoice,
+      startDate,
+      dueDate,
+      paidAt,
+      canPay,
+    }));
 
     const summary = {
       complete,

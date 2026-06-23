@@ -30,6 +30,7 @@ import {
   type CachedPaymentPreview,
 } from '@/lib/dashboard/payments-cache';
 import { parseApiDate } from '@/lib/utils';
+import { formatDeadlineLocal } from '@/lib/format/deadline';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -235,39 +236,20 @@ function formatCurrencyValue(amount: number, currencyCode = 'USD'): string {
 
 function formatDateLabel(value?: string | null): string {
   if (!value) return 'No due date';
-  const date = parseApiDate(value);
-  if (Number.isNaN(date.getTime())) return 'No due date';
-
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date);
+  const result = formatDeadlineLocal(value, { withTime: false });
+  return result === '—' ? 'No due date' : result;
 }
 
 function formatDateTimeLabel(value?: string | null): string {
   if (!value) return '-';
-  const date = parseApiDate(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  const result = formatDeadlineLocal(value, { withTime: true });
+  return result === '—' ? value : result;
 }
 
 function formatTimeLabel(value?: string | null): string {
   if (!value) return '-';
-  const date = parseApiDate(value);
-  if (Number.isNaN(date.getTime())) return '-';
-
-  return new Intl.DateTimeFormat('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  const result = formatDeadlineLocal(value, { withTime: true });
+  return result === '—' ? '-' : result;
 }
 
 function toPendingSubmissionData(value: unknown): PendingSubmissionData | undefined {
@@ -389,6 +371,9 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     const cachedPreview = readCachedPaymentPreview(programId, paymentId);
 
     if (cachedPreview) {
+      // Sync-setting preview from cache to populate the UI immediately before the
+      // async fetch resolves — intentional to avoid a loading flash on revisit.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPaymentPreview(cachedPreview);
       setLoading(false);
     } else {

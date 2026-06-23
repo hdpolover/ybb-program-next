@@ -15,6 +15,7 @@ export default function AdminImpersonationPage() {
     didStartRef.current = true;
 
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("Missing impersonation token.");
       return;
     }

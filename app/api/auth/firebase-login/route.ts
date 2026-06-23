@@ -23,11 +23,6 @@ type FirebaseLoginResponse = {
   user?: { isOnboardingCompleted?: boolean; onboarding?: boolean };
 };
 
-type ProvidersResponse = {
-  statusCode: number;
-  message: string;
-  data: Array<{ id: string; name: string; isOAuth: boolean }>;
-};
 
 export async function POST(request: Request) {
   try {

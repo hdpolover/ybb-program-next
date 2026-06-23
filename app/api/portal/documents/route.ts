@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { isRecord, getEnvelopeData } from '@/lib/api/response';
 
 export async function GET(request: Request) {
   try {
@@ -30,19 +31,20 @@ export async function GET(request: Request) {
       cache: 'no-store',
     });
 
-    const json = await res.json().catch(() => ({}));
+    const json: unknown = await res.json().catch(() => ({}));
     if (!res.ok) {
+      const j = isRecord(json) ? json : {};
       return NextResponse.json(
         {
-          statusCode: (json as any)?.statusCode ?? res.status,
-          message: (json as any)?.message ?? 'Failed to fetch documents',
-          data: (json as any)?.data ?? null,
+          statusCode: typeof j.statusCode === 'number' ? j.statusCode : res.status,
+          message: typeof j.message === 'string' ? j.message : 'Failed to fetch documents',
+          data: 'data' in j ? (j.data ?? null) : null,
         },
         { status: res.status },
       );
     }
 
-    return NextResponse.json({ statusCode: 200, message: 'Success', data: (json as any)?.data ?? json ?? null });
+    return NextResponse.json({ statusCode: 200, message: 'Success', data: getEnvelopeData(json) ?? null });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(

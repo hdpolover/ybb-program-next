@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { isRecord } from '@/lib/api/response';
 
 class PaymentMethodsUpstreamError extends Error {
   constructor(
@@ -37,21 +38,23 @@ export async function GET(request: Request) {
     });
 
     const json = await res.json().catch(() => ({}));
+    const jsonRecord = isRecord(json) ? json : {};
     if (!res.ok) {
       throw new PaymentMethodsUpstreamError(
         res.status,
-        (json as any)?.statusCode ?? res.status,
-        (json as any)?.message ?? 'Failed to fetch payment methods',
+        typeof jsonRecord.statusCode === 'number' ? jsonRecord.statusCode : res.status,
+        typeof jsonRecord.message === 'string' ? jsonRecord.message : 'Failed to fetch payment methods',
       );
     }
 
-    const payload = (json as any)?.data ?? json;
+    const payload: unknown = jsonRecord.data ?? json;
+    const payloadRecord = isRecord(payload) ? payload : {};
     const resolvedMethods = Array.isArray(payload)
       ? payload
-      : Array.isArray((payload as any)?.data)
-        ? (payload as any).data
-        : Array.isArray((payload as any)?.methods)
-          ? (payload as any).methods
+      : Array.isArray(payloadRecord.data)
+        ? payloadRecord.data
+        : Array.isArray(payloadRecord.methods)
+          ? payloadRecord.methods
           : [];
 
     return NextResponse.json({ statusCode: 200, message: 'Success', data: resolvedMethods });

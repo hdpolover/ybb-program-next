@@ -10,6 +10,8 @@ interface Props {
 }
 
 export default function MomentsIn60Section({ section }: Props) {
+  const [startIndex, setStartIndex] = useState(0);
+
   if (!section || !section.content.items || section.content.items.length === 0) return null;
 
   const shorts = section.content.items.filter(s => s.embed_url);
@@ -20,8 +22,6 @@ export default function MomentsIn60Section({ section }: Props) {
   const description = section?.content.description ?? "Japan Youth Summit's workshops, cultural night, and sessions — all captured in 60-second highlights straight from Osaka."
   const colorScheme = section.content.text_color_scheme ?? 'dark';
   const bgImageUrl = section.content.background_image_url?.trim() || undefined;
-
-  const [startIndex, setStartIndex] = useState(0);
 
   const visibleShorts = shorts
     .slice(startIndex, startIndex + 3)

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 
 type ProgramDetailImageProps = {
@@ -21,11 +21,11 @@ export default function ProgramDetailImage({
   priority = false,
 }: ProgramDetailImageProps) {
   const resolvedSrc = src?.trim() || fallbackSrc;
-  const [imageSrc, setImageSrc] = useState(resolvedSrc);
-
-  useEffect(() => {
-    setImageSrc(resolvedSrc);
-  }, [resolvedSrc]);
+  // Track which src has errored so we can fall back to fallbackSrc without an effect.
+  // When resolvedSrc changes (new prop), the errored src no longer matches so we
+  // automatically retry the new src instead of staying on the fallback.
+  const [erroredSrc, setErroredSrc] = useState<string | null>(null);
+  const imageSrc = erroredSrc === resolvedSrc ? fallbackSrc : resolvedSrc;
 
   return (
     <Image
@@ -36,8 +36,8 @@ export default function ProgramDetailImage({
       className={className}
       priority={priority}
       onError={() => {
-        if (imageSrc !== fallbackSrc) {
-          setImageSrc(fallbackSrc);
+        if (resolvedSrc !== fallbackSrc) {
+          setErroredSrc(resolvedSrc);
         }
       }}
     />

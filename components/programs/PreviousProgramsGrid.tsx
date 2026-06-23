@@ -15,6 +15,8 @@ type PreviousProgramsGridProps = {
 };
 
 export default function ProgramCarousel({ previous }: PreviousProgramsGridProps) {
+  const [active, setActive] = useState(0);
+
   if (!previous) return null;
 
   const title = previous.title || 'Previous Programs';
@@ -30,8 +32,6 @@ export default function ProgramCarousel({ previous }: PreviousProgramsGridProps)
     location: item.location,
     thumbnail: item.thumbnail,
   }));
-
-  const [active, setActive] = useState(0);
   const total = programs.length;
 
   const next = () => setActive(i => (i + 1) % total);

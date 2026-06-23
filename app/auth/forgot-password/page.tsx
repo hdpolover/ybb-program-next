@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
@@ -117,7 +118,7 @@ export default function ForgotPasswordPage() {
 
             <div className={componentsTheme.login.heroTextContainer}>
               <div className={componentsTheme.login.heroLogoWrapper}>
-                <a href="/" className="inline-block">
+                <Link href="/" className="inline-block">
                   <Image
                     src={settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png'}
                     alt={settings?.brand?.name?.trim() || 'Youth Break the Boundaries'}
@@ -127,7 +128,7 @@ export default function ForgotPasswordPage() {
                     priority
                     unoptimized
                   />
-                </a>
+                </Link>
                 <div className="mt-4 space-y-2">
                   <h2 className={componentsTheme.login.heroTitle}>
                     Raise Your Hand,
