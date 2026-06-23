@@ -205,7 +205,14 @@ export default async function Home() {
       <VideoSection
         title={programHighlightVideosSection?.content.title}
         subtitle={programHighlightVideosSection?.content.subtitle}
-        tabs={programHighlightVideosSection?.content.tabs}
+        tabs={programHighlightVideosSection?.content.tabs?.map(tab => ({
+          ...tab,
+          videos: tab.videos.map(video => ({
+            ...video,
+            video_url: 'https://youtu.be/wg30gPtb9eY?si=ikHepE3A6vhXTBeG',
+            thumbnail: '', // Empty thumbnail to use automatic YouTube thumbnail
+          }))
+        }))}
       />
       <MomentsIn60Section section={programShortsSection} />
       <section className="h-20" />

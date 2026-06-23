@@ -472,6 +472,7 @@ export default function SubmissionEditSection() {
   const searchParams = useSearchParams();
   const { me } = useDashboardData();
   const stepperScrollRef = useRef<HTMLDivElement | null>(null);
+  const isUpdatingUrlRef = useRef(false);
   const [detail, setDetail] = useState<PortalSubmissionDetail | null>(null);
   const isLocked = detail ? detail.status !== "draft" : false;
   const [sectionValues, setSectionValues] = useState<Record<string, Record<string, string>>>({});
@@ -657,24 +658,35 @@ export default function SubmissionEditSection() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!requestedStepId || stepperItems.length === 0) return;
+    if (!requestedStepId) return;
+    // Skip if we're currently updating the URL (prevent loop)
+    if (isUpdatingUrlRef.current) return;
+    // Check if stepper has items before proceeding
+    if (stepperItems.length === 0) return;
     const hasRequestedStep = stepperItems.some(step => step.id === requestedStepId);
     if (!hasRequestedStep) return;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveSectionId(current => (current === requestedStepId ? current : requestedStepId));
-  }, [requestedStepId, stepperItems]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedStepId]);
 
   useEffect(() => {
     if (!activeSectionId) return;
 
     const stepParamValue = activeSectionId === PREVIEW_STEP_ID ? "preview" : activeSectionId;
-    if (searchParams.get("step") === stepParamValue) return;
+    const currentStepParam = searchParams.get("step");
+    if (currentStepParam === stepParamValue) return;
 
+    isUpdatingUrlRef.current = true;
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.set("step", stepParamValue);
     router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false });
-  }, [activeSectionId, pathname, router, searchParams]);
+    // Reset ref after a short delay to allow URL update to complete
+    setTimeout(() => {
+      isUpdatingUrlRef.current = false;
+    }, 100);
+  }, [activeSectionId, pathname, router]);
 
   const sectionEssays = useMemo(() => {
     if (!activeSection || activeSection.id !== "entry_information") return [];
