@@ -485,6 +485,8 @@ export default function SubmissionEditSection() {
   const [savingSectionId, setSavingSectionId] = useState<string | null>(null);
   const [isPreviewSectionsExpanded, setIsPreviewSectionsExpanded] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [highlightChecklist, setHighlightChecklist] = useState(false);
+  const checklistRef = useRef<HTMLDivElement | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [canScrollStepperPrev, setCanScrollStepperPrev] = useState(false);
@@ -1267,53 +1269,42 @@ export default function SubmissionEditSection() {
             const allChecked = checklistItems.every(item => checkedItems.has(item));
             const isDraftApplication = detail.status === "draft";
             const previewActionType = detail.previewPrimaryAction?.type;
-            const previewActionEnabled = (detail.previewPrimaryAction?.enabled ?? false) && (checklistItems.length === 0 || allChecked);
+            // serverReady reflects the server-side gate only (required sections/essays/
+            // documents). The checklist is a client-side confirmation handled separately so
+            // we can point the user straight at it instead of dead-disabling the button.
+            const serverReady = detail.previewPrimaryAction?.enabled ?? false;
             const previewActionReason = detail.previewPrimaryAction?.reason;
             const isPaymentRequired = detail.isRegistrationPaymentRequired ?? true;
             const isPaymentSettled = isPaymentRequired
               ? (detail.isRegistrationPaymentSettled ?? false)
               : true;
-            const canSubmit = isDraftApplication && allChecked && isPaymentSettled && previewActionEnabled;
             const shouldGoToPayment =
               isDraftApplication && (previewActionType === "complete_payment" || !isPaymentSettled);
-            const isSubmissionLocked = !isDraftApplication || !previewActionEnabled;
             const validationMessages = [
-              ...(isDraftApplication && !previewActionEnabled
-                ? [previewActionReason || "Submission is not available right now."]
-                : []),
-              ...(isDraftApplication && !allChecked
-                ? ["Please check all confirmation boxes before submitting."]
-                : []),
               ...(isDraftApplication && !isPaymentSettled
                 ? ["Registration payment is required before you can submit."]
+                : []),
+              ...(isDraftApplication && isPaymentSettled && !serverReady
+                ? [previewActionReason || "Complete all required steps before submitting."]
+                : []),
+              ...(isDraftApplication && isPaymentSettled && serverReady && !allChecked
+                ? ["Please confirm the items above to enable submission."]
                 : []),
             ];
 
             const toggleSection = () => setIsPreviewSectionsExpanded(prev => !prev);
 
-            const toggleItem = (item: string) =>
+            const toggleItem = (item: string) => {
+              setHighlightChecklist(false);
               setCheckedItems(prev => {
                 const next = new Set(prev);
                 if (next.has(item)) next.delete(item); else next.add(item);
                 return next;
               });
+            };
 
             const handleSubmit = async () => {
               if (!isDraftApplication) {
-                return;
-              }
-
-              if (!previewActionEnabled) {
-                const reason = previewActionReason || "Submission is not available right now.";
-                setError(reason);
-                toast.error(reason);
-                return;
-              }
-
-              if (!allChecked) {
-                const reason = "Please check all confirmation boxes before submitting.";
-                setError(reason);
-                toast.error(reason);
                 return;
               }
 
@@ -1324,8 +1315,21 @@ export default function SubmissionEditSection() {
                 return;
               }
 
-              if (!canSubmit) {
-                const reason = "Please complete all required steps before submitting.";
+              // Server-side requirements (sections/essays/documents) come first so the
+              // reason surfaced is the actual blocker.
+              if (!serverReady) {
+                const reason = previewActionReason || "Please complete all required steps before submitting.";
+                setError(reason);
+                toast.error(reason);
+                return;
+              }
+
+              // Checklist is the last gate: instead of leaving the button dead, clicking
+              // scrolls to and highlights the unconfirmed checklist so the fix is obvious.
+              if (!allChecked) {
+                setHighlightChecklist(true);
+                checklistRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                const reason = "Please confirm the items above before submitting.";
                 setError(reason);
                 toast.error(reason);
                 return;
@@ -1440,7 +1444,14 @@ export default function SubmissionEditSection() {
                   ) : null}
 
                   {checklistItems.length > 0 ? (
-                    <div className="space-y-2 border-t border-slate-200 pt-4">
+                    <div
+                      ref={checklistRef}
+                      className={`space-y-2 border-t border-slate-200 pt-4 ${
+                        highlightChecklist
+                          ? "rounded-xl border border-amber-300 bg-amber-50/60 p-3 ring-2 ring-amber-400 transition-shadow"
+                          : ""
+                      }`}
+                    >
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                         Please confirm the following
                       </p>
@@ -1505,7 +1516,7 @@ export default function SubmissionEditSection() {
                       <button
                         type="button"
                         className={submissionTheme.primaryButton}
-                        disabled={submitting || isSubmissionLocked}
+                        disabled={submitting}
                         onClick={() => void handleSubmit()}
                       >
                         {submitting ? "Submitting..." : "Submit Application"}
