@@ -1,48 +1,74 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+type RedeemResult = { ok: true; redirectTo: string } | { ok: false; message: string };
+
+// Module-level single-flight cache keyed by token. Unlike a component `useRef`,
+// this survives React StrictMode remounts (which create a fresh ref per mount) and
+// any in-context re-render, so the single-use impersonation token is exchanged at
+// most once per page load. Without this, the second mount fires a second exchange
+// that finds the token already consumed and shows "Invalid or expired token".
+const redeemInFlight = new Map<string, Promise<RedeemResult>>();
+
+function redeemImpersonation(token: string): Promise<RedeemResult> {
+  const existing = redeemInFlight.get(token);
+  if (existing) return existing;
+
+  const pending = (async (): Promise<RedeemResult> => {
+    try {
+      const res = await fetch("/api/auth/admin-impersonation-exchange", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        message?: string;
+        data?: { redirectTo?: string };
+      };
+      if (!res.ok) {
+        return { ok: false, message: json.message || "Failed to complete impersonation login." };
+      }
+      return { ok: true, redirectTo: json.data?.redirectTo || "/dashboard" };
+    } catch (err) {
+      return {
+        ok: false,
+        message: err instanceof Error ? err.message : "Failed to complete impersonation login.",
+      };
+    }
+  })();
+
+  redeemInFlight.set(token, pending);
+  return pending;
+}
 
 export default function AdminImpersonationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const didStartRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (didStartRef.current) return;
-    didStartRef.current = true;
+    let cancelled = false;
 
     if (!token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("Missing impersonation token.");
       return;
     }
 
-    void (async () => {
-      try {
-        const res = await fetch("/api/auth/admin-impersonation-exchange", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
-        const json = (await res.json().catch(() => ({}))) as {
-          message?: string;
-          data?: { redirectTo?: string };
-        };
-
-        if (!res.ok) {
-          setError(json.message || "Failed to complete impersonation login.");
-          return;
-        }
-
-        const redirectTo = json.data?.redirectTo || "/dashboard";
-        router.replace(redirectTo);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to complete impersonation login.");
+    redeemImpersonation(token).then((result) => {
+      if (cancelled) return;
+      if (result.ok) {
+        router.replace(result.redirectTo);
+      } else {
+        setError(result.message);
       }
-    })();
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, token]);
 
   return (

@@ -1,4 +1,7 @@
-export const LOGIN_IMAGES = ['/img/onboarding.png'];
+// Brand-neutral fallback hero shown only when the brand's program_gallery has no
+// images (see app/onboarding/page.tsx). Points at an asset that exists in public/img;
+// the previous '/img/onboarding.png' was missing and 404'd on every gallery-less brand.
+export const LOGIN_IMAGES = ['/img/bgloginsigin.png'];
 
 export const steps = ['Basic Info', 'Location', 'Age', 'Program Info'] as const;
 
