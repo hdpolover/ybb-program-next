@@ -11,6 +11,7 @@ import ClientFooterGate from '@/components/layout/ClientFooterGate';
 import { PromoCTAProvider } from '@/components/sections/PromoCTAContext';
 import ClientCTAGate from '@/components/layout/ClientCTAGate';
 import BackToTop from '@/components/ui/BackToTop';
+import BackToHome from '@/components/ui/BackToHome';
 import ClientChatWidgetGate from '@/components/layout/ClientChatWidgetGate';
 import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
@@ -166,9 +167,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }
 
     if (activeCategory === 'fully_funded') {
-      registerUrl = '/apply/fully-funded';
+      registerUrl = '/login?applicationCategory=fully_funded';
     } else if (activeCategory === 'self_funded') {
-      registerUrl = '/apply/self-funded';
+      registerUrl = '/login?applicationCategory=self_funded';
     }
   } else {
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
@@ -212,6 +213,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             />
             {children}
             <ClientCTAGate />
+            <BackToHome />
             <BackToTop />
             <ClientFooterGate />
             <StickyBottomBarGate

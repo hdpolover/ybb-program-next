@@ -11,6 +11,7 @@ interface StickyBottomBarProps {
 
 export default function StickyBottomBar({ deadline, registerUrl }: StickyBottomBarProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
@@ -22,6 +23,15 @@ export default function StickyBottomBar({ deadline, registerUrl }: StickyBottomB
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => setShouldAnimate(true), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setShouldAnimate(false);
+    }
+  }, [isVisible]);
 
   useEffect(() => {
     if (!deadline) return;
@@ -54,7 +64,12 @@ export default function StickyBottomBar({ deadline, registerUrl }: StickyBottomB
   }
 
   return (
-    <div className={componentsTheme.stickyBottomBar.wrapper}>
+    <div
+      className={componentsTheme.stickyBottomBar.wrapper}
+      style={{
+        animation: shouldAnimate ? 'slideUp 0.3s ease-out forwards' : 'none'
+      }}
+    >
       <div className={componentsTheme.stickyBottomBar.container}>
         <div className={componentsTheme.stickyBottomBar.countdownSection}>
           <Clock className={componentsTheme.stickyBottomBar.icon} />
