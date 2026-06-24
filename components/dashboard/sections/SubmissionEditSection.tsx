@@ -1456,12 +1456,18 @@ export default function SubmissionEditSection() {
                         Please confirm the following
                       </p>
                       {checklistItems.map(item => (
-                        <label key={item} className="flex cursor-pointer items-start gap-3 text-sm text-slate-700">
+                        <label
+                          key={item}
+                          className={`flex items-start gap-3 text-sm text-slate-700 ${
+                            isDraftApplication ? "cursor-pointer" : "cursor-default"
+                          }`}
+                        >
                           <input
                             type="checkbox"
-                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                            checked={checkedItems.has(item)}
+                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:opacity-100"
+                            checked={!isDraftApplication || checkedItems.has(item)}
                             onChange={() => toggleItem(item)}
+                            disabled={!isDraftApplication}
                           />
                           <span>{item}</span>
                         </label>
