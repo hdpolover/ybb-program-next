@@ -51,9 +51,72 @@ function extractYouTubeId(videoUrl: string | null): string | null {
 	return null;
 }
 
+function extractTikTokId(videoUrl: string | null): string | null {
+	if (!videoUrl) return null;
+	try {
+		const url = new URL(videoUrl);
+		// tiktok.com/@username/video/ID
+		const videoMatch = url.pathname.match(/\/video\/(\d+)/);
+		if (videoMatch) return videoMatch[1];
+		// tiktok.com/t/ID
+		const tMatch = url.pathname.match(/\/t\/([^/?&]+)/);
+		if (tMatch) return tMatch[1];
+		// vm.tiktok.com/ID (shortened URL)
+		if (url.hostname === 'vm.tiktok.com') {
+			return url.pathname.slice(1).split('?')[0];
+		}
+	} catch {
+		// plain string fallback
+		const videoMatch = videoUrl.match(/\/video\/(\d+)/);
+		if (videoMatch) return videoMatch[1];
+		const tMatch = videoUrl.match(/\/t\/([^/?&]+)/);
+		if (tMatch) return tMatch[1];
+	}
+	return null;
+}
+
+function extractInstagramId(videoUrl: string | null): string | null {
+	if (!videoUrl) return null;
+	try {
+		const url = new URL(videoUrl);
+		// instagram.com/p/ID or instagram.com/reel/ID
+		const postMatch = url.pathname.match(/\/(p|reel)\/([^/?&]+)/);
+		if (postMatch) return postMatch[2];
+	} catch {
+		// plain string fallback
+		const postMatch = videoUrl.match(/\/(p|reel)\/([^/?&]+)/);
+		if (postMatch) return postMatch[2];
+	}
+	return null;
+}
+
+function detectPlatform(videoUrl: string | null): 'youtube' | 'tiktok' | 'instagram' | null {
+	if (!videoUrl) return null;
+	if (extractYouTubeId(videoUrl)) return 'youtube';
+	if (extractTikTokId(videoUrl)) return 'tiktok';
+	if (extractInstagramId(videoUrl)) return 'instagram';
+	return null;
+}
+
 const toEmbedUrl = (videoUrl: string | null): string | null => {
-	const id = extractYouTubeId(videoUrl);
-	if (id) return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
+	const platform = detectPlatform(videoUrl);
+	if (!platform) return null;
+
+	if (platform === 'youtube') {
+		const id = extractYouTubeId(videoUrl);
+		if (id) return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
+	}
+
+	if (platform === 'tiktok') {
+		const id = extractTikTokId(videoUrl);
+		if (id) return `https://www.tiktok.com/embed/v2/${id}`;
+	}
+
+	if (platform === 'instagram') {
+		const id = extractInstagramId(videoUrl);
+		if (id) return `https://www.instagram.com/p/${id}/embed`;
+	}
+
 	return null;
 };
 
@@ -66,6 +129,19 @@ const getYouTubeThumbnailCandidates = (videoUrl: string | null): string[] => {
 		`https://img.youtube.com/vi/${id}/hqdefault.jpg`,
 		`https://img.youtube.com/vi/${id}/mqdefault.jpg`,
 	];
+};
+
+const getThumbnailCandidates = (videoUrl: string | null): string[] => {
+	const platform = detectPlatform(videoUrl);
+
+	// YouTube has public thumbnail API
+	if (platform === 'youtube') {
+		return getYouTubeThumbnailCandidates(videoUrl);
+	}
+
+	// TikTok and Instagram don't have public thumbnail APIs
+	// We'll rely on the provided thumbnail_url from API
+	return [];
 };
 
 export default function AlumniStoriesSection({
@@ -235,7 +311,7 @@ export default function AlumniStoriesSection({
 								const thumbLoaded = loaded[item.id];
 								const thumbnailVariants = item.thumbnail_url
 									? [item.thumbnail_url]
-									: getYouTubeThumbnailCandidates(item.video_url);
+									: getThumbnailCandidates(item.video_url);
 								const variantIndex = thumbVariantIndex[item.id] ?? 0;
 								const currentThumbnail = thumbnailVariants[variantIndex] ?? null;
 
