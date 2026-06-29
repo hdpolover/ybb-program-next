@@ -99,6 +99,20 @@ export async function POST(request: Request) {
       body.birthDate = `${body.birthDate}-01-01`;
     }
 
+    // Resolve referral code: explicit body value takes priority, then fall back to cookie.
+    // Covers users who clicked a share link AFTER registering and only now complete onboarding.
+    if (typeof body.referralCode !== 'string' || body.referralCode.length === 0) {
+      const cookieHeader = request.headers.get('cookie') ?? '';
+      const cookieReferralCode = cookieHeader
+        .split(';')
+        .map((c) => c.trim())
+        .find((c) => c.startsWith('ybb_referral_code='))
+        ?.split('=')[1] ?? null;
+      if (cookieReferralCode) {
+        body.referralCode = cookieReferralCode;
+      }
+    }
+
     const apiUrl = new URL('/v1/participants/onboarding', getServerApiBaseUrl());
     const res = await fetch(apiUrl.toString(), {
       method: 'POST',
