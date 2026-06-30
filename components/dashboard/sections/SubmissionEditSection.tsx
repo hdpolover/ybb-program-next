@@ -472,6 +472,7 @@ export default function SubmissionEditSection() {
   const searchParams = useSearchParams();
   const { me } = useDashboardData();
   const stepperScrollRef = useRef<HTMLDivElement | null>(null);
+  const isUpdatingUrlRef = useRef(false);
   const [detail, setDetail] = useState<PortalSubmissionDetail | null>(null);
   const isLocked = detail ? detail.status !== "draft" : false;
   const [sectionValues, setSectionValues] = useState<Record<string, Record<string, string>>>({});
@@ -658,25 +659,19 @@ export default function SubmissionEditSection() {
     return rawStep === "preview" ? PREVIEW_STEP_ID : rawStep;
   }, [searchParams]);
 
-  // Stable set of valid step ids derived from `detail` ONLY (the section ids
-  // plus the synthetic Preview step). Deliberately independent of
-  // `sectionValues`/`stepperItems`: keying the URL<->step sync effect off the
-  // volatile stepper (which rebuilds on every keystroke, see its deps) re-entered
-  // the sync effects and drove the Preview tab into a set-state/navigation loop —
-  // visible flicker, and a "Maximum update depth exceeded" crash on click that
-  // the root error boundary surfaced as a full-page error. The earlier
-  // `previewVisited` flag only stopped the preview STATUS from oscillating; it
-  // did not decouple the navigation effects from the stepper.
-  const validStepIds = useMemo(() => {
-    if (!detail) return null;
-    return new Set<string>([...detail.sections.map(s => s.id), PREVIEW_STEP_ID]);
-  }, [detail]);
-
   useEffect(() => {
-    if (!requestedStepId || !validStepIds || !validStepIds.has(requestedStepId)) return;
+    if (!requestedStepId) return;
+    // Skip if we're currently updating the URL (prevent loop)
+    if (isUpdatingUrlRef.current) return;
+    // Check if stepper has items before proceeding
+    if (stepperItems.length === 0) return;
+    const hasRequestedStep = stepperItems.some(step => step.id === requestedStepId);
+    if (!hasRequestedStep) return;
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveSectionId(current => (current === requestedStepId ? current : requestedStepId));
-  }, [requestedStepId, validStepIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedStepId, stepperItems, isUpdatingUrlRef]);
 
   // Ref guard so our own `router.replace` — which mutates `searchParams`, a dep
   // of this effect — cannot re-enter and re-fire the navigation in a loop.
@@ -685,17 +680,18 @@ export default function SubmissionEditSection() {
     if (!activeSectionId) return;
 
     const stepParamValue = activeSectionId === PREVIEW_STEP_ID ? "preview" : activeSectionId;
-    if (lastSyncedStepRef.current === stepParamValue) return;
-    if (searchParams.get("step") === stepParamValue) {
-      lastSyncedStepRef.current = stepParamValue;
-      return;
-    }
+    const currentStepParam = searchParams.get("step");
+    if (currentStepParam === stepParamValue) return;
 
-    lastSyncedStepRef.current = stepParamValue;
+    isUpdatingUrlRef.current = true;
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.set("step", stepParamValue);
     router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false });
-  }, [activeSectionId, pathname, router, searchParams]);
+    // Reset ref after a short delay to allow URL update to complete
+    setTimeout(() => {
+      isUpdatingUrlRef.current = false;
+    }, 100);
+  }, [activeSectionId, pathname, router]);
 
   const sectionEssays = useMemo(() => {
     if (!activeSection || activeSection.id !== "entry_information") return [];

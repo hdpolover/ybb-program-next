@@ -126,11 +126,11 @@ export default function ParticipantDistribution({
                 >
                   <Geographies geography={GEO_DATA}>
                     {({ geographies }: { geographies: WorldGeo[] }) =>
-                      geographies.map((geo: WorldGeo) => {
+                      geographies.map((geo: WorldGeo, index: number) => {
                         const name = geo.properties.name ?? 'Unknown';
                         return (
                           <Geography
-                            key={geo.rsmKey}
+                            key={geo.rsmKey || `geo-${index}-${name}`}
                             geography={geo}
                             fill={getFillForCountry(name)}
                             stroke={componentsTheme.participantDistribution.mapStroke}

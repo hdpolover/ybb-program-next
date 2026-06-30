@@ -61,6 +61,9 @@ export default function LoginPage() {
   const [ambassadorMode, setAmbassadorMode] = useState(() => {
     return searchParams.get('role') === 'ambassador';
   });
+  const [applicationCategory, setApplicationCategory] = useState(() => {
+    return searchParams.get('applicationCategory') || '';
+  });
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string>('');
   const [legalModalOpen, setLegalModalOpen] = useState(false);
@@ -208,6 +211,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           email: signupForm.email,
           password: signupForm.password,
+          ...(applicationCategory ? { applicationCategory } : {}),
         }),
       });
 
@@ -698,7 +702,13 @@ export default function LoginPage() {
                         New here?{' '}
                         <button
                           type="button"
-                          onClick={() => { setMode('signup'); setAmbassadorMode(false); }}
+                          onClick={() => {
+                            setMode('signup');
+                            setAmbassadorMode(false);
+                            const params = new URLSearchParams(searchParams.toString());
+                            params.set('mode', 'signup');
+                            router.push(`/login?${params.toString()}`, { scroll: false });
+                          }}
                           className={componentsTheme.login.switchModeLink}
                         >
                           Create new account
@@ -868,7 +878,12 @@ export default function LoginPage() {
                     Already have an account?{' '}
                     <button
                       type="button"
-                      onClick={() => setMode('login')}
+                      onClick={() => {
+                        setMode('login');
+                        const params = new URLSearchParams(searchParams.toString());
+                        params.set('mode', 'login');
+                        router.push(`/login?${params.toString()}`, { scroll: false });
+                      }}
                       className={componentsTheme.login.switchModeLink}
                     >
                       Sign in here
