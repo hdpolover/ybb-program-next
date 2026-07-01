@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Phone, Building, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Users, Phone, Building, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
+import { isValidPhone, sanitizePhone } from '@/lib/phone';
 
 interface FormState {
   fullName: string;
@@ -21,6 +22,12 @@ export default function ApplyAmbassadorPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  // No nationality field on this form, so there's no region hint — only numbers
+  // already entered in international format (e.g. "+62 812...") can be validated.
+  const phoneInvalid =
+    phoneTouched && form.phoneNumber.trim() !== '' && !isValidPhone(form.phoneNumber);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,13 +40,15 @@ export default function ApplyAmbassadorPage() {
     setError(null);
 
     try {
+      const normalizedPhone = sanitizePhone(form.phoneNumber).value;
+
       const res = await fetch('/api/participants/ambassador/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: form.fullName.trim(),
           programId: settings?.active_program?.id || PROGRAM_ID,
-          phoneNumber: form.phoneNumber.trim() || undefined,
+          phoneNumber: normalizedPhone.trim() || undefined,
           institution: form.institution.trim() || undefined,
         }),
       });
@@ -130,11 +139,20 @@ export default function ApplyAmbassadorPage() {
                 type="tel"
                 value={form.phoneNumber}
                 onChange={(e) => setForm((f) => ({ ...f, phoneNumber: e.target.value }))}
+                onBlur={() => setPhoneTouched(true)}
                 placeholder="+62 812 ..."
-                className="w-full pl-9 pr-4 py-2.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className={`w-full pl-9 pr-4 py-2.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                  phoneInvalid ? 'border-destructive focus:ring-destructive/30' : ''
+                }`}
                 disabled={loading}
               />
             </div>
+            {phoneInvalid && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                This doesn&apos;t look like a valid phone number. Include your country code (e.g. +62), or you can still submit as-is.
+              </p>
+            )}
           </div>
 
           {/* Institution */}
