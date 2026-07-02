@@ -68,7 +68,7 @@ export const authTheme = {
     questionTitle: 'mt-3 text-[2rem] font-bold leading-tight tracking-tight text-slate-900 sm:mt-4 sm:text-3xl',
     questionDescription: 'mt-1.5 text-sm leading-relaxed text-slate-500 sm:mt-2',
     form: 'mt-5 space-y-4 w-full sm:mt-6',
-    fieldError: 'mt-1 text-xs text-primary',
+    fieldError: 'mt-1 text-xs text-destructive',
     locationGrid: 'grid grid-cols-1 gap-4 sm:grid-cols-2',
     optionGrid: 'mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3',
     programSourceGrid: 'mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3',

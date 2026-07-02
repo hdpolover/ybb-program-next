@@ -1,5 +1,5 @@
 import React from "react";
-import { Info } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 import { componentsTheme } from "@/lib/theme/components";
 
 export function FormField({
@@ -37,7 +37,8 @@ export function FormField({
         {children(errorClassName)}
       </div>
       {isError && (
-        <p style={{ marginTop: "6px", fontSize: "12px", color: "#ef4444", display: "flex", alignItems: "center", fontWeight: 500 }}>
+        <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-destructive">
+          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
           {typeof error === "string" ? error : "Required"}
         </p>
       )}

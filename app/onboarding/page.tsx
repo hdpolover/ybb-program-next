@@ -11,9 +11,11 @@ import { getCities, getCountries, getGenders, getKnowledgeSources, getStates } f
 import { useSettings } from '@/components/providers/SettingsProvider';
 import StyledSelect from '@/components/ui/StyledSelect';
 import { FormField } from '@/components/ui/FormField';
-import { User, Users, Globe, Building, Gift, Map as MapIcon, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { User, Users, Globe, Building, Gift, Map as MapIcon, CheckCircle2, AlertCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
 import { toast } from 'sonner';
+import { Alert } from '@/components/ui';
+import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
 
 
 export default function OnboardingPage() {
@@ -389,11 +391,13 @@ export default function OnboardingPage() {
   const onContinue = async () => {
     if (!hasKnowledgeSources) {
       setSubmitError('Program source options are temporarily unavailable. Please refresh and try again.');
+      toast.error('Please complete the highlighted fields to continue.');
       return;
     }
 
     if (!isInfoValid) {
       setInfoShowErrors(true);
+      toast.error('Please complete the highlighted fields to continue.');
       return;
     }
 
@@ -451,8 +455,8 @@ export default function OnboardingPage() {
 
       router.push('/dashboard');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Onboarding failed';
-      setSubmitError(message);
+      const rawMessage = error instanceof Error ? error.message : 'Onboarding failed';
+      setSubmitError(friendlyAuthError(rawMessage).message);
     } finally {
       setSubmitLoading(false);
     }
@@ -518,18 +522,22 @@ export default function OnboardingPage() {
   const goNext = () => {
     if (activeStep === 'Basic Info' && !isBioValid) {
       setBioShowErrors(true);
+      toast.error('Please complete the highlighted fields to continue.');
       return;
     }
     if (activeStep === 'Location' && !isLocationValid) {
       setDomShowErrors(true);
+      toast.error('Please complete the highlighted fields to continue.');
       return;
     }
     if (activeStep === 'Age' && !isAgeValid) {
       setAgeShowErrors(true);
+      toast.error('Please complete the highlighted fields to continue.');
       return;
     }
     if (activeStep === 'Program Info' && !isInfoValid) {
       setInfoShowErrors(true);
+      toast.error('Please complete the highlighted fields to continue.');
       return;
     }
 
@@ -917,17 +925,18 @@ export default function OnboardingPage() {
                           ) : null}
 
                           {infoShowErrors && form.programSource.trim().length === 0 && (
-                            <p style={{ marginTop: "6px", fontSize: "12px", color: "#ef4444", display: "flex", alignItems: "center", fontWeight: 500 }}>
+                            <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-destructive">
+                              <AlertCircle className="h-3.5 w-3.5" />
                               Required
                             </p>
                           )}
                         </>
                       ) : (
-                        <p className={onboardingTheme.fieldError}>
+                        <Alert variant="warning">
                           {knowledgeSourcesError
                             ? 'Program source options are unavailable right now. Please refresh and try again.'
                             : 'Program source options are loading.'}
-                        </p>
+                        </Alert>
                       )}
                     </div>
 
@@ -1005,7 +1014,9 @@ export default function OnboardingPage() {
                 </div>
 
                 {submitError ? (
-                  <p className={onboardingTheme.fieldError}>{submitError}</p>
+                  <div className="mt-1">
+                    <Alert variant="error">{submitError}</Alert>
+                  </div>
                 ) : null}
               </form>
 

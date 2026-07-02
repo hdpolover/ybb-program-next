@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef, useState, type ChangeEvent, type InputHTMLAttributes } from 'react';
+import { AlertCircle } from 'lucide-react';
 import { sanitize, type RestrictMode } from '@/lib/text/restricted-input';
 
 const FEEDBACK: Record<RestrictMode, string> = {
@@ -44,8 +45,12 @@ const EnglishTextInput = forwardRef<HTMLInputElement, EnglishTextInputProps>(
           <p
             role="status"
             aria-live="polite"
-            className={feedbackClassName ?? 'mt-1 text-xs text-red-600'}
+            className={
+              feedbackClassName ??
+              'mt-1 flex items-center gap-1.5 rounded-md bg-destructive-soft px-2 py-1 text-xs font-medium text-destructive'
+            }
           >
+            <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
             {FEEDBACK[restrictMode]}
           </p>
         )}
