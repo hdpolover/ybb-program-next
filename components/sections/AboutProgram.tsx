@@ -11,9 +11,10 @@ type AboutProgramProps = {
   mission?: string;
   images?: { url: string; caption?: string }[];
   backgroundImageUrl?: string;
+  registerUrl?: string;
 };
 
-export default function AboutProgram({ about, vision, mission, images, backgroundImageUrl }: AboutProgramProps) {
+export default function AboutProgram({ about, vision, mission, images, backgroundImageUrl, registerUrl }: AboutProgramProps) {
   const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const hasBackground = Boolean(backgroundImageUrl?.trim());
@@ -174,7 +175,7 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
 
             <div className={`hidden sm:block ${componentsTheme.aboutProgram.ctaWrapper}`}>
               <a
-                href="/apply"
+                href={registerUrl || '/apply'}
                 className={`${t.ctaButton} w-full justify-center ${hasBackground ? 'ring-2 ring-white/90' : ''}`}
               >
                 I Want To Join
