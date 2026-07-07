@@ -17,6 +17,9 @@ const config: Config = {
         'primary-foreground': 'var(--color-primary-foreground)',
         accent: 'var(--color-accent)',
         'accent-foreground': 'var(--color-accent-foreground)',
+        destructive: 'var(--color-destructive)',
+        'destructive-foreground': 'var(--color-destructive-foreground)',
+        'destructive-soft': 'var(--color-destructive-soft)',
       },
       keyframes: {
         heartbeat: {

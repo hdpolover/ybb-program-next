@@ -41,6 +41,7 @@ import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
 import { formatSubmissionDateValue, isDateLikeField } from "@/lib/dashboard/dateDisplay";
 import { useAutoSave, loadFromLocalStorage, clearLocalStorage } from "@/hooks/useAutoSave";
 import { normalizeEmailInput } from "@/lib/utils";
+import { isValidPhone, sanitizePhone } from "@/lib/phone";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -347,6 +348,50 @@ function splitE164ToDialAndNumber(value: string) {
   };
 }
 
+/**
+ * Normalize any phone-like fields in a section's save payload, mirroring the
+ * backend's save-time behavior: parse with the nationality (or other country
+ * selector) as the region hint, and if valid, store the E.164 form. If the
+ * number doesn't parse as valid, the value is left exactly as entered — this
+ * never blocks the save, it only cleans up numbers that already parse fine.
+ */
+function normalizeSectionPhoneFields(
+  section: PortalSubmissionSection,
+  payload: Record<string, string>,
+  regionHint?: CountryCode,
+): Record<string, string> {
+  const next = { ...payload };
+
+  for (const field of section.fields) {
+    if (field.type === "phone") {
+      const raw = next[field.name] ?? "";
+      if (!raw) continue;
+      next[field.name] = sanitizePhone(raw, regionHint).value;
+      continue;
+    }
+
+    const kind = getPhonePairKind(field);
+    if (kind !== "primary_number" && kind !== "emergency_number") continue;
+
+    const pairedCountryField = getPairedPhoneField(section, field);
+    if (!pairedCountryField) continue;
+
+    const numberRaw = next[field.name] ?? "";
+    const countryRaw = next[pairedCountryField.name] ?? "";
+    if (!numberRaw) continue;
+
+    const e164Candidate = buildE164FromDialAndNumber(countryRaw, numberRaw);
+    const sanitized = sanitizePhone(e164Candidate, regionHint);
+    if (!sanitized.isValid) continue; // keep the country/number pair exactly as entered
+
+    const split = splitE164ToDialAndNumber(sanitized.value);
+    next[pairedCountryField.name] = split.countryCode;
+    next[field.name] = split.phoneNumber;
+  }
+
+  return next;
+}
+
 function shouldRenderField(section: PortalSubmissionSection, field: PortalSubmissionField) {
   if (isProfilePhotoField(field)) return false;
   if (isEmailField(field)) return false;
@@ -495,6 +540,7 @@ export default function SubmissionEditSection() {
   const [referralFieldStatuses, setReferralFieldStatuses] = useState<
     Record<string, 'idle' | 'checking' | 'valid' | 'invalid' | 'unknown'>
   >({});
+  const [touchedPhoneKeys, setTouchedPhoneKeys] = useState<Set<string>>(new Set());
 
   // Generate localStorage key unik buat tiap user & program
   const localStorageKey = `submission_autosave_${me?.userId || "guest"}_${selectedProgramId || "default"}`;
@@ -720,6 +766,15 @@ export default function SubmissionEditSection() {
     }));
   };
 
+  // Soft, non-blocking phone validation: marked "touched" on blur so we don't
+  // flash an error while the participant is still typing.
+  const phoneTouchKey = (sectionId: string, fieldName: string) => `${sectionId}::${fieldName}`;
+  const markPhoneTouched = (sectionId: string, fieldName: string) => {
+    setTouchedPhoneKeys(prev => new Set(prev).add(phoneTouchKey(sectionId, fieldName)));
+  };
+  const isPhoneTouched = (sectionId: string, fieldName: string) =>
+    touchedPhoneKeys.has(phoneTouchKey(sectionId, fieldName));
+
   // Dynamic fields are admin-defined in the DB, so a referral code field can
   // arrive under any key. Detect it resiliently from the key, the visible
   // label, or an explicit admin `fieldKind` flag, rather than a single rigid
@@ -809,7 +864,7 @@ export default function SubmissionEditSection() {
       const rawPayload = sectionValues[activeSection.id] || {};
 
       // Strip referral fields already confirmed invalid so they don't block save
-      const sectionPayload = Object.fromEntries(
+      const filteredPayload = Object.fromEntries(
         Object.entries(rawPayload)
           // Never send a blank category from a section save — applicationCategory is
           // owned by the switch-category flow, and an empty value previously wiped it
@@ -819,6 +874,12 @@ export default function SubmissionEditSection() {
             isReferralField(k) && referralFieldStatuses[k] === 'invalid' ? [k, ''] : [k, v],
           ),
       );
+
+      // Normalize phone fields to E.164 (mirrors the backend's save-time behavior).
+      // Numbers that don't parse as valid are left exactly as entered — this never
+      // blocks the save.
+      const regionHint = findNationalityCountryCode(detail?.sections ?? [], sectionValues);
+      const sectionPayload = normalizeSectionPhoneFields(activeSection, filteredPayload, regionHint);
 
       const buildRequests = (payload: Record<string, unknown>): Promise<Response>[] => {
         const reqs: Promise<Response>[] = [
@@ -876,6 +937,13 @@ export default function SubmissionEditSection() {
       if (failed >= 0) {
         throw new Error(getErrorMessage(results[failed], "Failed to save submission section"));
       }
+
+      // Reflect the normalized phone values locally so the field shows the same
+      // E.164 form that was just persisted, without waiting for a full reload.
+      setSectionValues(current => ({
+        ...current,
+        [activeSection.id]: { ...(current[activeSection.id] || {}), ...sectionPayload },
+      }));
 
       toast.success(`${activeSection.title} saved successfully.`);
 
@@ -970,18 +1038,29 @@ export default function SubmissionEditSection() {
       if (pairedCountryField) {
         const countryCodeValue = sectionValues[section.id]?.[pairedCountryField.name] ?? "";
         const e164 = buildE164FromDialAndNumber(countryCodeValue, value);
+        const phoneTouched = isPhoneTouched(section.id, field.name);
+        const phoneInvalid = phoneTouched && e164.trim() !== "" && !isValidPhone(e164, defaultPhoneCountry);
 
         return (
-          <PhoneField
-            value={e164}
-            defaultCountry={defaultPhoneCountry}
-            onChange={nextE164 => {
-              const normalized = splitE164ToDialAndNumber(nextE164);
-              updateFieldValue(section.id, pairedCountryField.name, normalized.countryCode);
-              updateFieldValue(section.id, field.name, normalized.phoneNumber);
-            }}
-            disabled={locked}
-          />
+          <div className="w-full">
+            <PhoneField
+              value={e164}
+              defaultCountry={defaultPhoneCountry}
+              hasError={phoneInvalid}
+              onChange={nextE164 => {
+                const normalized = splitE164ToDialAndNumber(nextE164);
+                updateFieldValue(section.id, pairedCountryField.name, normalized.countryCode);
+                updateFieldValue(section.id, field.name, normalized.phoneNumber);
+              }}
+              onBlur={() => markPhoneTouched(section.id, field.name)}
+              disabled={locked}
+            />
+            {phoneInvalid ? (
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
+                <AlertTriangle className="h-3.5 w-3.5" /> This doesn&apos;t look like a valid phone number. You can still save, but please double-check it.
+              </p>
+            ) : null}
+          </div>
         );
       }
     }
@@ -1054,13 +1133,25 @@ export default function SubmissionEditSection() {
     }
 
     if (field.type === "phone") {
+      const phoneTouched = isPhoneTouched(section.id, field.name);
+      const phoneInvalid = phoneTouched && value.trim() !== "" && !isValidPhone(value, defaultPhoneCountry);
+
       return (
-        <PhoneField
-          value={value}
-          defaultCountry={defaultPhoneCountry}
-          onChange={e164 => updateFieldValue(section.id, field.name, e164)}
-          disabled={locked}
-        />
+        <div className="w-full">
+          <PhoneField
+            value={value}
+            defaultCountry={defaultPhoneCountry}
+            hasError={phoneInvalid}
+            onChange={e164 => updateFieldValue(section.id, field.name, e164)}
+            onBlur={() => markPhoneTouched(section.id, field.name)}
+            disabled={locked}
+          />
+          {phoneInvalid ? (
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
+              <AlertTriangle className="h-3.5 w-3.5" /> This doesn&apos;t look like a valid phone number. You can still save, but please double-check it.
+            </p>
+          ) : null}
+        </div>
       );
     }
 

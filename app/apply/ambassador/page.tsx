@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Phone, Building, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
+import { Country } from 'country-state-city';
+import { AlertTriangle, Users, Phone, Building, Globe2, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
+import { isValidPhone, sanitizePhone } from '@/lib/phone';
 
 interface FormState {
   fullName: string;
+  countryCode: string;
   phoneNumber: string;
   institution: string;
 }
@@ -17,10 +20,22 @@ const PROGRAM_ID = process.env.NEXT_PUBLIC_PROGRAM_ID || '';
 export default function ApplyAmbassadorPage() {
   const router = useRouter();
   const { settings } = useSettings();
-  const [form, setForm] = useState<FormState>({ fullName: '', phoneNumber: '', institution: '' });
+  const [form, setForm] = useState<FormState>({ fullName: '', countryCode: '', phoneNumber: '', institution: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  const countries = useMemo(
+    () => [...Country.getAllCountries()].sort((a, b) => a.name.localeCompare(b.name)),
+    [],
+  );
+
+  // Country is optional (phone is optional too), but when picked it's used as the
+  // region hint so national-format numbers (e.g. "0812...") validate/normalize correctly.
+  const regionHint = form.countryCode || undefined;
+  const phoneInvalid =
+    phoneTouched && form.phoneNumber.trim() !== '' && !isValidPhone(form.phoneNumber, regionHint);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,13 +48,15 @@ export default function ApplyAmbassadorPage() {
     setError(null);
 
     try {
+      const normalizedPhone = sanitizePhone(form.phoneNumber, regionHint).value;
+
       const res = await fetch('/api/participants/ambassador/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: form.fullName.trim(),
           programId: settings?.active_program?.id || PROGRAM_ID,
-          phoneNumber: form.phoneNumber.trim() || undefined,
+          phoneNumber: normalizedPhone.trim() || undefined,
           institution: form.institution.trim() || undefined,
         }),
       });
@@ -118,6 +135,33 @@ export default function ApplyAmbassadorPage() {
             </div>
           </div>
 
+          {/* Country */}
+          <div className="space-y-1.5">
+            <label htmlFor="country" className="text-sm font-medium">
+              Country <span className="text-muted-foreground text-xs font-normal">(optional)</span>
+            </label>
+            <div className="relative">
+              <Globe2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <select
+                id="country"
+                value={form.countryCode}
+                onChange={(e) => setForm((f) => ({ ...f, countryCode: e.target.value }))}
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 appearance-none"
+                disabled={loading}
+              >
+                <option value="">Select your country</option>
+                {countries.map((c) => (
+                  <option key={c.isoCode} value={c.isoCode}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Used to validate your phone number format.
+            </p>
+          </div>
+
           {/* Phone */}
           <div className="space-y-1.5">
             <label htmlFor="phone" className="text-sm font-medium">
@@ -130,11 +174,22 @@ export default function ApplyAmbassadorPage() {
                 type="tel"
                 value={form.phoneNumber}
                 onChange={(e) => setForm((f) => ({ ...f, phoneNumber: e.target.value }))}
-                placeholder="+62 812 ..."
-                className="w-full pl-9 pr-4 py-2.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                onBlur={() => setPhoneTouched(true)}
+                placeholder={regionHint ? '0812...' : '+62 812 ...'}
+                className={`w-full pl-9 pr-4 py-2.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                  phoneInvalid ? 'border-destructive focus:ring-destructive/30' : ''
+                }`}
                 disabled={loading}
               />
             </div>
+            {phoneInvalid && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                {regionHint
+                  ? "This doesn't look like a valid phone number for the selected country, or you can still submit as-is."
+                  : "This doesn't look like a valid phone number. Select your country above, or include your country code (e.g. +62) — you can still submit as-is."}
+              </p>
+            )}
           </div>
 
           {/* Institution */}

@@ -8,10 +8,12 @@ import { componentsTheme } from '@/lib/theme/components';
 import { useSettings } from '@/components/providers/SettingsProvider';
 // import { useSettings } from '@/components/providers/SettingsProvider';
 // import { getSettings } from '@/lib/api/settings';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, type User as FirebaseUser } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { normalizeEmailInput } from '@/lib/utils';
+import { Alert } from '@/components/ui';
+import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -23,8 +25,15 @@ const FALLBACK_IMAGES = [
 ];
 
 const DUPLICATE_EMAIL_MESSAGE = 'This email is already registered. Please sign in instead.';
-const EMAIL_NOT_VERIFIED_MESSAGE =
-  'Your email is not verified yet. Please verify your email first, or resend the verification email below.';
+const PASSWORD_MISMATCH_MESSAGE = 'Password and confirm password do not match';
+const AGREE_REQUIRED_MESSAGE = 'You must agree to the Terms of Service and Privacy Policy';
+// Client-thrown validation messages that are already participant-friendly and
+// should be shown as-is, bypassing friendlyAuthError's generic fallback copy.
+const KNOWN_FRIENDLY_REGISTER_MESSAGES = new Set([
+  DUPLICATE_EMAIL_MESSAGE,
+  PASSWORD_MISMATCH_MESSAGE,
+  AGREE_REQUIRED_MESSAGE,
+]);
 
 type LegalDocumentType = 'terms' | 'privacy';
 
@@ -55,6 +64,7 @@ export default function LoginPage() {
   const [oauthError, setOauthError] = useState<string>('');
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string>('');
+  const [localErrorAction, setLocalErrorAction] = useState<'use-google' | undefined>(undefined);
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
@@ -71,7 +81,6 @@ export default function LoginPage() {
   const [legalLoading, setLegalLoading] = useState(false);
   const [legalError, setLegalError] = useState<string>('');
   const [legalDocs, setLegalDocs] = useState<Partial<Record<LegalDocumentType, LegalDocumentPayload>>>({});
-  const [oauthProviderIds] = useState<Record<string, string>>({});
   const [loginForm, setLoginForm] = useState({
     email: '',
     password: '',
@@ -131,6 +140,7 @@ export default function LoginPage() {
     if (mode === 'login') {
       setLocalLoading(true);
       setLocalError('');
+      setLocalErrorAction(undefined);
       setShowResendVerification(false);
       setResendMessage('');
       try {
@@ -178,12 +188,12 @@ export default function LoginPage() {
 
         router.push(json?.data?.redirectTo || '/onboarding');
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Login failed';
-        if (/email\s+not\s+verified/i.test(message)) {
-          setLocalError(EMAIL_NOT_VERIFIED_MESSAGE);
+        const rawMessage = error instanceof Error ? error.message : 'Login failed';
+        const friendly = friendlyAuthError(rawMessage);
+        setLocalError(friendly.message);
+        setLocalErrorAction(friendly.action);
+        if (/email\s+not\s+verified/i.test(rawMessage)) {
           setShowResendVerification(true);
-        } else {
-          setLocalError(message);
         }
       } finally {
         setLocalLoading(false);
@@ -197,10 +207,10 @@ export default function LoginPage() {
     setRegisterError('');
     try {
       if (signupForm.password !== signupForm.confirmPassword) {
-        throw new Error('Password and confirm password do not match');
+        throw new Error(PASSWORD_MISMATCH_MESSAGE);
       }
       if (!agree) {
-        throw new Error('You must agree to the Terms of Service and Privacy Policy');
+        throw new Error(AGREE_REQUIRED_MESSAGE);
       }
 
       const res = await fetch('/api/auth/register', {
@@ -239,8 +249,12 @@ export default function LoginPage() {
       const needsEmailVerification = json?.data?.needsEmailVerification ?? true;
       router.push(needsEmailVerification ? '/verify-email' : '/onboarding');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Register failed';
-      setRegisterError(message);
+      const rawMessage = error instanceof Error ? error.message : 'Register failed';
+      setRegisterError(
+        KNOWN_FRIENDLY_REGISTER_MESSAGES.has(rawMessage)
+          ? rawMessage
+          : friendlyAuthError(rawMessage).message,
+      );
     } finally {
       setRegisterLoading(false);
     }
@@ -319,45 +333,15 @@ export default function LoginPage() {
     setLegalModalOpen(false);
   };
 
-  const onOAuthLogin = async (providerName: string) => {
-    if (oauthLoading) return;
-    setOauthLoading(providerName);
-    setOauthError('');
-
+  // Everything that must run AFTER Firebase authentication succeeds. Shared by
+  // both the popup flow (onOAuthLogin) and the redirect-fallback flow
+  // (getRedirectResult on mount). Note: providerId is intentionally omitted —
+  // the backend /v1/auth/firebase-login resolves the provider from the token.
+  const handleFirebaseUser = async (fbUser: FirebaseUser) => {
     try {
-      if (providerName !== 'google') {
-        throw new Error('Only Google login is available right now.');
-      }
-
-      let providerId = oauthProviderIds[providerName] || '';
-      if (!providerId) {
-        try {
-          const ctxRes = await fetch('/api/auth/context', {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-          const ctxJson = (await ctxRes.json().catch(() => ({}))) as Record<string, unknown>;
-          const ctxData = ctxJson?.data;
-          const providers = ctxData && typeof ctxData === 'object' && 'providers' in ctxData ? (ctxData as Record<string, unknown>).providers : undefined;
-          if (Array.isArray(providers)) {
-            const google = providers.find((p: unknown) => p && typeof p === 'object' && 'isOAuth' in p && 'name' in p && (p as Record<string, unknown>).isOAuth && (p as Record<string, unknown>).name === 'google');
-            const googleRecord = google && typeof google === 'object' ? (google as Record<string, unknown>) : null;
-            if (googleRecord?.id) providerId = String(googleRecord.id);
-          }
-        } catch {
-          // ignore
-        }
-      }
-
-      const firebaseProvider = googleProvider;
-
+      const idToken = await fbUser.getIdToken();
       const referralCode =
         searchParams?.get('referralCode') ?? searchParams?.get('t') ?? undefined;
-      const result = await signInWithPopup(auth, firebaseProvider);
-      const user = result.user;
-      const idToken = await user.getIdToken();
 
       const res = await fetch('/api/auth/firebase-login', {
         method: 'POST',
@@ -366,7 +350,6 @@ export default function LoginPage() {
         },
         body: JSON.stringify({
           idToken,
-          ...(providerId ? { providerId } : {}),
           ...(referralCode ? { referralCode } : {}),
         }),
       });
@@ -414,14 +397,84 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Login failed';
-      setOauthError(message);
-    } finally {
+      const rawMessage = error instanceof Error ? error.message : 'Login failed';
+      setOauthError(friendlyAuthError(rawMessage).message);
       setOauthLoading('');
     }
   };
 
-  
+  const onOAuthLogin = async (providerName: string) => {
+    if (oauthLoading) return;
+
+    if (providerName !== 'google') {
+      setOauthError('Only Google login is available right now.');
+      return;
+    }
+
+    setOauthLoading(providerName);
+    setOauthError('');
+
+    // CRITICAL: signInWithPopup must be the FIRST awaited call in this click
+    // handler. Any network/await before it breaks the browser's user-activation
+    // window, and on mobile Chrome the popup is then blocked and the user is
+    // stranded on a blank firebaseapp.com auth page. Do not add awaits above it.
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      await handleFirebaseUser(result.user);
+    } catch (error) {
+      const code = error && typeof error === 'object' && 'code' in error ? String((error as { code: unknown }).code) : '';
+
+      // User dismissed the popup — not an error, just reset loading state.
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        setOauthLoading('');
+        return;
+      }
+
+      // Popup blocked (common on mobile) — fall back to full-page redirect.
+      // Completion is handled by the getRedirectResult effect on next load.
+      if (code === 'auth/popup-blocked') {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectError) {
+          const rawMessage = redirectError instanceof Error ? redirectError.message : 'Login failed';
+          setOauthError(friendlyAuthError(rawMessage).message);
+          setOauthLoading('');
+          return;
+        }
+      }
+
+      const rawMessage = error instanceof Error ? error.message : 'Login failed';
+      setOauthError(friendlyAuthError(rawMessage).message);
+      setOauthLoading('');
+    }
+  };
+
+  // Completes the signInWithRedirect fallback: when the browser returns from the
+  // Firebase auth handler, this picks up the authenticated user and runs the
+  // shared post-auth flow. No-op for the normal popup path (result is null).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (!cancelled && result?.user) {
+          setOauthLoading('google');
+          await handleFirebaseUser(result.user);
+        }
+      } catch (error) {
+        if (cancelled) return;
+        const rawMessage = error instanceof Error ? error.message : 'Login failed';
+        setOauthError(friendlyAuthError(rawMessage).message);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
   useEffect(() => {
     async function fetchGalleryImages() {
@@ -638,7 +691,9 @@ export default function LoginPage() {
                       </div>
                     )}
                     {localError ? (
-                      <p className="mt-3 text-xs font-medium text-primary">{localError}</p>
+                      <div className="mt-3">
+                        <Alert variant="error">{localError}</Alert>
+                      </div>
                     ) : null}
                     {showResendVerification && loginForm.email.trim() ? (
                       <div className="mt-3">
@@ -651,7 +706,11 @@ export default function LoginPage() {
                           {resendLoading ? 'Sending verification email...' : 'Resend verification email'}
                         </button>
                         {resendMessage ? (
-                          <p className="mt-2 text-xs font-medium text-slate-600">{resendMessage}</p>
+                          <div className="mt-2">
+                            <Alert variant={/sent/i.test(resendMessage) ? 'success' : 'error'}>
+                              {resendMessage}
+                            </Alert>
+                          </div>
                         ) : null}
                       </div>
                     ) : null}
@@ -675,7 +734,9 @@ export default function LoginPage() {
 
                         <button
                           type="button"
-                          className={componentsTheme.login.googleButton}
+                          className={`${componentsTheme.login.googleButton} ${
+                            localErrorAction === 'use-google' ? 'ring-2 ring-primary ring-offset-2' : ''
+                          }`}
                           onClick={() => onOAuthLogin('google')}
                           disabled={oauthLoading.length > 0}
                         >
@@ -690,7 +751,9 @@ export default function LoginPage() {
                         </button>
 
                         {oauthError ? (
-                          <p className="mt-3 text-xs font-medium text-primary">{oauthError}</p>
+                          <div className="mt-3">
+                            <Alert variant="error">{oauthError}</Alert>
+                          </div>
                         ) : null}
                       </>
                     )}
@@ -842,9 +905,7 @@ export default function LoginPage() {
                         </button>
                       </span>
                     </div>
-                    {registerError ? (
-                      <p className="text-sm text-red-200">{registerError}</p>
-                    ) : null}
+                    {registerError ? <Alert variant="error">{registerError}</Alert> : null}
                     <div className="pt-2">
                       <button type="submit" className={componentsTheme.login.primaryButton} disabled={registerLoading}>
                         {registerLoading ? 'Creating account...' : 'Create Account'}
@@ -923,9 +984,7 @@ export default function LoginPage() {
                 <p className="text-sm text-slate-600">Loading document...</p>
               ) : null}
 
-              {!legalLoading && legalError ? (
-                <p className="text-sm font-medium text-primary">{legalError}</p>
-              ) : null}
+              {!legalLoading && legalError ? <Alert variant="error">{legalError}</Alert> : null}
 
               {!legalLoading && !legalError && activeLegalDoc?.content ? (
                 legalDocLooksLikeHtml ? (

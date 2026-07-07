@@ -15,6 +15,7 @@ const submissionTheme = componentsTheme.dashboardSubmission;
 interface PhoneFieldProps {
   value: string;
   onChange: (e164: string) => void;
+  onBlur?: () => void;
   hasError?: boolean;
   disabled?: boolean;
   /**
@@ -53,6 +54,7 @@ function allCountries(): CountryChoice[] {
 export function PhoneField({
   value,
   onChange,
+  onBlur,
   hasError,
   disabled,
   defaultCountry,
@@ -221,6 +223,7 @@ export function PhoneField({
           setNumber(next);
           emit(country, next);
         }}
+        onBlur={onBlur}
         className="flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-slate-400"
         placeholder="812 3456 7890"
       />

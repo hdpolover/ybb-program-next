@@ -3,8 +3,10 @@ import type { NextRequest } from 'next/server';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 
 const API_BASE_URL = getServerApiBaseUrl();
-const MAINTENANCE_CACHE_TTL_MS = 30_000;
-const maintenanceModeCache = new Map<string, { value: boolean; expiresAt: number }>();
+const BRAND_STATUS_CACHE_TTL_MS = 30_000;
+
+type BrandStatus = { exists: boolean; maintenance: boolean };
+const brandStatusCache = new Map<string, { value: BrandStatus; expiresAt: number }>();
 
 const REFERRAL_PARAMS = ['t', 'c', 's', 'q', 'ref'] as const;
 const REFERRAL_COOKIE_NAME = 'ybb_referral_code';
@@ -28,12 +30,21 @@ const resolveBrandUrl = (request: NextRequest): string => {
   return cleanHostname;
 };
 
-async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
+// Resolves brand existence + maintenance state from a single landing/settings call.
+// - 404 => brand definitively not found for this domain (exists: false).
+// - Any other failure (5xx, network) => fail open (exists: true) so a transient API
+//   outage never black-holes a real brand behind the "unavailable" page.
+async function getBrandStatus(brandUrl: string): Promise<BrandStatus> {
   const now = Date.now();
-  const cached = maintenanceModeCache.get(brandUrl);
+  const cached = brandStatusCache.get(brandUrl);
   if (cached && cached.expiresAt > now) {
     return cached.value;
   }
+
+  const cache = (value: BrandStatus): BrandStatus => {
+    brandStatusCache.set(brandUrl, { value, expiresAt: now + BRAND_STATUS_CACHE_TTL_MS });
+    return value;
+  };
 
   try {
     const url = new URL('/v1/landing/settings', API_BASE_URL);
@@ -46,12 +57,13 @@ async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
       },
     });
 
+    if (res.status === 404) {
+      return cache({ exists: false, maintenance: false });
+    }
+
     if (!res.ok) {
-      maintenanceModeCache.set(brandUrl, {
-        value: false,
-        expiresAt: now + MAINTENANCE_CACHE_TTL_MS,
-      });
-      return false;
+      // Transient/non-404 error: fail open, don't cache so the next request retries.
+      return { exists: true, maintenance: false };
     }
 
     const json = (await res.json()) as {
@@ -64,17 +76,16 @@ async function isMaintenanceModeEnabled(brandUrl: string): Promise<boolean> {
       } | null;
     };
 
-    const isEnabled = Boolean(json?.data?.maintenance?.is_maintenance_mode);
-    maintenanceModeCache.set(brandUrl, {
-      value: isEnabled,
-      expiresAt: now + MAINTENANCE_CACHE_TTL_MS,
+    return cache({
+      exists: true,
+      maintenance: Boolean(json?.data?.maintenance?.is_maintenance_mode),
     });
-    return isEnabled;
   } catch {
     if (cached) {
       return cached.value;
     }
-    return false;
+    // Network error with no cached value: fail open.
+    return { exists: true, maintenance: false };
   }
 }
 
@@ -140,7 +151,7 @@ const attachReferralCookie = async (
   return response;
 };
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const searchParams = new URLSearchParams(nextUrl.search);
 
@@ -196,13 +207,23 @@ export async function proxy(request: NextRequest) {
 
   const isExemptRoute =
     pathname === '/maintenance' ||
+    pathname === '/unavailable' ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico';
 
   if (!isExemptRoute) {
-    const maintenanceEnabled = await isMaintenanceModeEnabled(brandUrl);
-    if (maintenanceEnabled) {
+    const { exists, maintenance } = await getBrandStatus(brandUrl);
+
+    // No brand resolves for this domain: show a friendly, brand-neutral page.
+    // Rewrite (not redirect) so the user keeps their URL and there's no flash.
+    if (!exists) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/unavailable';
+      return NextResponse.rewrite(url);
+    }
+
+    if (maintenance) {
       const url = request.nextUrl.clone();
       url.pathname = '/maintenance';
       return attachReferralCookie(request, NextResponse.redirect(url), brandUrl);

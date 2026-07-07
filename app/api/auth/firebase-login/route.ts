@@ -26,12 +26,9 @@ type FirebaseLoginResponse = {
 
 export async function POST(request: Request) {
   try {
-    console.log('[firebase-login] Starting...');
     const brandDomain = resolveBrandDomainFromRequest(request);
-    console.log('[firebase-login] brandDomain:', brandDomain);
-    
+
     const body = (await request.json()) as FirebaseLoginBody;
-    console.log('[firebase-login] Has idToken:', !!body?.idToken, 'Has providerId:', !!body?.providerId);
 
     if (!body?.idToken) {
       return NextResponse.json(
@@ -41,7 +38,6 @@ export async function POST(request: Request) {
     }
 
     const url = new URL('/v1/auth/firebase-login', getServerApiBaseUrl());
-    console.log('[firebase-login] API URL:', url.toString());
 
     let brandId: string | undefined;
     let programId: string | undefined;
@@ -59,7 +55,6 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
-    console.log('[firebase-login] Auth context resolved:', { brandId, programId, programSlug });
 
     // Resolve referral code: explicit body value takes priority, then fall back to cookie
     const cookieHeader = request.headers.get('cookie') ?? '';
@@ -70,7 +65,6 @@ export async function POST(request: Request) {
       ?.split('=')[1] ?? null;
     const resolvedReferralCode = body.referralCode || cookieReferralCode || null;
 
-    console.log('[firebase-login] Calling backend with brandId:', brandId, 'programId:', programId);
     const res = await fetch(url.toString(), {
       method: 'POST',
       headers: {
@@ -87,9 +81,7 @@ export async function POST(request: Request) {
       }),
     });
 
-    console.log('[firebase-login] Backend status:', res.status);
     const json = (await res.json()) as FirebaseLoginResponse;
-    console.log('[firebase-login] Backend response:', json);
 
     if (!res.ok || (json.statusCode !== 200 && json.statusCode !== 201)) {
       return NextResponse.json(
