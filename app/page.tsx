@@ -199,6 +199,7 @@ export default async function Home() {
         title={mainBannerSection?.content.title}
         subtitle={mainBannerSection?.content.subtitle}
         link={mainBannerSection?.content.link}
+        registerUrl={registerUrl}
       />
       <HomeRegistrationStrip
         igFeed={registrationOverviewSection?.content.ig_feed}

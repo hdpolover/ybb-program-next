@@ -6,9 +6,10 @@ type HeroProps = {
   title?: string;
   subtitle?: string;
   link?: string;
+  registerUrl?: string;
 };
 
-export default function Hero({ imageUrl, title }: HeroProps) {
+export default function Hero({ imageUrl, title, registerUrl }: HeroProps) {
   if (!imageUrl || imageUrl.length === 0) return null;
   const src = imageUrl;
   const alt = title || 'Youth Summit';
@@ -16,27 +17,31 @@ export default function Hero({ imageUrl, title }: HeroProps) {
   return (
     <section className={componentsTheme.heroHome.sectionWrapper}>
       <div className={componentsTheme.heroHome.mobileWrapper}>
-        <HeroImage
-          src={src}
-          alt={alt}
-          width={1920}
-          height={600}
-          className={componentsTheme.heroHome.mobileImage}
-        />
+        <a href={registerUrl || '/register'}>
+          <HeroImage
+            src={src}
+            alt={alt}
+            width={1920}
+            height={600}
+            className={componentsTheme.heroHome.mobileImage}
+          />
+        </a>
       </div>
       <div
         className={`${componentsTheme.heroHome.desktopWrapper} relative`}
       >
-        <OptimizedImage
-          src={src}
-          alt={alt}
-          fill
-          type="content"
-          customSizes="100vw"
-          className="object-cover"
-        />
-        <div className={componentsTheme.heroHome.desktopOverlay} />
-        <div className={componentsTheme.heroHome.desktopInner}></div>
+        <a href={registerUrl || '/register'}>
+          <OptimizedImage
+            src={src}
+            alt={alt}
+            fill
+            type="content"
+            customSizes="100vw"
+            className="object-cover"
+          />
+          <div className={componentsTheme.heroHome.desktopOverlay} />
+          <div className={componentsTheme.heroHome.desktopInner}></div>
+        </a>
       </div>
     </section>
   );
