@@ -553,28 +553,6 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     ? formatInvoiceAmount(effectiveAmount)
     : paymentPreview?.amountLabel || 'Loading amount...';
   const primaryTransactionId = invoice?.transactionId ?? history.find(entry => entry.transactionId)?.transactionId;
-  const handleDownloadInvoice = () => {
-    const invoiceId = invoice?.id ?? paymentId;
-    const content = [
-      `Invoice ID: ${invoiceId}`,
-      `Transaction ID: ${primaryTransactionId ?? '-'}`,
-      `Payment Name: ${paymentName}`,
-      `Category: ${categoryLabel}`,
-      `Amount: ${amountLabel}`,
-      `Status: ${invoiceStatusLabel}`,
-      `Due Date: ${dueDateLabel}`,
-      `Generated At: ${new Date().toLocaleString()}`,
-    ].join('\n');
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `invoice-${invoiceId}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
 
   // When the IDR override is active, the backend's per-entry amountLabel
   // ("USD 15.00" on legacy rows) lies about the true settlement. Always
@@ -844,10 +822,14 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
             </div>
             <div className={paymentsTheme.detailQuickActionsBody}>
               {hasPaymentActivity ? (
-                <button type="button" className={paymentsTheme.detailQuickPrimaryButton} onClick={handleDownloadInvoice}>
+                <a
+                  href={`/api/portal/payments/${paymentId}/invoice`}
+                  download
+                  className={paymentsTheme.detailQuickPrimaryButton}
+                >
                   <Download className="h-4 w-4" />
                   <span>Download Invoice</span>
-                </button>
+                </a>
               ) : null}
 
               {effectiveStatus === 'paid' ? (
