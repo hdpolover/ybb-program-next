@@ -5,7 +5,7 @@ import { AlertCircle } from 'lucide-react';
 import { sanitize, type RestrictMode } from '@/lib/text/restricted-input';
 
 const FEEDBACK: Record<RestrictMode, string> = {
-  name: 'Please use the English alphabet only. Your name appears on your Letter of Acceptance.',
+  name: 'Please use the English alphabet only. Your name appears on your Invitation Letter.',
   general: 'Only standard English characters are allowed.',
 };
 

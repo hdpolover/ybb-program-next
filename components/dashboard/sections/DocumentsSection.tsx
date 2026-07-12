@@ -790,7 +790,7 @@ export default function DocumentsSection() {
                         className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:underline"
                       >
                         <Download className="h-3.5 w-3.5" />
-                        Download Letter of Acceptance
+                        Download Invitation Letter
                       </a>
                     </div>
                   )}
@@ -798,7 +798,7 @@ export default function DocumentsSection() {
                   {item.documentType === 'letter_of_acceptance' && item.downloadable === false && (
                     <div className="mt-2 rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-2 opacity-60">
                       <p className="text-[11px] text-slate-500">
-                        Your Letter of Acceptance will be available once released.
+                        Your Invitation Letter will be available once released.
                       </p>
                     </div>
                   )}
