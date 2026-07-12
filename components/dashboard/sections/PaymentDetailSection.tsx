@@ -23,7 +23,7 @@ import HistoryPanel from '@/components/dashboard/payments/HistoryPanel';
 import PaymentPageSkeleton from '@/components/dashboard/payments/PaymentPageSkeleton';
 import { componentsTheme } from '@/lib/theme/components';
 import { getEnvelopeData, getErrorMessage, isRecord } from '@/lib/api/response';
-import { readActiveProgramId } from '@/lib/dashboard/activeProgram';
+import { appendProgramId, readActiveProgramId } from '@/lib/dashboard/activeProgram';
 import {
   readCachedPaymentPreview,
   upsertCachedPaymentPreview,
@@ -459,7 +459,9 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/portal/payment-methods', { cache: 'no-store' });
+        const res = await fetch(appendProgramId('/api/portal/payment-methods', readActiveProgramId()), {
+          cache: 'no-store',
+        });
         if (!res.ok) return;
         const json = (await res.json().catch(() => null)) as unknown;
         const payload = getEnvelopeData(json);

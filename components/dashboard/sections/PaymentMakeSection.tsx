@@ -262,7 +262,9 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     (async () => {
       setMethodsLoading(true);
       try {
-        const res = await fetch('/api/portal/payment-methods', { cache: 'no-store' });
+        const res = await fetch(appendProgramId('/api/portal/payment-methods', readActiveProgramId()), {
+          cache: 'no-store',
+        });
         const json = (await res.json().catch(() => null)) as unknown;
         const payload = getEnvelopeData(json);
         const methods = normalizeMethodsPayload(payload);
