@@ -20,6 +20,7 @@ import {
   syncActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
 import { getEnvelopeData, getErrorMessage } from "@/lib/api/response";
+import { trackCompleteRegistration } from "@/lib/analytics/metaPixel";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import type {
   PortalSubmissionDetail,
@@ -1436,6 +1437,7 @@ export default function SubmissionEditSection() {
                 const json = (await res.json().catch(() => null)) as unknown;
                 if (!res.ok) throw new Error(getErrorMessage(json, "Failed to submit application"));
                 toast.success("Application submitted successfully.");
+                trackCompleteRegistration(undefined, me?.email ? { email: me.email } : undefined);
                 router.push("/dashboard/submission");
               } catch (submitError) {
                 const message = submitError instanceof Error ? submitError.message : "Failed to submit application";

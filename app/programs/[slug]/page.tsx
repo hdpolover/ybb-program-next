@@ -1,5 +1,7 @@
 import { CalendarDays, MapPin, Clock, Info, Check, ClipboardCheck, FileText, ChevronDown } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import { ViewContentTracker } from '@/components/analytics/ViewContentTracker';
+import { RegisterCTA } from '@/components/analytics/RegisterCTA';
 import RegistrationTutorial from '@/components/sections/RegistrationTutorial';
 import FeaturedSpeakers from '@/components/programs/FeaturedSpeakers';
 import ProgramRundowns from '@/components/programs/ProgramRundowns';
@@ -203,6 +205,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
 
   return (
     <main className={componentsTheme.programDetail.mainWrapper}>
+      <ViewContentTracker contentId={program.id} contentName={resolvedProgramTitle} />
       <section
         className={componentsTheme.programDetail.heroSection}
         style={{ backgroundImage: `url('${heroBg}'), url('/img/bgprogramoverview.png')` }}
@@ -214,9 +217,13 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
 
           <div className={componentsTheme.programDetail.heroCtaWrapper}>
             {heroCtaHref ? (
-              <a href={heroCtaHref} className={componentsTheme.programDetail.heroCta}>
+              <RegisterCTA
+                href={heroCtaHref}
+                className={componentsTheme.programDetail.heroCta}
+                contentName={resolvedProgramTitle}
+              >
                 {heroCtaLabel}
-              </a>
+              </RegisterCTA>
             ) : (
               <span className={componentsTheme.programDetail.heroCtaClosed}>{heroCtaLabel}</span>
             )}
@@ -324,9 +331,13 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                 </p>
                 <div className={componentsTheme.programDetail.applicationCtaWrapper}>
                   {heroCtaHref ? (
-                    <a href={heroCtaHref} className={componentsTheme.programDetail.applicationPrimaryCta}>
+                    <RegisterCTA
+                      href={heroCtaHref}
+                      className={componentsTheme.programDetail.applicationPrimaryCta}
+                      contentName={resolvedProgramTitle}
+                    >
                       {heroCtaLabel}
-                    </a>
+                    </RegisterCTA>
                   ) : applicationFallbackHref ? (
                     <a href={applicationFallbackHref} className={componentsTheme.programDetail.applicationPrimaryCta}>
                       {applicationFallbackLabel}
