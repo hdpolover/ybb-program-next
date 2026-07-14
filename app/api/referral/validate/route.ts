@@ -5,6 +5,10 @@ import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code')?.trim().toUpperCase();
+  // Ambassadors belong to one program, so a code is only valid for that program.
+  // Forwarded only when the caller knows which program this is for; the API leaves
+  // the check unscoped otherwise rather than guessing.
+  const programId = searchParams.get('programId')?.trim();
 
   if (!code || code.length < 2) {
     return NextResponse.json({ valid: false });
@@ -17,6 +21,7 @@ export async function GET(request: Request) {
 
   try {
     const url = new URL(path, apiBaseUrl);
+    if (programId) url.searchParams.set('programId', programId);
     const res = await fetch(url.toString(), {
       method: 'GET',
       headers: {
