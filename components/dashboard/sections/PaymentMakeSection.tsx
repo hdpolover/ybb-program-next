@@ -262,7 +262,9 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     (async () => {
       setMethodsLoading(true);
       try {
-        const res = await fetch('/api/portal/payment-methods', { cache: 'no-store' });
+        const res = await fetch(appendProgramId('/api/portal/payment-methods', readActiveProgramId()), {
+          cache: 'no-store',
+        });
         const json = (await res.json().catch(() => null)) as unknown;
         const payload = getEnvelopeData(json);
         const methods = normalizeMethodsPayload(payload);
@@ -422,6 +424,21 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
     manualPaymentDate.trim() !== "" &&
     manualProofFile !== null;
   const isFormComplete = isGatewayComplete || isManualComplete;
+
+  const missingRequirements: string[] = [];
+  if (!isFormComplete) {
+    if (paymentType === "manual") {
+      if (manualMethod === "") missingRequirements.push("Select a payment method");
+      if (manualAccountName.trim() === "") missingRequirements.push("Account Name");
+      if (manualSourceName.trim() === "") missingRequirements.push("Source Name");
+      if (manualPaymentDate.trim() === "") missingRequirements.push("Payment Date");
+      if (manualProofFile === null) missingRequirements.push("Payment Proof (upload)");
+    } else if (paymentType === "gateway") {
+      if (gatewayMethod === "") missingRequirements.push("Select a payment method");
+      if (missingGatewayExchangeRate) missingRequirements.push("Exchange rate unavailable — please contact support");
+    }
+    if (!allAgreementsChecked) missingRequirements.push("Agree to all statements above");
+  }
 
   useEffect(() => {
     // Defer setState to avoid synchronous setState in effect body
@@ -1005,7 +1022,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                 <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="space-y-1">
-                      <p className={paymentsTheme.fieldLabelSmall}>Manual Payment Method</p>
+                      <p className={paymentsTheme.fieldLabelSmall}>Manual Payment Method<span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span></p>
                       <p className="text-xs text-slate-600">
                         Choose a transfer method and submit payment proof for manual verification.
                       </p>
@@ -1129,11 +1146,14 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                 <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
                   <p className={paymentsTheme.fieldLabelSmall}>
                     Bank Transfer Details Form
+                    <span className="ml-1 font-normal normal-case tracking-normal text-slate-400">
+                      (fields marked <span style={{ color: "#ef4444" }}>*</span> are required)
+                    </span>
                   </p>
                   <div className="grid gap-3 text-xs text-slate-700 sm:grid-cols-2">
                     <div className="space-y-1">
                       <label className="font-semibold" htmlFor="manual-account-name">
-                        Account Name
+                        Account Name<span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
                       </label>
                       <EnglishTextInput
                         id="manual-account-name"
@@ -1146,7 +1166,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold" htmlFor="manual-source-name">
-                        Source Name
+                        Source Name<span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
                       </label>
                       <EnglishTextInput
                         id="manual-source-name"
@@ -1159,7 +1179,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold" htmlFor="manual-payment-date">
-                        Payment Date
+                        Payment Date<span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
                       </label>
                       <input
                         id="manual-payment-date"
@@ -1171,7 +1191,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold" htmlFor="manual-payment-proof">
-                        Payment Proof (Upload)
+                        Payment Proof (Upload)<span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
                       </label>
                       <input
                         id="manual-payment-proof"
@@ -1182,7 +1202,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                     </div>
                     <div className="space-y-1 sm:col-span-2">
                       <label className="font-semibold" htmlFor="manual-notes">
-                        Additional Notes
+                        Additional Notes<span className="text-slate-400 font-normal normal-case tracking-normal ml-1">(Optional)</span>
                       </label>
                       <EnglishTextArea
                         id="manual-notes"
@@ -1200,7 +1220,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
 
           {/* Agreement section */}
           <div className={paymentsTheme.agreementCard}>
-            <p className={paymentsTheme.agreementTitle}>Before you continue</p>
+            <p className={paymentsTheme.agreementTitle}>Before you continue<span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span></p>
             {displayedAgreementItems.map((item, index) => {
               const rowClassName = index % 2 === 0 ? paymentsTheme.agreementRowBrand : paymentsTheme.agreementRowIndigo;
               const checkboxClassName =
@@ -1241,6 +1261,16 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
             {!methodsLoading && !hasAnyMethods && !submitError && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
                 Payment cannot be submitted because no method is currently available.
+              </div>
+            )}
+            {!submitting && !submitError && hasAnyMethods && missingRequirements.length > 0 && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+                <p className="font-semibold">Complete these before you can submit:</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                  {missingRequirements.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
               </div>
             )}
             <button

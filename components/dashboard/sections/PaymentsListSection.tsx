@@ -357,7 +357,7 @@ export default function PaymentsListSection() {
       }
 
       if (target === 'print') {
-        window.open(`/dashboard/payments/${invoiceId}`, '_blank', 'noopener,noreferrer');
+        window.open(`/api/portal/payments/${invoiceId}/invoice`, '_blank', 'noopener,noreferrer');
         return;
       }
 

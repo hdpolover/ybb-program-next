@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           statusCode: (json as { statusCode?: number })?.statusCode ?? upstream.status,
-          message: (json as { message?: string })?.message ?? 'LOA download failed',
+          message: (json as { message?: string })?.message ?? 'Invitation Letter download failed',
           data: (json as { data?: unknown })?.data ?? null,
         },
         { status: upstream.status },
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     const contentType =
       upstream.headers.get('Content-Type') ?? 'application/pdf';
     const contentDisposition =
-      upstream.headers.get('Content-Disposition') ?? 'attachment; filename="LOA.pdf"';
+      upstream.headers.get('Content-Disposition') ?? 'attachment; filename="Invitation Letter.pdf"';
 
     return new NextResponse(upstream.body, {
       status: 200,
