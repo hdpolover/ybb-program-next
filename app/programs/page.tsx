@@ -7,7 +7,8 @@ import ProgramSchedules from '@/components/programs/ProgramSchedules';
 import PreviousProgramsGrid from '@/components/programs/PreviousProgramsGrid';
 import AdditionalPrograms from '@/components/programs/AdditionalPrograms';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
-import { getProgramDetail, getProgramsPageData } from '@/lib/api/programs';
+import { getProgramDetail, getProgramsPageData, getProgramPricingTiers } from '@/lib/api/programs';
+import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { getFaqsPageData } from '@/lib/api/faqs';
 import { getHomePageData } from '@/lib/api/home';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
@@ -18,6 +19,7 @@ import type {
   ProgramJourneySection,
   ProgramOverviewSection,
   RegistrationInfoSection,
+  RegistrationInfoPricingTier,
   ProgramImportantDatesSection,
   PreviousProgramsSection,
   ProgramFaqsSection,
@@ -37,6 +39,38 @@ export default async function ProgramOverviewPage() {
     getFaqsPageData(host).catch(() => null),
     getHomePageData(host).catch(() => null),
   ]);
+
+  // Fetch pricing tiers with validity periods from the active program
+  let pricingTiersWithValidity: RegistrationInfoPricingTier[] | null = null;
+  try {
+    const settingsData = await getSettingsForBrandDomain(host);
+    const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
+    if (programSlug) {
+      const program = await getProgramDetail(programSlug, host);
+      if (program?.id) {
+        const pricingTiers = await getProgramPricingTiers(program.id, host);
+        // Map ProgramPricingTier to RegistrationInfoPricingTier format
+        pricingTiersWithValidity = pricingTiers.map(tier => ({
+          id: tier.id,
+          name: tier.name,
+          description: tier.description || '',
+          price: String(tier.price),
+          currency: tier.currency,
+          benefits: tier.benefits || [],
+          requirements: tier.requirements || [],
+          fee_type: tier.feeType || 'registration_fee',
+          target: tier.allowedCategories?.[0] as any,
+          allowed_categories: tier.allowedCategories as any,
+          validity_periods: tier.validityPeriods?.map(p => ({
+            start_date: p.startDate || '',
+            end_date: p.endDate || '',
+          })) || undefined,
+        }));
+      }
+    }
+  } catch (error) {
+    console.error('[Programs Page] Failed to fetch pricing tiers with validity:', error);
+  }
 
   const heroSection = programsPage.sections.find(
     section => section.type === 'hero',
@@ -140,7 +174,7 @@ export default async function ProgramOverviewPage() {
         igFeed={igFeed}
       />
       <RegistrationTypePrograms
-        pricingTiers={registrationInfoSection?.content.pricing_tiers}
+        pricingTiers={pricingTiersWithValidity || registrationInfoSection?.content.pricing_tiers}
         instructions={registrationInfoSection?.content.instructions}
         title={registrationInfoSection?.content.title}
         description={registrationInfoSection?.content.description}

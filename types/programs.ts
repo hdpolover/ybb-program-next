@@ -63,6 +63,10 @@ export type RegistrationInfoPricingTier = {
   fee_type: 'full_fee' | 'registration_fee' | string;
   target?: 'self_funded' | 'fully_funded' | string;
   allowed_categories?: Array<'self_funded' | 'fully_funded' | string>;
+  validity_periods?: {
+    start_date: string;
+    end_date: string;
+  }[];
 };
 
 export type RegistrationInfoInstruction = {
