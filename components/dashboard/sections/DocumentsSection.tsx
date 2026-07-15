@@ -772,7 +772,7 @@ export default function DocumentsSection() {
                       )}
 
                       {item.submissionStatus === 'rejected' && item.rejectionReason && (
-                        <p className="text-[11px] text-red-600">Rejected: {item.rejectionReason}</p>
+                        <p className="text-[11px] text-red-600 break-words">Rejected: {item.rejectionReason}</p>
                       )}
                     </div>
                   )}
@@ -1049,14 +1049,14 @@ function SignedCopyUpload({
   return (
     <div>
       {submissionStatus === 'uploaded' && signedCopyUrl ? (
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-medium text-amber-600">
-            Signed copy submitted — awaiting review
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="min-w-0 break-words text-[11px] font-medium text-amber-600">
+            Signed copy submitted, awaiting review
           </span>
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="text-[11px] text-zinc-500 underline hover:text-zinc-700"
+            className="shrink-0 text-[11px] text-zinc-500 underline hover:text-zinc-700"
           >
             Replace
           </button>
