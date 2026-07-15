@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
+import { normalizeLandingCtaHref } from '@/lib/landing/cta';
 
 type AboutProgramProps = {
   about?: string;
@@ -11,9 +12,10 @@ type AboutProgramProps = {
   mission?: string;
   images?: { url: string; caption?: string }[];
   backgroundImageUrl?: string;
+  registerUrl?: string;
 };
 
-export default function AboutProgram({ about, vision, mission, images, backgroundImageUrl }: AboutProgramProps) {
+export default function AboutProgram({ about, vision, mission, images, backgroundImageUrl, registerUrl }: AboutProgramProps) {
   const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const hasBackground = Boolean(backgroundImageUrl?.trim());
@@ -174,7 +176,7 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
 
             <div className={`hidden sm:block ${componentsTheme.aboutProgram.ctaWrapper}`}>
               <a
-                href="/apply"
+                href={normalizeLandingCtaHref(registerUrl)}
                 className={`${t.ctaButton} w-full justify-center ${hasBackground ? 'ring-2 ring-white/90' : ''}`}
               >
                 I Want To Join

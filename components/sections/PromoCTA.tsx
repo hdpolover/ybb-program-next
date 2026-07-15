@@ -30,6 +30,7 @@ export type PromoCTAProps = {
   subtitle?: string;
   primaryCtaLabel?: string;
   primaryCtaHref?: string;
+  registerUrl?: string;
   backgroundImageUrl?: string;
   backgroundImageMobileUrl?: string;
   videoUrl?: string;
@@ -45,13 +46,14 @@ export default function PromoCTA({
   subtitle = 'Be part of a global community of young leaders and innovators who are creating real impact through international programs.',
   primaryCtaLabel = 'Apply Now',
   primaryCtaHref = '/apply',
+  registerUrl,
   backgroundImageUrl,
   backgroundImageMobileUrl,
   videoUrl,
   videoTitle,
   textColorScheme = 'dark',
 }: PromoCTAProps) {
-  const resolvedPrimaryCtaHref = normalizeLandingCtaHref(primaryCtaHref);
+  const resolvedPrimaryCtaHref = normalizeLandingCtaHref(registerUrl || primaryCtaHref);
   const resolvedDesktopBackground = toBackgroundUrl(backgroundImageUrl);
   const resolvedMobileBackground =
     toBackgroundUrl(backgroundImageMobileUrl) || toBackgroundUrl(backgroundImageUrl);

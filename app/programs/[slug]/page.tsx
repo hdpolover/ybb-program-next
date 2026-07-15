@@ -17,6 +17,7 @@ import {
   formatScheduleDuration,
   formatScheduleTimeRange,
   parseScheduleDate,
+  SCHEDULE_DATE_GROUP_OPTIONS,
   SCHEDULE_DATE_META_OPTIONS,
 } from '@/lib/format/datetime';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
@@ -160,19 +161,21 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
     href: undefined as string | undefined,
   }));
 
-  // Group schedules by day for ProgramRundowns, then sort the tabs chronologically.
+  // Group schedules by actual date for ProgramRundowns, then sort the tabs chronologically.
   const schedulesByDay = new Map<string, typeof program.schedules>();
   for (const item of (program.schedules ?? [])) {
-    const list = schedulesByDay.get(item.day) ?? [];
+    // Use the actual date string as the key, not the "Day X" label
+    const dateKey = item.day;
+    const list = schedulesByDay.get(dateKey) ?? [];
     list.push(item);
-    schedulesByDay.set(item.day, list);
+    schedulesByDay.set(dateKey, list);
   }
   const rundownDays = Array.from(schedulesByDay.entries())
     .map(([rawDay, items]) => {
       const parsed = parseScheduleDate(rawDay);
       return {
         sortTime: parsed ? parsed.getTime() : Number.MAX_SAFE_INTEGER,
-        label: formatScheduleDate(rawDay, SCHEDULE_DATE_META_OPTIONS, rawDay),
+        label: formatScheduleDate(rawDay, SCHEDULE_DATE_GROUP_OPTIONS, rawDay),
         items: items
           .sort((a, b) => a.order - b.order)
           .map(s => ({
@@ -185,6 +188,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
           })),
       };
     })
+    .filter(day => day.sortTime !== Number.MAX_SAFE_INTEGER) // Filter out invalid dates
     .sort((a, b) => a.sortTime - b.sortTime)
     .map(({ label, items }) => ({ label, items }));
 

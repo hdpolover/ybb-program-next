@@ -43,6 +43,7 @@ type HomeRegistrationStripProps = {
   igFeed?: InstagramFeedItem[];
   registrationTypes?: RegistrationType[];
   guidelines?: Guideline[];
+  registerUrl?: string;
 };
 
 function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): boolean {
@@ -591,7 +592,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {primaryOpen ? (
                     <a
-                      href="/apply/self-funded"
+                      href="/login?applicationCategory=self_funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                       onClick={() => trackInitiateCheckout({ content_name: 'self_funded' })}
                     >
@@ -712,7 +713,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {secondaryOpen ? (
                     <a
-                      href="/apply/fully-funded"
+                      href="/login?applicationCategory=fully_funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                       onClick={() => trackInitiateCheckout({ content_name: 'fully_funded' })}
                     >

@@ -21,6 +21,11 @@ import type {
   RegistrationInfoPricingTier,
 } from '@/types/programs';
 
+type ValidityPeriod = {
+  start_date: string;
+  end_date: string;
+};
+
 type RegistrationTypeProgramsProps = {
   pricingTiers?: RegistrationInfoPricingTier[];
   instructions?: RegistrationInfoInstruction[];
@@ -33,11 +38,80 @@ type RegistrationTypeProgramsProps = {
   } | null;
 };
 
+function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): boolean {
+  if (!periods || periods.length === 0) return false;
+
+  return periods.some((p) => {
+    const start = new Date(p.start_date);
+    const end = new Date(p.end_date);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+    return start <= now && now <= end;
+  });
+}
+
+function getActivePeriodLabel(periods: ValidityPeriod[] | undefined, now: Date): string {
+  if (!periods || periods.length === 0) return 'TBD';
+  const parse = (d: string) => {
+    const parsed = new Date(d);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+  const fmt = (d: string) => {
+    const result = formatDeadlineLocal(d, { withTime: false });
+    return result === '—' ? 'TBD' : result;
+  };
+  const active = periods.find((p) => {
+    const start = parse(p.start_date);
+    const end = parse(p.end_date);
+    return Boolean(start && end && start <= now && now <= end);
+  });
+  if (active) return `${fmt(active.start_date)} - ${fmt(active.end_date)}`;
+  const upcoming = periods.find((p) => {
+    const start = parse(p.start_date);
+    return Boolean(start && start > now);
+  });
+  if (upcoming) return `${fmt(upcoming.start_date)} - ${fmt(upcoming.end_date)}`;
+  const last = periods[periods.length - 1];
+  return `${fmt(last.start_date)} - ${fmt(last.end_date)}`;
+}
+
 function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | null {
   const normalized = category.trim().toLowerCase();
   if (normalized === 'self_funded' || normalized === 'self-funded') return 'self_funded';
   if (normalized === 'fully_funded' || normalized === 'fully-funded') return 'fully_funded';
   return null;
+}
+
+function normalizeValidityPeriods(
+  tier: RegistrationInfoPricingTier | undefined,
+  fallbackDates?: { open: string | null; close: string | null } | null
+): ValidityPeriod[] | undefined {
+  if (!tier) return undefined;
+  
+  // Handle both snake_case (validity_periods) and camelCase (validityPeriods)
+  const snakeCasePeriods = (tier as any).validity_periods;
+  const camelCasePeriods = (tier as any).validityPeriods;
+  
+  if (snakeCasePeriods && Array.isArray(snakeCasePeriods) && snakeCasePeriods.length > 0) {
+    return snakeCasePeriods;
+  }
+  
+  if (camelCasePeriods && Array.isArray(camelCasePeriods) && camelCasePeriods.length > 0) {
+    // Convert camelCase to snake_case format
+    return camelCasePeriods.map((p: any) => ({
+      start_date: p.startDate,
+      end_date: p.endDate,
+    }));
+  }
+  
+  // Fallback to shared registration dates if individual validity periods are not available
+  if (fallbackDates?.open && fallbackDates?.close) {
+    return [{
+      start_date: fallbackDates.open,
+      end_date: fallbackDates.close,
+    }];
+  }
+  
+  return undefined;
 }
 
 function hasCategory(
@@ -110,6 +184,7 @@ export default function RegistrationTypePrograms({
   status,
   registrationDates,
 }: RegistrationTypeProgramsProps) {
+  const [currentNow] = useState<Date>(() => new Date());
   const [descriptionDialog, setDescriptionDialog] = useState<{
     title: string;
     requirements: string[];
@@ -129,6 +204,9 @@ export default function RegistrationTypePrograms({
 
   const primaryBenefits = useMemo(() => primaryType?.benefits ?? [], [primaryType?.benefits]);
   const secondaryBenefits = useMemo(() => secondaryType?.benefits ?? [], [secondaryType?.benefits]);
+
+  const primaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(primaryType, registrationDates), currentNow) : false;
+  const secondaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(secondaryType, registrationDates), currentNow) : false;
 
   const selfFundedRequirements = useMemo(
     () =>
@@ -174,35 +252,11 @@ export default function RegistrationTypePrograms({
 
   if (!hasData) return null;
 
-  const isOpen = (status || '').toLowerCase() === 'open';
-
-  const formatDateRange = (open?: unknown, close?: unknown): string | null => {
-    if (!open && !close) return null;
-
-    const safeFormat = (value: unknown) => {
-      const normalized = normalizeDisplayValue(value);
-      if (!normalized) return '';
-      const result = formatDeadlineLocal(normalized, { withTime: false });
-      return result === '—' ? '' : result;
-    };
-
-    const openLabel = safeFormat(open);
-    const closeLabel = safeFormat(close);
-
-    if (openLabel && closeLabel) return `${openLabel} – ${closeLabel}`;
-    return openLabel || closeLabel || null;
-  };
-
   const formatTierPrice = (currency: string | undefined, price: unknown): string => {
     const normalizedCurrency = normalizeDisplayValue(currency ?? '');
     const normalizedPrice = normalizeDisplayValue(price);
     return `${normalizedCurrency} ${normalizedPrice}`.trim();
   };
-
-  const registrationPeriodLabel = formatDateRange(
-    registrationDates?.open ?? null,
-    registrationDates?.close ?? null,
-  );
 
   const infoInstructions: RegistrationInfoInstruction[] =
     instructions && instructions.length > 0 ? instructions : [];
@@ -253,12 +307,12 @@ export default function RegistrationTypePrograms({
                   </div>
                   <span
                     className={
-                      isOpen
+                      primaryOpen
                         ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
                         : componentsTheme.applyRegistrationTypes.statusBadgeClosed
                     }
                   >
-                    {isOpen ? 'Open' : 'Closed'}
+                    {primaryOpen ? 'Open' : 'Closed'}
                   </span>
                 </div>
                 {primaryType && (
@@ -271,15 +325,18 @@ export default function RegistrationTypePrograms({
                     </span>
                   </div>
                 )}
-                {registrationPeriodLabel && (
-                  <div className={componentsTheme.applyRegistrationTypes.periodRow}>
-                    <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
-                    <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
-                      Registration Period:
-                    </span>
-                    <span>{registrationPeriodLabel}</span>
-                  </div>
-                )}
+                {(() => {
+                  const periods = normalizeValidityPeriods(primaryType, registrationDates);
+                  return periods && periods.length > 0 && (
+                    <div className={componentsTheme.applyRegistrationTypes.periodRow}>
+                      <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
+                      <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
+                        Registration Period:
+                      </span>
+                      <span>{getActivePeriodLabel(periods, currentNow ?? new Date(0))}</span>
+                    </div>
+                  );
+                })()}
               </div>
               <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
                 <div ref={primaryContentRef} className="relative h-[360px] overflow-hidden">
@@ -377,12 +434,12 @@ export default function RegistrationTypePrograms({
                   </div>
                   <span
                     className={
-                      isOpen
+                      secondaryOpen
                         ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
                         : componentsTheme.applyRegistrationTypes.statusBadgeClosed
                     }
                   >
-                    {isOpen ? 'Open' : 'Closed'}
+                    {secondaryOpen ? 'Open' : 'Closed'}
                   </span>
                 </div>
                 {secondaryType && (
@@ -395,15 +452,18 @@ export default function RegistrationTypePrograms({
                     </span>
                   </div>
                 )}
-                {registrationPeriodLabel && (
-                  <div className={componentsTheme.applyRegistrationTypes.periodRow}>
-                    <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
-                    <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
-                      Registration Period:
-                    </span>
-                    <span>{registrationPeriodLabel}</span>
-                  </div>
-                )}
+                {(() => {
+                  const periods = normalizeValidityPeriods(secondaryType, registrationDates);
+                  return periods && periods.length > 0 && (
+                    <div className={componentsTheme.applyRegistrationTypes.periodRow}>
+                      <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
+                      <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
+                        Registration Period:
+                      </span>
+                      <span>{getActivePeriodLabel(periods, currentNow ?? new Date(0))}</span>
+                    </div>
+                  );
+                })()}
               </div>
               <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
                 <div ref={secondaryContentRef} className="relative h-[360px] overflow-hidden">
@@ -471,7 +531,7 @@ export default function RegistrationTypePrograms({
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
-                  {isOpen ? (
+                  {secondaryOpen ? (
                     <a
                       href="/apply/fully-funded"
                       className={`${

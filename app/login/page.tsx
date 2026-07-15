@@ -527,26 +527,27 @@ export default function LoginPage() {
 
   return (
     <section className={`fixed inset-0 overflow-hidden ${componentsTheme.login.pageBackground}`}>
+      {/* Mobile logo - visible only on small screens */}
+      <div className="absolute left-6 top-6 z-20 md:hidden">
+        <Link href="/" className="inline-block">
+          <Image
+            src={settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || "/img/ybb-logo.png"}
+            alt={settings?.brand?.name?.trim() || "Youth Break the Boundaries"}
+            width={100}
+            height={34}
+            className="h-8 w-auto"
+            priority
+            unoptimized
+          />
+        </Link>
+      </div>
+
       <div className="grid h-full grid-cols-1 overflow-hidden md:grid-cols-[40%_60%]">
         {/* Panel Gambar (selalu di kiri, dalam card dengan background full) */}
         <div
           className="relative hidden md:flex items-center justify-center bg-slate-50 p-6 lg:p-10"
         >
           <div className="relative h-[calc(100vh-5rem)] w-full overflow-hidden rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
-            {/* Mobile logo - visible only on small screens */}
-            <div className="absolute left-6 top-6 z-10 md:hidden">
-              <Link href="/" className="inline-block">
-                <Image
-                  src={settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || "/img/ybb-logo.png"}
-                  alt={settings?.brand?.name?.trim() || "Youth Break the Boundaries"}
-                  width={100}
-                  height={34}
-                  className="h-8 w-auto"
-                  priority
-                  unoptimized
-                />
-              </Link>
-            </div>
             <Image
               src={loginImageSrc}
               alt="Japan Youth Summit Highlight"

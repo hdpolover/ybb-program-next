@@ -20,8 +20,9 @@ import GetInTouchSection from '@/components/sections/GetInTouchSection';
 import { getHomePageData } from '@/lib/api/home';
 import { resolveBrandDomain } from '@/lib/server/envContext';
 import PromoCTA from '@/components/sections/PromoCTA';
-import { getProgramDetail } from '@/lib/api/programs';
+import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
+import { resolveActiveRegistration, RegistrationCategory } from '@/lib/registration/deadline';
 import type {
   MainBannerSection,
   RegistrationOverviewSection,
@@ -48,6 +49,8 @@ import type {
 export default async function Home() {
   const host = await resolveBrandDomain();
   let homeData: Awaited<ReturnType<typeof getHomePageData>>;
+  let registerUrl = '/register';
+  let activeCategory: RegistrationCategory | null = null;
 
   try {
     homeData = await getHomePageData(host);
@@ -60,12 +63,28 @@ export default async function Home() {
     } as unknown as Awaited<ReturnType<typeof getHomePageData>>;
   }
 
-  // Fetch program details from settings and program detail
+  // Fetch program details and determine registerUrl
   try {
     const settingsData = await getSettingsForBrandDomain(host);
     const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
     if (programSlug) {
-      await getProgramDetail(programSlug, host);
+      const program = await getProgramDetail(programSlug, host);
+      if (program?.id) {
+        try {
+          const pricingTiers = await getProgramPricingTiers(program.id, host);
+          const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
+          if (activeRegistration) {
+            activeCategory = activeRegistration.category;
+            if (activeCategory === 'fully_funded') {
+              registerUrl = '/login?applicationCategory=fully_funded';
+            } else if (activeCategory === 'self_funded') {
+              registerUrl = '/login?applicationCategory=self_funded';
+            }
+          }
+        } catch (tierError) {
+          console.error('[Home] Failed to fetch pricing tiers:', tierError);
+        }
+      }
     }
   } catch (error) {
     console.error('[Home] Failed to fetch program details:', error);
@@ -180,11 +199,13 @@ export default async function Home() {
         title={mainBannerSection?.content.title}
         subtitle={mainBannerSection?.content.subtitle}
         link={mainBannerSection?.content.link}
+        registerUrl={registerUrl}
       />
       <HomeRegistrationStrip
         igFeed={registrationOverviewSection?.content.ig_feed}
         registrationTypes={registrationOverviewSection?.content.registration_types}
         guidelines={registrationOverviewSection?.content.guidelines}
+        registerUrl={registerUrl}
       />
       <HomeImportantPayment section={paymentInfoSection} />
       <AboutProgram
@@ -193,6 +214,7 @@ export default async function Home() {
         mission={programOverviewSection?.content.vision_mission.mission}
         images={(programHighlightsSection?.content.gallery ?? programHighlightsSection?.content.image_gallery)?.slice(0, 3).map(img => ({ url: img.url, caption: img.caption }))}
         backgroundImageUrl={programOverviewSection?.content.background_image_url}
+        registerUrl={registerUrl}
       />
       <ProgramHighlights
         imageGallery={objectivesImageGallery}
@@ -263,6 +285,7 @@ export default async function Home() {
           subtitle={promoCTASection.content.subtitle}
           primaryCtaLabel={promoCTASection.content.primary_cta_label}
           primaryCtaHref={promoCTASection.content.primary_cta_href}
+          registerUrl={registerUrl}
           backgroundImageUrl={promoCTASection.content.background_image_url ?? undefined}
           backgroundImageMobileUrl={promoCTASection.content.background_image_mobile_url ?? undefined}
           videoUrl={promoCTASection.content.video_url ?? undefined}

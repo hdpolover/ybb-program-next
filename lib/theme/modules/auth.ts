@@ -1,11 +1,11 @@
 export const authTheme = {
   login: {
     inputWrapper: 'relative flex items-center',
-    inputIcon: 'absolute left-4 h-5 w-5 text-slate-400',
-    inputEyeBtn: 'absolute right-4 h-5 w-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer',
+    inputIcon: 'absolute left-3 sm:left-4 h-5 w-5 text-slate-400',
+    inputEyeBtn: 'absolute right-3 sm:right-4 h-5 w-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer',
     input:
-      'w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-12 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all',
-    inputPassword: 'pr-12',
+      'w-full rounded-xl border border-slate-200 bg-white py-2 sm:py-2.5 pl-10 sm:pl-12 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all',
+    inputPassword: 'pr-10 sm:pr-12',
     checkbox: 'h-4 w-4 rounded border-white/30 bg-white/20 text-primary focus:ring-primary/40',
     primaryButton:
       'inline-flex w-full cursor-pointer items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-primary/90 active:scale-[0.98]',
@@ -24,15 +24,15 @@ export const authTheme = {
     heroTextContainer: 'absolute inset-x-0 bottom-0 px-8 pb-20 pt-32 text-white',
     heroLogo: 'h-8 w-auto brightness-0 invert',
     heroLogoWrapper: 'space-y-3',
-    formPanelOuter: 'flex items-center justify-center w-full h-full px-6 py-8 lg:px-16 lg:py-10',
-    formPanelInner: 'w-full max-w-[480px]',
-    formProgramName: 'text-xs font-semibold uppercase tracking-widest text-primary mb-1',
-    formHeading: 'text-2xl font-bold tracking-tight text-slate-900',
-    formSubheading: 'mt-1 text-sm text-slate-500 mb-4',
-    card: 'space-y-5 rounded-2xl border border-slate-100 bg-white p-7 sm:p-8 shadow-sm',
+    formPanelOuter: 'flex items-center justify-center w-full h-full px-4 py-6 sm:px-6 sm:py-8 lg:px-16 lg:py-10',
+    formPanelInner: 'w-full max-w-[100%] sm:max-w-[480px]',
+    formProgramName: 'text-xs font-semibold uppercase tracking-widest text-primary mb-1 text-center sm:text-left',
+    formHeading: 'text-2xl font-bold tracking-tight text-slate-900 text-center sm:text-left',
+    formSubheading: 'mt-1 text-sm text-slate-500 mb-4 text-center sm:text-left',
+    card: 'space-y-5 rounded-2xl border border-slate-100 bg-white p-5 sm:p-7 lg:p-8 shadow-sm',
     fieldLabel: 'block text-xs font-semibold uppercase tracking-wide text-slate-600 mb-1.5',
     helperText: 'text-sm text-slate-600 text-center mt-1',
-    checkboxRow: 'flex items-center justify-between text-sm text-slate-600',
+    checkboxRow: 'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-600',
     dividerRow:
       'flex items-center justify-center gap-3 text-[11px] font-medium uppercase tracking-[0.15em] text-slate-400',
     dividerLine: 'h-px w-20 bg-slate-200',
@@ -92,4 +92,6 @@ export const authTheme = {
     image: 'object-cover',
   },
 };
-// trigger tailwind cache
+
+//tes commit
+//testing coi, kok gk ada yang berubah

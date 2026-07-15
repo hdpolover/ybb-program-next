@@ -39,7 +39,7 @@ export default function ProgramRundowns({
           <div className={componentsTheme.programRundowns.tabGrid}>
             {days.map((d, i) => (
               <button
-                key={d.label}
+                key={`${d.label}-${i}`}
                 type="button"
                 onClick={() => setActive(i)}
                 className={`${componentsTheme.programRundowns.tabButton} ${
