@@ -220,7 +220,6 @@ export default function HomeRegistrationStrip({
   igFeed,
   registrationTypes,
   guidelines,
-  registerUrl,
 }: HomeRegistrationStripProps) {
   const safeRegistrationTypes = registrationTypes ?? [];
   const [currentNow] = useState<Date>(() => new Date());
@@ -592,7 +591,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {primaryOpen ? (
                     <a
-                      href={registerUrl || '/apply/self-funded'}
+                      href="/login?applicationCategory=self_funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                     >
                       Register as Self Funded
@@ -712,7 +711,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {secondaryOpen ? (
                     <a
-                      href={registerUrl || '/apply/fully-funded'}
+                      href="/login?applicationCategory=fully_funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                     >
                       Register as Fully Funded
