@@ -31,6 +31,7 @@ import {
 } from '@/lib/dashboard/payments-cache';
 import { parseApiDate } from '@/lib/utils';
 import { formatDeadlineLocal } from '@/lib/format/deadline';
+import { trackPurchase } from '@/lib/analytics/metaPixel';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -477,6 +478,41 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   }, []);
 
   const methodCatalog = buildMethodCatalog(paymentMethods);
+
+  // Purchase tracking: fires once per invoice when the payment settles to
+  // 'paid'. Must live before the loading/error/not-found early returns below
+  // so this hook always runs (Rules of Hooks) — it self-guards via the
+  // status check and a localStorage dedup key since this page is revisitable.
+  useEffect(() => {
+    const status = invoice?.status ?? paymentPreview?.status ?? 'unpaid';
+    if (status !== 'paid' || !invoice?.id) return;
+
+    const key = `fb_purchase_${invoice.id}`;
+    try {
+      if (localStorage.getItem(key)) return;
+      localStorage.setItem(key, '1');
+    } catch {
+      // localStorage unavailable (private mode) — fire anyway rather than block
+    }
+
+    const catalog = buildMethodCatalog(paymentMethods);
+    const methodType = invoice.paymentMethod
+      ? catalog.get(invoice.paymentMethod.toLowerCase())?.type ?? null
+      : null;
+    const useIdr = methodType === 'manual' && typeof invoice.idrPrice === 'number' && invoice.idrPrice > 0;
+    const currency = useIdr ? 'IDR' : (invoice.currency || 'USD').toUpperCase();
+    const amount = useIdr ? (invoice.idrPrice ?? invoice.amount ?? 0) : (invoice.amount ?? 0);
+
+    trackPurchase(
+      {
+        value: amount,
+        currency,
+        content_name: invoice.label?.trim() || undefined,
+      },
+      undefined,
+      `purchase_${invoice.id}`,
+    );
+  }, [invoice, paymentPreview?.status, paymentMethods]);
 
   if (loading) {
     return <PaymentPageSkeleton variant="payment-detail" />;
