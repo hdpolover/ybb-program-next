@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
+import { normalizeLandingCtaHref } from '@/lib/landing/cta';
 
 type AboutProgramProps = {
   about?: string;
@@ -175,7 +176,7 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
 
             <div className={`hidden sm:block ${componentsTheme.aboutProgram.ctaWrapper}`}>
               <a
-                href={registerUrl || '/apply'}
+                href={normalizeLandingCtaHref(registerUrl)}
                 className={`${t.ctaButton} w-full justify-center ${hasBackground ? 'ring-2 ring-white/90' : ''}`}
               >
                 I Want To Join

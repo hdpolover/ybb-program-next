@@ -5,6 +5,10 @@ import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code')?.trim().toUpperCase();
+  // Ambassadors belong to one program, so a code is only valid for that program.
+  // Forwarded only when the caller knows which program this is for; the API leaves
+  // the check unscoped otherwise rather than guessing.
+  const programId = searchParams.get('programId')?.trim();
 
   if (!code || code.length < 2) {
     return NextResponse.json({ valid: false });
@@ -13,30 +17,25 @@ export async function GET(request: Request) {
   const brandDomain = resolveBrandDomainFromRequest(request);
   const apiBaseUrl = getServerApiBaseUrl();
 
-  const candidatePaths = [
-    `/v1/participants/ambassador/referral-codes/${encodeURIComponent(code)}`,
-    `/v1/referral-codes/${encodeURIComponent(code)}`,
-  ];
+  const path = `/v1/participants/ambassador/referral-codes/${encodeURIComponent(code)}`;
 
-  for (const path of candidatePaths) {
-    try {
-      const url = new URL(path, apiBaseUrl);
-      const res = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'x-brand-domain': brandDomain,
-        },
-        signal: AbortSignal.timeout(5000),
-        cache: 'no-store',
-      });
+  try {
+    const url = new URL(path, apiBaseUrl);
+    if (programId) url.searchParams.set('programId', programId);
+    const res = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'x-brand-domain': brandDomain,
+      },
+      signal: AbortSignal.timeout(5000),
+      cache: 'no-store',
+    });
 
-      if (res.status === 200) return NextResponse.json({ valid: true });
-      if (res.status === 404 || res.status === 400) return NextResponse.json({ valid: false });
-      // 500 / 403 / unexpected → try next path
-    } catch {
-      // timeout or network error → try next
-    }
+    if (res.status === 200) return NextResponse.json({ valid: true });
+    if (res.status === 404 || res.status === 400) return NextResponse.json({ valid: false });
+  } catch {
+    // timeout or network error → fall through to indeterminate
   }
 
   // Could not determine — show no indicator rather than a false result

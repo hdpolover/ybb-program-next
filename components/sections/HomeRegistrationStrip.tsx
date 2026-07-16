@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import { formatDeadlineLocal } from '@/lib/format/deadline';
+import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 
 type InstagramFeedItem = {
   id: string;
@@ -592,8 +593,9 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {primaryOpen ? (
                     <a
-                      href={registerUrl || '/apply/self-funded'}
+                      href="/login?applicationCategory=self_funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
+                      onClick={() => trackInitiateCheckout({ content_name: 'self_funded' })}
                     >
                       Register as Self Funded
                     </a>
@@ -712,8 +714,9 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {secondaryOpen ? (
                     <a
-                      href={registerUrl || '/apply/fully-funded'}
+                      href="/login?applicationCategory=fully_funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
+                      onClick={() => trackInitiateCheckout({ content_name: 'fully_funded' })}
                     >
                       Register as Fully Funded
                     </a>

@@ -14,6 +14,7 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { normalizeEmailInput } from '@/lib/utils';
 import { Alert } from '@/components/ui';
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
+import { trackLead } from '@/lib/analytics/metaPixel';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -247,6 +248,7 @@ export default function LoginPage() {
       }
 
       const needsEmailVerification = json?.data?.needsEmailVerification ?? true;
+      trackLead({ content_name: 'account_signup' }, { email: signupForm.email });
       router.push(needsEmailVerification ? '/verify-email' : '/onboarding');
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : 'Register failed';
@@ -369,6 +371,10 @@ export default function LoginPage() {
       }
 
       if (json?.data?.isNewUser) {
+        trackLead(
+          { content_name: 'account_signup_google' },
+          fbUser.email ? { email: fbUser.email } : undefined,
+        );
         router.push('/onboarding');
         return;
       }

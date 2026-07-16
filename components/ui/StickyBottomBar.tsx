@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
+import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 
 interface StickyBottomBarProps {
   deadline?: string | null;
@@ -95,6 +96,7 @@ export default function StickyBottomBar({ deadline, registerUrl }: StickyBottomB
         <a
           href={registerUrl || '#'}
           className={componentsTheme.stickyBottomBar.registerButton}
+          onClick={() => trackInitiateCheckout()}
         >
           Register Now
         </a>

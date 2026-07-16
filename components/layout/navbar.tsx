@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import type { SettingsAvailableBrand } from '@/types/settings';
+import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 
 const navItems: string[] = ['Home', 'Programs', 'Partners & Sponsors', 'Announcements', 'FAQ'];
 
@@ -804,6 +805,7 @@ export function Navbar() {
               <a
                 href={ctaHref}
                 className="hover:bg-primary/90 hidden min-h-11 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 md:inline-flex"
+                onClick={() => { if (ctaHref === '/login') trackInitiateCheckout(); }}
               >
                 {ctaLabel}
               </a>
@@ -940,7 +942,10 @@ export function Navbar() {
                 <a
                   href={ctaHref}
                   className="hover:bg-primary/90 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    setOpen(false);
+                    if (ctaHref === '/login') trackInitiateCheckout();
+                  }}
                 >
                   {ctaLabel}
                 </a>

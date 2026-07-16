@@ -44,6 +44,10 @@ export default function OnboardingPage() {
   const brandLogo = settings?.brand?.logo_url?.trim() || settings?.active_program?.logo_url?.trim() || '/img/ybb-logo.png';
   // if user is authenticated and has programs, we could override this, but let's just use settings first
   const [brandName, setBrandName] = useState(settings?.active_program?.name?.trim() || settings?.brand?.name?.trim() || 'Youth Break the Boundaries');
+  // The program this participant registered for, used to scope referral-code
+  // validation. Null while unknown or ambiguous, in which case the check runs
+  // unscoped rather than rejecting a code that may well be valid.
+  const [referralProgramId, setReferralProgramId] = useState<string | null>(null);
 
   const statesCacheRef = useRef<Map<string, StateMetadata[]>>(new Map());
   const citiesCacheRef = useRef<Map<string, CityMetadata[]>>(new Map());
@@ -115,12 +119,22 @@ export default function OnboardingPage() {
     (async () => {
       try {
         let nextName = settings?.active_program?.name?.trim() || settings?.brand?.name?.trim();
+        let nextProgramId: string | null = null;
         try {
           const homeRes = await fetch('/api/auth/me');
           if (homeRes.ok) {
             const homeJson = await homeRes.json();
-            if (homeJson?.data?.registeredPrograms?.length > 0) {
-              nextName = homeJson.data.registeredPrograms[0].programName.trim();
+            const registered = homeJson?.data?.registeredPrograms;
+            if (registered?.length > 0) {
+              nextName = registered[0].programName.trim();
+            }
+            // Scope referral validation to the program this participant actually
+            // registered for — not settings.active_program, which is the brand's
+            // headline program and can differ. Only when it is unambiguous: with
+            // several programs we cannot tell which one the code is meant for, so
+            // we leave it unscoped rather than reject a legitimate code.
+            if (registered?.length === 1) {
+              nextProgramId = registered[0].programId ?? null;
             }
           }
         } catch (err) {
@@ -129,6 +143,7 @@ export default function OnboardingPage() {
 
         if (!cancelled) {
           if (nextName) setBrandName(nextName);
+          if (nextProgramId) setReferralProgramId(nextProgramId);
         }
       } catch {
         // ignore
@@ -195,7 +210,9 @@ export default function OnboardingPage() {
     setReferralStatus('checking');
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/referral/validate?code=${encodeURIComponent(code)}`);
+        const query = new URLSearchParams({ code });
+        if (referralProgramId) query.set('programId', referralProgramId);
+        const res = await fetch(`/api/referral/validate?${query.toString()}`);
         const json = await res.json().catch(() => ({})) as { valid: boolean | null };
         if (json.valid === true) setReferralStatus('valid');
         else if (json.valid === false) setReferralStatus('invalid');
@@ -205,7 +222,7 @@ export default function OnboardingPage() {
       }
     }, 700);
     return () => clearTimeout(timer);
-  }, [form.referralCode]);
+  }, [form.referralCode, referralProgramId]);
 
   const loginImageSrc = heroImages[imageIndex] ?? heroImages[0] ?? LOGIN_IMAGES[0];
 
