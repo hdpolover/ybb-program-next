@@ -212,7 +212,11 @@ export default function OverviewProgramDetailsSection({
   // Load submission detail for client-side status calculation
   useEffect(() => {
     const selectedProgramId = readActiveProgramId();
-    if (!selectedProgramId) return;
+    if (!selectedProgramId) {
+      setSubmissionDetail(null);
+      setDetailLoading(false);
+      return;
+    }
 
     let cancelled = false;
 
