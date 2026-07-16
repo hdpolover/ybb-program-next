@@ -10,6 +10,12 @@ type FirebaseLoginBody = {
   referralCode?: string;
 };
 
+type ProgramRegistrationClosed = {
+  status: 'closed';
+  programId: string;
+  programName: string;
+};
+
 type FirebaseLoginResponse = {
   statusCode: number;
   message: string;
@@ -19,8 +25,10 @@ type FirebaseLoginResponse = {
     accessToken?: string;
     refreshToken?: string;
     user?: { isOnboardingCompleted?: boolean; onboarding?: boolean };
+    programRegistration?: ProgramRegistrationClosed;
   };
   user?: { isOnboardingCompleted?: boolean; onboarding?: boolean };
+  programRegistration?: ProgramRegistrationClosed;
 };
 
 
@@ -104,6 +112,7 @@ export async function POST(request: Request) {
 
     const accessToken = json.data?.accessToken ?? json.accessToken;
     const refreshToken = json.data?.refreshToken ?? json.refreshToken;
+    const programRegistration = json.data?.programRegistration ?? json.programRegistration;
 
     if (!accessToken || !refreshToken) {
       return NextResponse.json(
@@ -118,6 +127,7 @@ export async function POST(request: Request) {
       data: {
         isNewUser,
         ...(typeof isOnboardingCompleted === 'boolean' ? { isOnboardingCompleted } : {}),
+        ...(programRegistration ? { programRegistration } : {}),
       },
     });
 
