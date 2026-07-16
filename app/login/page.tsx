@@ -15,6 +15,7 @@ import { normalizeEmailInput } from '@/lib/utils';
 import { Alert } from '@/components/ui';
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
 import { trackLead } from '@/lib/analytics/metaPixel';
+import { notifyIfRegistrationClosed } from '@/lib/auth/programRegistrationClosed';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -180,13 +181,14 @@ export default function LoginPage() {
         const json = (await res.json()) as {
           statusCode?: number;
           message?: string;
-          data?: { redirectTo?: string } | null;
+          data?: { redirectTo?: string; programRegistration?: unknown } | null;
         };
 
         if (!res.ok) {
           throw new Error(json?.message || `Login failed: ${res.status} ${res.statusText}`);
         }
 
+        notifyIfRegistrationClosed(json?.data?.programRegistration);
         router.push(json?.data?.redirectTo || '/onboarding');
       } catch (error) {
         const rawMessage = error instanceof Error ? error.message : 'Login failed';
@@ -229,7 +231,7 @@ export default function LoginPage() {
       const json = (await res.json()) as {
         statusCode?: number;
         message?: string;
-        data?: { needsEmailVerification?: boolean } | null;
+        data?: { needsEmailVerification?: boolean; programRegistration?: unknown } | null;
       };
 
       if (!res.ok) {
@@ -249,6 +251,7 @@ export default function LoginPage() {
 
       const needsEmailVerification = json?.data?.needsEmailVerification ?? true;
       trackLead({ content_name: 'account_signup' }, { email: signupForm.email });
+      notifyIfRegistrationClosed(json?.data?.programRegistration);
       router.push(needsEmailVerification ? '/verify-email' : '/onboarding');
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : 'Register failed';
@@ -359,11 +362,17 @@ export default function LoginPage() {
       const json = (await res.json()) as {
         statusCode?: number;
         message?: string;
-        data?: { isNewUser?: boolean; isOnboardingCompleted?: boolean } | null;
+        data?: {
+          isNewUser?: boolean;
+          isOnboardingCompleted?: boolean;
+          programRegistration?: unknown;
+        } | null;
       };
       if (!res.ok) {
         throw new Error(json?.message || `Login failed: ${res.status} ${res.statusText}`);
       }
+
+      notifyIfRegistrationClosed(json?.data?.programRegistration);
 
       if (typeof json?.data?.isOnboardingCompleted === 'boolean') {
         router.push(json.data.isOnboardingCompleted ? '/dashboard' : '/onboarding');

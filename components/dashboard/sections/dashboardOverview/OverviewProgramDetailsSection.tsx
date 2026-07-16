@@ -2,7 +2,9 @@
 
 
 
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, CalendarX2 } from "lucide-react";
+
+import Link from "next/link";
 
 import { useRouter } from "next/navigation";
 
@@ -23,6 +25,7 @@ import {
 import { getEnvelopeData } from "@/lib/api/response";
 import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
 import type { PortalSubmissionDetail, PortalSubmissionSection, PortalSubmissionEssay } from "@/types/portal-submission";
+import { readRegistrationClosedInfo, type ProgramRegistrationClosedInfo } from "@/lib/auth/programRegistrationClosed";
 
 
 
@@ -207,12 +210,17 @@ export default function OverviewProgramDetailsSection({
   const { currentStepIndex } = usePortalSubmissionProgress();
   const [submissionDetail, setSubmissionDetail] = useState<PortalSubmissionDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(true);
+  const [registrationClosedInfo, setRegistrationClosedInfo] = useState<ProgramRegistrationClosedInfo | null>(null);
   const loadedApplicationIdRef = useRef<string | null>(null);
 
   // Load submission detail for client-side status calculation
   useEffect(() => {
     const selectedProgramId = readActiveProgramId();
     if (!selectedProgramId) {
+      // No registered program at all — check whether that's because the most
+      // recent login/register/firebase-login attempt hit a closed registration
+      // window (signal persisted at auth time; see lib/auth/programRegistrationClosed).
+      setRegistrationClosedInfo(readRegistrationClosedInfo());
       setSubmissionDetail(null);
       setDetailLoading(false);
       return;
@@ -355,7 +363,39 @@ export default function OverviewProgramDetailsSection({
 
   }
 
+  // No application exists, and it's specifically because registration closed
+  // (not just "hasn't applied yet") — show that plainly instead of a generic
+  // "Application Progress" placeholder with nothing behind it.
+  if (!activeApplication && registrationClosedInfo) {
+    return (
+      <div className={overviewTheme.programCard}>
+        <div className={overviewTheme.programHeaderRow}>
+          <div>
+            <h2 className={overviewTheme.programTitle}>Your Progress</h2>
+            <p className={overviewTheme.programSubtitle}>
+              See which submission sections are done and what still needs attention.
+            </p>
+          </div>
+        </div>
 
+        <div className={overviewTheme.progressClosedWrapper}>
+          <div className={overviewTheme.progressClosedIconCircle}>
+            <CalendarX2 className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <p className={overviewTheme.progressClosedTitle}>Registration Closed</p>
+            <p className={overviewTheme.progressClosedBody}>
+              Registration for {registrationClosedInfo.programName} has closed, so no application
+              was created.
+            </p>
+          </div>
+          <Link href="/programs" className={overviewTheme.progressClosedButton}>
+            Browse Open Programs
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
 
