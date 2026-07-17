@@ -7,10 +7,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import { useSettings } from '@/components/providers/SettingsProvider';
+import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
+import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 
 type ResetState = 'idle' | 'success' | 'error';
-
-const PASSWORD_REQUIREMENTS = /((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).{8,}$/;
 
 const FALLBACK_IMAGES = [
   '/img/galeri2.png',
@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
   const [imageIndex, setImageIndex] = useState(0);
   const [loginImages, setLoginImages] = useState<string[]>(FALLBACK_IMAGES);
 
-  const isPasswordValid = useMemo(() => PASSWORD_REQUIREMENTS.test(password), [password]);
+  const passwordValid = useMemo(() => isPasswordValid(password), [password]);
   const isConfirmValid = useMemo(
     () => confirmPassword.length > 0 && password === confirmPassword,
     [confirmPassword, password],
@@ -91,9 +91,9 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (!isPasswordValid) {
+    if (!passwordValid) {
       setState('error');
-      setMessage('Password must be at least 8 characters and contain uppercase, lowercase, and number/special character.');
+      setMessage(PASSWORD_RULES_MESSAGE);
       return;
     }
 
@@ -239,6 +239,7 @@ export default function ResetPasswordPage() {
                         onChange={e => setPassword(e.target.value)}
                         className={`${componentsTheme.login.input} ${componentsTheme.login.inputPassword}`}
                         placeholder="Enter new password"
+                        minLength={PASSWORD_MIN_LENGTH}
                       />
                       <button
                         type="button"
@@ -249,9 +250,7 @@ export default function ResetPasswordPage() {
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
-                    <p className="mt-2 text-xs text-slate-500">
-                      Use at least 8 characters with uppercase, lowercase, and number or special character.
-                    </p>
+                    <PasswordRequirements password={password} />
                   </div>
 
                   <div>
@@ -290,7 +289,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="submit"
                       className={componentsTheme.login.primaryButton}
-                      disabled={loading || !isPasswordValid || !isConfirmValid}
+                      disabled={loading || !passwordValid || !isConfirmValid}
                     >
                       {loading ? 'Resetting...' : 'Reset Password'}
                     </button>
