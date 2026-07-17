@@ -1,9 +1,16 @@
 // lib/auth/friendlyAuthError.ts
 
+import { PASSWORD_RULES_MESSAGE } from './passwordRules';
+
 export type FriendlyAuthError = {
   message: string;
   action?: 'use-google';
 };
+
+// Matches the backend's class-validator strings for the password field,
+// whether they arrive alone or joined with "; " by HttpExceptionFilter.
+const PASSWORD_VALIDATION_PATTERN =
+  /password must contain uppercase|password must be longer than or equal to \d+ characters/i;
 
 const OPS_LEAK_PATTERN =
   /missing auth context|failed:\s*\d|onboarding failed|register failed|login failed|status \d|undefined|http/i;
@@ -39,6 +46,12 @@ export function friendlyAuthError(raw: string): FriendlyAuthError {
     return {
       message:
         "Your email isn't verified yet. Please verify it first, or resend the verification email below.",
+    };
+  }
+
+  if (PASSWORD_VALIDATION_PATTERN.test(message)) {
+    return {
+      message: PASSWORD_RULES_MESSAGE,
     };
   }
 

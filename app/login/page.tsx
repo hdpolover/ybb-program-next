@@ -16,6 +16,8 @@ import { Alert } from '@/components/ui';
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
 import { trackLead } from '@/lib/analytics/metaPixel';
 import { notifyIfRegistrationClosed } from '@/lib/auth/programRegistrationClosed';
+import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
+import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -35,6 +37,7 @@ const KNOWN_FRIENDLY_REGISTER_MESSAGES = new Set([
   DUPLICATE_EMAIL_MESSAGE,
   PASSWORD_MISMATCH_MESSAGE,
   AGREE_REQUIRED_MESSAGE,
+  PASSWORD_RULES_MESSAGE,
 ]);
 
 type LegalDocumentType = 'terms' | 'privacy';
@@ -58,6 +61,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showSignupConfirm, setShowSignupConfirm] = useState(false);
+  const [signupPasswordTouched, setSignupPasswordTouched] = useState(false);
   const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [agree, setAgree] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
@@ -209,6 +213,9 @@ export default function LoginPage() {
     setRegisterLoading(true);
     setRegisterError('');
     try {
+      if (!isPasswordValid(signupForm.password)) {
+        throw new Error(PASSWORD_RULES_MESSAGE);
+      }
       if (signupForm.password !== signupForm.confirmPassword) {
         throw new Error(PASSWORD_MISMATCH_MESSAGE);
       }
@@ -853,20 +860,24 @@ export default function LoginPage() {
                             name="password"
                             value={signupForm.password}
                             onChange={onChangeSignup}
+                            onFocus={() => setSignupPasswordTouched(true)}
                             type={showSignupPassword ? "text" : "password"}
                             required
                             className={`${componentsTheme.login.input} ${componentsTheme.login.inputPassword}`}
                             placeholder="••••••••"
-                            minLength={6}
+                            minLength={PASSWORD_MIN_LENGTH}
                           />
-                          <button 
-                            type="button" 
-                            onClick={() => setShowSignupPassword(!showSignupPassword)} 
+                          <button
+                            type="button"
+                            onClick={() => setShowSignupPassword(!showSignupPassword)}
                             className={componentsTheme.login.inputEyeBtn}
                           >
                             {showSignupPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                           </button>
                         </div>
+                        {signupPasswordTouched ? (
+                          <PasswordRequirements password={signupForm.password} />
+                        ) : null}
                       </div>
                       <div>
                         <label className={componentsTheme.login.fieldLabel}>
@@ -882,16 +893,21 @@ export default function LoginPage() {
                             required
                             className={`${componentsTheme.login.input} ${componentsTheme.login.inputPassword}`}
                             placeholder="••••••••"
-                            minLength={6}
+                            minLength={PASSWORD_MIN_LENGTH}
                           />
-                          <button 
-                            type="button" 
-                            onClick={() => setShowSignupConfirm(!showSignupConfirm)} 
+                          <button
+                            type="button"
+                            onClick={() => setShowSignupConfirm(!showSignupConfirm)}
                             className={componentsTheme.login.inputEyeBtn}
                           >
                             {showSignupConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                           </button>
                         </div>
+                        {signupForm.confirmPassword && signupForm.confirmPassword !== signupForm.password ? (
+                          <p className="mt-2 text-xs font-medium text-destructive">
+                            Passwords do not match.
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                     <div className={componentsTheme.login.termsLabel}>
