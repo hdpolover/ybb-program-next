@@ -9,6 +9,12 @@ type LocalLoginBody = {
   password: string;
 };
 
+type ProgramRegistrationClosed = {
+  status: 'closed';
+  programId: string;
+  programName: string;
+};
+
 type LocalLoginResponse = {
   statusCode?: number;
   message?: string;
@@ -16,10 +22,12 @@ type LocalLoginResponse = {
     accessToken?: string;
     refreshToken?: string;
     user?: { isOnboardingCompleted?: boolean };
+    programRegistration?: ProgramRegistrationClosed;
   };
   accessToken?: string;
   refreshToken?: string;
   user?: { isOnboardingCompleted?: boolean };
+  programRegistration?: ProgramRegistrationClosed;
 };
 
 export async function POST(request: Request) {
@@ -100,6 +108,7 @@ export async function POST(request: Request) {
     const accessToken = json.data?.accessToken ?? json.accessToken;
     const refreshToken = json.data?.refreshToken ?? json.refreshToken;
     const user = json.data?.user ?? json.user;
+    const programRegistration = json.data?.programRegistration ?? json.programRegistration;
 
     if (!accessToken || !refreshToken) {
       return NextResponse.json(
@@ -113,7 +122,10 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       statusCode: res.status === 201 ? 201 : 200,
       message: 'Success',
-      data: { redirectTo },
+      data: {
+        redirectTo,
+        ...(programRegistration ? { programRegistration } : {}),
+      },
     });
 
     response.cookies.set('accessToken', accessToken, {

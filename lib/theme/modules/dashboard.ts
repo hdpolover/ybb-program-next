@@ -360,6 +360,16 @@ export const dashboardTheme = {
     progressSeeDetailsButton:
       'inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
 
+    // registration-closed state (no application exists because the window closed)
+    progressClosedWrapper:
+      'mt-2 flex flex-col items-center gap-3 rounded-xl bg-slate-50 px-4 py-8 text-center sm:py-10',
+    progressClosedIconCircle:
+      'flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600 ring-1 ring-amber-200',
+    progressClosedTitle: 'text-sm font-extrabold text-slate-900',
+    progressClosedBody: 'max-w-sm text-sm leading-relaxed text-slate-600',
+    progressClosedButton:
+      'mt-1 inline-flex items-center gap-2 rounded-full border border-primary/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary transition hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+
     // compact overview summary (Your Progress card)
     progressSummaryWrapper: 'mt-4',
     progressSummaryMainCol: 'space-y-3',

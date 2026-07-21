@@ -11,6 +11,12 @@ type RegisterBody = {
   applicationCategory?: string;
 };
 
+type ProgramRegistrationClosed = {
+  status: 'closed';
+  programId: string;
+  programName: string;
+};
+
 type RegisterResponse = {
   statusCode?: number;
   message?: string;
@@ -18,10 +24,12 @@ type RegisterResponse = {
     accessToken?: string;
     refreshToken?: string;
     user?: { isOnboardingCompleted?: boolean };
+    programRegistration?: ProgramRegistrationClosed;
   };
   accessToken?: string;
   refreshToken?: string;
   user?: { isOnboardingCompleted?: boolean };
+  programRegistration?: ProgramRegistrationClosed;
 };
 
 export async function POST(request: Request) {
@@ -156,6 +164,7 @@ export async function POST(request: Request) {
     step = 'extract_tokens';
     const accessToken = json.data?.accessToken ?? json.accessToken;
     const refreshToken = json.data?.refreshToken ?? json.refreshToken;
+    const programRegistration = json.data?.programRegistration ?? json.programRegistration;
 
     if (!accessToken || !refreshToken) {
       return NextResponse.json(
@@ -170,6 +179,7 @@ export async function POST(request: Request) {
       message: 'Success',
       data: {
         needsEmailVerification,
+        ...(programRegistration ? { programRegistration } : {}),
       },
     });
 
