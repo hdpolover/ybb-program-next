@@ -110,6 +110,10 @@ export async function POST(request: Request) {
         ?.split('=')[1] ?? null;
       if (cookieReferralCode) {
         body.referralCode = cookieReferralCode;
+      } else {
+        // No code anywhere — omit the key entirely so the backend DTO sees
+        // undefined instead of "", matching register/firebase-login proxies.
+        delete body.referralCode;
       }
     }
 
