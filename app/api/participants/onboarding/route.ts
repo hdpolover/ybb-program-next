@@ -12,69 +12,6 @@ function isEmptyData(value: unknown): boolean {
   return false;
 }
 
-export async function GET(request: Request) {
-  try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
-
-    if (!accessToken) {
-      return NextResponse.json(
-        { statusCode: 401, message: 'Unauthorized', data: null },
-        { status: 401 },
-      );
-    }
-
-    const brandDomain = resolveBrandDomainFromRequest(request);
-
-    const apiUrl = new URL('/v1/participants/onboarding', getServerApiBaseUrl());
-    const res = await fetch(apiUrl.toString(), {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-        'x-brand-domain': brandDomain,
-      },
-      cache: 'no-store',
-    });
-
-    const json = await res.json().catch(() => ({}));
-    const jsonRecord = isRecord(json) ? json : {};
-    if (!res.ok) {
-      if (res.status === 404) {
-        return NextResponse.json(
-          { statusCode: 200, message: 'Data not Added', data: null },
-          { status: 200 },
-        );
-      }
-      return NextResponse.json(
-        {
-          statusCode: typeof jsonRecord.statusCode === 'number' ? jsonRecord.statusCode : res.status,
-          message: getErrorMessage(jsonRecord, 'Failed to fetch onboarding'),
-          data: null,
-        },
-        { status: res.status },
-      );
-    }
-
-    const data = jsonRecord.data ?? json ?? null;
-    return NextResponse.json({
-      statusCode: 200,
-      message: isEmptyData(data) ? 'Data not Added' : 'Success',
-      data: isEmptyData(data) ? null : data,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      {
-        statusCode: 500,
-        message,
-        data: null,
-      },
-      { status: 500 },
-    );
-  }
-}
-
 export async function POST(request: Request) {
   try {
     const csrfRejection = getCsrfGuardRejection(request);
