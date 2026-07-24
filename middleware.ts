@@ -10,7 +10,19 @@ const brandStatusCache = new Map<string, { value: BrandStatus; expiresAt: number
 
 const REFERRAL_PARAMS = ['t', 'c', 's', 'q', 'ref'] as const;
 const REFERRAL_COOKIE_NAME = 'ybb_referral_code';
-const REFERRAL_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; 
+const REFERRAL_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+const REFERRAL_CODE_MAX_LENGTH = 20;
+
+/**
+ * Decides whether a resolved referral code is safe to persist in the
+ * ybb_referral_code cookie. Real ambassador codes are <=20 chars; anything
+ * empty or longer is garbage (or an attack attempt) that 500s the backend
+ * attribution lookup, so it's dropped before it ever reaches a Set-Cookie.
+ */
+export function shouldStoreReferralCode(code: string): boolean {
+  const trimmed = code.trim();
+  return trimmed.length > 0 && trimmed.length <= REFERRAL_CODE_MAX_LENGTH;
+}
 
 const getDefaultBrandUrl = (): string | null => {
   const raw = process.env.NEXT_PUBLIC_BRAND_DOMAIN || process.env.YBB_BRAND_DOMAIN;
@@ -138,7 +150,7 @@ const attachReferralCookie = async (
   brandUrl: string,
 ): Promise<NextResponse> => {
   const referralCode = await resolveReferralCode(request, brandUrl);
-  if (!referralCode) return response;
+  if (!referralCode || !shouldStoreReferralCode(referralCode)) return response;
 
   response.cookies.set(REFERRAL_COOKIE_NAME, referralCode, {
     httpOnly: true,
@@ -175,7 +187,7 @@ export async function middleware(request: NextRequest) {
     const response = NextResponse.redirect(cleanUrl);
 
     const existing = request.cookies.get(REFERRAL_COOKIE_NAME);
-    if (!existing) {
+    if (!existing && shouldStoreReferralCode(referralToken)) {
       response.cookies.set(REFERRAL_COOKIE_NAME, referralToken, {
         maxAge: REFERRAL_COOKIE_MAX_AGE,
         httpOnly: true,

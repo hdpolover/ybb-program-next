@@ -15,7 +15,8 @@ import { User, Users, Globe, Building, Gift, Map as MapIcon, CheckCircle2, Alert
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
 import { toast } from 'sonner';
 import { Alert } from '@/components/ui';
-import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
+import { friendlyOnboardingError } from '@/lib/onboarding/friendlyOnboardingError';
+import { isRecord } from '@/lib/api/response';
 
 
 export default function OnboardingPage() {
@@ -48,6 +49,15 @@ export default function OnboardingPage() {
   // validation. Null while unknown or ambiguous, in which case the check runs
   // unscoped rather than rejecting a code that may well be valid.
   const [referralProgramId, setReferralProgramId] = useState<string | null>(null);
+  // Server-confirmed ambassador attribution from a session cookie (set via an
+  // invite link). When active, the free-text referral input is replaced with
+  // a locked "Referred by" chip so the credited ambassador can't be silently
+  // overwritten by a typo or a different code.
+  const [referralAttribution, setReferralAttribution] = useState<{ active: boolean; referredByName: string | null }>({
+    active: false,
+    referredByName: null,
+  });
+  const [clearingReferral, setClearingReferral] = useState(false);
 
   const statesCacheRef = useRef<Map<string, StateMetadata[]>>(new Map());
   const citiesCacheRef = useRef<Map<string, CityMetadata[]>>(new Map());
@@ -72,6 +82,60 @@ export default function OnboardingPage() {
     gender: '',
     referralCode: '',
   });
+
+  // Prefill from a prior (incomplete or resubmitted) onboarding attempt, if
+  // any. Runs once in the background so it never blocks the initial render.
+  // Guarded against clobbering fields the user already started editing by
+  // only applying the prefill while the form still matches its untouched
+  // defaults at the moment the fetch resolves.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch('/api/participants/onboarding', { cache: 'no-store' });
+        const json = await res.json().catch(() => null);
+        if (cancelled) return;
+
+        const statusCode = isRecord(json) ? json.statusCode : undefined;
+        const prefillData = isRecord(json) ? json.data : null;
+        if (statusCode !== 200 || !isRecord(prefillData)) return;
+
+        const str = (value: unknown): string | undefined =>
+          typeof value === 'string' && value.length > 0 ? value : undefined;
+
+        setForm(prev => {
+          const isUntouched =
+            prev.fullName === '' &&
+            prev.country === '' &&
+            prev.state === '' &&
+            prev.city === '' &&
+            prev.birthDate === '2000' &&
+            prev.programSource === '' &&
+            prev.gender === '' &&
+            prev.referralCode === '';
+          if (!isUntouched) return prev;
+
+          return {
+            fullName: str(prefillData.fullName) ?? prev.fullName,
+            gender: str(prefillData.gender) ?? prev.gender,
+            programSource: str(prefillData.knowledgeSource) ?? prev.programSource,
+            country: str(prefillData.originCountry) ?? prev.country,
+            city: str(prefillData.originCity) ?? prev.city,
+            state: str(prefillData.originState) ?? prev.state,
+            birthDate: str(prefillData.birthDate) ?? prev.birthDate,
+            referralCode: str(prefillData.referralCode) ?? prev.referralCode,
+          };
+        });
+      } catch {
+        // Prefill is a nice-to-have — leave the form blank on any failure.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,8 +184,12 @@ export default function OnboardingPage() {
       try {
         let nextName = settings?.active_program?.name?.trim() || settings?.brand?.name?.trim();
         let nextProgramId: string | null = null;
+        let nextReferralAttribution: { active: boolean; referredByName: string | null } | null = null;
         try {
-          const homeRes = await fetch('/api/auth/me');
+          // includeReferral=1 opts into the ambassador-attribution lookup; only
+          // this page renders the "Referred by" chip, so no other /me caller
+          // should pay for that extra backend round-trip.
+          const homeRes = await fetch('/api/auth/me?includeReferral=1');
           if (homeRes.ok) {
             const homeJson = await homeRes.json();
             const registered = homeJson?.data?.registeredPrograms;
@@ -136,6 +204,14 @@ export default function OnboardingPage() {
             if (registered?.length === 1) {
               nextProgramId = registered[0].programId ?? null;
             }
+
+            const referral = homeJson?.data?.referral;
+            if (referral && typeof referral === 'object') {
+              nextReferralAttribution = {
+                active: referral.active === true,
+                referredByName: typeof referral.referredByName === 'string' ? referral.referredByName : null,
+              };
+            }
           }
         } catch (err) {
           console.error(err);
@@ -144,6 +220,7 @@ export default function OnboardingPage() {
         if (!cancelled) {
           if (nextName) setBrandName(nextName);
           if (nextProgramId) setReferralProgramId(nextProgramId);
+          if (nextReferralAttribution) setReferralAttribution(nextReferralAttribution);
         }
       } catch {
         // ignore
@@ -405,6 +482,27 @@ export default function OnboardingPage() {
     e.preventDefault();
   };
 
+  // Lets the participant disown an ambassador attribution they didn't ask
+  // for. Clears the server-side httpOnly cookie so the BFF stops injecting
+  // it on submit, then reopens the free-text input (starting blank).
+  const handleClearReferral = async () => {
+    if (clearingReferral) return;
+    setClearingReferral(true);
+    try {
+      const res = await fetch('/api/participants/referral/clear', { method: 'POST' });
+      if (!res.ok) {
+        toast.error('Could not clear the referral code. Please try again.');
+        return;
+      }
+      setReferralAttribution({ active: false, referredByName: null });
+      setForm(prev => ({ ...prev, referralCode: '' }));
+    } catch {
+      toast.error('Could not clear the referral code. Please try again.');
+    } finally {
+      setClearingReferral(false);
+    }
+  };
+
   const onContinue = async () => {
     if (!hasKnowledgeSources) {
       setSubmitError('Program source options are temporarily unavailable. Please refresh and try again.');
@@ -422,6 +520,10 @@ export default function OnboardingPage() {
     setSubmitLoading(true);
     setSubmitError('');
 
+    // 0 = no real HTTP response reached us (network/unknown failure);
+    // friendlyOnboardingError treats that the same as a 5xx.
+    let lastStatus = 0;
+
     try {
       const basePayload = {
         fullName: form.fullName,
@@ -432,8 +534,12 @@ export default function OnboardingPage() {
         birthDate: form.birthDate,
       };
 
-      // Skip referral on submit if it's already confirmed invalid
-      const referralToSend = referralStatus === 'invalid' ? undefined : (form.referralCode || undefined);
+      // Never submit a typed/prefilled referral code while a locked ambassador
+      // attribution is showing — the BFF injects the cookie's code instead.
+      // Skip referral on submit if it's already confirmed invalid.
+      const referralToSend = referralAttribution.active
+        ? undefined
+        : referralStatus === 'invalid' ? undefined : (form.referralCode || undefined);
 
       const doSubmit = (referralCode: string | undefined) =>
         fetch('/api/participants/onboarding', {
@@ -443,6 +549,7 @@ export default function OnboardingPage() {
         });
 
       let res = await doSubmit(referralToSend);
+      lastStatus = res.status;
 
       if (res.status === 401) {
         toast.error('Your session has expired. Please sign in again.');
@@ -453,6 +560,7 @@ export default function OnboardingPage() {
       // Auto-retry without referral if it failed and a referral code was sent
       if (!res.ok && referralToSend) {
         const retryRes = await doSubmit(undefined);
+        lastStatus = retryRes.status;
         if (retryRes.status === 401) {
           toast.error('Your session has expired. Please sign in again.');
           router.push('/login');
@@ -473,7 +581,7 @@ export default function OnboardingPage() {
       router.push('/dashboard');
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : 'Onboarding failed';
-      setSubmitError(friendlyAuthError(rawMessage).message);
+      setSubmitError(friendlyOnboardingError(lastStatus, rawMessage));
     } finally {
       setSubmitLoading(false);
     }
@@ -958,50 +1066,81 @@ export default function OnboardingPage() {
                     </div>
 
                     <div>
-                      <FormField
-                        label="Referral Code"
-                        icon={User}
-                        required={false}
-                      >
-                        {(errorClass) => (
-                          <EnglishTextInput
-                            name="referralCode"
-                            value={form.referralCode}
-                            onChange={onChange}
-                            type="text"
-                            className={`${componentsTheme.login.input} ${errorClass} ${
-                              referralStatus === 'valid'
-                                ? '!border-emerald-400 focus:!border-emerald-500 focus:!ring-emerald-500/20'
-                                : referralStatus === 'invalid'
-                                  ? '!border-amber-400 focus:!border-amber-500 focus:!ring-amber-500/20'
-                                  : ''
-                            }`}
-                            placeholder="ABC-123"
-                          />
-                        )}
-                      </FormField>
-                      {referralStatus === 'idle' && (
-                        <p className="mt-1.5 text-xs text-slate-400">
-                          Optional. You can continue with or without a code.
-                        </p>
-                      )}
-                      {form.referralCode.trim() && referralStatus === 'checking' && (
-                        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Checking code…
-                        </p>
-                      )}
-                      {referralStatus === 'valid' && (
-                        <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Valid referral code. It’ll be applied.
-                        </p>
-                      )}
-                      {referralStatus === 'invalid' && (
-                        <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                          We don’t recognize this code, but that’s no problem. You can still continue without it.
-                        </p>
+                      {referralAttribution.active && referralAttribution.referredByName ? (
+                        <div className="flex flex-col gap-2">
+                          <p className={componentsTheme.login.fieldLabel}>
+                            Referral Code
+                            <span className="ml-1 font-normal normal-case tracking-normal text-slate-400">
+                              (Optional)
+                            </span>
+                          </p>
+                          <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2.5 sm:px-4">
+                            <span className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                              <CheckCircle2 className="h-4 w-4 shrink-0" />
+                              Referred by {referralAttribution.referredByName}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleClearReferral}
+                              disabled={clearingReferral}
+                              aria-label="Not you? Clear the referral attribution"
+                              className="shrink-0 text-xs font-semibold text-slate-500 underline underline-offset-4 transition-colors hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {clearingReferral ? 'Clearing…' : 'Not you? Clear'}
+                            </button>
+                          </div>
+                          <p className="text-xs text-slate-400">
+                            This code was applied automatically from your invite link.
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <FormField
+                            label="Referral Code"
+                            icon={User}
+                            required={false}
+                          >
+                            {(errorClass) => (
+                              <EnglishTextInput
+                                name="referralCode"
+                                value={form.referralCode}
+                                onChange={onChange}
+                                type="text"
+                                className={`${componentsTheme.login.input} ${errorClass} ${
+                                  referralStatus === 'valid'
+                                    ? '!border-emerald-400 focus:!border-emerald-500 focus:!ring-emerald-500/20'
+                                    : referralStatus === 'invalid'
+                                      ? '!border-amber-400 focus:!border-amber-500 focus:!ring-amber-500/20'
+                                      : ''
+                                }`}
+                                placeholder="ABC-123"
+                              />
+                            )}
+                          </FormField>
+                          {referralStatus === 'idle' && (
+                            <p className="mt-1.5 text-xs text-slate-400">
+                              Optional. You can continue with or without a code.
+                            </p>
+                          )}
+                          {form.referralCode.trim() && referralStatus === 'checking' && (
+                            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Checking code…
+                            </p>
+                          )}
+                          {referralStatus === 'valid' && (
+                            <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Valid referral code. It’ll be applied.
+                            </p>
+                          )}
+                          {referralStatus === 'invalid' && (
+                            <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
+                              <AlertTriangle className="h-3.5 w-3.5" />
+                              We don’t recognize this code, but that’s no problem. You can still continue without it.
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   </>
