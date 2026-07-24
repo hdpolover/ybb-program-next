@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
-import { isRecord } from '@/lib/api/response';
+import { getErrorMessage, isRecord } from '@/lib/api/response';
 
 function isEmptyData(value: unknown): boolean {
   if (value == null) return true;
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
       return NextResponse.json(
         {
           statusCode: typeof jsonRecord.statusCode === 'number' ? jsonRecord.statusCode : res.status,
-          message: typeof jsonRecord.message === 'string' ? jsonRecord.message : 'Failed to fetch onboarding',
+          message: getErrorMessage(jsonRecord, 'Failed to fetch onboarding'),
           data: null,
         },
         { status: res.status },
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           statusCode: typeof postJsonRecord.statusCode === 'number' ? postJsonRecord.statusCode : res.status,
-          message: typeof postJsonRecord.message === 'string' ? postJsonRecord.message : 'Failed to submit onboarding',
+          message: getErrorMessage(postJsonRecord, 'Failed to submit onboarding'),
           data: postJsonRecord.data ?? null,
         },
         { status: res.status },
