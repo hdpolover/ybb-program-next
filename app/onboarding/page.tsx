@@ -16,6 +16,7 @@ import EnglishTextInput from '@/components/ui/EnglishTextInput';
 import { toast } from 'sonner';
 import { Alert } from '@/components/ui';
 import { friendlyOnboardingError } from '@/lib/onboarding/friendlyOnboardingError';
+import { extractBirthYear } from '@/lib/onboarding/extractBirthYear';
 import { isRecord } from '@/lib/api/response';
 
 
@@ -83,17 +84,24 @@ export default function OnboardingPage() {
     referralCode: '',
   });
 
-  // Prefill from a prior (incomplete or resubmitted) onboarding attempt, if
-  // any. Runs once in the background so it never blocks the initial render.
+  // Prefill from an existing participant profile, if the user already has
+  // one (e.g. a prior incomplete onboarding, or resuming on a new device).
+  // Runs once in the background so it never blocks the initial render.
   // Guarded against clobbering fields the user already started editing by
   // only applying the prefill while the form still matches its untouched
   // defaults at the moment the fetch resolves.
+  //
+  // Hits /api/participants/me (the participant-profile BFF), not
+  // /api/participants/onboarding — that route only supports POST on the
+  // backend; a GET there 404s. This BFF passes a real 404 straight through
+  // (no participant row yet), which the statusCode !== 200 check below
+  // already treats as "nothing to prefill".
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const res = await fetch('/api/participants/onboarding', { cache: 'no-store' });
+        const res = await fetch('/api/participants/me', { cache: 'no-store' });
         const json = await res.json().catch(() => null);
         if (cancelled) return;
 
@@ -122,8 +130,10 @@ export default function OnboardingPage() {
             programSource: str(prefillData.knowledgeSource) ?? prev.programSource,
             country: str(prefillData.originCountry) ?? prev.country,
             city: str(prefillData.originCity) ?? prev.city,
-            state: str(prefillData.originState) ?? prev.state,
-            birthDate: str(prefillData.birthDate) ?? prev.birthDate,
+            // No state/region column exists on the Participant model — leave
+            // it untouched rather than inventing a source for it.
+            state: prev.state,
+            birthDate: extractBirthYear(prefillData.birthdate) ?? prev.birthDate,
             referralCode: str(prefillData.referralCode) ?? prev.referralCode,
           };
         });
