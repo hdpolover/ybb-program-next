@@ -7,29 +7,49 @@ type ValidationPattern = {
   message: string;
 };
 
-// Ordered: first pattern that matches the raw message wins. These key off
-// each backend class-validator constraint's distinct wording (see
-// english-text.validator.ts in ybb-platform) — class-validator does not
-// prepend the field name to a custom defaultMessage, so the messages below
-// are the only signal available to tell "name" apart from "city".
+// Human label per DTO property, so the copy can name the field the participant
+// actually sees. The API prefixes its validator messages with the property
+// (see english-text.validator.ts in ybb-platform) precisely so this is
+// possible — originCity and originCountry share one constraint and are
+// otherwise indistinguishable from the message text.
+const FIELD_LABELS: Record<string, string> = {
+  fullName: 'Full name',
+  originCity: 'City',
+  originCountry: 'Country',
+  knowledgeSource: 'Where you heard about us',
+};
+
+// Ordered: first pattern that matches the raw message wins. These key off each
+// backend constraint's distinct wording; the field name, when the message
+// carries one, is prepended separately by labelFor().
 const KNOWN_VALIDATION_PATTERNS: ValidationPattern[] = [
   {
-    // IsEnglishName — only used on fullName in OnboardingDto.
+    // IsEnglishName
     test: /english alphabet only/i,
-    message: `Full name: ${NAME_RULE_MESSAGE}`,
+    message: NAME_RULE_MESSAGE,
   },
   {
-    // IsEnglishText — used on originCity (and originCountry/knowledgeSource,
-    // which in practice can't fail this check), so this is effectively the
-    // city-field message.
+    // IsEnglishText — guards originCity, originCountry and knowledgeSource.
     test: /standard english characters only/i,
-    message: `City: ${TEXT_RULE_MESSAGE}`,
+    message: TEXT_RULE_MESSAGE,
   },
   {
     test: /invalid country code/i,
     message: "We couldn't recognize your selected country. Please pick it again from the list.",
   },
 ];
+
+/**
+ * Reads the leading DTO property off a class-validator message
+ * ("originCity must use ...") and returns its participant-facing label.
+ * Returns null for messages that carry no property, which keeps this working
+ * against an API that has not shipped the prefix yet.
+ */
+function labelFor(message: string): string | null {
+  const property = message.match(/^([a-zA-Z][a-zA-Z0-9_]*)\s+must\s/)?.[1];
+  if (!property) return null;
+  return FIELD_LABELS[property] ?? null;
+}
 
 const GENERIC_FALLBACK = 'Something went wrong on our end. Please try again in a moment.';
 
@@ -53,7 +73,8 @@ export function friendlyOnboardingError(status: number, rawMessage: string): str
   }
 
   const knownPattern = KNOWN_VALIDATION_PATTERNS.find((pattern) => pattern.test.test(message));
-  if (knownPattern) return knownPattern.message;
+  if (!knownPattern) return message;
 
-  return message;
+  const label = labelFor(message);
+  return label ? `${label}: ${knownPattern.message}` : knownPattern.message;
 }

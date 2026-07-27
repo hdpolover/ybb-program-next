@@ -74,3 +74,28 @@ describe('field rules mirror the API validators', () => {
     expect(textRuleError('Ho Chi Minh')).toBeNull();
   });
 });
+
+describe('field attribution comes from the property, not the message text', () => {
+  it('names Country when originCountry fails the shared text constraint', () => {
+    const raw = 'originCountry must use standard English characters only (no accented or non-Latin characters)';
+    expect(friendlyOnboardingError(400, raw)).toBe(`Country: ${TEXT_RULE_MESSAGE}`);
+  });
+
+  it('names the program-source field when it fails the same constraint', () => {
+    const raw = 'knowledgeSource must use standard English characters only (no accented or non-Latin characters)';
+    expect(friendlyOnboardingError(400, raw)).toBe(
+      `Where you heard about us: ${TEXT_RULE_MESSAGE}`,
+    );
+  });
+
+  it('drops the label rather than guessing when the API sends no property', () => {
+    // An API that has not shipped the property prefix yet, or a field with no
+    // label mapping — better unlabelled than wrongly labelled "City".
+    expect(
+      friendlyOnboardingError(400, 'must use standard English characters only (no accented or non-Latin characters)'),
+    ).toBe(TEXT_RULE_MESSAGE);
+    expect(
+      friendlyOnboardingError(400, 'someNewField must use standard English characters only (no accented or non-Latin characters)'),
+    ).toBe(TEXT_RULE_MESSAGE);
+  });
+});
