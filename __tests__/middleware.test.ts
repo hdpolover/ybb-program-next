@@ -1,7 +1,11 @@
 // __tests__/middleware.test.ts
 
 import { describe, it, expect } from 'vitest';
-import { shouldStoreReferralCode, shouldRedirectReferralToSignup } from '@/middleware';
+import {
+  shouldStoreReferralCode,
+  shouldRedirectReferralToSignup,
+  normalizeReferralCode,
+} from '@/middleware';
 
 describe('shouldStoreReferralCode', () => {
   it('rejects an empty code', () => {
@@ -27,6 +31,58 @@ describe('shouldStoreReferralCode', () => {
   it('trims surrounding whitespace before measuring length', () => {
     expect(shouldStoreReferralCode(`  ${'A'.repeat(20)}  `)).toBe(true);
     expect(shouldStoreReferralCode(`  ${'A'.repeat(21)}  `)).toBe(false);
+  });
+});
+
+describe('normalizeReferralCode', () => {
+  it('accepts a real 8-char ambassador code', () => {
+    expect(normalizeReferralCode('HAM95757')).toBe('HAM95757');
+  });
+
+  // The backend matches codes by exact match and generates them uppercase, so
+  // a hand-typed or link-mangled lowercase code has to be folded.
+  it('uppercases a hand-typed lowercase code', () => {
+    expect(normalizeReferralCode('ham95757')).toBe('HAM95757');
+  });
+
+  it('trims padding that would otherwise be stored verbatim', () => {
+    expect(normalizeReferralCode('  HAM95757  ')).toBe('HAM95757');
+  });
+
+  it('accepts a hyphenated legacy code', () => {
+    expect(normalizeReferralCode('REF-12345')).toBe('REF-12345');
+  });
+
+  it('rejects a short page word', () => {
+    expect(normalizeReferralCode('lang')).toBeNull();
+  });
+
+  it('rejects a multi-word search phrase', () => {
+    expect(normalizeReferralCode('youth summit')).toBeNull();
+  });
+
+  /**
+   * Deliberate: a single long word IS shape-valid, because any rule loose
+   * enough to admit real codes admits real search terms too. AMBASSADOR and
+   * ELIGIBILITIES were both found on production participant records. What stops
+   * them now is that `q`, `c` and `s` are no longer referral params, not this
+   * function. Do not "fix" this by tightening the regex, it cannot be tightened
+   * far enough without rejecting real codes.
+   */
+  it('cannot distinguish a long page word from a code (param list is the defense)', () => {
+    expect(normalizeReferralCode('eligibilities')).toBe('ELIGIBILITIES');
+    expect(normalizeReferralCode('ambassador')).toBe('AMBASSADOR');
+  });
+
+  it('rejects an over-length value that would overflow the column', () => {
+    expect(normalizeReferralCode('A'.repeat(21))).toBeNull();
+  });
+
+  it('rejects empty, blank and missing values', () => {
+    expect(normalizeReferralCode('')).toBeNull();
+    expect(normalizeReferralCode('   ')).toBeNull();
+    expect(normalizeReferralCode(null)).toBeNull();
+    expect(normalizeReferralCode(undefined)).toBeNull();
   });
 });
 
