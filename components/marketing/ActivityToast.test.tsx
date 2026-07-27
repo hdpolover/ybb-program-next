@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 
 const toastCustom = vi.fn(() => 1);
+const toastDismiss = vi.fn();
 vi.mock('sonner', () => ({
-  toast: { custom: (...args: unknown[]) => toastCustom(...args), dismiss: vi.fn() },
+  toast: { custom: (...args: unknown[]) => toastCustom(...args), dismiss: (...args: unknown[]) => toastDismiss(...args) },
 }));
 
 import { ActivityToast } from './ActivityToast';
@@ -27,6 +28,7 @@ function buildItems(count: number): ActivityItem[] {
 beforeEach(() => {
   vi.useFakeTimers();
   toastCustom.mockClear();
+  toastDismiss.mockClear();
   window.sessionStorage.clear();
   window.matchMedia = vi.fn().mockReturnValue({
     matches: false,
@@ -86,5 +88,18 @@ describe('ActivityToast', () => {
     render(<ActivityToast items={buildItems(10)} />);
     vi.advanceTimersByTime(FIRST_DELAY_MAX_MS);
     expect(toastCustom.mock.calls[0][1]).toMatchObject({ position: 'bottom-left' });
+  });
+
+  it('dismisses only the toast it created, by id, not every toast on screen', () => {
+    toastCustom.mockReturnValueOnce('toast-id-42');
+    render(<ActivityToast items={buildItems(10)} />);
+    vi.advanceTimersByTime(FIRST_DELAY_MAX_MS);
+
+    const renderCard = toastCustom.mock.calls[0][0] as () => JSX.Element;
+    const card = renderCard();
+    card.props.onDismiss();
+
+    expect(toastDismiss).toHaveBeenCalledTimes(1);
+    expect(toastDismiss).toHaveBeenCalledWith('toast-id-42');
   });
 });

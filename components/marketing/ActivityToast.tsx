@@ -52,10 +52,10 @@ export function ActivityToast({ items }: ActivityToastProps) {
       timer = null;
     };
 
-    const dismissForSession = () => {
+    const dismissForSession = (id: string | number) => {
       markDismissedForSession();
       stop();
-      toast.dismiss();
+      toast.dismiss(id);
     };
 
     const showNext = () => {
@@ -67,9 +67,10 @@ export function ActivityToast({ items }: ActivityToastProps) {
 
       const position = window.innerWidth < MOBILE_BREAKPOINT_PX ? 'bottom-center' : 'bottom-left';
 
-      toast.custom(() => <ActivityToastCard item={item} onDismiss={dismissForSession} />, {
+      const id = toast.custom(() => <ActivityToastCard item={item} onDismiss={() => dismissForSession(id)} />, {
         duration: TOAST_DURATION_MS,
         position,
+        className: 'activity-toast',
       });
 
       timer = setTimeout(showNext, randomBetween(GAP_MIN_MS, GAP_MAX_MS));

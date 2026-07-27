@@ -16,7 +16,7 @@ export function ActivityToastCard({ item, onDismiss }: ActivityToastCardProps) {
     <div
       role="status"
       aria-live="polite"
-      className="flex w-full max-w-sm items-center gap-3 rounded-lg bg-primary px-4 py-3 text-primary-foreground shadow-lg"
+      className="flex w-full items-center gap-3 rounded-lg bg-primary px-4 py-3 text-primary-foreground shadow-lg pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:max-w-sm sm:pb-3"
     >
       {flag ? (
         <span aria-hidden="true" className="text-2xl leading-none">

@@ -24,6 +24,7 @@ import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 import { headers } from 'next/headers';
 import { getActivityData } from '@/lib/api/activity';
 import { ActivityToast } from '@/components/marketing/ActivityToast';
+import { resolveBrandDomain } from '@/lib/server/envContext';
 
 function parseValidDate(value: unknown): Date | null {
   if (!value) return null;
@@ -81,10 +82,17 @@ function parseBullets(text: string | null): string[] {
 
 export default async function ProgramDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  // Kept as the raw host header for getProgramDetail -- do not change what that call
+  // receives, it is a working code path and out of scope here.
   const host = (await headers()).get('host') || '';
+  // resolveBrandDomain() mirrors app/page.tsx: handles x-hostname, maps localhost to the
+  // configured env default, and strips ports. Using the raw host here (like getProgramDetail
+  // does) makes the activity toast work on the home page but silently not on this page in
+  // local dev/preview, since those environments hit the localhost/port branches differently.
+  const activityHost = await resolveBrandDomain();
   const [program, activityItems] = await Promise.all([
     getProgramDetail(slug, host),
-    getActivityData(host),
+    getActivityData(activityHost),
   ]);
 
   if (!program) notFound();
