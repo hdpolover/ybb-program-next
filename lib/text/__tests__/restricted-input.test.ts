@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sanitize, hasDisallowed } from '@/lib/text/restricted-input';
+import { sanitize, hasDisallowed, asciiFold, toSubmittableAscii } from '@/lib/text/restricted-input';
 
 describe('sanitize name mode', () => {
   it('keeps English letters, space, hyphen, apostrophe, period', () => {
@@ -41,5 +41,37 @@ describe('hasDisallowed', () => {
   it('false when clean', () => {
     expect(hasDisallowed("O'Brien", 'name')).toBe(false);
     expect(hasDisallowed('Apt #3', 'general')).toBe(false);
+  });
+});
+
+describe('asciiFold', () => {
+  it('folds letters NFD cannot decompose', () => {
+    expect(asciiFold('Ad\u0131yaman')).toBe('Adiyaman');
+    expect(asciiFold('\u0130stanbul')).toBe('Istanbul');
+    expect(asciiFold('\u0141\u00f3d\u017a')).toBe('Lodz');
+  });
+  it('folds combining diacritics', () => {
+    expect(asciiFold('Bogot\u00e1')).toBe('Bogota');
+    expect(asciiFold('Malm\u00f6')).toBe('Malmo');
+    expect(asciiFold('\u015eanl\u0131urfa')).toBe('Sanliurfa');
+  });
+  it('leaves ASCII untouched', () => {
+    expect(asciiFold("O'Brien-Smith Jr.")).toBe("O'Brien-Smith Jr.");
+  });
+  it('passes non-Latin scripts through', () => {
+    expect(asciiFold('\u041c\u043e\u0441\u043a\u0432\u0430')).toBe('\u041c\u043e\u0441\u043a\u0432\u0430');
+  });
+});
+
+describe('toSubmittableAscii', () => {
+  it('produces a value the API ASCII validator accepts', () => {
+    expect(hasDisallowed(toSubmittableAscii('Ad\u0131yaman'), 'general')).toBe(false);
+    expect(toSubmittableAscii('Bogot\u00e1')).toBe('Bogota');
+  });
+  it('collapses whitespace left behind by stripping', () => {
+    expect(toSubmittableAscii('Ho Chi \u4e2d Minh')).toBe('Ho Chi Minh');
+  });
+  it('falls back to the original rather than emptying the field', () => {
+    expect(toSubmittableAscii('\u041c\u043e\u0441\u043a\u0432\u0430')).toBe('\u041c\u043e\u0441\u043a\u0432\u0430');
   });
 });

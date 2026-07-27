@@ -18,6 +18,8 @@ import { Alert } from '@/components/ui';
 import { friendlyOnboardingError } from '@/lib/onboarding/friendlyOnboardingError';
 import { extractBirthYear } from '@/lib/onboarding/extractBirthYear';
 import { isRecord } from '@/lib/api/response';
+import { nameRuleError, textRuleError } from '@/lib/onboarding/fieldRules';
+import { asciiFold, hasDisallowed, toSubmittableAscii } from '@/lib/text/restricted-input';
 
 
 export default function OnboardingPage() {
@@ -112,6 +114,31 @@ export default function OnboardingPage() {
         const str = (value: unknown): string | undefined =>
           typeof value === 'string' && value.length > 0 ? value : undefined;
 
+        // Registration seeds full_name with the email local part ("owais56"),
+        // so the prefill can hand us a value the onboarding API always rejects
+        // (@IsEnglishName forbids digits). EnglishTextInput only sanitizes on
+        // change, so a prefilled value is never cleaned and the participant is
+        // stuck in a submit loop with no field-level hint.
+        //
+        // Folding first keeps a legacy accented name usable ("José" -> "Jose").
+        // A value still dirty after folding can only be the registration
+        // default — anything the API ever accepted is already clean — so drop
+        // it and let the participant type their real name.
+        const nameStr = (value: unknown): string | undefined => {
+          const raw = str(value);
+          if (raw === undefined) return undefined;
+          if (!hasDisallowed(raw, 'name')) return raw;
+          const folded = asciiFold(raw);
+          return hasDisallowed(folded, 'name') ? undefined : folded;
+        };
+
+        // Legacy/imported rows predate the ASCII validators, so fold rather
+        // than blank: "Bogotá" still identifies the city once folded.
+        const textStr = (value: unknown): string | undefined => {
+          const raw = str(value);
+          return raw === undefined ? undefined : toSubmittableAscii(raw);
+        };
+
         setForm(prev => {
           const isUntouched =
             prev.fullName === '' &&
@@ -125,11 +152,11 @@ export default function OnboardingPage() {
           if (!isUntouched) return prev;
 
           return {
-            fullName: str(prefillData.fullName) ?? prev.fullName,
+            fullName: nameStr(prefillData.fullName) ?? prev.fullName,
             gender: str(prefillData.gender) ?? prev.gender,
             programSource: str(prefillData.knowledgeSource) ?? prev.programSource,
             country: str(prefillData.originCountry) ?? prev.country,
-            city: str(prefillData.originCity) ?? prev.city,
+            city: textStr(prefillData.originCity) ?? prev.city,
             // No state/region column exists on the Participant model — leave
             // it untouched rather than inventing a source for it.
             state: prev.state,
@@ -378,8 +405,12 @@ export default function OnboardingPage() {
   }, [states]);
 
   const citySelectOptions = useMemo(() => {
+    // originCity is validated ASCII-only server-side, but the metadata dataset
+    // ships accented names (757 for TR, 444 for VN, 90 for EG). Submitting the
+    // raw option is an unwinnable 400 — the dropdown offers no spelling the API
+    // accepts. Submit the folded form, show the real one.
     return (originCities ?? []).map(c => ({
-      value: c.name,
+      value: toSubmittableAscii(c.name),
       label: c.name,
     }));
   }, [originCities]);
@@ -469,7 +500,9 @@ export default function OnboardingPage() {
         setOriginCities(list);
         setCitiesLoading(false);
 
-        const allowed = new Set((res ?? []).map(c => c.name));
+        // Match citySelectOptions, which submits the ASCII-folded name — comparing
+        // against the raw dataset names would wipe every accented selection.
+        const allowed = new Set((res ?? []).map(c => toSubmittableAscii(c.name)));
         if (form.city && !allowed.has(form.city)) {
           setForm(prev => ({ ...prev, city: '' }));
         }
@@ -597,17 +630,27 @@ export default function OnboardingPage() {
     }
   };
 
+  // Mirrors the API validators so a rejected value is flagged on the field
+  // instead of costing a round-trip and a form-level error.
+  const fullNameRuleError = useMemo(() => nameRuleError(form.fullName), [form.fullName]);
+  const cityRuleError = useMemo(() => textRuleError(form.city), [form.city]);
+
   const isBioValid = useMemo(() => {
-    return form.fullName.trim().length > 0 && form.gender.trim().length > 0;
-  }, [form.fullName, form.gender]);
+    return (
+      form.fullName.trim().length > 0 &&
+      fullNameRuleError === null &&
+      form.gender.trim().length > 0
+    );
+  }, [form.fullName, fullNameRuleError, form.gender]);
 
   const isLocationValid = useMemo(() => {
     return (
       form.country.trim().length > 0 &&
       form.state.trim().length > 0 &&
-      form.city.trim().length > 0
+      form.city.trim().length > 0 &&
+      cityRuleError === null
     );
-  }, [form.country, form.state, form.city]);
+  }, [form.country, form.state, form.city, cityRuleError]);
 
   const isAgeValid = useMemo(() => {
     return form.birthDate.trim().length > 0;
@@ -795,7 +838,11 @@ export default function OnboardingPage() {
                       label="Full name"
                       icon={User}
                       required
-                      error={bioShowErrors && form.fullName.trim().length === 0}
+                      error={
+                        form.fullName.trim().length === 0
+                          ? bioShowErrors
+                          : fullNameRuleError
+                      }
                     >
                       {(errClass) => (
                         <EnglishTextInput
@@ -933,7 +980,13 @@ export default function OnboardingPage() {
                         label="City"
                         icon={Building}
                         required={true}
-                        error={domShowErrors && form.city.trim().length === 0 ? "Required" : (selectedCountry?.isoCode && citiesFailed ? "Could not load cities. You can type manually." : "")}
+                        error={
+                          domShowErrors && form.city.trim().length === 0
+                            ? "Required"
+                            : cityRuleError
+                              ? cityRuleError
+                              : (selectedCountry?.isoCode && citiesFailed ? "Could not load cities. You can type manually." : "")
+                        }
                         hint={selectedCountry?.isoCode && form.state && !citiesLoading && !citiesFailed && citySelectOptions.length === 0 ? "No cities listed for this state/region. Please type your city." : null}
                       >
                        {(errorClass) => (
