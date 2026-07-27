@@ -12,6 +12,8 @@ const REFERRAL_PARAMS = ['t', 'c', 's', 'q', 'ref'] as const;
 const REFERRAL_COOKIE_NAME = 'ybb_referral_code';
 const REFERRAL_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 const REFERRAL_CODE_MAX_LENGTH = 20;
+const SESSION_COOKIE_NAME = 'accessToken';
+const SIGNUP_PATH = '/login';
 
 /**
  * Decides whether a resolved referral code is safe to persist in the
@@ -22,6 +24,21 @@ const REFERRAL_CODE_MAX_LENGTH = 20;
 export function shouldStoreReferralCode(code: string): boolean {
   const trimmed = code.trim();
   return trimmed.length > 0 && trimmed.length <= REFERRAL_CODE_MAX_LENGTH;
+}
+
+/**
+ * Ambassador share links used to land on the program page, where visitors
+ * browsed and left without ever creating an account. They now go straight to
+ * the sign-up form. Two carve-outs: a visitor who already has a session keeps
+ * the destination they clicked (bouncing a signed-in participant onto a
+ * sign-up form is worse than the original behaviour), and a request already on
+ * the sign-up path needs no hop, which is what keeps this loop-free.
+ */
+export function shouldRedirectReferralToSignup(params: {
+  pathname: string;
+  isAuthenticated: boolean;
+}): boolean {
+  return !params.isAuthenticated && params.pathname !== SIGNUP_PATH;
 }
 
 const getDefaultBrandUrl = (): string | null => {
@@ -202,7 +219,28 @@ export async function middleware(request: NextRequest) {
 
   // Resolve brand URL dynamically from request (multi-brand support)
   const brandUrl = resolveBrandUrl(request);
-  
+
+  // Ambassador share links (?r=<share token>) drop the visitor straight onto
+  // the sign-up form instead of the page the link points at. The referral
+  // cookie is attached to the redirect response itself, so attribution
+  // survives the hop; `r` is deliberately dropped from the target so the
+  // follow-up request cannot bounce again. Scoped to `r` only. The plaintext
+  // params keep their strip-and-stay behaviour because `q`, `c` and `s` are
+  // generic enough to collide with real page params (`/search` uses `q`).
+  const shareToken = nextUrl.searchParams.get('r');
+  if (
+    shareToken &&
+    shareToken.trim().length > 0 &&
+    shouldRedirectReferralToSignup({
+      pathname: nextUrl.pathname,
+      isAuthenticated: request.cookies.has(SESSION_COOKIE_NAME),
+    })
+  ) {
+    const signupUrl = new URL(SIGNUP_PATH, nextUrl.origin);
+    signupUrl.searchParams.set('mode', 'signup');
+    return attachReferralCookie(request, NextResponse.redirect(signupUrl), brandUrl);
+  }
+
   // Get the hostname from the request headers
   const hostname = request.headers.get('host') || '';
   
