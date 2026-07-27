@@ -82,8 +82,10 @@ function parseBullets(text: string | null): string[] {
 export default async function ProgramDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const host = (await headers()).get('host') || '';
-  const program = await getProgramDetail(slug, host);
-  const activityItems = await getActivityData(host);
+  const [program, activityItems] = await Promise.all([
+    getProgramDetail(slug, host),
+    getActivityData(host),
+  ]);
 
   if (!program) notFound();
 

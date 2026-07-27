@@ -50,21 +50,20 @@ import type {
 
 export default async function Home() {
   const host = await resolveBrandDomain();
-  const activityItems = await getActivityData(host);
-  let homeData: Awaited<ReturnType<typeof getHomePageData>>;
   let registerUrl = '/login?mode=signup';
   let activeCategory: RegistrationCategory | null = null;
 
-  try {
-    homeData = await getHomePageData(host);
-  } catch (e) {
-    console.error('Failed to fetch home page data', e);
-    homeData = {
-      title: 'Youth Summit',
-      slug: null,
-      sections: [],
-    } as unknown as Awaited<ReturnType<typeof getHomePageData>>;
-  }
+  const [activityItems, homeData] = await Promise.all([
+    getActivityData(host),
+    getHomePageData(host).catch((e) => {
+      console.error('Failed to fetch home page data', e);
+      return {
+        title: 'Youth Summit',
+        slug: null,
+        sections: [],
+      } as unknown as Awaited<ReturnType<typeof getHomePageData>>;
+    }),
+  ]);
 
   // Fetch program details and determine registerUrl
   try {
