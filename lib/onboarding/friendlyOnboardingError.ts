@@ -1,5 +1,7 @@
 // lib/onboarding/friendlyOnboardingError.ts
 
+import { NAME_RULE_MESSAGE, TEXT_RULE_MESSAGE } from './fieldRules';
+
 type ValidationPattern = {
   test: RegExp;
   message: string;
@@ -14,14 +16,14 @@ const KNOWN_VALIDATION_PATTERNS: ValidationPattern[] = [
   {
     // IsEnglishName — only used on fullName in OnboardingDto.
     test: /english alphabet only/i,
-    message: 'Please enter your name using English letters only (A-Z).',
+    message: `Full name: ${NAME_RULE_MESSAGE}`,
   },
   {
     // IsEnglishText — used on originCity (and originCountry/knowledgeSource,
     // which in practice can't fail this check), so this is effectively the
     // city-field message.
     test: /standard english characters only/i,
-    message: 'Please enter your city using English letters only.',
+    message: `City: ${TEXT_RULE_MESSAGE}`,
   },
   {
     test: /invalid country code/i,

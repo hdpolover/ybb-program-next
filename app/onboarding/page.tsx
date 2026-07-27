@@ -18,6 +18,7 @@ import { Alert } from '@/components/ui';
 import { friendlyOnboardingError } from '@/lib/onboarding/friendlyOnboardingError';
 import { extractBirthYear } from '@/lib/onboarding/extractBirthYear';
 import { isRecord } from '@/lib/api/response';
+import { nameRuleError, textRuleError } from '@/lib/onboarding/fieldRules';
 import { asciiFold, hasDisallowed, toSubmittableAscii } from '@/lib/text/restricted-input';
 
 
@@ -629,17 +630,27 @@ export default function OnboardingPage() {
     }
   };
 
+  // Mirrors the API validators so a rejected value is flagged on the field
+  // instead of costing a round-trip and a form-level error.
+  const fullNameRuleError = useMemo(() => nameRuleError(form.fullName), [form.fullName]);
+  const cityRuleError = useMemo(() => textRuleError(form.city), [form.city]);
+
   const isBioValid = useMemo(() => {
-    return form.fullName.trim().length > 0 && form.gender.trim().length > 0;
-  }, [form.fullName, form.gender]);
+    return (
+      form.fullName.trim().length > 0 &&
+      fullNameRuleError === null &&
+      form.gender.trim().length > 0
+    );
+  }, [form.fullName, fullNameRuleError, form.gender]);
 
   const isLocationValid = useMemo(() => {
     return (
       form.country.trim().length > 0 &&
       form.state.trim().length > 0 &&
-      form.city.trim().length > 0
+      form.city.trim().length > 0 &&
+      cityRuleError === null
     );
-  }, [form.country, form.state, form.city]);
+  }, [form.country, form.state, form.city, cityRuleError]);
 
   const isAgeValid = useMemo(() => {
     return form.birthDate.trim().length > 0;
@@ -827,7 +838,11 @@ export default function OnboardingPage() {
                       label="Full name"
                       icon={User}
                       required
-                      error={bioShowErrors && form.fullName.trim().length === 0}
+                      error={
+                        form.fullName.trim().length === 0
+                          ? bioShowErrors
+                          : fullNameRuleError
+                      }
                     >
                       {(errClass) => (
                         <EnglishTextInput
@@ -965,7 +980,13 @@ export default function OnboardingPage() {
                         label="City"
                         icon={Building}
                         required={true}
-                        error={domShowErrors && form.city.trim().length === 0 ? "Required" : (selectedCountry?.isoCode && citiesFailed ? "Could not load cities. You can type manually." : "")}
+                        error={
+                          domShowErrors && form.city.trim().length === 0
+                            ? "Required"
+                            : cityRuleError
+                              ? cityRuleError
+                              : (selectedCountry?.isoCode && citiesFailed ? "Could not load cities. You can type manually." : "")
+                        }
                         hint={selectedCountry?.isoCode && form.state && !citiesLoading && !citiesFailed && citySelectOptions.length === 0 ? "No cities listed for this state/region. Please type your city." : null}
                       >
                        {(errorClass) => (
