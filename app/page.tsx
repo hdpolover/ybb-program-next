@@ -49,7 +49,7 @@ import type {
 export default async function Home() {
   const host = await resolveBrandDomain();
   let homeData: Awaited<ReturnType<typeof getHomePageData>>;
-  let registerUrl = '/register';
+  let registerUrl = '/login?mode=signup';
   let activeCategory: RegistrationCategory | null = null;
 
   try {
@@ -76,9 +76,9 @@ export default async function Home() {
           if (activeRegistration) {
             activeCategory = activeRegistration.category;
             if (activeCategory === 'fully_funded') {
-              registerUrl = '/login?applicationCategory=fully_funded';
+              registerUrl = '/login?mode=signup&applicationCategory=fully_funded';
             } else if (activeCategory === 'self_funded') {
-              registerUrl = '/login?applicationCategory=self_funded';
+              registerUrl = '/login?mode=signup&applicationCategory=self_funded';
             }
           }
         } catch (tierError) {
