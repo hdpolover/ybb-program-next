@@ -22,6 +22,8 @@ import {
 } from '@/lib/format/datetime';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 import { headers } from 'next/headers';
+import { getActivityData } from '@/lib/api/activity';
+import { ActivityToast } from '@/components/marketing/ActivityToast';
 
 function parseValidDate(value: unknown): Date | null {
   if (!value) return null;
@@ -81,6 +83,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   const { slug } = await params;
   const host = (await headers()).get('host') || '';
   const program = await getProgramDetail(slug, host);
+  const activityItems = await getActivityData(host);
 
   if (!program) notFound();
 
@@ -423,6 +426,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
           </div>
         </section>
       )}
+      <ActivityToast items={activityItems} />
     </main>
   );
 }

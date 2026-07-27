@@ -23,6 +23,8 @@ import PromoCTA from '@/components/sections/PromoCTA';
 import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { resolveActiveRegistration, RegistrationCategory } from '@/lib/registration/deadline';
+import { getActivityData } from '@/lib/api/activity';
+import { ActivityToast } from '@/components/marketing/ActivityToast';
 import type {
   MainBannerSection,
   RegistrationOverviewSection,
@@ -48,6 +50,7 @@ import type {
 
 export default async function Home() {
   const host = await resolveBrandDomain();
+  const activityItems = await getActivityData(host);
   let homeData: Awaited<ReturnType<typeof getHomePageData>>;
   let registerUrl = '/login?mode=signup';
   let activeCategory: RegistrationCategory | null = null;
@@ -296,6 +299,7 @@ export default async function Home() {
       )}
       <GetInTouchSection />
       {/* <FAQ /> */}
+      <ActivityToast items={activityItems} />
     </main>
   );
 }
