@@ -13,21 +13,21 @@ export interface ActivityItem {
   programName: string;
 }
 
-interface ActivityResponse {
-  enabled: boolean;
-  items: ActivityItem[];
-}
+// The API declares a { enabled, items } DTO, but the shared transform interceptor
+// flattens any { items: [] } response: items becomes the envelope's `data` and the
+// remaining fields move to `meta`. apiGetWithEnvelope returns `data`, so what arrives
+// here is the bare item array. An empty array already means the feature is disabled,
+// so the enabled flag carries no extra information on this side.
+const fetcherByBrand = new Map<string, (url: string) => Promise<ActivityItem[]>>();
 
-const fetcherByBrand = new Map<string, (url: string) => Promise<ActivityResponse>>();
-
-function getActivityFetcher(brandUrl: string): (url: string) => Promise<ActivityResponse> {
+function getActivityFetcher(brandUrl: string): (url: string) => Promise<ActivityItem[]> {
   const cacheKey = brandUrl || 'default';
   const existing = fetcherByBrand.get(cacheKey);
   if (existing) return existing;
 
   const fetcher = unstable_cache(
-    async (url: string): Promise<ActivityResponse> => {
-      return apiGetWithEnvelope<ActivityResponse>('/v1/landing/activity', {
+    async (url: string): Promise<ActivityItem[]> => {
+      return apiGetWithEnvelope<ActivityItem[]>('/v1/landing/activity', {
         query: { url },
         headers: { 'x-brand-domain': brandUrl },
         cache: 'no-store',
@@ -43,9 +43,8 @@ function getActivityFetcher(brandUrl: string): (url: string) => Promise<Activity
 
 export async function getActivityData(brandUrl: string): Promise<ActivityItem[]> {
   try {
-    const response = await getActivityFetcher(brandUrl)(brandUrl);
-    if (!response?.enabled || !Array.isArray(response.items)) return [];
-    return response.items;
+    const items = await getActivityFetcher(brandUrl)(brandUrl);
+    return Array.isArray(items) ? items : [];
   } catch {
     // Activity is decoration. A failure here must never break the page.
     return [];

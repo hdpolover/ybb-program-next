@@ -29,20 +29,21 @@ describe('getActivityData', () => {
     );
   });
 
-  it('returns the items when the pool is enabled', async () => {
+  // The shared transform interceptor flattens the API's { enabled, items } DTO:
+  // items becomes the envelope's `data` and `enabled` moves to `meta`.
+  // apiGetWithEnvelope returns `data`, so these mocks resolve a bare array --
+  // this is the real production shape, verified against the live endpoint.
+  it('returns the items the envelope carried', async () => {
     const items = [
-      { type: 'accepted', name: 'Yuki T.', country: 'Japan', countryCode: 'JP', programName: 'AYIMUN' },
+      { type: 'registered', name: 'Aiman K.', country: 'Pakistan', countryCode: 'PK', programName: 'China Youth Summit 2026' },
     ];
-    apiGetWithEnvelope.mockResolvedValue({ enabled: true, items });
+    apiGetWithEnvelope.mockResolvedValue(items);
 
     await expect(getActivityData('brand.com')).resolves.toEqual(items);
   });
 
-  it('returns an empty array when the pool is disabled', async () => {
-    apiGetWithEnvelope.mockResolvedValue({
-      enabled: false,
-      items: [{ type: 'accepted', name: 'Yuki T.', country: 'Japan', countryCode: 'JP', programName: 'AYIMUN' }],
-    });
+  it('returns an empty array when the pool is disabled, which arrives as an empty array', async () => {
+    apiGetWithEnvelope.mockResolvedValue([]);
 
     await expect(getActivityData('brand.com')).resolves.toEqual([]);
   });
@@ -53,8 +54,20 @@ describe('getActivityData', () => {
     await expect(getActivityData('brand.com')).resolves.toEqual([]);
   });
 
-  it('returns an empty array when the payload is malformed', async () => {
-    apiGetWithEnvelope.mockResolvedValue({ enabled: true, items: null });
+  it('returns an empty array when the payload is not an array', async () => {
+    apiGetWithEnvelope.mockResolvedValue(null);
+
+    await expect(getActivityData('brand.com')).resolves.toEqual([]);
+  });
+
+  it('does not treat the pre-interceptor DTO shape as items', async () => {
+    // Guards the exact regression this fix addresses: if a future change makes the
+    // endpoint return { enabled, items } unflattened, that object is not an array
+    // and must degrade to empty rather than being rendered as a toast.
+    apiGetWithEnvelope.mockResolvedValue({
+      enabled: true,
+      items: [{ type: 'registered', name: 'Aiman K.', country: 'Pakistan', countryCode: 'PK', programName: 'CYS' }],
+    });
 
     await expect(getActivityData('brand.com')).resolves.toEqual([]);
   });
