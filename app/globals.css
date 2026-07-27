@@ -130,3 +130,11 @@ button:disabled,
 .animate-slide-in-right {
   animation: slideInRight 0.3s ease-out forwards;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast] {
+    transition: opacity 150ms linear !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
