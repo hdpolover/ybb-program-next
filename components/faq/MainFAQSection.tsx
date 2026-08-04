@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
+import EmptyState from '@/components/ui/EmptyState';
 import { componentsTheme } from '@/lib/theme/components';
 import { formatTokenLabel } from '@/lib/utils';
 type FAQItem = { q: string; a: string };
@@ -62,15 +63,16 @@ export default function MainFAQSection({ title, subtitle, items }: MainFAQSectio
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <SectionHeader eyebrow="FAQ" title={title || 'Frequently Asked Questions'} />
           {subtitle ? <p className={componentsTheme.faq.subtitle}>{subtitle}</p> : null}
-          <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-16 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-              <Search className="h-6 w-6 text-slate-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-700">No FAQs available yet</h3>
-            <p className="mt-1.5 max-w-sm text-sm text-slate-500">
-              Frequently asked questions will appear here once they are added. If you have a question, feel free to contact our support team.
-            </p>
-          </div>
+          <EmptyState
+            className="mt-10 w-full rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-16 text-center"
+            icon={
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+                <Search className="h-6 w-6 text-slate-400" />
+              </span>
+            }
+            title="No FAQs available yet"
+            description="Frequently asked questions will appear here once they are added. If you have a question, feel free to contact our support team."
+          />
         </div>
       </section>
     );

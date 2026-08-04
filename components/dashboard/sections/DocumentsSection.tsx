@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowUpRight, Download, AlertTriangle, CheckCircle } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import DashboardPageSkeleton from '@/components/dashboard/ui/DashboardPageSkeleton';
+import EmptyState from '@/components/ui/EmptyState';
 import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
@@ -452,8 +453,9 @@ export default function DocumentsSection() {
                   <p className="mt-2 text-sm text-red-600">{errorDocs}</p>
                 </div>
               ) : filteredSortedDocuments.length === 0 ? (
-                <div className={componentsTheme.dashboardDocuments.emptyStateWrapper}>
-                  <div className={componentsTheme.dashboardDocuments.emptyStateImageWrapper}>
+                <EmptyState
+                  className={componentsTheme.dashboardDocuments.emptyStateWrapper}
+                  icon={
                     <Image
                       src="/img/tablenotfounds.png"
                       alt="No documents illustration"
@@ -461,14 +463,10 @@ export default function DocumentsSection() {
                       height={160}
                       className="h-auto max-h-40 w-auto"
                     />
-                  </div>
-                  <p className={componentsTheme.dashboardDocuments.emptyStateTitle}>
-                    No documents available yet
-                  </p>
-                  <p className={componentsTheme.dashboardDocuments.emptyStateText}>
-                    Program documents will be available here when published.
-                  </p>
-                </div>
+                  }
+                  title="No documents available yet"
+                  description="Program documents will be available here when published."
+                />
               ) : (
                 <>
                   <div className="divide-y divide-slate-100 bg-white md:hidden">
@@ -852,8 +850,9 @@ export default function DocumentsSection() {
                 <p className="mt-2 text-sm text-red-600">{errorCerts}</p>
               </div>
             ) : filteredSortedCertificates.length === 0 ? (
-              <div className={componentsTheme.dashboardDocuments.emptyStateWrapper}>
-                <div className={componentsTheme.dashboardDocuments.emptyStateImageWrapper}>
+              <EmptyState
+                className={componentsTheme.dashboardDocuments.emptyStateWrapper}
+                icon={
                   <Image
                     src="/img/tablenotfounds.png"
                     alt="No certificates illustration"
@@ -861,14 +860,10 @@ export default function DocumentsSection() {
                     height={160}
                     className="h-auto max-h-40 w-auto"
                   />
-                </div>
-                <p className={componentsTheme.dashboardDocuments.emptyStateTitle}>
-                  No certificates available yet
-                </p>
-                <p className={componentsTheme.dashboardDocuments.emptyStateText}>
-                  Your certificates will appear here once they are issued for your achievements.
-                </p>
-              </div>
+                }
+                title="No certificates available yet"
+                description="Your certificates will appear here once they are issued for your achievements."
+              />
             ) : (
               <>
                 <div className="divide-y divide-slate-100 bg-white md:hidden">
