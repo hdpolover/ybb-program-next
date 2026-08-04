@@ -1,6 +1,13 @@
 import { useEffect, useRef } from "react";
 
 /**
+ * Bentuk data yang beneran ketulis ke localStorage lewat useAutoSave: payload
+ * asli dibungkus timestamp, biar consumer bisa nge-cek umur draft pas restore
+ * (misal buat buang draft yang udah kelamaan / gak fresh lagi).
+ */
+export type DraftEnvelope<T> = { data: T; savedAt: number };
+
+/**
  * Hook buat auto-save ke localStorage dengan debounce
  * Jadi user ngetik, data kesimpen di localStorage otomatis
  * Kalau device mati, data masih ada di localStorage
@@ -9,18 +16,31 @@ export function useAutoSave<T>(
   key: string,
   data: T,
   onSave?: (data: T) => void | Promise<void>,
-  delay = 3000 // 3 detik delay sebelum save ke server
+  delay = 3000, // 3 detik delay sebelum save ke server
+  // Kalau isEmpty(data) true, draft dianggap kosong dan localStorage dihapus
+  // (bukan ditulis ulang jadi objek kosong). Ini yang bikin clearLocalStorage()
+  // "nempel" - efek ini nggak nulis ulang draft yang barusan dihapus, karena
+  // caller (SubmissionEditSection) juga ngosongin data-nya bareng clear.
+  isEmpty?: (data: T) => boolean
 ) {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<T>(data);
 
-  // Save ke localStorage setiap kali data berubah
+  // Save ke localStorage setiap kali data berubah. Dibungkus { data, savedAt }
+  // supaya konsumen bisa cek umur draft (buat freshness check pas restore).
   useEffect(() => {
     try {
-      localStorage.setItem(key, JSON.stringify(data));
+      if (isEmpty?.(data)) {
+        localStorage.removeItem(key);
+      } else {
+        localStorage.setItem(key, JSON.stringify({ data, savedAt: Date.now() }));
+      }
     } catch (error) {
       console.error("Gagal save ke localStorage:", error);
     }
+    // isEmpty sengaja nggak masuk deps: harus stable (pure function dari data),
+    // definisikan di luar komponen biar identitasnya nggak berubah tiap render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, data]);
 
   // Debounce save ke server

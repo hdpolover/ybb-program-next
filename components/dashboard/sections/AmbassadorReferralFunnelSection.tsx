@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, Clock3, Search, UserRound } from "lucide-react";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
+import EmptyState from "@/components/ui/EmptyState";
 import type { AmbassadorReferral, AmbassadorReferralStatus } from "@/lib/dashboard/ambassador";
 import { useAmbassadorSectionData } from "@/components/dashboard/sections/useAmbassadorSectionData";
 import { parseApiDate } from "@/lib/utils";
@@ -169,17 +170,19 @@ export default function AmbassadorReferralFunnelSection() {
         </div>
 
         {filteredReferrals.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
-              <UserRound className="h-5 w-5" />
-            </div>
-            <h3 className="mt-4 text-base font-semibold text-slate-900">No referrals found</h3>
-            <p className="mt-2 text-sm text-slate-500">
-              {data.referrals.length === 0
+          <EmptyState
+            icon={
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
+                <UserRound className="h-5 w-5" />
+              </div>
+            }
+            title="No referrals found"
+            description={
+              data.referrals.length === 0
                 ? "Once participants use your link or code, they will appear here."
-                : "Try another search term or status filter."}
-            </p>
-          </div>
+                : "Try another search term or status filter."
+            }
+          />
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-slate-200">
             <table className="min-w-full divide-y divide-slate-200 text-sm">

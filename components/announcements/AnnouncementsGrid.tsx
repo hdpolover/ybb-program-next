@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
+import EmptyState from '@/components/ui/EmptyState';
 import {
   formatAnnouncementCategoryLabel,
   formatAnnouncementDateLabel,
@@ -84,15 +85,16 @@ export default function AnnouncementsGrid({
         <div className="mx-auto max-w-7xl">
           <SectionHeader eyebrow="Announcements" title={title} />
           {subtitle ? <p className={componentsTheme.announcementsGrid.subtitle}>{subtitle}</p> : null}
-          <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-16 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-              <Search className="h-6 w-6 text-slate-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-700">No announcements yet</h3>
-            <p className="mt-1.5 max-w-sm text-sm text-slate-500">
-              There are no announcements at the moment. Check back later for the latest news and updates.
-            </p>
-          </div>
+          <EmptyState
+            className="mt-10 w-full rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-16 text-center"
+            icon={
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+                <Search className="h-6 w-6 text-slate-400" />
+              </span>
+            }
+            title="No announcements yet"
+            description="There are no announcements at the moment. Check back later for the latest news and updates."
+          />
         </div>
       </section>
     );

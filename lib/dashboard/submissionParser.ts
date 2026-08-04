@@ -215,6 +215,7 @@ export function toPortalSubmissionDetail(payload: unknown): PortalSubmissionDeta
               typeof payload.preview.primaryAction.enabled === "boolean"
                 ? payload.preview.primaryAction.enabled
                 : false,
+            deadlinePassed: payload.preview.primaryAction.deadlinePassed === true,
             reason:
               typeof payload.preview.primaryAction.reason === "string"
                 ? payload.preview.primaryAction.reason

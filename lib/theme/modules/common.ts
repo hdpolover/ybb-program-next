@@ -148,20 +148,26 @@ export const commonTheme = {
     badgeIcon: 'h-4 w-4 text-white',
     badgeText: 'text-xs font-bold text-white uppercase tracking-wider',
   },
+  // Brand-driven. This banner previously hardcoded a red/orange gradient, so every
+  // tenant got the same red bar regardless of their palette. It now takes the brand
+  // colour, and each scrim is mixed from currentColor (the brand's computed
+  // foreground) so it stays legible whether the brand colour is light or dark.
   registrationCountdown: {
-    wrapper: 'relative overflow-hidden bg-gradient-to-r from-red-600 to-orange-500',
-    overlay: 'absolute inset-0 bg-black/10',
-    container: 'relative mx-auto flex items-center justify-center gap-3 py-3 px-4 text-sm font-bold text-white',
-    labelWrapper: 'flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm border border-white/20',
+    wrapper: 'relative overflow-hidden bg-primary text-primary-foreground',
+    overlay: 'absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/20',
+    container: 'relative mx-auto flex items-center justify-center gap-3 py-3 px-4 text-sm font-bold',
+    labelWrapper:
+      'flex items-center gap-2 rounded-full bg-[color-mix(in_oklab,currentColor_12%,transparent)] px-4 py-2 backdrop-blur-sm border border-[color-mix(in_oklab,currentColor_22%,transparent)]',
     icon: 'h-4 w-4',
     labelDesktop: 'hidden sm:inline',
     labelMobile: 'sm:hidden',
     countdownGrid: 'flex items-center gap-1.5',
-    timeCard: 'flex flex-col items-center rounded-lg bg-white/20 px-3 py-1.5 backdrop-blur-sm border border-white/30 min-w-[50px]',
+    timeCard:
+      'flex flex-col items-center rounded-lg bg-[color-mix(in_oklab,currentColor_18%,transparent)] px-3 py-1.5 backdrop-blur-sm border border-[color-mix(in_oklab,currentColor_28%,transparent)] min-w-[50px]',
     timeValue: 'text-lg font-black leading-none',
     timeLabel: 'text-[10px] font-medium uppercase tracking-wider opacity-90',
-    separator: 'text-white/50',
-    separatorDesktop: 'hidden sm:inline text-white/50',
+    separator: 'opacity-50',
+    separatorDesktop: 'hidden sm:inline opacity-50',
   },
   stickyBottomBar: {
     wrapper: 'fixed bottom-0 left-0 right-0 z-50 bg-white shadow-2xl border-t border-slate-200 transition-transform duration-300',

@@ -27,6 +27,14 @@ function buildItems(count: number): ActivityItem[] {
 
 beforeEach(() => {
   vi.useFakeTimers();
+  // Scheduling uses randomBetween(MIN, MAX), but these tests advance by exactly MAX
+  // and assert exact call counts. Left unpinned, a draw below MAX leaves room for an
+  // extra toast inside the same window and the suite fails intermittently.
+  // Pin just below 1 so delays land at MAX (or one ms under, still inside the window
+  // the tests advance). Not exactly 1: shuffle() uses the same source as
+  // Math.floor(random * (i + 1)), and 1 indexes out of bounds, which empties the
+  // queue and stops scheduling altogether.
+  vi.spyOn(Math, 'random').mockReturnValue(0.999999);
   toastCustom.mockClear();
   toastDismiss.mockClear();
   window.sessionStorage.clear();
@@ -40,6 +48,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe('ActivityToast', () => {

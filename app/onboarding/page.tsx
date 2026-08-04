@@ -16,10 +16,11 @@ import EnglishTextInput from '@/components/ui/EnglishTextInput';
 import { toast } from 'sonner';
 import { Alert } from '@/components/ui';
 import { friendlyOnboardingError } from '@/lib/onboarding/friendlyOnboardingError';
-import { extractBirthYear } from '@/lib/onboarding/extractBirthYear';
+import { extractBirthDate } from '@/lib/onboarding/extractBirthDate';
 import { isRecord } from '@/lib/api/response';
 import { nameRuleError, textRuleError } from '@/lib/onboarding/fieldRules';
 import { asciiFold, hasDisallowed, toSubmittableAscii } from '@/lib/text/restricted-input';
+import { BirthDatePicker, isValidBirthDate } from './components/BirthDatePicker';
 
 
 export default function OnboardingPage() {
@@ -80,7 +81,7 @@ export default function OnboardingPage() {
     country: '',
     state: '',
     city: '',
-    birthDate: '2000',
+    birthDate: '',
     programSource: '',
     gender: '',
     referralCode: '',
@@ -145,7 +146,7 @@ export default function OnboardingPage() {
             prev.country === '' &&
             prev.state === '' &&
             prev.city === '' &&
-            prev.birthDate === '2000' &&
+            prev.birthDate === '' &&
             prev.programSource === '' &&
             prev.gender === '' &&
             prev.referralCode === '';
@@ -160,7 +161,7 @@ export default function OnboardingPage() {
             // No state/region column exists on the Participant model — leave
             // it untouched rather than inventing a source for it.
             state: prev.state,
-            birthDate: extractBirthYear(prefillData.birthdate) ?? prev.birthDate,
+            birthDate: extractBirthDate(prefillData.birthdate) ?? prev.birthDate,
             referralCode: str(prefillData.referralCode) ?? prev.referralCode,
           };
         });
@@ -381,13 +382,18 @@ export default function OnboardingPage() {
 
 
 
-  const yearSelectOptions = useMemo(() => {
+  // Same eligibility window the old year-only dropdown enforced (1950..min(currentYear, 2020)),
+  // expressed as full-date bounds for the calendar picker. maxDateCandidate is additionally
+  // clamped to today so the bound can never land in the future even if the 2020 cap is
+  // ever raised or removed.
+  const birthDateBounds = useMemo(() => {
     const maxBirthYear = Math.min(new Date().getFullYear(), 2020);
-    const options = [];
-    for (let i = maxBirthYear; i >= 1950; i--) {
-      options.push({ value: i.toString(), label: i.toString() });
-    }
-    return options;
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const maxDateCandidate = `${maxBirthYear}-12-31`;
+    return {
+      minDate: '1950-01-01',
+      maxDate: maxDateCandidate > todayIso ? todayIso : maxDateCandidate,
+    };
   }, []);
 
   const genderSelectOptions = useMemo(() => {
@@ -653,8 +659,15 @@ export default function OnboardingPage() {
   }, [form.country, form.state, form.city, cityRuleError]);
 
   const isAgeValid = useMemo(() => {
-    return form.birthDate.trim().length > 0;
-  }, [form.birthDate]);
+    return isValidBirthDate(form.birthDate, birthDateBounds.minDate, birthDateBounds.maxDate);
+  }, [form.birthDate, birthDateBounds]);
+
+  const birthDateError = useMemo(() => {
+    if (!ageShowErrors) return '';
+    if (form.birthDate.trim().length === 0) return 'Required';
+    if (!isAgeValid) return 'Please select a valid date of birth';
+    return '';
+  }, [ageShowErrors, form.birthDate, isAgeValid]);
 
   const isInfoValid =
     form.programSource.trim().length > 0 && knowledgeSources.includes(form.programSource);
@@ -748,8 +761,8 @@ export default function OnboardingPage() {
     if (activeStep === 'Age') {
       return {
         line: 'Just a quick validation.',
-        title: 'What year were you born?',
-        description: 'Select your birth year from the dropdown.',
+        title: 'When were you born?',
+        description: 'Select your full date of birth.',
       };
     }
     return {
@@ -1051,19 +1064,18 @@ export default function OnboardingPage() {
                 {activeStep === "Age" ? (
                   <>
                     <FormField
-                        label="Year of birth"
+                        label="Date of birth"
                         icon={Gift}
                         required={true}
-                        error={ageShowErrors && form.birthDate.trim().length === 0 ? "Required" : ""}
+                        error={birthDateError}
                       >
                        {(errorClass) => (
-                         <StyledSelect
+                         <BirthDatePicker
                            value={form.birthDate}
                            onChange={value => setForm(prev => ({ ...prev, birthDate: value }))}
-                           options={yearSelectOptions}
-                           placeholder="Select year"
-                           className={`${componentsTheme.login.input} ${errorClass}`}
-                           searchable
+                           errorClassName={errorClass}
+                           minDate={birthDateBounds.minDate}
+                           maxDate={birthDateBounds.maxDate}
                          />
                        )}
                     </FormField>

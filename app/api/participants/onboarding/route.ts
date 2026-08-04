@@ -31,8 +31,17 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
 
-    // Pad user-provided birth year to match backend date requirements smoothly
+    // TEMPORARY SHIM: the onboarding form used to collect only a birth year and this
+    // route padded it to 'YYYY-01-01', fabricating every participant's month/day (see
+    // the 13557-row Jan-1 incident). The client now collects a full date, so this
+    // should never fire for a current client. Kept only so a stale cached client (old
+    // bundle still in a browser's cache/service worker) degrades to the old padded
+    // behavior instead of a hard 400 from the backend's @IsDateString. Logged so any
+    // remaining bare-year traffic is visible and this can be deleted once it's zero.
     if (typeof body.birthDate === 'string' && body.birthDate.length === 4) {
+      console.warn('[onboarding] received bare 4-digit birthDate year, padding to YYYY-01-01 (stale client?)', {
+        birthDate: body.birthDate,
+      });
       body.birthDate = `${body.birthDate}-01-01`;
     }
 
