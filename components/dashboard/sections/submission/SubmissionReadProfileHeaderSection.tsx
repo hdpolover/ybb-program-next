@@ -6,11 +6,21 @@ import { useRef, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import { componentsTheme } from "@/lib/theme/components";
+import {
+  prepareImageForUpload,
+  ImagePrepError,
+  looksLikeImageFile,
+  MAX_UPLOAD_BYTES,
+} from "@/lib/media/prepareImageForUpload";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
-const ACCEPTED_TYPES = "image/jpeg,image/png,image/webp,image/gif";
-const MAX_SIZE_MB = 5;
+// HEIC/HEIF included so iPhone users (whose default camera format this is)
+// see their photos in the picker at all; prepareImageForUpload() converts
+// them to JPEG (where the browser can decode HEIC) before upload.
+const ACCEPTED_TYPES = "image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif";
+// Reconciled with the server-side image cap — see lib/media/prepareImageForUpload.ts.
+const MAX_SIZE_MB = Math.round(MAX_UPLOAD_BYTES / (1024 * 1024));
 
 export default function SubmissionReadProfileHeaderSection() {
   const { me, onboarding, participantProfile } = useDashboardData();
@@ -54,24 +64,40 @@ export default function SubmissionReadProfileHeaderSection() {
     // Reset input so the same file can be re-selected if needed
     e.target.value = "";
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file (JPEG, PNG, WebP, GIF).");
-      return;
-    }
-    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      toast.error(`File is too large. Maximum size is ${MAX_SIZE_MB} MB.`);
+    if (!looksLikeImageFile(file)) {
+      toast.error("Please select an image file (JPEG, PNG, WebP, GIF, or HEIC).");
       return;
     }
 
     setUploading(true);
 
+    // Downscale + convert to JPEG before upload. Solves oversized phone
+    // photos and (where the browser can decode it) HEIC, and cuts upload
+    // time on slow mobile connections. Throws with a specific, actionable
+    // message when the browser genuinely cannot decode the file.
+    let uploadFile: File;
+    try {
+      uploadFile = await prepareImageForUpload(file);
+    } catch (err) {
+      setUploading(false);
+      const message = err instanceof ImagePrepError ? err.message : "We couldn't process that image. Please try a different photo.";
+      toast.error(message);
+      return;
+    }
+
+    if (uploadFile.size > MAX_SIZE_MB * 1024 * 1024) {
+      setUploading(false);
+      toast.error(`File is too large. Maximum size is ${MAX_SIZE_MB} MB.`);
+      return;
+    }
+
     // Optimistic preview
-    const previewUrl = URL.createObjectURL(file);
+    const previewUrl = URL.createObjectURL(uploadFile);
     setLocalPhotoUrl(previewUrl);
 
     try {
       const form = new FormData();
-      form.append("file", file);
+      form.append("file", uploadFile);
 
       const res = await fetch("/api/participants/me/photo", {
         method: "POST",
