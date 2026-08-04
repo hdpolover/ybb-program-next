@@ -127,6 +127,14 @@ export type ProgramJourneySection = {
 
 export type ProgramImportantDatesItem = {
   date_display: string;
+  /**
+   * Structured ISO instants backing date_display. Optional for backward compatibility:
+   * legacy payloads (or any content source that hasn't been re-edited) may omit these,
+   * in which case date_display is heuristically parsed as a fallback. See
+   * lib/format/timeline.ts.
+   */
+  start_date?: string | null;
+  end_date?: string | null;
   status: string;
   name: string;
   description: string;
