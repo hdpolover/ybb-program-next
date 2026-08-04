@@ -12,6 +12,7 @@ export type OnboardingForm = {
   country: string;
   state: string;
   city: string;
+  /** Full 'YYYY-MM-DD' date of birth. */
   birthDate: string;
   programSource: string;
   gender: string;
