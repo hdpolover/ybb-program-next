@@ -406,14 +406,24 @@ export default function RegistrationTypePrograms({
               </div>
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
-                  <a
-                    href="/apply/self-funded"
-                    className={`${
-                      componentsTheme.applyRegistrationTypes.ctaButton
-                    } ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
-                  >
-                    See Details
-                  </a>
+                  {primaryOpen ? (
+                    <a
+                      href="/apply/self-funded"
+                      className={`${
+                        componentsTheme.applyRegistrationTypes.ctaButton
+                      } ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
+                    >
+                      See Details
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-disabled
+                      className={componentsTheme.applyRegistrationTypes.ctaButtonDisabled}
+                    >
+                      See Details
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

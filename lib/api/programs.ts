@@ -96,6 +96,8 @@ export type ProgramDetail = {
   bannerUrl: string | null;
   videoUrl: string | null;
   status: string;
+  isPublished: boolean;
+  isActive: boolean;
   allowRegistration: boolean;
   requirePayment: boolean;
   currency: string;
