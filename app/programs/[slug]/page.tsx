@@ -25,6 +25,7 @@ import { headers } from 'next/headers';
 import { getActivityData } from '@/lib/api/activity';
 import { ActivityToast } from '@/components/marketing/ActivityToast';
 import { resolveBrandDomain } from '@/lib/server/envContext';
+import { isProgramRegistrationOpen } from '@/lib/registration/status';
 
 function parseValidDate(value: unknown): Date | null {
   if (!value) return null;
@@ -102,7 +103,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   const endDate = parseValidDate(program.endDate ?? program.startDate);
   const hasEnded = endDate ? endDate.getTime() < now : false;
   const isArchiveProgram = program.status === 'completed' || hasEnded;
-  const isOpen = !isArchiveProgram && program.allowRegistration;
+  const isOpen = !isArchiveProgram && isProgramRegistrationOpen(program, new Date(now));
   const resolvedProgramTitle =
     firstNonEmpty(program.name, [program.brand?.name, program.year].filter(Boolean).join(' ')) ?? 'Program Archive';
   const heroEyebrow = isArchiveProgram ? 'Program Archive' : 'Featured Program';
