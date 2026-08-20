@@ -40,7 +40,7 @@ import { FieldAssetDrawer } from "@/components/dashboard/sections/FieldAssetDraw
 import { FieldHelpText, plainTextFromRichText } from "@/components/dashboard/sections/FieldHelpText";
 import { toPortalSubmissionDetail } from "@/lib/dashboard/submissionParser";
 import { formatSubmissionDateValue, isDateLikeField } from "@/lib/dashboard/dateDisplay";
-import { useAutoSave, loadFromLocalStorage, clearLocalStorage } from "@/hooks/useAutoSave";
+import { useAutoSave, loadFromLocalStorage, clearLocalStorage, type DraftEnvelope } from "@/hooks/useAutoSave";
 import { normalizeEmailInput } from "@/lib/utils";
 import { isValidPhone, sanitizePhone } from "@/lib/phone";
 
@@ -416,10 +416,135 @@ function calculateSectionStatus(section: PortalSubmissionSection, sectionValues:
   });
 
   const fillRate = filled.length / relevant.length;
-  
+
   if (fillRate === 1) return 'completed';
   if (fillRate > 0) return 'in_progress';
   return 'pending';
+}
+
+// --- Local draft persistence -------------------------------------------------
+// Server is the source of truth. localStorage is crash-recovery only: it must
+// never resurrect a field the user didn't actually edit this session, and it
+// must never let a stale/foreign draft outrank fresh server data. We do this by
+// persisting ONLY the fields tracked as "dirty" (actually edited), plus a
+// single timestamp for the whole draft blob.
+//
+// There's no per-field (or even per-application) "last updated at" timestamp
+// in the submission-detail API response, so we can't compare draft freshness
+// against a genuine server-side clock. Instead we use an absolute age window:
+// a draft older than DRAFT_MAX_AGE_MS is treated as gone. This is a
+// self-contained proxy (no backend change needed) that still fixes the
+// reported bug (wholesale foreign/stale-draft overwrite) and keeps genuine
+// same-session crash recovery working.
+export const DRAFT_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
+
+export type SubmissionDraftPayload = {
+  sectionValues: Record<string, Record<string, string>>;
+  essayValues: Record<string, string>;
+};
+
+export function isSubmissionDraftEmpty(payload: SubmissionDraftPayload): boolean {
+  return (
+    Object.values(payload.sectionValues).every(fields => Object.keys(fields).length === 0) &&
+    Object.keys(payload.essayValues).length === 0
+  );
+}
+
+// Builds the persisted draft from only the dirty (user-touched) keys, so a
+// field the user never touched can never come back from localStorage.
+export function projectDirtyDraft(
+  sectionValues: Record<string, Record<string, string>>,
+  essayValues: Record<string, string>,
+  dirtySectionFields: Record<string, Set<string>>,
+  dirtyEssayIds: Set<string>,
+): SubmissionDraftPayload {
+  const projectedSectionValues: Record<string, Record<string, string>> = {};
+  for (const [sectionId, fieldNames] of Object.entries(dirtySectionFields)) {
+    if (fieldNames.size === 0) continue;
+    const sourceFields = sectionValues[sectionId] || {};
+    const pickedFields: Record<string, string> = {};
+    for (const fieldName of fieldNames) {
+      pickedFields[fieldName] = sourceFields[fieldName] ?? "";
+    }
+    projectedSectionValues[sectionId] = pickedFields;
+  }
+
+  const projectedEssayValues: Record<string, string> = {};
+  for (const essayId of dirtyEssayIds) {
+    projectedEssayValues[essayId] = essayValues[essayId] ?? "";
+  }
+
+  return { sectionValues: projectedSectionValues, essayValues: projectedEssayValues };
+}
+
+// A section save only persists that one section (plus its essays, for
+// entry_information). Clearing dirty tracking must be scoped the same way:
+// a different section the user also edited stays dirty, so the
+// useAutoSave mirror effect keeps protecting it in localStorage for crash
+// recovery instead of silently dropping it.
+export function clearDirtyAfterSectionSave(
+  dirtySectionFields: Record<string, Set<string>>,
+  dirtyEssayIds: Set<string>,
+  savedSectionId: string,
+  savedEssayIds: string[] = [],
+): { dirtySectionFields: Record<string, Set<string>>; dirtyEssayIds: Set<string> } {
+  const nextSectionFields = { ...dirtySectionFields };
+  delete nextSectionFields[savedSectionId];
+
+  const nextEssayIds = new Set(dirtyEssayIds);
+  for (const essayId of savedEssayIds) {
+    nextEssayIds.delete(essayId);
+  }
+
+  return { dirtySectionFields: nextSectionFields, dirtyEssayIds: nextEssayIds };
+}
+
+// Server values are the baseline; a fresh draft may only override fields it
+// actually tracked as dirty. A stale (or absent) draft contributes nothing.
+export function mergeServerWithFreshDraft(
+  serverSectionValues: Record<string, Record<string, string>>,
+  serverEssayValues: Record<string, string>,
+  draftEnvelope: DraftEnvelope<SubmissionDraftPayload> | null,
+  now: number = Date.now(),
+): {
+  sectionValues: Record<string, Record<string, string>>;
+  essayValues: Record<string, string>;
+  dirtySectionFields: Record<string, Set<string>>;
+  dirtyEssayIds: Set<string>;
+  discardedStaleDraft: boolean;
+} {
+  const isFresh =
+    !!draftEnvelope &&
+    typeof draftEnvelope.savedAt === "number" &&
+    now - draftEnvelope.savedAt <= DRAFT_MAX_AGE_MS;
+  const draft = isFresh ? draftEnvelope!.data : null;
+  const discardedStaleDraft = !!draftEnvelope && !isFresh;
+
+  const mergedSectionValues = Object.fromEntries(
+    Object.entries(serverSectionValues).map(([sectionId, fields]) => [
+      sectionId,
+      { ...fields, ...(draft?.sectionValues[sectionId] ?? {}) },
+    ]),
+  );
+  const mergedEssayValues = { ...serverEssayValues, ...(draft?.essayValues ?? {}) };
+
+  const dirtySectionFields: Record<string, Set<string>> = draft
+    ? Object.fromEntries(
+        Object.entries(draft.sectionValues).map(([sectionId, fields]) => [
+          sectionId,
+          new Set(Object.keys(fields)),
+        ]),
+      )
+    : {};
+  const dirtyEssayIds = draft ? new Set(Object.keys(draft.essayValues)) : new Set<string>();
+
+  return {
+    sectionValues: mergedSectionValues,
+    essayValues: mergedEssayValues,
+    dirtySectionFields,
+    dirtyEssayIds,
+    discardedStaleDraft,
+  };
 }
 
 const PREVIEW_STEP_ID = "__preview__";
@@ -523,6 +648,11 @@ export default function SubmissionEditSection() {
   const isLocked = detail ? detail.status !== "draft" : false;
   const [sectionValues, setSectionValues] = useState<Record<string, Record<string, string>>>({});
   const [essayValues, setEssayValues] = useState<Record<string, string>>({});
+  // Fields the user actually edited this session (sectionId -> field names /
+  // essay ids). Drives what gets persisted to the local draft, so a stale or
+  // foreign localStorage blob can never resurrect a field nobody touched.
+  const [dirtySectionFields, setDirtySectionFields] = useState<Record<string, Set<string>>>({});
+  const [dirtyEssayIds, setDirtyEssayIds] = useState<Set<string>>(new Set());
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [previewVisited, setPreviewVisited] = useState(false);
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
@@ -607,15 +737,14 @@ export default function SubmissionEditSection() {
             return nextDetail.sections[0]?.id ?? null;
           });
 
-          // Coba load data dari localStorage dulu (buat restore unsaved data)
-          const defaultSavedData = {
-            sectionValues: {},
-            essayValues: {},
-          };
-          const savedData = loadFromLocalStorage<{
-            sectionValues: Record<string, Record<string, string>>;
-            essayValues: Record<string, string>;
-          }>(localStorageKey, defaultSavedData);
+          // Server is the baseline. A local draft (crash-recovery only) may
+          // only override fields it actually tracked as dirty, and only when
+          // it's still fresh - see mergeServerWithFreshDraft for why we can't
+          // compare against a real server-side timestamp here.
+          const draftEnvelope = loadFromLocalStorage<DraftEnvelope<SubmissionDraftPayload> | null>(
+            localStorageKey,
+            null,
+          );
 
           const serverSectionValues = Object.fromEntries(
             nextDetail.sections.map(section => [
@@ -625,22 +754,23 @@ export default function SubmissionEditSection() {
               ),
             ]),
           );
-          
+
           const serverEssayValues = Object.fromEntries(
             nextDetail.essays.map(essay => [essay.id, normalizeInputValue(essay.answer)])
           );
 
-          // Merge data server dengan data localStorage (localStorage lebih prioritas)
-          setSectionValues(
-            savedData.sectionValues && Object.keys(savedData.sectionValues).length > 0
-              ? savedData.sectionValues
-              : serverSectionValues
-          );
-          setEssayValues(
-            savedData.essayValues && Object.keys(savedData.essayValues).length > 0
-              ? savedData.essayValues
-              : serverEssayValues
-          );
+          const merged = mergeServerWithFreshDraft(serverSectionValues, serverEssayValues, draftEnvelope);
+          setSectionValues(merged.sectionValues);
+          setEssayValues(merged.essayValues);
+          // Seed dirty tracking from whatever draft actually got reapplied, so a
+          // later edit/save knows what's genuinely still unsaved.
+          setDirtySectionFields(merged.dirtySectionFields);
+          setDirtyEssayIds(merged.dirtyEssayIds);
+          // A stale draft was found but ignored - wipe it now so it doesn't
+          // keep lingering (and doesn't fool the mirror-effect empty check).
+          if (merged.discardedStaleDraft) {
+            clearLocalStorage(localStorageKey);
+          }
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -656,9 +786,14 @@ export default function SubmissionEditSection() {
     };
   }, [programSelectionReady, selectedProgramId, localStorageKey]);
 
-  // Auto-save ke localStorage setiap data berubah (buat jaga kalau device mati)
-  const autoSaveData = { sectionValues, essayValues };
-  useAutoSave(localStorageKey, autoSaveData);
+  // Auto-save ke localStorage setiap data berubah (buat jaga kalau device mati).
+  // Cuma field yang beneran dirty (user-edited) yang keprojeksi, biar draft
+  // gak pernah nge-resurrect field yang gak pernah disentuh user.
+  const autoSaveData = useMemo(
+    () => projectDirtyDraft(sectionValues, essayValues, dirtySectionFields, dirtyEssayIds),
+    [sectionValues, essayValues, dirtySectionFields, dirtyEssayIds],
+  );
+  useAutoSave(localStorageKey, autoSaveData, undefined, 3000, isSubmissionDraftEmpty);
 
   const activeSection = useMemo(() => {
     if (activeSectionId === PREVIEW_STEP_ID) return null;
@@ -765,6 +900,13 @@ export default function SubmissionEditSection() {
         [fieldName]: value,
       },
     }));
+    setDirtySectionFields(current => {
+      const existing = current[sectionId];
+      if (existing?.has(fieldName)) return current;
+      const nextFields = new Set(existing);
+      nextFields.add(fieldName);
+      return { ...current, [sectionId]: nextFields };
+    });
   };
 
   // Soft, non-blocking phone validation: marked "touched" on blur so we don't
@@ -948,8 +1090,23 @@ export default function SubmissionEditSection() {
 
       toast.success(`${activeSection.title} saved successfully.`);
 
-      // Hapus localStorage setelah save berhasil ke server
-      clearLocalStorage(localStorageKey);
+      // Only the active section (and its essays, for entry_information) was
+      // actually persisted just now - clear dirty tracking for just that
+      // scope. A different section the user also edited stays dirty; the
+      // autoSaveData/useAutoSave mirror effect above reacts to that state
+      // change on its own and rewrites localStorage to match (or removes it
+      // entirely once nothing is left dirty), so no manual localStorage call
+      // is needed here.
+      const savedEssayIds =
+        activeSection.id === "entry_information" ? sectionEssays.map(essay => essay.id) : [];
+      const clearedDirty = clearDirtyAfterSectionSave(
+        dirtySectionFields,
+        dirtyEssayIds,
+        activeSection.id,
+        savedEssayIds,
+      );
+      setDirtySectionFields(clearedDirty.dirtySectionFields);
+      setDirtyEssayIds(clearedDirty.dirtyEssayIds);
 
       try {
         const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
@@ -1362,12 +1519,19 @@ export default function SubmissionEditSection() {
             // we can point the user straight at it instead of dead-disabling the button.
             const serverReady = detail.previewPrimaryAction?.enabled ?? false;
             const previewActionReason = detail.previewPrimaryAction?.reason;
+            // A passed deadline is the one blocker the participant cannot act on, so the
+            // button is genuinely disabled here rather than clickable-with-an-explanation.
+            const deadlinePassed = detail.previewPrimaryAction?.deadlinePassed ?? false;
             const isPaymentRequired = detail.isRegistrationPaymentRequired ?? true;
             const isPaymentSettled = isPaymentRequired
               ? (detail.isRegistrationPaymentSettled ?? false)
               : true;
+            // Past the deadline there is nothing left to pay for, so the closed state wins
+            // over the payment prompt.
             const shouldGoToPayment =
-              isDraftApplication && (previewActionType === "complete_payment" || !isPaymentSettled);
+              isDraftApplication &&
+              !deadlinePassed &&
+              (previewActionType === "complete_payment" || !isPaymentSettled);
             const validationMessages = [
               ...(isDraftApplication && !isPaymentSettled
                 ? ["Registration payment is required before you can submit."]
@@ -1607,6 +1771,16 @@ export default function SubmissionEditSection() {
                         <CheckCircle2 className="h-4 w-4" />
                         Application Submitted
                       </button>
+                    ) : deadlinePassed ? (
+                      <button
+                        type="button"
+                        className={`${submissionTheme.primaryButton} cursor-not-allowed opacity-60`}
+                        disabled
+                        aria-disabled="true"
+                        title={previewActionReason}
+                      >
+                        Submission Closed
+                      </button>
                     ) : (
                       <button
                         type="button"
@@ -1740,12 +1914,19 @@ export default function SubmissionEditSection() {
                           <EnglishTextArea
                             className={submissionTheme.essayTextarea}
                             value={essayValues[essay.id] || ""}
-                            onChange={event =>
+                            onChange={event => {
+                              const nextValue = event.target.value;
                               setEssayValues(current => ({
                                 ...current,
-                                [essay.id]: event.target.value,
-                              }))
-                            }
+                                [essay.id]: nextValue,
+                              }));
+                              setDirtyEssayIds(current => {
+                                if (current.has(essay.id)) return current;
+                                const next = new Set(current);
+                                next.add(essay.id);
+                                return next;
+                              });
+                            }}
                             placeholder={essay.wordLimit ? `Word limit: ${essay.wordLimit}` : "Write your answer"}
                             disabled={isLocked}
                             readOnly={isLocked}

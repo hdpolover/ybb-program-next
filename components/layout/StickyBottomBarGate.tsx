@@ -21,5 +21,5 @@ export default function StickyBottomBarGate({
     return null;
   }
 
-  return <StickyBottomBar deadline={deadline} registerUrl={registerUrl || '/register'} />;
+  return <StickyBottomBar deadline={deadline} registerUrl={registerUrl || '/login?mode=signup'} />;
 }

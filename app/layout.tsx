@@ -127,7 +127,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let settingsData = null;
   let registrationCloseDate: string | null = null;
   let activeProgramSlug = process.env.YBB_PROGRAM_SLUG?.trim() || null;
-  let registerUrl = '/register';
+  let registerUrl = '/login?mode=signup';
   let activeCategory: RegistrationCategory | null = null;
 
   const [settingsResult] = await Promise.allSettled([getSettingsForBrandDomain(host)]);
@@ -169,9 +169,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }
 
     if (activeCategory === 'fully_funded') {
-      registerUrl = '/login?applicationCategory=fully_funded';
+      registerUrl = '/login?mode=signup&applicationCategory=fully_funded';
     } else if (activeCategory === 'self_funded') {
-      registerUrl = '/login?applicationCategory=self_funded';
+      registerUrl = '/login?mode=signup&applicationCategory=self_funded';
     }
   } else {
     console.error('[Layout] Failed to load settings:', settingsResult.reason);

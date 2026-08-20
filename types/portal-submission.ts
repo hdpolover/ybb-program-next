@@ -85,6 +85,8 @@ export type PortalSubmissionDetail = {
     label: string;
     enabled: boolean;
     reason?: string;
+    /** True when the program deadline has passed. Unlike other blockers this is not fixable by the participant. */
+    deadlinePassed?: boolean;
   };
   isRegistrationPaymentRequired?: boolean;
   isRegistrationPaymentSettled?: boolean;

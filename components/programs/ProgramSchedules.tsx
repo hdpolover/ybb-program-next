@@ -1,55 +1,18 @@
+import { CalendarDays } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import type { ProgramImportantDatesSection } from '@/types/programs';
+import type { ProgramImportantDatesItem, ProgramImportantDatesSection } from '@/types/programs';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
-import { parseApiDate } from '@/lib/utils';
-
-type VisualStatus = 'active' | 'upcoming' | 'closed';
+import {
+  formatTimelineDateLabel,
+  getTimelineVisualStatus,
+  sortTimelineItems,
+  type TimelineVisualStatus,
+} from '@/lib/format/timeline';
 
 type ProgramSchedulesProps = {
   dates?: ProgramImportantDatesSection['content'];
 };
-
-function mapStatus(status?: string, isActive?: boolean): VisualStatus {
-  const s = status?.toLowerCase() ?? '';
-  if (isActive) return 'active';
-  if (s === 'upcoming') return 'upcoming';
-  if (s === 'active' || s === 'ongoing') return 'active';
-  return 'closed';
-}
-
-function normalizeDateToken(value: string): string {
-  const parsed = parseApiDate(value.trim());
-  if (Number.isNaN(parsed.getTime())) {
-    return value.trim();
-  }
-  return parsed.toLocaleDateString('en-US', {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-  });
-}
-
-function formatDateDisplay(value?: string): string {
-  const raw = (value ?? '').trim();
-  if (!raw) return DATA_NOT_ADDED;
-
-  const parts = raw.split(/\s*[-–]\s*/).map((part) => part.trim()).filter(Boolean);
-  if (parts.length === 2) {
-    return `${normalizeDateToken(parts[0])} – ${normalizeDateToken(parts[1])}`;
-  }
-
-  return normalizeDateToken(raw);
-}
-
-function getStartTimestamp(value?: string): number {
-  const raw = (value ?? '').trim();
-  if (!raw) return Number.MAX_SAFE_INTEGER;
-  const [first] = raw.split(/\s*[-–]\s*/);
-  const parsed = parseApiDate(first.trim());
-  if (Number.isNaN(parsed.getTime())) return Number.MAX_SAFE_INTEGER;
-  return parsed.getTime();
-}
 
 function isMeaningfulDescription(name?: string, description?: string): boolean {
   const safeName = (name ?? '').trim().toLowerCase();
@@ -58,7 +21,7 @@ function isMeaningfulDescription(name?: string, description?: string): boolean {
   return safeDescription !== safeName;
 }
 
-function StatusBadge({ visualStatus, label }: { visualStatus: VisualStatus; label?: string }) {
+function StatusBadge({ visualStatus, label }: { visualStatus: TimelineVisualStatus; label?: string }) {
   const text = label || DATA_NOT_ADDED;
   if (visualStatus === 'active') {
     return (
@@ -81,23 +44,94 @@ function StatusBadge({ visualStatus, label }: { visualStatus: VisualStatus; labe
   );
 }
 
+function EmptyState() {
+  return (
+    <div className={componentsTheme.programsSchedules.emptyState}>
+      <span className={componentsTheme.programsSchedules.emptyStateIconWrapper}>
+        <CalendarDays className={componentsTheme.programsSchedules.emptyStateIcon} />
+      </span>
+      <p className={componentsTheme.programsSchedules.emptyStateTitle}>No schedule published yet</p>
+      <p className={componentsTheme.programsSchedules.emptyStateText}>
+        Key dates and deadlines for this program will appear here once they are announced.
+      </p>
+    </div>
+  );
+}
+
+function TimelineGroup({ title, items }: { title: string; items: ProgramImportantDatesItem[] }) {
+  return (
+    <div>
+      <div className={componentsTheme.programsSchedules.groupHeader}>
+        <h3 className={componentsTheme.programsSchedules.groupTitle}>{title}</h3>
+        <span className={componentsTheme.programsSchedules.groupCount}>
+          {items.length} schedule{items.length > 1 ? 's' : ''}
+        </span>
+      </div>
+      <div className={componentsTheme.programsSchedules.timelineWrapper}>
+        {items.map((item, index) => {
+          const visualStatus = getTimelineVisualStatus(item.status, item.is_active);
+          const dateLabel = formatTimelineDateLabel(item);
+          const dotClass = visualStatus === 'active'
+            ? componentsTheme.programsSchedules.timelineDotActive
+            : visualStatus === 'upcoming'
+              ? componentsTheme.programsSchedules.timelineDotUpcoming
+              : componentsTheme.programsSchedules.timelineDotClosed;
+          const cardAccentClass = visualStatus === 'active'
+            ? componentsTheme.programsSchedules.cardAccentActive
+            : visualStatus === 'upcoming'
+              ? componentsTheme.programsSchedules.cardAccentUpcoming
+              : componentsTheme.programsSchedules.cardAccentClosed;
+          const isLast = index === items.length - 1;
+
+          return (
+            <div key={`${item.name}-${item.date_display}-${index}`} className={componentsTheme.programsSchedules.timelineItem}>
+              <div className={componentsTheme.programsSchedules.timelineMarkerCol}>
+                <span className={`${componentsTheme.programsSchedules.timelineDot} ${dotClass}`} />
+                {!isLast && (
+                  <span className={componentsTheme.programsSchedules.timelineConnector} aria-hidden="true" />
+                )}
+              </div>
+              <article className={`${componentsTheme.programsSchedules.card} ${cardAccentClass}`}>
+                <div className={componentsTheme.programsSchedules.cardHeader}>
+                  <p className={componentsTheme.programsSchedules.cardDate}>{dateLabel}</p>
+                  <StatusBadge visualStatus={visualStatus} label={item.status} />
+                </div>
+                <h3 className={componentsTheme.programsSchedules.cardTitle}>
+                  {item.name || DATA_NOT_ADDED}
+                </h3>
+                {isMeaningfulDescription(item.name, item.description) && (
+                  <p className={componentsTheme.programsSchedules.cardDescription}>
+                    {item.description}
+                  </p>
+                )}
+              </article>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
   if (!dates) return null;
 
   const title = dates.title || 'Key dates and important deadlines';
   const subtitle = dates.subtitle || '';
   const items = dates.items ?? [];
-  if (items.length === 0) return null;
 
-  const active = items
-    .filter((item) => mapStatus(item.status, item.is_active) === 'active')
-    .sort((a, b) => getStartTimestamp(a.date_display) - getStartTimestamp(b.date_display));
-  const upcoming = items
-    .filter((item) => mapStatus(item.status, item.is_active) === 'upcoming')
-    .sort((a, b) => getStartTimestamp(a.date_display) - getStartTimestamp(b.date_display));
-  const completed = items
-    .filter((item) => mapStatus(item.status, item.is_active) === 'closed')
-    .sort((a, b) => getStartTimestamp(b.date_display) - getStartTimestamp(a.date_display));
+  const active = sortTimelineItems(
+    items.filter((item) => getTimelineVisualStatus(item.status, item.is_active) === 'active'),
+    'asc',
+  );
+  const upcoming = sortTimelineItems(
+    items.filter((item) => getTimelineVisualStatus(item.status, item.is_active) === 'upcoming'),
+    'asc',
+  );
+  const completed = sortTimelineItems(
+    items.filter((item) => getTimelineVisualStatus(item.status, item.is_active) === 'closed'),
+    'desc',
+  );
 
   const sections = [
     { key: 'active', title: 'Active now', items: active },
@@ -115,49 +149,15 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
           align="center"
         />
 
-        <div className={componentsTheme.programsSchedules.listWrapper}>
-          {sections.map((section) => (
-            <div key={section.key}>
-              <div className={componentsTheme.programsSchedules.groupHeader}>
-                <h3 className={componentsTheme.programsSchedules.groupTitle}>{section.title}</h3>
-                <span className={componentsTheme.programsSchedules.groupCount}>
-                  {section.items.length} schedule{section.items.length > 1 ? 's' : ''}
-                </span>
-              </div>
-              <div className={componentsTheme.programsSchedules.timelineWrapper}>
-                {section.items.map((item) => {
-                  const visualStatus = mapStatus(item.status, item.is_active);
-                  const dateLabel = formatDateDisplay(item.date_display);
-                  const dotClass = visualStatus === 'active'
-                    ? componentsTheme.programsSchedules.timelineDotActive
-                    : visualStatus === 'upcoming'
-                      ? componentsTheme.programsSchedules.timelineDotUpcoming
-                      : componentsTheme.programsSchedules.timelineDotClosed;
-
-                  return (
-                    <div key={`${item.name}-${item.date_display}`} className={componentsTheme.programsSchedules.timelineItem}>
-                      <span className={`${componentsTheme.programsSchedules.timelineDot} ${dotClass}`} />
-                      <article className={componentsTheme.programsSchedules.card}>
-                        <div className={componentsTheme.programsSchedules.cardHeader}>
-                          <p className={componentsTheme.programsSchedules.cardDate}>{dateLabel}</p>
-                          <StatusBadge visualStatus={visualStatus} label={item.status} />
-                        </div>
-                        <h3 className={componentsTheme.programsSchedules.cardTitle}>
-                          {item.name || DATA_NOT_ADDED}
-                        </h3>
-                        {isMeaningfulDescription(item.name, item.description) && (
-                          <p className={componentsTheme.programsSchedules.cardDescription}>
-                            {item.description}
-                          </p>
-                        )}
-                      </article>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        {sections.length > 0 ? (
+          <div className={componentsTheme.programsSchedules.listWrapper}>
+            {sections.map((section) => (
+              <TimelineGroup key={section.key} title={section.title} items={section.items} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState />
+        )}
 
         <p className={componentsTheme.programsSchedules.note}>
           <span className={componentsTheme.programsSchedules.noteEmphasis}>
@@ -169,4 +169,3 @@ export default function ProgramSchedules({ dates }: ProgramSchedulesProps) {
     </section>
   );
 }
-

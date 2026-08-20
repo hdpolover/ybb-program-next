@@ -15,7 +15,12 @@ import { User, Users, Globe, Building, Gift, Map as MapIcon, CheckCircle2, Alert
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
 import { toast } from 'sonner';
 import { Alert } from '@/components/ui';
-import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
+import { friendlyOnboardingError } from '@/lib/onboarding/friendlyOnboardingError';
+import { extractBirthDate } from '@/lib/onboarding/extractBirthDate';
+import { isRecord } from '@/lib/api/response';
+import { nameRuleError, textRuleError } from '@/lib/onboarding/fieldRules';
+import { asciiFold, hasDisallowed, toSubmittableAscii } from '@/lib/text/restricted-input';
+import { BirthDatePicker, isValidBirthDate } from './components/BirthDatePicker';
 
 
 export default function OnboardingPage() {
@@ -48,6 +53,15 @@ export default function OnboardingPage() {
   // validation. Null while unknown or ambiguous, in which case the check runs
   // unscoped rather than rejecting a code that may well be valid.
   const [referralProgramId, setReferralProgramId] = useState<string | null>(null);
+  // Server-confirmed ambassador attribution from a session cookie (set via an
+  // invite link). When active, the free-text referral input is replaced with
+  // a locked "Referred by" chip so the credited ambassador can't be silently
+  // overwritten by a typo or a different code.
+  const [referralAttribution, setReferralAttribution] = useState<{ active: boolean; referredByName: string | null }>({
+    active: false,
+    referredByName: null,
+  });
+  const [clearingReferral, setClearingReferral] = useState(false);
 
   const statesCacheRef = useRef<Map<string, StateMetadata[]>>(new Map());
   const citiesCacheRef = useRef<Map<string, CityMetadata[]>>(new Map());
@@ -67,11 +81,99 @@ export default function OnboardingPage() {
     country: '',
     state: '',
     city: '',
-    birthDate: '2000',
+    birthDate: '',
     programSource: '',
     gender: '',
     referralCode: '',
   });
+
+  // Prefill from an existing participant profile, if the user already has
+  // one (e.g. a prior incomplete onboarding, or resuming on a new device).
+  // Runs once in the background so it never blocks the initial render.
+  // Guarded against clobbering fields the user already started editing by
+  // only applying the prefill while the form still matches its untouched
+  // defaults at the moment the fetch resolves.
+  //
+  // Hits /api/participants/me (the participant-profile BFF), not
+  // /api/participants/onboarding — that route only supports POST on the
+  // backend; a GET there 404s. This BFF passes a real 404 straight through
+  // (no participant row yet), which the statusCode !== 200 check below
+  // already treats as "nothing to prefill".
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch('/api/participants/me', { cache: 'no-store' });
+        const json = await res.json().catch(() => null);
+        if (cancelled) return;
+
+        const statusCode = isRecord(json) ? json.statusCode : undefined;
+        const prefillData = isRecord(json) ? json.data : null;
+        if (statusCode !== 200 || !isRecord(prefillData)) return;
+
+        const str = (value: unknown): string | undefined =>
+          typeof value === 'string' && value.length > 0 ? value : undefined;
+
+        // Registration seeds full_name with the email local part ("owais56"),
+        // so the prefill can hand us a value the onboarding API always rejects
+        // (@IsEnglishName forbids digits). EnglishTextInput only sanitizes on
+        // change, so a prefilled value is never cleaned and the participant is
+        // stuck in a submit loop with no field-level hint.
+        //
+        // Folding first keeps a legacy accented name usable ("José" -> "Jose").
+        // A value still dirty after folding can only be the registration
+        // default — anything the API ever accepted is already clean — so drop
+        // it and let the participant type their real name.
+        const nameStr = (value: unknown): string | undefined => {
+          const raw = str(value);
+          if (raw === undefined) return undefined;
+          if (!hasDisallowed(raw, 'name')) return raw;
+          const folded = asciiFold(raw);
+          return hasDisallowed(folded, 'name') ? undefined : folded;
+        };
+
+        // Legacy/imported rows predate the ASCII validators, so fold rather
+        // than blank: "Bogotá" still identifies the city once folded.
+        const textStr = (value: unknown): string | undefined => {
+          const raw = str(value);
+          return raw === undefined ? undefined : toSubmittableAscii(raw);
+        };
+
+        setForm(prev => {
+          const isUntouched =
+            prev.fullName === '' &&
+            prev.country === '' &&
+            prev.state === '' &&
+            prev.city === '' &&
+            prev.birthDate === '' &&
+            prev.programSource === '' &&
+            prev.gender === '' &&
+            prev.referralCode === '';
+          if (!isUntouched) return prev;
+
+          return {
+            fullName: nameStr(prefillData.fullName) ?? prev.fullName,
+            gender: str(prefillData.gender) ?? prev.gender,
+            programSource: str(prefillData.knowledgeSource) ?? prev.programSource,
+            country: str(prefillData.originCountry) ?? prev.country,
+            city: textStr(prefillData.originCity) ?? prev.city,
+            // No state/region column exists on the Participant model — leave
+            // it untouched rather than inventing a source for it.
+            state: prev.state,
+            birthDate: extractBirthDate(prefillData.birthdate) ?? prev.birthDate,
+            referralCode: str(prefillData.referralCode) ?? prev.referralCode,
+          };
+        });
+      } catch {
+        // Prefill is a nice-to-have — leave the form blank on any failure.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,8 +222,12 @@ export default function OnboardingPage() {
       try {
         let nextName = settings?.active_program?.name?.trim() || settings?.brand?.name?.trim();
         let nextProgramId: string | null = null;
+        let nextReferralAttribution: { active: boolean; referredByName: string | null } | null = null;
         try {
-          const homeRes = await fetch('/api/auth/me');
+          // includeReferral=1 opts into the ambassador-attribution lookup; only
+          // this page renders the "Referred by" chip, so no other /me caller
+          // should pay for that extra backend round-trip.
+          const homeRes = await fetch('/api/auth/me?includeReferral=1');
           if (homeRes.ok) {
             const homeJson = await homeRes.json();
             const registered = homeJson?.data?.registeredPrograms;
@@ -136,6 +242,14 @@ export default function OnboardingPage() {
             if (registered?.length === 1) {
               nextProgramId = registered[0].programId ?? null;
             }
+
+            const referral = homeJson?.data?.referral;
+            if (referral && typeof referral === 'object') {
+              nextReferralAttribution = {
+                active: referral.active === true,
+                referredByName: typeof referral.referredByName === 'string' ? referral.referredByName : null,
+              };
+            }
           }
         } catch (err) {
           console.error(err);
@@ -144,6 +258,7 @@ export default function OnboardingPage() {
         if (!cancelled) {
           if (nextName) setBrandName(nextName);
           if (nextProgramId) setReferralProgramId(nextProgramId);
+          if (nextReferralAttribution) setReferralAttribution(nextReferralAttribution);
         }
       } catch {
         // ignore
@@ -267,13 +382,18 @@ export default function OnboardingPage() {
 
 
 
-  const yearSelectOptions = useMemo(() => {
+  // Same eligibility window the old year-only dropdown enforced (1950..min(currentYear, 2020)),
+  // expressed as full-date bounds for the calendar picker. maxDateCandidate is additionally
+  // clamped to today so the bound can never land in the future even if the 2020 cap is
+  // ever raised or removed.
+  const birthDateBounds = useMemo(() => {
     const maxBirthYear = Math.min(new Date().getFullYear(), 2020);
-    const options = [];
-    for (let i = maxBirthYear; i >= 1950; i--) {
-      options.push({ value: i.toString(), label: i.toString() });
-    }
-    return options;
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const maxDateCandidate = `${maxBirthYear}-12-31`;
+    return {
+      minDate: '1950-01-01',
+      maxDate: maxDateCandidate > todayIso ? todayIso : maxDateCandidate,
+    };
   }, []);
 
   const genderSelectOptions = useMemo(() => {
@@ -291,8 +411,12 @@ export default function OnboardingPage() {
   }, [states]);
 
   const citySelectOptions = useMemo(() => {
+    // originCity is validated ASCII-only server-side, but the metadata dataset
+    // ships accented names (757 for TR, 444 for VN, 90 for EG). Submitting the
+    // raw option is an unwinnable 400 — the dropdown offers no spelling the API
+    // accepts. Submit the folded form, show the real one.
     return (originCities ?? []).map(c => ({
-      value: c.name,
+      value: toSubmittableAscii(c.name),
       label: c.name,
     }));
   }, [originCities]);
@@ -382,7 +506,9 @@ export default function OnboardingPage() {
         setOriginCities(list);
         setCitiesLoading(false);
 
-        const allowed = new Set((res ?? []).map(c => c.name));
+        // Match citySelectOptions, which submits the ASCII-folded name — comparing
+        // against the raw dataset names would wipe every accented selection.
+        const allowed = new Set((res ?? []).map(c => toSubmittableAscii(c.name)));
         if (form.city && !allowed.has(form.city)) {
           setForm(prev => ({ ...prev, city: '' }));
         }
@@ -405,6 +531,27 @@ export default function OnboardingPage() {
     e.preventDefault();
   };
 
+  // Lets the participant disown an ambassador attribution they didn't ask
+  // for. Clears the server-side httpOnly cookie so the BFF stops injecting
+  // it on submit, then reopens the free-text input (starting blank).
+  const handleClearReferral = async () => {
+    if (clearingReferral) return;
+    setClearingReferral(true);
+    try {
+      const res = await fetch('/api/participants/referral/clear', { method: 'POST' });
+      if (!res.ok) {
+        toast.error('Could not clear the referral code. Please try again.');
+        return;
+      }
+      setReferralAttribution({ active: false, referredByName: null });
+      setForm(prev => ({ ...prev, referralCode: '' }));
+    } catch {
+      toast.error('Could not clear the referral code. Please try again.');
+    } finally {
+      setClearingReferral(false);
+    }
+  };
+
   const onContinue = async () => {
     if (!hasKnowledgeSources) {
       setSubmitError('Program source options are temporarily unavailable. Please refresh and try again.');
@@ -422,6 +569,10 @@ export default function OnboardingPage() {
     setSubmitLoading(true);
     setSubmitError('');
 
+    // 0 = no real HTTP response reached us (network/unknown failure);
+    // friendlyOnboardingError treats that the same as a 5xx.
+    let lastStatus = 0;
+
     try {
       const basePayload = {
         fullName: form.fullName,
@@ -432,8 +583,12 @@ export default function OnboardingPage() {
         birthDate: form.birthDate,
       };
 
-      // Skip referral on submit if it's already confirmed invalid
-      const referralToSend = referralStatus === 'invalid' ? undefined : (form.referralCode || undefined);
+      // Never submit a typed/prefilled referral code while a locked ambassador
+      // attribution is showing — the BFF injects the cookie's code instead.
+      // Skip referral on submit if it's already confirmed invalid.
+      const referralToSend = referralAttribution.active
+        ? undefined
+        : referralStatus === 'invalid' ? undefined : (form.referralCode || undefined);
 
       const doSubmit = (referralCode: string | undefined) =>
         fetch('/api/participants/onboarding', {
@@ -443,6 +598,7 @@ export default function OnboardingPage() {
         });
 
       let res = await doSubmit(referralToSend);
+      lastStatus = res.status;
 
       if (res.status === 401) {
         toast.error('Your session has expired. Please sign in again.');
@@ -453,6 +609,7 @@ export default function OnboardingPage() {
       // Auto-retry without referral if it failed and a referral code was sent
       if (!res.ok && referralToSend) {
         const retryRes = await doSubmit(undefined);
+        lastStatus = retryRes.status;
         if (retryRes.status === 401) {
           toast.error('Your session has expired. Please sign in again.');
           router.push('/login');
@@ -473,27 +630,44 @@ export default function OnboardingPage() {
       router.push('/dashboard');
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : 'Onboarding failed';
-      setSubmitError(friendlyAuthError(rawMessage).message);
+      setSubmitError(friendlyOnboardingError(lastStatus, rawMessage));
     } finally {
       setSubmitLoading(false);
     }
   };
 
+  // Mirrors the API validators so a rejected value is flagged on the field
+  // instead of costing a round-trip and a form-level error.
+  const fullNameRuleError = useMemo(() => nameRuleError(form.fullName), [form.fullName]);
+  const cityRuleError = useMemo(() => textRuleError(form.city), [form.city]);
+
   const isBioValid = useMemo(() => {
-    return form.fullName.trim().length > 0 && form.gender.trim().length > 0;
-  }, [form.fullName, form.gender]);
+    return (
+      form.fullName.trim().length > 0 &&
+      fullNameRuleError === null &&
+      form.gender.trim().length > 0
+    );
+  }, [form.fullName, fullNameRuleError, form.gender]);
 
   const isLocationValid = useMemo(() => {
     return (
       form.country.trim().length > 0 &&
       form.state.trim().length > 0 &&
-      form.city.trim().length > 0
+      form.city.trim().length > 0 &&
+      cityRuleError === null
     );
-  }, [form.country, form.state, form.city]);
+  }, [form.country, form.state, form.city, cityRuleError]);
 
   const isAgeValid = useMemo(() => {
-    return form.birthDate.trim().length > 0;
-  }, [form.birthDate]);
+    return isValidBirthDate(form.birthDate, birthDateBounds.minDate, birthDateBounds.maxDate);
+  }, [form.birthDate, birthDateBounds]);
+
+  const birthDateError = useMemo(() => {
+    if (!ageShowErrors) return '';
+    if (form.birthDate.trim().length === 0) return 'Required';
+    if (!isAgeValid) return 'Please select a valid date of birth';
+    return '';
+  }, [ageShowErrors, form.birthDate, isAgeValid]);
 
   const isInfoValid =
     form.programSource.trim().length > 0 && knowledgeSources.includes(form.programSource);
@@ -587,8 +761,8 @@ export default function OnboardingPage() {
     if (activeStep === 'Age') {
       return {
         line: 'Just a quick validation.',
-        title: 'What year were you born?',
-        description: 'Select your birth year from the dropdown.',
+        title: 'When were you born?',
+        description: 'Select your full date of birth.',
       };
     }
     return {
@@ -677,7 +851,11 @@ export default function OnboardingPage() {
                       label="Full name"
                       icon={User}
                       required
-                      error={bioShowErrors && form.fullName.trim().length === 0}
+                      error={
+                        form.fullName.trim().length === 0
+                          ? bioShowErrors
+                          : fullNameRuleError
+                      }
                     >
                       {(errClass) => (
                         <EnglishTextInput
@@ -815,7 +993,13 @@ export default function OnboardingPage() {
                         label="City"
                         icon={Building}
                         required={true}
-                        error={domShowErrors && form.city.trim().length === 0 ? "Required" : (selectedCountry?.isoCode && citiesFailed ? "Could not load cities. You can type manually." : "")}
+                        error={
+                          domShowErrors && form.city.trim().length === 0
+                            ? "Required"
+                            : cityRuleError
+                              ? cityRuleError
+                              : (selectedCountry?.isoCode && citiesFailed ? "Could not load cities. You can type manually." : "")
+                        }
                         hint={selectedCountry?.isoCode && form.state && !citiesLoading && !citiesFailed && citySelectOptions.length === 0 ? "No cities listed for this state/region. Please type your city." : null}
                       >
                        {(errorClass) => (
@@ -880,19 +1064,18 @@ export default function OnboardingPage() {
                 {activeStep === "Age" ? (
                   <>
                     <FormField
-                        label="Year of birth"
+                        label="Date of birth"
                         icon={Gift}
                         required={true}
-                        error={ageShowErrors && form.birthDate.trim().length === 0 ? "Required" : ""}
+                        error={birthDateError}
                       >
                        {(errorClass) => (
-                         <StyledSelect
+                         <BirthDatePicker
                            value={form.birthDate}
                            onChange={value => setForm(prev => ({ ...prev, birthDate: value }))}
-                           options={yearSelectOptions}
-                           placeholder="Select year"
-                           className={`${componentsTheme.login.input} ${errorClass}`}
-                           searchable
+                           errorClassName={errorClass}
+                           minDate={birthDateBounds.minDate}
+                           maxDate={birthDateBounds.maxDate}
                          />
                        )}
                     </FormField>
@@ -958,50 +1141,81 @@ export default function OnboardingPage() {
                     </div>
 
                     <div>
-                      <FormField
-                        label="Referral Code"
-                        icon={User}
-                        required={false}
-                      >
-                        {(errorClass) => (
-                          <EnglishTextInput
-                            name="referralCode"
-                            value={form.referralCode}
-                            onChange={onChange}
-                            type="text"
-                            className={`${componentsTheme.login.input} ${errorClass} ${
-                              referralStatus === 'valid'
-                                ? '!border-emerald-400 focus:!border-emerald-500 focus:!ring-emerald-500/20'
-                                : referralStatus === 'invalid'
-                                  ? '!border-amber-400 focus:!border-amber-500 focus:!ring-amber-500/20'
-                                  : ''
-                            }`}
-                            placeholder="ABC-123"
-                          />
-                        )}
-                      </FormField>
-                      {referralStatus === 'idle' && (
-                        <p className="mt-1.5 text-xs text-slate-400">
-                          Optional. You can continue with or without a code.
-                        </p>
-                      )}
-                      {form.referralCode.trim() && referralStatus === 'checking' && (
-                        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Checking code…
-                        </p>
-                      )}
-                      {referralStatus === 'valid' && (
-                        <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Valid referral code. It’ll be applied.
-                        </p>
-                      )}
-                      {referralStatus === 'invalid' && (
-                        <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                          We don’t recognize this code, but that’s no problem. You can still continue without it.
-                        </p>
+                      {referralAttribution.active && referralAttribution.referredByName ? (
+                        <div className="flex flex-col gap-2">
+                          <p className={componentsTheme.login.fieldLabel}>
+                            Referral Code
+                            <span className="ml-1 font-normal normal-case tracking-normal text-slate-400">
+                              (Optional)
+                            </span>
+                          </p>
+                          <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2.5 sm:px-4">
+                            <span className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                              <CheckCircle2 className="h-4 w-4 shrink-0" />
+                              Referred by {referralAttribution.referredByName}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleClearReferral}
+                              disabled={clearingReferral}
+                              aria-label="Not you? Clear the referral attribution"
+                              className="shrink-0 text-xs font-semibold text-slate-500 underline underline-offset-4 transition-colors hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {clearingReferral ? 'Clearing…' : 'Not you? Clear'}
+                            </button>
+                          </div>
+                          <p className="text-xs text-slate-400">
+                            This code was applied automatically from your invite link.
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <FormField
+                            label="Referral Code"
+                            icon={User}
+                            required={false}
+                          >
+                            {(errorClass) => (
+                              <EnglishTextInput
+                                name="referralCode"
+                                value={form.referralCode}
+                                onChange={onChange}
+                                type="text"
+                                className={`${componentsTheme.login.input} ${errorClass} ${
+                                  referralStatus === 'valid'
+                                    ? '!border-emerald-400 focus:!border-emerald-500 focus:!ring-emerald-500/20'
+                                    : referralStatus === 'invalid'
+                                      ? '!border-amber-400 focus:!border-amber-500 focus:!ring-amber-500/20'
+                                      : ''
+                                }`}
+                                placeholder="ABC-123"
+                              />
+                            )}
+                          </FormField>
+                          {referralStatus === 'idle' && (
+                            <p className="mt-1.5 text-xs text-slate-400">
+                              Optional. You can continue with or without a code.
+                            </p>
+                          )}
+                          {form.referralCode.trim() && referralStatus === 'checking' && (
+                            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Checking code…
+                            </p>
+                          )}
+                          {referralStatus === 'valid' && (
+                            <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Valid referral code. It’ll be applied.
+                            </p>
+                          )}
+                          {referralStatus === 'invalid' && (
+                            <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-500">
+                              <AlertTriangle className="h-3.5 w-3.5" />
+                              We don’t recognize this code, but that’s no problem. You can still continue without it.
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   </>

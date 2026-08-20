@@ -45,7 +45,7 @@ export default function RegistrationCountdown({ targetDate }: CountdownProps) {
   }
 
   return (
-    <div className={componentsTheme.registrationCountdown.wrapper} style={{ background: 'linear-gradient(to right, #dc2626, #f97316)' }}>
+    <div className={componentsTheme.registrationCountdown.wrapper}>
       <div className={componentsTheme.registrationCountdown.overlay} />
       <div className={componentsTheme.registrationCountdown.container}>
         <div className={componentsTheme.registrationCountdown.labelWrapper}>

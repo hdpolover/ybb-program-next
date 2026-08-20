@@ -130,3 +130,15 @@ button:disabled,
 .animate-slide-in-right {
   animation: slideInRight 0.3s ease-out forwards;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Scoped to the activity toast only (see ActivityToast.tsx className: 'activity-toast').
+     Sonner positions stacked toasts via transform: translateY(...); killing transform on
+     every [data-sonner-toast] made simultaneous toasts (e.g. dashboard payment toasts)
+     render on top of each other. Activity toasts are always solitary, so this is safe here. */
+  [data-sonner-toast].activity-toast {
+    transition: opacity 150ms linear !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}

@@ -8,9 +8,62 @@ const BRAND_STATUS_CACHE_TTL_MS = 30_000;
 type BrandStatus = { exists: boolean; maintenance: boolean };
 const brandStatusCache = new Map<string, { value: BrandStatus; expiresAt: number }>();
 
-const REFERRAL_PARAMS = ['t', 'c', 's', 'q', 'ref'] as const;
+// Params that may carry a referral code. Deliberately narrow: `q`, `c` and `s`
+// used to be on this list, which meant any URL carrying one of them was treated
+// as a referral link. `/search?q=eligibilities` had its query stripped and the
+// word stored as a referral code, and values like ELIGIBILITIES and LANG really
+// did end up on participant records in production.
+const REFERRAL_CODE_PARAMS = ['referralCode', 't', 'ref'] as const;
 const REFERRAL_COOKIE_NAME = 'ybb_referral_code';
-const REFERRAL_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; 
+const REFERRAL_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+const REFERRAL_CODE_MIN_LENGTH = 6;
+const REFERRAL_CODE_MAX_LENGTH = 20;
+const REFERRAL_CODE_PATTERN = new RegExp(
+  `^[A-Z0-9-]{${REFERRAL_CODE_MIN_LENGTH},${REFERRAL_CODE_MAX_LENGTH}}$`,
+);
+const SESSION_COOKIE_NAME = 'accessToken';
+const SIGNUP_PATH = '/login';
+
+/**
+ * Folds a candidate referral code into the form the backend matches on, or
+ * returns null when it does not look like a code at all.
+ *
+ * The backend looks codes up by exact match and every code it generates is
+ * uppercase, so a hand-typed or link-mangled lowercase code has to be folded
+ * before it is persisted. The shape check is a garbage filter: it keeps prose
+ * and over-length values (which overflow the VarChar(20) column and surface as
+ * an opaque 500) out of the cookie. It is NOT what stops page params being
+ * mistaken for codes -- real words pass any rule loose enough to admit real
+ * codes, so that job belongs to REFERRAL_CODE_PARAMS being narrow.
+ */
+export function normalizeReferralCode(code: string | null | undefined): string | null {
+  if (!code) return null;
+  const normalized = code.trim().toUpperCase();
+  return REFERRAL_CODE_PATTERN.test(normalized) ? normalized : null;
+}
+
+/**
+ * Decides whether a resolved referral code is safe to persist in the
+ * ybb_referral_code cookie.
+ */
+export function shouldStoreReferralCode(code: string): boolean {
+  return normalizeReferralCode(code) !== null;
+}
+
+/**
+ * Ambassador share links used to land on the program page, where visitors
+ * browsed and left without ever creating an account. They now go straight to
+ * the sign-up form. Two carve-outs: a visitor who already has a session keeps
+ * the destination they clicked (bouncing a signed-in participant onto a
+ * sign-up form is worse than the original behaviour), and a request already on
+ * the sign-up path needs no hop, which is what keeps this loop-free.
+ */
+export function shouldRedirectReferralToSignup(params: {
+  pathname: string;
+  isAuthenticated: boolean;
+}): boolean {
+  return !params.isAuthenticated && params.pathname !== SIGNUP_PATH;
+}
 
 const getDefaultBrandUrl = (): string | null => {
   const raw = process.env.NEXT_PUBLIC_BRAND_DOMAIN || process.env.YBB_BRAND_DOMAIN;
@@ -90,9 +143,11 @@ async function getBrandStatus(brandUrl: string): Promise<BrandStatus> {
 }
 
 const getDirectReferralCode = (request: NextRequest): string | null => {
-  const code =
-    request.nextUrl.searchParams.get('referralCode') || request.nextUrl.searchParams.get('t');
-  return code && code.trim().length > 0 ? code.trim() : null;
+  for (const param of REFERRAL_CODE_PARAMS) {
+    const code = request.nextUrl.searchParams.get(param);
+    if (code && code.trim().length > 0) return code.trim();
+  }
+  return null;
 };
 
 const resolveReferralCode = async (
@@ -137,7 +192,7 @@ const attachReferralCookie = async (
   response: NextResponse,
   brandUrl: string,
 ): Promise<NextResponse> => {
-  const referralCode = await resolveReferralCode(request, brandUrl);
+  const referralCode = normalizeReferralCode(await resolveReferralCode(request, brandUrl));
   if (!referralCode) return response;
 
   response.cookies.set(REFERRAL_COOKIE_NAME, referralCode, {
@@ -145,7 +200,7 @@ const attachReferralCookie = async (
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: REFERRAL_COOKIE_MAX_AGE,
   });
 
   return response;
@@ -153,44 +208,39 @@ const attachReferralCookie = async (
 
 export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
-  const searchParams = new URLSearchParams(nextUrl.search);
 
-  let referralToken: string | null = null;
-  let matchedParam: string | null = null;
-
-  for (const param of REFERRAL_PARAMS) {
-    const value = searchParams.get(param);
-    if (value && value.trim().length > 0) {
-      referralToken = value.trim().toUpperCase();
-      matchedParam = param;
-      break;
-    }
-  }
-
-  if (referralToken && matchedParam) {
-    searchParams.delete(matchedParam);
-    const cleanSearch = searchParams.toString();
-    const cleanUrl = new URL(nextUrl.pathname + (cleanSearch ? `?${cleanSearch}` : ''), nextUrl.origin);
-
-    const response = NextResponse.redirect(cleanUrl);
-
-    const existing = request.cookies.get(REFERRAL_COOKIE_NAME);
-    if (!existing) {
-      response.cookies.set(REFERRAL_COOKIE_NAME, referralToken, {
-        maxAge: REFERRAL_COOKIE_MAX_AGE,
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      });
-    }
-
-    return response;
-  }
+  // Referral params used to be stripped from the URL and redirected away here,
+  // purely so the code would not linger in the address bar. That cosmetic strip
+  // was destructive: it ran before any route check and deleted the param
+  // whether or not the value looked like a referral code, which is how
+  // `/search?q=...` lost its query. Capture is now non-destructive and happens
+  // in attachReferralCookie on the response the request was going to get
+  // anyway, so no page is ever redirected for carrying a param it owns.
 
   // Resolve brand URL dynamically from request (multi-brand support)
   const brandUrl = resolveBrandUrl(request);
-  
+
+  // Ambassador share links (?r=<share token>) drop the visitor straight onto
+  // the sign-up form instead of the page the link points at. The referral
+  // cookie is attached to the redirect response itself, so attribution
+  // survives the hop; `r` is deliberately dropped from the target so the
+  // follow-up request cannot bounce again. Scoped to `r` only: that is the one
+  // param the platform actually mints, and the plaintext code params merely set
+  // the cookie in place without moving the visitor.
+  const shareToken = nextUrl.searchParams.get('r');
+  if (
+    shareToken &&
+    shareToken.trim().length > 0 &&
+    shouldRedirectReferralToSignup({
+      pathname: nextUrl.pathname,
+      isAuthenticated: request.cookies.has(SESSION_COOKIE_NAME),
+    })
+  ) {
+    const signupUrl = new URL(SIGNUP_PATH, nextUrl.origin);
+    signupUrl.searchParams.set('mode', 'signup');
+    return attachReferralCookie(request, NextResponse.redirect(signupUrl), brandUrl);
+  }
+
   // Get the hostname from the request headers
   const hostname = request.headers.get('host') || '';
   

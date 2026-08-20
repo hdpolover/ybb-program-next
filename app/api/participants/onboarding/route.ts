@@ -3,76 +3,13 @@ import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
-import { isRecord } from '@/lib/api/response';
+import { getErrorMessage, isRecord } from '@/lib/api/response';
 
 function isEmptyData(value: unknown): boolean {
   if (value == null) return true;
   if (Array.isArray(value)) return value.length === 0;
   if (typeof value === 'object') return Object.keys(value as Record<string, unknown>).length === 0;
   return false;
-}
-
-export async function GET(request: Request) {
-  try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
-
-    if (!accessToken) {
-      return NextResponse.json(
-        { statusCode: 401, message: 'Unauthorized', data: null },
-        { status: 401 },
-      );
-    }
-
-    const brandDomain = resolveBrandDomainFromRequest(request);
-
-    const apiUrl = new URL('/v1/participants/onboarding', getServerApiBaseUrl());
-    const res = await fetch(apiUrl.toString(), {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-        'x-brand-domain': brandDomain,
-      },
-      cache: 'no-store',
-    });
-
-    const json = await res.json().catch(() => ({}));
-    const jsonRecord = isRecord(json) ? json : {};
-    if (!res.ok) {
-      if (res.status === 404) {
-        return NextResponse.json(
-          { statusCode: 200, message: 'Data not Added', data: null },
-          { status: 200 },
-        );
-      }
-      return NextResponse.json(
-        {
-          statusCode: typeof jsonRecord.statusCode === 'number' ? jsonRecord.statusCode : res.status,
-          message: typeof jsonRecord.message === 'string' ? jsonRecord.message : 'Failed to fetch onboarding',
-          data: null,
-        },
-        { status: res.status },
-      );
-    }
-
-    const data = jsonRecord.data ?? json ?? null;
-    return NextResponse.json({
-      statusCode: 200,
-      message: isEmptyData(data) ? 'Data not Added' : 'Success',
-      data: isEmptyData(data) ? null : data,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      {
-        statusCode: 500,
-        message,
-        data: null,
-      },
-      { status: 500 },
-    );
-  }
 }
 
 export async function POST(request: Request) {
@@ -94,8 +31,17 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
 
-    // Pad user-provided birth year to match backend date requirements smoothly
+    // TEMPORARY SHIM: the onboarding form used to collect only a birth year and this
+    // route padded it to 'YYYY-01-01', fabricating every participant's month/day (see
+    // the 13557-row Jan-1 incident). The client now collects a full date, so this
+    // should never fire for a current client. Kept only so a stale cached client (old
+    // bundle still in a browser's cache/service worker) degrades to the old padded
+    // behavior instead of a hard 400 from the backend's @IsDateString. Logged so any
+    // remaining bare-year traffic is visible and this can be deleted once it's zero.
     if (typeof body.birthDate === 'string' && body.birthDate.length === 4) {
+      console.warn('[onboarding] received bare 4-digit birthDate year, padding to YYYY-01-01 (stale client?)', {
+        birthDate: body.birthDate,
+      });
       body.birthDate = `${body.birthDate}-01-01`;
     }
 
@@ -110,6 +56,10 @@ export async function POST(request: Request) {
         ?.split('=')[1] ?? null;
       if (cookieReferralCode) {
         body.referralCode = cookieReferralCode;
+      } else {
+        // No code anywhere — omit the key entirely so the backend DTO sees
+        // undefined instead of "", matching register/firebase-login proxies.
+        delete body.referralCode;
       }
     }
 
@@ -131,7 +81,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           statusCode: typeof postJsonRecord.statusCode === 'number' ? postJsonRecord.statusCode : res.status,
-          message: typeof postJsonRecord.message === 'string' ? postJsonRecord.message : 'Failed to submit onboarding',
+          message: getErrorMessage(postJsonRecord, 'Failed to submit onboarding'),
           data: postJsonRecord.data ?? null,
         },
         { status: res.status },

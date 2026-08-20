@@ -22,6 +22,10 @@ import {
 } from '@/lib/format/datetime';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 import { headers } from 'next/headers';
+import { getActivityData } from '@/lib/api/activity';
+import { ActivityToast } from '@/components/marketing/ActivityToast';
+import { resolveBrandDomain } from '@/lib/server/envContext';
+import { isProgramRegistrationOpen } from '@/lib/registration/status';
 
 function parseValidDate(value: unknown): Date | null {
   if (!value) return null;
@@ -79,8 +83,18 @@ function parseBullets(text: string | null): string[] {
 
 export default async function ProgramDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  // Kept as the raw host header for getProgramDetail -- do not change what that call
+  // receives, it is a working code path and out of scope here.
   const host = (await headers()).get('host') || '';
-  const program = await getProgramDetail(slug, host);
+  // resolveBrandDomain() mirrors app/page.tsx: handles x-hostname, maps localhost to the
+  // configured env default, and strips ports. Using the raw host here (like getProgramDetail
+  // does) makes the activity toast work on the home page but silently not on this page in
+  // local dev/preview, since those environments hit the localhost/port branches differently.
+  const activityHost = await resolveBrandDomain();
+  const [program, activityItems] = await Promise.all([
+    getProgramDetail(slug, host),
+    getActivityData(activityHost),
+  ]);
 
   if (!program) notFound();
 
@@ -89,7 +103,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   const endDate = parseValidDate(program.endDate ?? program.startDate);
   const hasEnded = endDate ? endDate.getTime() < now : false;
   const isArchiveProgram = program.status === 'completed' || hasEnded;
-  const isOpen = !isArchiveProgram && program.allowRegistration;
+  const isOpen = !isArchiveProgram && isProgramRegistrationOpen(program, new Date(now));
   const resolvedProgramTitle =
     firstNonEmpty(program.name, [program.brand?.name, program.year].filter(Boolean).join(' ')) ?? 'Program Archive';
   const heroEyebrow = isArchiveProgram ? 'Program Archive' : 'Featured Program';
@@ -423,6 +437,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
           </div>
         </section>
       )}
+      <ActivityToast items={activityItems} />
     </main>
   );
 }

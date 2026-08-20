@@ -14,6 +14,7 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { normalizeEmailInput } from '@/lib/utils';
 import { Alert } from '@/components/ui';
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
+import { resolveLoginMode } from '@/lib/auth/loginMode';
 import { trackLead } from '@/lib/analytics/metaPixel';
 import { notifyIfRegistrationClosed } from '@/lib/auth/programRegistrationClosed';
 import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
@@ -55,8 +56,12 @@ export default function LoginPage() {
   const { settings } = useSettings();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<'login' | 'signup'>(() => {
-    const requestedMode = searchParams.get('mode');
-    return requestedMode === 'signup' ? 'signup' : 'login';
+    return (
+      resolveLoginMode({
+        mode: searchParams.get('mode'),
+        applicationCategory: searchParams.get('applicationCategory'),
+      }) ?? 'login'
+    );
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
@@ -114,8 +119,11 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    const requestedMode = searchParams.get('mode');
     const requestedRole = searchParams.get('role');
+    const requestedMode = resolveLoginMode({
+      mode: searchParams.get('mode'),
+      applicationCategory: searchParams.get('applicationCategory'),
+    });
 
     // Defer state updates to avoid synchronous setState in effect body
     const timer = setTimeout(() => {
@@ -125,14 +133,8 @@ export default function LoginPage() {
         return;
       }
 
-      if (requestedMode === 'signup') {
-        setMode('signup');
-        setAmbassadorMode(false);
-        return;
-      }
-
-      if (requestedMode === 'login') {
-        setMode('login');
+      if (requestedMode) {
+        setMode(requestedMode);
         setAmbassadorMode(false);
       }
     }, 0);

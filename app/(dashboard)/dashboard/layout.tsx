@@ -18,6 +18,7 @@ import NotificationsPopover from '@/components/dashboard/layout/NotificationsPop
 import UserMenuPopover from '@/components/dashboard/layout/UserMenuPopover';
 import { getEnvelopeData, isRecord } from '@/lib/api/response';
 import { toAmbassadorData } from '@/lib/dashboard/ambassador';
+import { shouldRedirectToOnboarding } from '@/lib/dashboard/shouldRedirectToOnboarding';
 import { componentsTheme } from '@/lib/theme/components';
 
 type DashboardSearchItem = {
@@ -288,15 +289,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             cache: 'no-store',
           });
 
-          if (!cancelled && profileRes.ok) {
-            const profileJson = (await profileRes.json().catch(() => null)) as unknown;
-            const profilePayload = getEnvelopeData(profileJson);
-            const profileData = toParticipantMeData(profilePayload);
-            setParticipantProfile(profileData);
-
-            // Don't bounce users who logged in as an ambassador to onboarding —
-            // they may legitimately have no participant record.
-            if (data && !profileData?.id && data.activeRole !== 'ambassador') {
+          if (!cancelled) {
+            if (profileRes.ok) {
+              const profileJson = (await profileRes.json().catch(() => null)) as unknown;
+              const profilePayload = getEnvelopeData(profileJson);
+              const profileData = toParticipantMeData(profilePayload);
+              setParticipantProfile(profileData);
+            } else if (data && shouldRedirectToOnboarding(profileRes.status, data.activeRole)) {
+              // A clean backend 404 is the only definitive "no participant
+              // record" signal — 5xx/network/unparseable responses are
+              // transient and must not bounce an existing participant back
+              // to onboarding.
+              setParticipantProfile(null);
               router.push('/onboarding');
             }
           }

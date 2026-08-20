@@ -593,7 +593,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {primaryOpen ? (
                     <a
-                      href="/login?applicationCategory=self_funded"
+                      href="/login?mode=signup&applicationCategory=self_funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                       onClick={() => trackInitiateCheckout({ content_name: 'self_funded' })}
                     >
@@ -714,7 +714,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {secondaryOpen ? (
                     <a
-                      href="/login?applicationCategory=fully_funded"
+                      href="/login?mode=signup&applicationCategory=fully_funded"
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                       onClick={() => trackInitiateCheckout({ content_name: 'fully_funded' })}
                     >
