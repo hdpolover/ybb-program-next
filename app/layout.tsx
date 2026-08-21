@@ -18,7 +18,11 @@ import RegistrationCountdownGate from '@/components/layout/RegistrationCountdown
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
 import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
 import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
-import { resolveActiveRegistration, RegistrationCategory } from '@/lib/registration/deadline';
+import {
+  resolveActiveRegistration,
+  resolveRegistrationCountdownDeadline,
+  RegistrationCategory,
+} from '@/lib/registration/deadline';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -142,9 +146,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     gaId = settingsResult.value?.brand?.google_analytics_id || null;
     pixelId = settingsResult.value?.brand?.pixel_id || null;
 
-    // Derive the registration deadline from the program's registration-fee
-    // windows: fully funded close first, then self funded once fully funded
-    // has passed. Falls back to the program-level field when tiers are absent.
+    // Deadline shown by the homepage countdown/gates: the program's own
+    // registrationCloseDate always wins when set (see resolveRegistrationCountdownDeadline
+    // for the incident this precedence fixes). The pricing-tier deadline is
+    // only a fallback for brands whose program has no registrationCloseDate.
     activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
     if (activeProgramSlug) {
       try {
@@ -162,7 +167,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             console.error('[Layout] Failed to fetch pricing tiers:', tierError);
           }
         }
-        registrationCloseDate = tierDeadline ?? program?.registrationCloseDate ?? null;
+        registrationCloseDate = resolveRegistrationCountdownDeadline(
+          program?.registrationCloseDate,
+          tierDeadline,
+        );
       } catch (error) {
         console.error('[Layout] Failed to fetch program detail:', error);
       }
