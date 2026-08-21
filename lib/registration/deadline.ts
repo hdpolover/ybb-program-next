@@ -105,3 +105,21 @@ export function resolveActiveRegistration(
 
   return null;
 }
+
+/**
+ * Resolve the deadline shown by the homepage countdown/gates.
+ *
+ * Incident (2026-08-21): the program's real registrationCloseDate was
+ * overridden by a pricing tier's registration-fee validity window, which can
+ * close months earlier. middleeastyouthsummit.com advertised "closes in"
+ * Aug 31 while the real registrationCloseDate was Dec 5. The program's own
+ * close date must always win when it is set; the tier deadline is only a
+ * fallback for the handful of brands whose program has no
+ * registrationCloseDate at all (Istanbul Youth Summit, Youth Academic Forum).
+ */
+export function resolveRegistrationCountdownDeadline(
+  programRegistrationCloseDate: string | null | undefined,
+  tierDeadline: string | null | undefined,
+): string | null {
+  return programRegistrationCloseDate ?? tierDeadline ?? null;
+}
