@@ -5,8 +5,16 @@ import { getCalendarDayDifference, parseApiDate } from '@/lib/utils';
 import { formatDeadlineWib } from '@/lib/format/deadline';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { isRecord } from '@/lib/api/response';
+import { isFetchTimeoutError, withTimeoutSignal } from '@/lib/api/fetchWithTimeout';
+
+// Deliberately shorter than PAYMENTS_FETCH_TIMEOUT_MS in PaymentsListSection
+// so this hop times out first and returns a real 504, instead of the browser
+// aborting blind while the upstream call is still in flight.
+const PAYMENTS_PROXY_TIMEOUT_MS = 12_000;
 
 export async function GET(request: Request) {
+  const { signal, cleanup } = withTimeoutSignal(PAYMENTS_PROXY_TIMEOUT_MS);
+
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
@@ -31,6 +39,7 @@ export async function GET(request: Request) {
         'x-brand-domain': brandDomain,
       },
       cache: 'no-store',
+      signal,
     });
 
     const json = await res.json().catch(() => ({}));
@@ -249,10 +258,19 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ statusCode: 200, message: 'Success', data: { items, summary } });
   } catch (error) {
+    if (isFetchTimeoutError(error)) {
+      return NextResponse.json(
+        { statusCode: 504, message: 'Payments request timed out. Please try again.', data: null },
+        { status: 504 },
+      );
+    }
+
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { statusCode: 500, message, data: null },
       { status: 500 },
     );
+  } finally {
+    cleanup();
   }
 }
