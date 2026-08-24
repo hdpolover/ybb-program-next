@@ -17,14 +17,17 @@ import {
   Eye,
 } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
+import { Button } from '@/components/ui';
 import DashboardPageSkeleton from '@/components/dashboard/ui/DashboardPageSkeleton';
 import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
   readActiveProgramId,
+  resolveActiveProgramId,
 } from '@/lib/dashboard/activeProgram';
 import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
 import { getEnvelopeData, getMessage, isRecord } from '@/lib/api/response';
+import { isFetchTimeoutError, withTimeoutSignal } from '@/lib/api/fetchWithTimeout';
 import {
   flushSwitchCategoryFeedback,
   queueSwitchCategoryFeedback,
@@ -39,6 +42,12 @@ import { getCalendarDayDifference, getInclusiveCalendarDaySpan, parseApiDate } f
 import { formatDeadlineLocal } from '@/lib/format/deadline';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
+
+// Browser-hop timeout for the payments fetch. Kept longer than the server
+// proxy's own timeout (see app/api/portal/payments/route.ts) so the proxy
+// times out first and returns a real error response, rather than this
+// aborting blind while the proxy is still mid-request.
+const PAYMENTS_FETCH_TIMEOUT_MS = 15_000;
 
 interface PaymentItem {
   id: string;
@@ -249,7 +258,7 @@ function summarizeByLocalTime(items: PaymentItem[], totalRequired: string): Paym
 }
 
 export default function PaymentsListSection() {
-  const { dashboardSummary } = useDashboardData();
+  const { dashboardSummary, me } = useDashboardData();
   const router = useRouter();
   const activeApplication = dashboardSummary?.activeApplication ?? null;
   const canSwitchCategory = activeApplication?.canSwitchCategory ?? false;
@@ -275,6 +284,9 @@ export default function PaymentsListSection() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Bumped by the retry button to re-run the fetch effect below (e.g. after
+  // a timeout) without duplicating its fetch logic.
+  const [retryCount, setRetryCount] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
   const [rowActionLoadingId, setRowActionLoadingId] = useState<string | null>(null);
 
@@ -412,19 +424,30 @@ export default function PaymentsListSection() {
 
   useEffect(() => {
     let cancelled = false;
+    // Owns unmount-cancellation; withTimeoutSignal chains its own timeout
+    // abort onto this so either unmount or the 15s timeout stops the fetch.
+    const unmountController = new AbortController();
 
     const fetchPayments = async () => {
+      const { signal, cleanup } = withTimeoutSignal(PAYMENTS_FETCH_TIMEOUT_MS, unmountController.signal);
+
       try {
         setLoading(true);
         setError(null);
 
-        const programId = readActiveProgramId();
+        // Derive the program id the same deterministic way ProgramSelector
+        // does, rather than trusting the raw localStorage snapshot: on first
+        // mount ProgramSelector may not have resolved/corrected it yet, and
+        // this sidesteps that race instead of depending on its timing.
+        const storedProgramId = readActiveProgramId();
+        const programId = resolveActiveProgramId(me?.registeredPrograms ?? [], storedProgramId);
         const url = appendProgramId('/api/portal/payments', programId);
 
         const response = await fetch(url, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           cache: 'no-store',
+          signal,
         });
 
         const json = (await response.json().catch(() => null)) as unknown;
@@ -449,9 +472,14 @@ export default function PaymentsListSection() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load payments');
+          if (isFetchTimeoutError(err)) {
+            setError('Loading payments is taking longer than expected. Please try again.');
+          } else {
+            setError(err instanceof Error ? err.message : 'Failed to load payments');
+          }
         }
       } finally {
+        cleanup();
         if (!cancelled) {
           setLoading(false);
         }
@@ -468,12 +496,13 @@ export default function PaymentsListSection() {
 
     return () => {
       cancelled = true;
+      unmountController.abort();
       window.removeEventListener(
         ACTIVE_PROGRAM_CHANGED_EVENT,
         handleProgramChange as EventListener
       );
     };
-  }, []);
+  }, [me?.registeredPrograms, retryCount]);
 
   if (loading) {
     return (
@@ -487,6 +516,14 @@ export default function PaymentsListSection() {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <AlertTriangle className="h-6 w-6 text-red-500" />
           <p className="mt-2 text-sm text-red-600">{error}</p>
+          <Button
+            type="button"
+            onClick={() => setRetryCount((count) => count + 1)}
+            size="sm"
+            className="mt-4 min-w-[120px]"
+          >
+            Try again
+          </Button>
         </div>
       </section>
     );
