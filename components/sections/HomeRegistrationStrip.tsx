@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
-import { formatDeadlineLocal } from '@/lib/format/deadline';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
+import { getRegistrationPeriodLabel } from "@/lib/format/registration-period";
 
 type InstagramFeedItem = {
   id: string;
@@ -57,30 +57,6 @@ function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): b
   });
 }
 
-function getActivePeriodLabel(periods: ValidityPeriod[] | undefined, now: Date): string {
-  if (!periods || periods.length === 0) return 'TBD';
-  const parse = (d: string) => {
-    const parsed = new Date(d);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  };
-  const fmt = (d: string) => {
-    const result = formatDeadlineLocal(d, { withTime: false });
-    return result === '—' ? 'TBD' : result;
-  };
-  const active = periods.find((p) => {
-    const start = parse(p.start_date);
-    const end = parse(p.end_date);
-    return Boolean(start && end && start <= now && now <= end);
-  });
-  if (active) return `${fmt(active.start_date)} - ${fmt(active.end_date)}`;
-  const upcoming = periods.find((p) => {
-    const start = parse(p.start_date);
-    return Boolean(start && start > now);
-  });
-  if (upcoming) return `${fmt(upcoming.start_date)} - ${fmt(upcoming.end_date)}`;
-  const last = periods[periods.length - 1];
-  return `${fmt(last.start_date)} - ${fmt(last.end_date)}`;
-}
 
 function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | null {
   const normalized = category.trim().toLowerCase();
@@ -528,7 +504,7 @@ export default function HomeRegistrationStrip({
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                     Registration Period:
                   </span>
-                    <span>{getActivePeriodLabel(primaryType?.validity_periods, currentNow ?? new Date(0))}</span>
+                    <span>{getRegistrationPeriodLabel(primaryType?.validity_periods)}</span>
                 </div>
               </div>
               <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
@@ -647,7 +623,7 @@ export default function HomeRegistrationStrip({
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                     Registration Period:
                   </span>
-                    <span>{getActivePeriodLabel(secondaryType?.validity_periods, currentNow ?? new Date(0))}</span>
+                    <span>{getRegistrationPeriodLabel(secondaryType?.validity_periods)}</span>
                 </div>
               </div>
               <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
