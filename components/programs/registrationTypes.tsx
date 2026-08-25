@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
-import { formatDeadlineLocal } from '@/lib/format/deadline';
+import { getRegistrationPeriodLabel } from '@/lib/format/registration-period';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
@@ -49,30 +49,6 @@ function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): b
   });
 }
 
-function getActivePeriodLabel(periods: ValidityPeriod[] | undefined, now: Date): string {
-  if (!periods || periods.length === 0) return 'TBD';
-  const parse = (d: string) => {
-    const parsed = new Date(d);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  };
-  const fmt = (d: string) => {
-    const result = formatDeadlineLocal(d, { withTime: false });
-    return result === '—' ? 'TBD' : result;
-  };
-  const active = periods.find((p) => {
-    const start = parse(p.start_date);
-    const end = parse(p.end_date);
-    return Boolean(start && end && start <= now && now <= end);
-  });
-  if (active) return `${fmt(active.start_date)} - ${fmt(active.end_date)}`;
-  const upcoming = periods.find((p) => {
-    const start = parse(p.start_date);
-    return Boolean(start && start > now);
-  });
-  if (upcoming) return `${fmt(upcoming.start_date)} - ${fmt(upcoming.end_date)}`;
-  const last = periods[periods.length - 1];
-  return `${fmt(last.start_date)} - ${fmt(last.end_date)}`;
-}
 
 function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | null {
   const normalized = category.trim().toLowerCase();
@@ -333,7 +309,7 @@ export default function RegistrationTypePrograms({
                       <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                         Registration Period:
                       </span>
-                      <span>{getActivePeriodLabel(periods, currentNow ?? new Date(0))}</span>
+                      <span>{getRegistrationPeriodLabel(periods)}</span>
                     </div>
                   );
                 })()}
@@ -470,7 +446,7 @@ export default function RegistrationTypePrograms({
                       <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                         Registration Period:
                       </span>
-                      <span>{getActivePeriodLabel(periods, currentNow ?? new Date(0))}</span>
+                      <span>{getRegistrationPeriodLabel(periods)}</span>
                     </div>
                   );
                 })()}
