@@ -1,5 +1,6 @@
 import { CalendarDays } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
+import { TimelineDateLabel } from '@/components/programs/TimelineDateLabel';
 import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramImportantDatesItem, ProgramImportantDatesSection } from '@/types/programs';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
@@ -93,7 +94,9 @@ function TimelineGroup({ title, items }: { title: string; items: ProgramImportan
               </div>
               <article className={`${componentsTheme.programsSchedules.card} ${cardAccentClass}`}>
                 <div className={componentsTheme.programsSchedules.cardHeader}>
-                  <p className={componentsTheme.programsSchedules.cardDate}>{dateLabel}</p>
+                  <p className={componentsTheme.programsSchedules.cardDate}>
+                    <TimelineDateLabel wibLabel={dateLabel} startDate={item.start_date} />
+                  </p>
                   <StatusBadge visualStatus={visualStatus} label={item.status} />
                 </div>
                 <h3 className={componentsTheme.programsSchedules.cardTitle}>

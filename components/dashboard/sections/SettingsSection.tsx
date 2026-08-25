@@ -18,12 +18,24 @@ import {
 } from "lucide-react";
 import { parseApiDate } from "@/lib/utils";
 import { auth, googleProvider } from "@/lib/firebase";
+import { useHydrated } from "@/hooks/useHydrated";
+import { BUSINESS_TIMEZONE } from "@/lib/format/deadline";
 
-function formatLastUsedAt(value?: string | null): string | null {
+/**
+ * Formats without an explicit timeZone, so before hydration (server render and
+ * first client render) it must be pinned to the business timezone; only once
+ * `hydrated` is true does it resolve to the viewer's own ambient zone.
+ */
+function formatLastUsedAt(value: string | null | undefined, hydrated: boolean): string | null {
   if (!value) return null;
   const parsed = parseApiDate(value);
   if (Number.isNaN(parsed.getTime())) return null;
-  return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    ...(hydrated ? {} : { timeZone: BUSINESS_TIMEZONE }),
+  });
 }
 
 function SettingsSkeleton() {
@@ -137,6 +149,7 @@ function isStrongPassword(password: string) {
 }
 
 export default function SettingsSection() {
+  const hydrated = useHydrated();
   const [authMe, setAuthMe] = useState<AuthMeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [resetState, setResetState] = useState<
@@ -340,33 +353,35 @@ export default function SettingsSection() {
               </p>
               {authMe?.identities && authMe.identities.length > 0 ? (
                 <ul className="space-y-2">
-                  {authMe.identities.map((identity) => (
-                    <li
-                      key={identity.provider}
-                      className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm">
-                          <ProviderIcon provider={identity.provider} />
-                        </span>
-                        <div>
-                          <p className="text-sm font-medium text-slate-700">
-                            {identity.displayName || providerLabel(identity.provider)}
-                          </p>
-                          {formatLastUsedAt(identity.lastUsedAt) && (
-                            <p className="text-xs text-slate-400">
-                              Last used{" "}
-                              {formatLastUsedAt(identity.lastUsedAt)}
+                  {authMe.identities.map((identity) => {
+                    const lastUsedLabel = formatLastUsedAt(identity.lastUsedAt, hydrated);
+                    return (
+                      <li
+                        key={identity.provider}
+                        className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm">
+                            <ProviderIcon provider={identity.provider} />
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium text-slate-700">
+                              {identity.displayName || providerLabel(identity.provider)}
                             </p>
-                          )}
+                            {lastUsedLabel && (
+                              <p className="text-xs text-slate-400" suppressHydrationWarning>
+                                Last used {lastUsedLabel}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Connected
-                      </span>
-                    </li>
-                  ))}
+                        <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Connected
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <p className="text-sm text-slate-400">

@@ -1,5 +1,5 @@
 // lib/format/registration-period.ts
-import { formatDeadlineLocal } from "@/lib/format/deadline";
+import { formatDeadlineLocal, formatDeadlineWib } from "@/lib/format/deadline";
 
 export type ValidityPeriod = {
   start_date: string;
@@ -22,6 +22,7 @@ export type ValidityPeriod = {
  */
 export function getRegistrationPeriodLabel(
   periods: ValidityPeriod[] | undefined,
+  hydrated: boolean = true,
 ): string {
   if (!periods || periods.length === 0) return "TBD";
 
@@ -47,7 +48,9 @@ export function getRegistrationPeriodLabel(
   if (!earliest || !latest) return "TBD";
 
   const fmt = (value: string) => {
-    const result = formatDeadlineLocal(value, { withTime: false });
+    const result = hydrated
+      ? formatDeadlineLocal(value, { withTime: false })
+      : formatDeadlineWib(value, { withTime: false });
     return result === "—" ? "TBD" : result;
   };
 

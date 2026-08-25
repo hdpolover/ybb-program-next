@@ -83,7 +83,7 @@ export function formatDocumentTypeLabel(value?: string): string {
   return typeLabelMap[normalized] ?? toTitleCaseFromToken(normalized);
 }
 
-export function formatDocumentDateLabel(value?: string): string {
+export function formatDocumentDateLabel(value?: string, opts?: { timeZone?: string }): string {
   if (!value) return 'Not available';
 
   const parsed = parseApiDate(value);
@@ -95,6 +95,7 @@ export function formatDocumentDateLabel(value?: string): string {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    ...(opts?.timeZone ? { timeZone: opts.timeZone } : {}),
   }).format(parsed);
 }
 

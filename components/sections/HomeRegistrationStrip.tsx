@@ -5,6 +5,7 @@ import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from
 import { componentsTheme } from '@/lib/theme/components';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import { getRegistrationPeriodLabel } from "@/lib/format/registration-period";
+import { useHydrated } from '@/hooks/useHydrated';
 
 type InstagramFeedItem = {
   id: string;
@@ -200,6 +201,7 @@ export default function HomeRegistrationStrip({
 }: HomeRegistrationStripProps) {
   const safeRegistrationTypes = registrationTypes ?? [];
   const [currentNow] = useState<Date>(() => new Date());
+  const hydrated = useHydrated();
 
   const posts = useMemo(
     () =>
@@ -504,7 +506,9 @@ export default function HomeRegistrationStrip({
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                     Registration Period:
                   </span>
-                    <span>{getRegistrationPeriodLabel(primaryType?.validity_periods)}</span>
+                    <span suppressHydrationWarning>
+                      {getRegistrationPeriodLabel(primaryType?.validity_periods, hydrated)}
+                    </span>
                 </div>
               </div>
               <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
@@ -623,7 +627,9 @@ export default function HomeRegistrationStrip({
                   <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                     Registration Period:
                   </span>
-                    <span>{getRegistrationPeriodLabel(secondaryType?.validity_periods)}</span>
+                    <span suppressHydrationWarning>
+                      {getRegistrationPeriodLabel(secondaryType?.validity_periods, hydrated)}
+                    </span>
                 </div>
               </div>
               <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>

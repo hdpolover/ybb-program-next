@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import { getRegistrationPeriodLabel } from '@/lib/format/registration-period';
+import { useHydrated } from '@/hooks/useHydrated';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
@@ -161,6 +162,7 @@ export default function RegistrationTypePrograms({
   registrationDates,
 }: RegistrationTypeProgramsProps) {
   const [currentNow] = useState<Date>(() => new Date());
+  const hydrated = useHydrated();
   const [descriptionDialog, setDescriptionDialog] = useState<{
     title: string;
     requirements: string[];
@@ -309,7 +311,9 @@ export default function RegistrationTypePrograms({
                       <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                         Registration Period:
                       </span>
-                      <span>{getRegistrationPeriodLabel(periods)}</span>
+                      <span suppressHydrationWarning>
+                        {getRegistrationPeriodLabel(periods, hydrated)}
+                      </span>
                     </div>
                   );
                 })()}
@@ -446,7 +450,9 @@ export default function RegistrationTypePrograms({
                       <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
                         Registration Period:
                       </span>
-                      <span>{getRegistrationPeriodLabel(periods)}</span>
+                      <span suppressHydrationWarning>
+                        {getRegistrationPeriodLabel(periods, hydrated)}
+                      </span>
                     </div>
                   );
                 })()}

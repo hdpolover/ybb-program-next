@@ -10,7 +10,9 @@ import {
   formatAnnouncementDateLabel,
   isExternalHref,
 } from '@/lib/announcements';
+import { BUSINESS_TIMEZONE } from '@/lib/format/deadline';
 import { componentsTheme } from '@/lib/theme/components';
+import { useHydrated } from '@/hooks/useHydrated';
 
 export type AnnouncementItem = {
   id: number | string;
@@ -36,6 +38,10 @@ export default function AnnouncementsGrid({
   subtitle?: string;
   showControls?: boolean;
 }) {
+  // false during SSR/first client render; true once hydrated. Gates the date's
+  // timezone — see hooks/useHydrated.ts.
+  const hydrated = useHydrated();
+
   // search & filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -154,7 +160,10 @@ export default function AnnouncementsGrid({
         {/* grid berita — komponen ini reusable biar gampang dipakai di halaman lain */}
         <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-2 lg:grid-cols-3">
           {visibleItems.map(n => {
-            const dateLabel = formatAnnouncementDateLabel(n.date);
+            const dateLabel = formatAnnouncementDateLabel(
+              n.date,
+              hydrated ? undefined : { timeZone: BUSINESS_TIMEZONE },
+            );
             const cardContent = (
               <>
                 <div className="relative h-44 w-full overflow-hidden sm:h-52">
@@ -197,7 +206,7 @@ export default function AnnouncementsGrid({
                   <div className="mt-4 h-px w-full bg-slate-200" />
                   <p className="mt-3 text-xs font-semibold text-blue-900">
                     {n.author} <span className="text-slate-500"> - </span>{' '}
-                    <span className="text-blue-900">{dateLabel}</span>
+                    <span className="text-blue-900" suppressHydrationWarning>{dateLabel}</span>
                   </p>
                 </div>
               </>

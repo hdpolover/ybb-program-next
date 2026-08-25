@@ -1,6 +1,9 @@
 import { parseApiDate } from '@/lib/utils';
 
-export function formatAnnouncementDateLabel(value?: string | null): string {
+export function formatAnnouncementDateLabel(
+  value?: string | null,
+  opts?: { timeZone?: string },
+): string {
   const raw = (value || '').trim();
   if (!raw) return 'Date TBA';
 
@@ -11,6 +14,7 @@ export function formatAnnouncementDateLabel(value?: string | null): string {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    ...(opts?.timeZone ? { timeZone: opts.timeZone } : {}),
   }).format(parsed);
 }
 

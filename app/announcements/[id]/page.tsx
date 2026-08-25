@@ -3,10 +3,10 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { AnnouncementDateLabel } from '@/components/announcements/AnnouncementDateLabel';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
 import {
   formatAnnouncementCategoryLabel,
-  formatAnnouncementDateLabel,
   getAnnouncementActionHref,
   isExternalHref,
   toAnnouncementHtml,
@@ -96,7 +96,6 @@ export default async function AnnouncementDetailPage({ params }: { params: Promi
   const title = item.title?.trim() || 'Announcement';
   const excerpt = item.excerpt?.trim() || 'No additional details available.';
   const author = item.author?.trim() || 'YBB';
-  const dateLabel = formatAnnouncementDateLabel(item.date);
   const image = item.image?.trim() || '/img/announcementbackground.png';
   const content = toAnnouncementHtml(item.content?.trim() || excerpt);
   const actionHref = getAnnouncementActionHref(item.href);
@@ -129,7 +128,7 @@ export default async function AnnouncementDetailPage({ params }: { params: Promi
           </div>
           <h1 className="text-3xl font-extrabold text-blue-950">{title}</h1>
           <p className="text-sm font-semibold text-blue-900">
-            {author} <span className="text-slate-500"> - </span> {dateLabel}
+            {author} <span className="text-slate-500"> - </span> <AnnouncementDateLabel value={item.date} />
           </p>
           <p className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700">
             {excerpt}
