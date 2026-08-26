@@ -21,6 +21,8 @@ import {
   getProgramResourceDetailHref,
   toDocumentItem,
 } from '@/lib/dashboard/documents';
+import { BUSINESS_TIMEZONE } from '@/lib/format/deadline';
+import { useHydrated } from '@/hooks/useHydrated';
 
 const TABS = ['All', 'Upload Required', 'Can Generate', 'Reference'] as const;
 type TabKey = (typeof TABS)[number];
@@ -165,6 +167,9 @@ function CertificatesRowsSkeleton() {
 
 export default function DocumentsSection() {
   const router = useRouter();
+  // false during SSR/first client render; true once hydrated. Gates the
+  // "Updated" date's timezone — see hooks/useHydrated.ts.
+  const hydrated = useHydrated();
   const [activeTab, setActiveTab] = useState<TabKey>('All');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -605,7 +610,12 @@ export default function DocumentsSection() {
                             {formatDocumentTypeLabel(item.documentType)}
                           </p>
                           <p className="text-slate-500">Updated</p>
-                          <p className="text-right text-slate-700">{formatDocumentDateLabel(item.updatedAt)}</p>
+                          <p className="text-right text-slate-700" suppressHydrationWarning>
+                            {formatDocumentDateLabel(
+                              item.updatedAt,
+                              hydrated ? undefined : { timeZone: BUSINESS_TIMEZONE },
+                            )}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -674,8 +684,11 @@ export default function DocumentsSection() {
                         <div className={componentsTheme.dashboardDocuments.docTypeCell}>
                           {formatDocumentTypeLabel(item.documentType)}
                         </div>
-                        <div className={componentsTheme.dashboardDocuments.docTypeCell}>
-                          {formatDocumentDateLabel(item.updatedAt)}
+                        <div className={componentsTheme.dashboardDocuments.docTypeCell} suppressHydrationWarning>
+                          {formatDocumentDateLabel(
+                            item.updatedAt,
+                            hydrated ? undefined : { timeZone: BUSINESS_TIMEZONE },
+                          )}
                         </div>
                         <div className={componentsTheme.dashboardDocuments.actionCell}>
                           <div className="flex flex-nowrap items-center gap-2 whitespace-nowrap">

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
+import { useHydrated } from '@/hooks/useHydrated';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'normal' | 'high' | 'urgent';
@@ -186,19 +187,26 @@ function getPriorityChipClass(priority: TicketPriority): string {
   }
 }
 
-function formatDateTime(value?: string): string {
+// `hydrated` gates the timezone: before hydration the viewer's zone is unknown, so we
+// render a labelled WIB (business timezone) fallback; after hydration, ambient Intl
+// resolves to the viewer's own local timezone. See hooks/useHydrated.ts.
+function formatDateTime(value: string | undefined, hydrated: boolean): string {
   if (!value) return 'Unknown';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'Unknown';
 
-  return new Intl.DateTimeFormat('en-GB', {
+  const formatOptions: Intl.DateTimeFormatOptions = {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-  }).format(date);
+    ...(hydrated ? {} : { timeZone: 'Asia/Jakarta' }),
+  };
+
+  const formatted = new Intl.DateTimeFormat('en-GB', formatOptions).format(date);
+  return hydrated ? formatted : `${formatted} WIB`;
 }
 
 function extractScreenshotAttachments(value: string): SupportTicketAttachment[] {
@@ -419,6 +427,7 @@ function CompactAttachmentGrid({
 export default function SupportTicketsPage() {
   const { settings } = useSettings();
   const programId = settings?.active_program?.id ?? '';
+  const hydrated = useHydrated();
 
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -817,7 +826,7 @@ export default function SupportTicketsPage() {
                           {toTitleCaseFromToken(ticket.priority)}
                         </span>
                       </td>
-                      <td className="px-3 py-2 align-top text-zinc-600">{formatDateTime(ticket.updatedAt)}</td>
+                      <td className="px-3 py-2 align-top text-zinc-600" suppressHydrationWarning>{formatDateTime(ticket.updatedAt, hydrated)}</td>
                     </tr>
                     );
                   })
@@ -870,7 +879,7 @@ export default function SupportTicketsPage() {
                   </div>
                   <div className="sm:col-span-2">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Created</p>
-                    <p className="text-sm font-medium text-zinc-800">{formatDateTime(selectedTicket.createdAt)}</p>
+                    <p className="text-sm font-medium text-zinc-800" suppressHydrationWarning>{formatDateTime(selectedTicket.createdAt, hydrated)}</p>
                   </div>
                 </div>
               </div>
@@ -929,7 +938,7 @@ export default function SupportTicketsPage() {
                               {message.senderName}
                             </p>
                           </div>
-                          <p className="text-[11px] text-zinc-500">{formatDateTime(message.createdAt)}</p>
+                          <p className="text-[11px] text-zinc-500" suppressHydrationWarning>{formatDateTime(message.createdAt, hydrated)}</p>
                         </div>
                         <div
                           className="prose prose-sm max-w-none text-zinc-700"

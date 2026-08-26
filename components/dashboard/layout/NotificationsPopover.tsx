@@ -3,11 +3,18 @@
 import { AlertTriangle, Bell, Megaphone } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
+import { useHydrated } from "@/hooks/useHydrated";
+import { BUSINESS_TIMEZONE } from "@/lib/format/deadline";
 import { parseApiDate } from "@/lib/utils";
 
 type TabKey = "alerts" | "announcements";
 
-function formatDateLabel(iso?: string): string {
+/**
+ * Formats without an explicit timeZone, so before hydration (server render and
+ * first client render) it must be pinned to the business timezone; only once
+ * `hydrated` is true does it resolve to the viewer's own ambient zone.
+ */
+function formatDateLabel(iso: string | undefined, hydrated: boolean): string {
   if (!iso) return "";
   const d = parseApiDate(iso);
   if (Number.isNaN(d.getTime())) return "";
@@ -15,11 +22,13 @@ function formatDateLabel(iso?: string): string {
     year: "numeric",
     month: "short",
     day: "2-digit",
+    ...(hydrated ? {} : { timeZone: BUSINESS_TIMEZONE }),
   });
 }
 
 export default function NotificationsPopover() {
   const { dashboardSummary } = useDashboardData();
+  const hydrated = useHydrated();
   const alerts = useMemo(() => dashboardSummary?.alerts ?? [], [dashboardSummary?.alerts]);
   const announcements = useMemo(() => dashboardSummary?.recentAnnouncements ?? [], [dashboardSummary?.recentAnnouncements]);
 
@@ -172,7 +181,12 @@ export default function NotificationsPopover() {
                           <div className="mt-0.5 text-xs text-slate-600">{a.preview}</div>
                         ) : null}
                         {a?.date ? (
-                          <div className="mt-1 text-[11px] font-semibold text-slate-500">{formatDateLabel(a.date)}</div>
+                          <div
+                            className="mt-1 text-[11px] font-semibold text-slate-500"
+                            suppressHydrationWarning
+                          >
+                            {formatDateLabel(a.date, hydrated)}
+                          </div>
                         ) : null}
                       </div>
                       {a?.isRead === false ? (

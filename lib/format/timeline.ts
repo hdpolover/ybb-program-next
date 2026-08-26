@@ -103,6 +103,41 @@ export function formatTimelineDateLabel(item: TimelineDateInput): string {
 }
 
 /**
+ * The same instant rendered as a day in the VIEWER's timezone, or null when it
+ * lands on the same calendar day as the WIB label.
+ *
+ * Agenda entries are physical events in Indonesia, so WIB stays the primary
+ * label — "Opening ceremony 15 Aug WIB" is a fact about the venue, and a viewer
+ * shown only their own converted date cannot match it against a printed agenda.
+ * But a viewer far enough west or east genuinely falls on a different calendar
+ * day, and silently showing them only the Jakarta day hides that. So: show WIB
+ * always, and add the viewer's day ONLY when it actually differs. When the days
+ * agree the second label would be pure noise, so it is omitted.
+ *
+ * Returns null during SSR-equivalent use too — the caller must gate on hydration,
+ * because the viewer's zone is unknowable on the server.
+ */
+export function formatViewerDayIfDifferent(value?: string | null): string | null {
+  if (!value) return null;
+  // MUST anchor exactly as the WIB label does. parseApiDate anchors a bare
+  // "YYYY-MM-DD" at LOCAL midnight, while the wibLabel this is compared against
+  // comes from formatDeadlineWib -> parseDeadlineInstant, which anchors at UTC
+  // midnight. Mixing the two makes the comparison disagree for date-only values
+  // whenever the viewer is east of Jakarta — see parseLegacyIsoDateUtc above,
+  // which documents this same trap.
+  const date = ISO_DATE_ONLY.test(value.trim())
+    ? parseLegacyIsoDateUtc(value.trim())
+    : parseApiDate(value);
+  if (!date || Number.isNaN(date.getTime())) return null;
+
+  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+  const wibDay = new Intl.DateTimeFormat('en-GB', { ...opts, timeZone: 'Asia/Jakarta' }).format(date);
+  const viewerDay = new Intl.DateTimeFormat('en-GB', opts).format(date);
+
+  return viewerDay === wibDay ? null : viewerDay;
+}
+
+/**
  * Resolve a sortable epoch-ms value for an item, or null when nothing parses.
  * Prefers the structured start_date; falls back to the first token of date_display.
  */

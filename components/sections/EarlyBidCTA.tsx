@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Hourglass, Users } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
-import { formatDeadlineLocal } from '@/lib/format/deadline';
+import { formatDeadlineLocal, formatDeadlineWib } from '@/lib/format/deadline';
+import { useHydrated } from '@/hooks/useHydrated';
 
 type Countdown = {
   days: number;
@@ -39,9 +40,15 @@ export default function EarlyBidCTA({
   const targetMs = deadlineIso ? new Date(deadlineIso).getTime() : 0;
   const getCountdown = () => getTimeRemaining(new Date(targetMs));
   const [timeLeft, setTimeLeft] = useState<Countdown>(() => getCountdown());
+  // false during SSR/first client render; true once hydrated. Before hydration
+  // the viewer's timezone is unknown, so fall back to a labelled WIB render —
+  // see hooks/useHydrated.ts.
+  const hydrated = useHydrated();
   const deadlineLabel = deadlineIso
     ? (() => {
-        const result = formatDeadlineLocal(deadlineIso, { withTime: false });
+        const result = hydrated
+          ? formatDeadlineLocal(deadlineIso, { withTime: false })
+          : formatDeadlineWib(deadlineIso, { withTime: false });
         return result === '—' ? 'to be announced' : result;
       })()
     : 'to be announced';
@@ -64,7 +71,7 @@ export default function EarlyBidCTA({
         {/* Isi konten sectionnya */}
         <div className={componentsTheme.applyEarlyBidCta.leftCol}>
           <h2 className={componentsTheme.applyEarlyBidCta.title}>Early Bird Deadline</h2>
-          <p className={componentsTheme.applyEarlyBidCta.subtitle}>
+          <p className={componentsTheme.applyEarlyBidCta.subtitle} suppressHydrationWarning>
             Limited! Only Until {deadlineLabel}
           </p>
 

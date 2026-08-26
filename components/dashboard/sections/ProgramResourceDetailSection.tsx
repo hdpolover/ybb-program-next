@@ -26,6 +26,8 @@ import {
   formatDocumentTypeLabel,
   toDocumentItem,
 } from '@/lib/dashboard/documents';
+import { BUSINESS_TIMEZONE } from '@/lib/format/deadline';
+import { useHydrated } from '@/hooks/useHydrated';
 
 interface ProgramResourceDetailSectionProps {
   resourceId: string;
@@ -83,6 +85,9 @@ function DetailInfo({
 export default function ProgramResourceDetailSection({
   resourceId,
 }: ProgramResourceDetailSectionProps) {
+  // false during SSR/first client render; true once hydrated. Gates the
+  // "Last Updated" date's timezone — see hooks/useHydrated.ts.
+  const hydrated = useHydrated();
   const [resource, setResource] = useState<DocumentItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -199,7 +204,10 @@ export default function ProgramResourceDetailSection({
   const statusLabel = formatDocumentStatusLabel(resource.status);
   const categoryLabel = formatDocumentCategoryLabel(resource.category);
   const typeLabel = formatDocumentTypeLabel(resource.documentType);
-  const updatedAtLabel = formatDocumentDateLabel(resource.updatedAt);
+  const updatedAtLabel = formatDocumentDateLabel(
+    resource.updatedAt,
+    hydrated ? undefined : { timeZone: BUSINESS_TIMEZONE },
+  );
   const statusToneClass =
     resource.status === 'available'
       ? documentsTheme.statusApproved
@@ -257,7 +265,7 @@ export default function ProgramResourceDetailSection({
               />
               <DetailInfo
                 label="Last Updated"
-                value={updatedAtLabel}
+                value={<span suppressHydrationWarning>{updatedAtLabel}</span>}
                 icon={<Info className="h-4 w-4" />}
               />
             </div>
