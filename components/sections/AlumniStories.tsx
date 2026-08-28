@@ -322,33 +322,35 @@ export default function AlumniStoriesSection({
 										onClick={() => setActiveId(item.id)}
 										className={componentsTheme.alumniStories.reelItem}
 									>
-										{currentThumbnail && !thumbLoaded && (
-											<div className={componentsTheme.alumniStories.reelSkeleton} />
-										)}
-										{item.type === 'video' && currentThumbnail ? (
-											<Image
-												src={currentThumbnail}
-												alt={item.testimonial || item.name}
-												fill
-												sizes="(max-width: 640px) 224px, (max-width: 1024px) 30vw, 270px"
-												quality={90}
-												className={componentsTheme.alumniStories.reelVideo}
-												onLoad={() => markLoaded(item.id)}
-												onError={() => {
-													if (variantIndex < thumbnailVariants.length - 1) {
-														bumpThumbnailVariant(item.id, thumbnailVariants.length);
-														return;
-													}
-													markLoaded(item.id);
-												}}
-											/>
-										) : (
-											<div className={componentsTheme.alumniStories.reelVideo}>
-												<div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-													No preview
+										<div className={componentsTheme.alumniStories.reelThumb}>
+											{currentThumbnail && !thumbLoaded && (
+												<div className={componentsTheme.alumniStories.reelSkeleton} />
+											)}
+											{item.type === 'video' && currentThumbnail ? (
+												<Image
+													src={currentThumbnail}
+													alt={item.testimonial || item.name}
+													fill
+													sizes="(max-width: 640px) 224px, (max-width: 1024px) 30vw, 270px"
+													quality={90}
+													className={componentsTheme.alumniStories.reelVideo}
+													onLoad={() => markLoaded(item.id)}
+													onError={() => {
+														if (variantIndex < thumbnailVariants.length - 1) {
+															bumpThumbnailVariant(item.id, thumbnailVariants.length);
+															return;
+														}
+														markLoaded(item.id);
+													}}
+												/>
+											) : (
+												<div className={componentsTheme.alumniStories.reelVideo}>
+													<div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+														No preview
+													</div>
 												</div>
-											</div>
-										)}
+											)}
+										</div>
 										<div className="mt-2 text-left">
 											<p className="text-xs font-semibold text-slate-900 line-clamp-1">
 												{item.name}

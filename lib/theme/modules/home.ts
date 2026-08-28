@@ -114,7 +114,8 @@ export const homeTheme = {
     reelsTitle: 'text-sm font-semibold uppercase tracking-wide text-[var(--brand-accent)]',
     reelsGrid:
       'mt-4 grid grid-cols-2 gap-3 pb-2 pt-1 px-1 sm:grid-cols-3 sm:gap-3 md:grid-cols-4',
-    reelItem:
+    reelItem: 'w-full text-left',
+    reelThumb:
       'relative aspect-[9/16] w-full overflow-hidden rounded-xl',
     reelVideo: 'h-full w-full object-cover',
     reelSkeleton: 'absolute inset-0 animate-pulse bg-slate-200',
