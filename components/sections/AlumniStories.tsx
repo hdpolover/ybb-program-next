@@ -322,7 +322,7 @@ export default function AlumniStoriesSection({
 										onClick={() => setActiveId(item.id)}
 										className={componentsTheme.alumniStories.reelItem}
 									>
-										{!thumbLoaded && (
+										{currentThumbnail && !thumbLoaded && (
 											<div className={componentsTheme.alumniStories.reelSkeleton} />
 										)}
 										{item.type === 'video' && currentThumbnail ? (
