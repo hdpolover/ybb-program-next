@@ -33,6 +33,11 @@ services:
       - NEXT_PUBLIC_BRAND_DOMAIN=${NEXT_PUBLIC_BRAND_DOMAIN}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - API_INTERNAL_URL=${API_INTERNAL_URL}
+      # Shared with the API, which POSTs the revalidate hooks on admin edits.
+      # Without these the routes 500 in production and no admin change ever
+      # reaches the public site until a redeploy.
+      - SETTINGS_REVALIDATE_SECRET=${SETTINGS_REVALIDATE_SECRET}
+      - HOME_REVALIDATE_SECRET=${HOME_REVALIDATE_SECRET}
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
