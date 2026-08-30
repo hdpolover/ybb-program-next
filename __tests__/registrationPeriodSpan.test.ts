@@ -3,8 +3,8 @@ import { getRegistrationPeriodLabel } from '@/lib/format/registration-period';
 
 // The real China Youth Summit 2026 "Registration Fee (Fully Funded)" windows,
 // copied from production. One genuine window, then a chain of admin-appended
-// one-day extensions. Before this helper existed the UI rendered only the last
-// window — "20 Aug - 21 Aug" — instead of the real span.
+// one-day extensions. Only the window covering "now" may be rendered; the chain
+// must never be accumulated into one long span.
 const CHINA_FF_PERIODS = [
   { start_date: '2026-04-14', end_date: '2026-07-15' },
   { start_date: '2026-07-15', end_date: '2026-07-16' },
@@ -19,31 +19,64 @@ const CHINA_FF_PERIODS = [
 ];
 
 describe('getRegistrationPeriodLabel', () => {
-  it('spans the earliest start to the latest end, not the current window', () => {
-    const label = getRegistrationPeriodLabel(CHINA_FF_PERIODS);
-    expect(label).toContain('14');   // 14 April — the real registration start
-    expect(label).toContain('21');   // 21 August — the final extension end
-    expect(label).not.toMatch(/^20\b/); // must NOT start at the last window
+  const at = (iso: string) => new Date(iso);
+
+  it('shows only the window covering today, not the whole chain', () => {
+    const label = getRegistrationPeriodLabel(CHINA_FF_PERIODS, true, at('2026-07-16T09:00:00+07:00'));
+    // The 16 Jul - 17 Jul window, not "14 Apr - 21 Aug".
+    expect(label).toContain('16');
+    expect(label).toContain('17');
+    expect(label).not.toContain('Apr');
+    expect(label).not.toContain('21');
   });
 
-  it('is stable while an admin appends further extensions', () => {
-    const before = getRegistrationPeriodLabel(CHINA_FF_PERIODS);
-    const after = getRegistrationPeriodLabel([
-      ...CHINA_FF_PERIODS,
-      { start_date: '2026-08-21', end_date: '2026-08-22' },
-    ]);
-    // The start must not move when a window is appended.
-    expect(after.split('-')[0]).toBe(before.split('-')[0]);
+  it('uses the current window even when a later window exists', () => {
+    const periods = [
+      { start_date: '2026-09-01', end_date: '2026-09-03' },
+      { start_date: '2026-09-05', end_date: '2026-09-10' },
+      { start_date: '2026-09-11', end_date: '2026-09-12' },
+    ];
+    const label = getRegistrationPeriodLabel(periods, true, at('2026-09-01T09:00:00+07:00'));
+    expect(label).toContain('1');
+    expect(label).toContain('3');
+    expect(label).not.toContain('12');
   });
 
-  it('still renders a span after every window has lapsed', () => {
-    // The reported second failure: dates going missing once extensions run out.
-    expect(getRegistrationPeriodLabel(CHINA_FF_PERIODS)).not.toBe('TBD');
+  it('falls forward to the next upcoming window when today sits in a gap', () => {
+    const periods = [
+      { start_date: '2026-09-01', end_date: '2026-09-03' },
+      { start_date: '2026-09-05', end_date: '2026-09-10' },
+    ];
+    const label = getRegistrationPeriodLabel(periods, true, at('2026-09-04T09:00:00+07:00'));
+    expect(label).toContain('5');
+    expect(label).toContain('10');
+    expect(label).not.toContain('1 ');
   });
 
-  it('is order-independent — periods may arrive unsorted', () => {
+  it('falls back to the final window once every window has lapsed', () => {
+    const label = getRegistrationPeriodLabel(CHINA_FF_PERIODS, true, at('2026-12-01T09:00:00+07:00'));
+    expect(label).toContain('20');
+    expect(label).toContain('21');
+    expect(label).not.toBe('TBD');
+  });
+
+  it('does not move the label when an admin appends a window ahead of today', () => {
+    const now = at('2026-07-16T09:00:00+07:00');
+    const before = getRegistrationPeriodLabel(CHINA_FF_PERIODS, true, now);
+    const after = getRegistrationPeriodLabel(
+      [...CHINA_FF_PERIODS, { start_date: '2026-08-21', end_date: '2026-08-22' }],
+      true,
+      now,
+    );
+    expect(after).toBe(before);
+  });
+
+  it('is order-independent, periods may arrive unsorted', () => {
+    const now = at('2026-07-16T09:00:00+07:00');
     const shuffled = [...CHINA_FF_PERIODS].reverse();
-    expect(getRegistrationPeriodLabel(shuffled)).toBe(getRegistrationPeriodLabel(CHINA_FF_PERIODS));
+    expect(getRegistrationPeriodLabel(shuffled, true, now)).toBe(
+      getRegistrationPeriodLabel(CHINA_FF_PERIODS, true, now),
+    );
   });
 
   it('returns TBD for empty or missing input', () => {
@@ -52,14 +85,20 @@ describe('getRegistrationPeriodLabel', () => {
   });
 
   it('ignores unparseable dates rather than rendering Invalid Date', () => {
-    const label = getRegistrationPeriodLabel([
-      { start_date: 'not-a-date', end_date: '2026-08-21' },
-      { start_date: '2026-04-14', end_date: 'also-bad' },
-    ]);
+    const label = getRegistrationPeriodLabel(
+      [
+        { start_date: 'not-a-date', end_date: '2026-08-21' },
+        { start_date: '2026-04-14', end_date: 'also-bad' },
+        { start_date: '2026-04-14', end_date: '2026-08-21' },
+      ],
+      true,
+      at('2026-05-01T09:00:00+07:00'),
+    );
     expect(label).not.toContain('Invalid');
+    expect(label).not.toBe('TBD');
   });
 
-  it('collapses a single-day span instead of repeating the date', () => {
+  it('collapses a single-day window instead of repeating the date', () => {
     const label = getRegistrationPeriodLabel([{ start_date: '2026-08-20', end_date: '2026-08-20' }]);
     expect(label).not.toContain(' - ');
   });
