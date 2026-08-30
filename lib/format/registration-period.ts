@@ -49,9 +49,15 @@ export function getRegistrationPeriodLabel(
   const nowTime = now.getTime();
   const byEarliestEnd = (a: { end: number }, b: { end: number }) => a.end - b.end;
 
+  // Windows may overlap (MEYS has 28 Jul - 31 Aug alongside 28 Jul - 1 Sep).
+  // Eligibility holds while ANY window covers now, so the deadline that
+  // actually applies is the latest end among the windows covering today.
+  // Picking the earliest would tell participants registration closes a day
+  // before it does.
   const current = parsed
     .filter((entry) => entry.start <= nowTime && nowTime <= entry.end)
-    .sort(byEarliestEnd)[0];
+    .sort(byEarliestEnd)
+    .pop();
   const upcoming = parsed.filter((entry) => entry.start > nowTime).sort((a, b) => a.start - b.start)[0];
   const lapsed = [...parsed].sort(byEarliestEnd)[parsed.length - 1];
 

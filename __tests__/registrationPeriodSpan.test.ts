@@ -42,6 +42,20 @@ describe('getRegistrationPeriodLabel', () => {
     expect(label).not.toContain('12');
   });
 
+  it('picks the latest deadline when two windows both cover today', () => {
+    // Real MEYS fully-funded data: eligibility holds while any window covers
+    // now, so the label must not understate the close date.
+    const periods = [
+      { start_date: '2026-07-28', end_date: '2026-08-31' },
+      { start_date: '2026-07-28', end_date: '2026-09-01' },
+      { start_date: '2026-09-01', end_date: '2026-09-02' },
+    ];
+    const label = getRegistrationPeriodLabel(periods, true, at('2026-08-30T09:00:00+07:00'));
+    expect(label).toContain('28');
+    expect(label).toContain('Sep');
+    expect(label).not.toContain('31');
+  });
+
   it('falls forward to the next upcoming window when today sits in a gap', () => {
     const periods = [
       { start_date: '2026-09-01', end_date: '2026-09-03' },
