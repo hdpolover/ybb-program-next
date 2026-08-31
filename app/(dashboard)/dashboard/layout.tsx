@@ -257,16 +257,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         const data = json?.data ?? null;
         setMe(data);
 
-        try {
-          const dashRes = await fetch('/api/portal/dashboard', {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            cache: 'no-store',
-          });
+        // These three are independent of each other and only depend on /me.
+        // They used to be awaited one after another, so their latency stacked
+        // on every dashboard mount. Start them together and handle each result
+        // exactly as before. A rejected fetch resolves to null here, which the
+        // blocks below treat the same way the old catch blocks did.
+        const dashPromise = fetch('/api/portal/dashboard', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+        }).catch(() => null);
+        const profilePromise = fetch('/api/participants/me', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+        }).catch(() => null);
+        const ambassadorPromise = fetch('/api/participants/ambassador', {
+          method: 'GET',
+          cache: 'no-store',
+        }).catch(() => null);
 
-          if (!cancelled && dashRes.ok) {
+        try {
+          const dashRes = await dashPromise;
+
+          if (!cancelled && dashRes?.ok) {
             const dashJson = (await dashRes.json().catch(() => null)) as unknown;
             const dashPayload = getEnvelopeData(dashJson);
             const dashData = toPortalDashboardSummary(dashPayload);
@@ -281,15 +295,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         try {
-          const profileRes = await fetch('/api/participants/me', {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            cache: 'no-store',
-          });
+          const profileRes = await profilePromise;
 
-          if (!cancelled) {
+          if (!cancelled && profileRes) {
             if (profileRes.ok) {
               const profileJson = (await profileRes.json().catch(() => null)) as unknown;
               const profilePayload = getEnvelopeData(profileJson);
@@ -309,10 +317,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         try {
-          const ambassadorRes = await fetch('/api/participants/ambassador', {
-            method: 'GET',
-            cache: 'no-store',
-          });
+          const ambassadorRes = await ambassadorPromise;
 
           const userId = data?.userId;
           const cacheKey = userId ? `ybb_ambassador_status:${userId}` : null;
@@ -321,7 +326,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             try { localStorage.setItem(cacheKey, value); } catch {}
           };
 
-          if (!cancelled && ambassadorRes.ok) {
+          if (!cancelled && ambassadorRes?.ok) {
             const ambassadorJson = (await ambassadorRes.json().catch(() => null)) as unknown;
             const ambassadorPayload = getEnvelopeData(ambassadorJson);
             const ambassador = toAmbassadorData(ambassadorPayload);
