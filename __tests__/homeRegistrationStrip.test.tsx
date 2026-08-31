@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen, within, fireEvent } from '@testing-library/react';
-import HomeRegistrationStrip from '@/components/sections/HomeRegistrationStrip';
+import HomeRegistrationStrip, { pickDefaultEditionIndex } from '@/components/sections/HomeRegistrationStrip';
 
 function tier(overrides: Partial<{
   id: string;
@@ -286,5 +286,32 @@ describe('HomeRegistrationStrip', () => {
       expect(screen.queryByText(/^Closes in/)).not.toBeInTheDocument();
     });
 
+  });
+});
+
+describe('pickDefaultEditionIndex', () => {
+  it('picks the running edition with the closest deadline', () => {
+    // Editions arrive ordered soonest-close-first, so that is the first open one.
+    expect(
+      pickDefaultEditionIndex([
+        { status: 'closed', year: 2026 },
+        { status: 'open', year: 2027 },
+        { status: 'open', year: 2028 },
+      ]),
+    ).toBe(1);
+  });
+
+  it('falls back to the newest edition when none is open', () => {
+    expect(
+      pickDefaultEditionIndex([
+        { status: 'closed', year: 2026 },
+        { status: 'closed', year: 2028 },
+        { status: 'closed', year: 2027 },
+      ]),
+    ).toBe(1);
+  });
+
+  it('returns 0 for an empty list', () => {
+    expect(pickDefaultEditionIndex([])).toBe(0);
   });
 });

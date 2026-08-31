@@ -231,6 +231,24 @@ function buildRegisterHref(baseHref: string, programSlug?: string): string {
   return programSlug ? `${baseHref}&programSlug=${encodeURIComponent(programSlug)}` : baseHref;
 }
 
+/**
+ * The edition a visitor should land on: the running one with the closest
+ * deadline, else the newest. Exported so app/page.tsx seeds the shared
+ * context with the same rule this component uses standalone.
+ */
+export function pickDefaultEditionIndex(
+  editions: { status?: string; year?: number }[],
+): number {
+  const openIndex = editions.findIndex((edition) => edition.status === 'open');
+  if (openIndex >= 0) return openIndex;
+  if (editions.length === 0) return 0;
+  let newest = 0;
+  editions.forEach((edition, index) => {
+    if ((edition.year ?? 0) > (editions[newest].year ?? 0)) newest = index;
+  });
+  return newest;
+}
+
 function RegistrationTypeCards({
   registrationTypes,
   hydrated,
@@ -708,13 +726,14 @@ export default function HomeRegistrationStrip({
   const groups: ProgramRegistrationGroup[] =
     hasEditionData ? (programs as ProgramRegistrationGroup[]) : [{ registration_types: safeRegistrationTypes }];
 
-  // Default to the soonest-closing OPEN edition. `programs` already arrives
-  // ordered soonest-close-first (see home.strategy.ts), so this is the first
-  // 'open' entry, falling back to the first edition when none are open.
-  const [localSelectedIndex, setLocalSelectedIndex] = useState(() => {
-    const openIndex = groups.findIndex((group) => group.status === 'open');
-    return openIndex >= 0 ? openIndex : 0;
-  });
+  // Default to the running edition with the closest deadline. `programs`
+  // already arrives ordered soonest-close-first (see home.strategy.ts), so
+  // that is the first 'open' entry. When nothing is open there is no deadline
+  // to be closest to, so fall back to the NEWEST edition (highest year), which
+  // is the one a visitor is most likely looking for.
+  const [localSelectedIndex, setLocalSelectedIndex] = useState(() =>
+    pickDefaultEditionIndex(groups),
+  );
 
   // Publish the selected edition to FurtherInformation (a sibling client
   // component under app/page.tsx) via context, when a provider wraps us.
