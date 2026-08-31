@@ -63,6 +63,13 @@ export type RegistrationProgramEdition = {
     close: string | null;
   };
   registration_types: RegistrationType[];
+  /** Per-edition guidebook (see FurtherInformation's SelectedEditionContext wiring). */
+  guidelines?: {
+    id: string;
+    title: string;
+    type: string;
+    url: string;
+  }[];
 };
 
 export type RegistrationOverviewSection = {

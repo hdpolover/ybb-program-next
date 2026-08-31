@@ -1,5 +1,6 @@
 import Hero from '@/components/sections/Hero';
 import HomeRegistrationStrip from '@/components/sections/HomeRegistrationStrip';
+import { SelectedEditionProvider } from '@/components/sections/SelectedEditionContext';
 import AboutProgram from '@/components/sections/AboutProgram';
 import HomeImportantPayment from '@/components/sections/HomeImportantPayment';
 import ProgramHighlights from '@/components/sections/ProgramHighlights';
@@ -184,6 +185,22 @@ export default async function Home() {
       locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
     }));
 
+  // Per-edition guidebooks, same order as HomeRegistrationStrip's tabs, so
+  // the Further Information band follows whichever edition the visitor has
+  // selected instead of always showing the section-level (newest) fallback.
+  const programEditions = registrationOverviewSection?.content.programs ?? [];
+  const guidebookEditions = programEditions.map((edition) =>
+    (edition.guidelines ?? []).slice(0, 2).map((g, index) => ({
+      href: g.url,
+      label: g.title,
+      locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
+    }))
+  );
+  const defaultEditionIndex = (() => {
+    const openIndex = programEditions.findIndex((edition) => edition.status === 'open');
+    return openIndex >= 0 ? openIndex : 0;
+  })();
+
   const galleryTitle = programGallerySection?.content.title;
   const galleryDescription = programGallerySection?.content.description;
   const galleryImages = (programGallerySection?.content.gallery ?? programGallerySection?.content.images ?? []).map(img => ({
@@ -203,6 +220,7 @@ export default async function Home() {
         link={mainBannerSection?.content.link}
         registerUrl={registerUrl}
       />
+      <SelectedEditionProvider defaultIndex={defaultEditionIndex}>
       <HomeRegistrationStrip
         igFeed={registrationOverviewSection?.content.ig_feed}
         registrationTypes={registrationOverviewSection?.content.registration_types}
@@ -257,8 +275,10 @@ export default async function Home() {
         mobileBackgroundImageUrl={furtherInformationSection?.content.background_image_mobile_url ?? undefined}
         mockupImageUrl={furtherInformationSection?.content.mockup_image_url ?? undefined}
         guidebooks={furtherGuidebooks}
+        guidebookEditions={guidebookEditions}
         textColorScheme={furtherInformationSection?.content.text_color_scheme ?? 'dark'}
       />
+      </SelectedEditionProvider>
       <WhatMakesUsSpecialSection section={programFeaturesSection} />
       <ProgramBenefitsSection section={programBenefitsSection} />
       <AlumniStoriesSection

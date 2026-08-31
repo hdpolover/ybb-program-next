@@ -6,6 +6,7 @@ import { componentsTheme } from '@/lib/theme/components';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import { getRegistrationCountdownLabel, getRegistrationPeriodLabel } from "@/lib/format/registration-period";
 import { useHydrated } from '@/hooks/useHydrated';
+import { useSelectedEdition } from '@/components/sections/SelectedEditionContext';
 
 type InstagramFeedItem = {
   id: string;
@@ -693,10 +694,19 @@ export default function HomeRegistrationStrip({
   // Default to the soonest-closing OPEN edition. `programs` already arrives
   // ordered soonest-close-first (see home.strategy.ts), so this is the first
   // 'open' entry, falling back to the first edition when none are open.
-  const [selectedIndex, setSelectedIndex] = useState(() => {
+  const [localSelectedIndex, setLocalSelectedIndex] = useState(() => {
     const openIndex = groups.findIndex((group) => group.status === 'open');
     return openIndex >= 0 ? openIndex : 0;
   });
+
+  // Publish the selected edition to FurtherInformation (a sibling client
+  // component under app/page.tsx) via context, when a provider wraps us.
+  // Falls back to local state so this component still works standalone
+  // (tests, or any page that doesn't wrap it in the provider).
+  const editionContext = useSelectedEdition();
+  const selectedIndex = editionContext ? editionContext.selectedIndex : localSelectedIndex;
+  const setSelectedIndex = editionContext ? editionContext.setSelectedIndex : setLocalSelectedIndex;
+
   const selectedGroup = groups[selectedIndex] ?? groups[0];
 
   const activeIgFeed = hasEditionData ? selectedGroup?.ig_feed ?? [] : igFeed ?? [];
