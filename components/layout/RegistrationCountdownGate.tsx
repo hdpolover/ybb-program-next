@@ -7,11 +7,13 @@ import { shouldHideRegistrationPrompts } from '@/lib/registration/visibility';
 type RegistrationCountdownGateProps = {
   registrationDeadline?: string | null;
   activeProgramSlug?: string | null;
+  countdownProgramName?: string | null;
 };
 
 export default function RegistrationCountdownGate({
   registrationDeadline,
   activeProgramSlug,
+  countdownProgramName,
 }: RegistrationCountdownGateProps) {
   const pathname = usePathname();
 
@@ -23,5 +25,5 @@ export default function RegistrationCountdownGate({
     return null;
   }
 
-  return <RegistrationCountdown targetDate={registrationDeadline} />;
+  return <RegistrationCountdown targetDate={registrationDeadline} programName={countdownProgramName} />;
 }

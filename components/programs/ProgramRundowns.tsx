@@ -98,7 +98,7 @@ export default function ProgramRundowns({
               </div>
             </div>
           ))}
-        </div>W
+        </div>
 
         {/* catatan di bawah tab */}
         {note ? (

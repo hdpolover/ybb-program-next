@@ -32,6 +32,46 @@ export type MainBannerSection = {
   };
 };
 
+export type RegistrationType = {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: string;
+  currency: string;
+  fee_type?: string;
+  allowed_categories?: Array<'self_funded' | 'fully_funded' | string>;
+  requirements?: string[];
+  benefits: string[];
+  validity_periods?: {
+    start_date: string;
+    end_date: string;
+  }[];
+};
+
+// One currently-relevant program edition (MEYS 6th/7th concurrent-active-
+// programs bug: a brand can have more than one published+active program
+// with open registration at once). Additive on top of the single-program
+// fields below, which stay driven by the brand's resolved active program.
+export type RegistrationProgramEdition = {
+  program_id: string;
+  program_name: string;
+  program_slug: string;
+  year: number;
+  status: 'open' | 'closed';
+  registration_dates: {
+    open: string | null;
+    close: string | null;
+  };
+  registration_types: RegistrationType[];
+  /** Per-edition guidebook (see FurtherInformation's SelectedEditionContext wiring). */
+  guidelines?: {
+    id: string;
+    title: string;
+    type: string;
+    url: string;
+  }[];
+};
+
 export type RegistrationOverviewSection = {
   type: 'registration_overview';
   content: {
@@ -42,27 +82,14 @@ export type RegistrationOverviewSection = {
       caption?: string | null;
       embedHtml?: string | null;
     }[];
-    registration_types: {
-      id: string;
-      name: string;
-      description?: string | null;
-      price: string;
-      currency: string;
-      fee_type?: string;
-      allowed_categories?: Array<'self_funded' | 'fully_funded' | string>;
-      requirements?: string[];
-      benefits: string[];
-      validity_periods?: {
-        start_date: string;
-        end_date: string;
-      }[];
-    }[];
+    registration_types: RegistrationType[];
     guidelines: {
       id: string;
       title: string;
       type: string;
       url: string;
     }[];
+    programs?: RegistrationProgramEdition[];
   };
 };
 

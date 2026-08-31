@@ -1,5 +1,6 @@
 import Hero from '@/components/sections/Hero';
 import HomeRegistrationStrip from '@/components/sections/HomeRegistrationStrip';
+import { SelectedEditionProvider } from '@/components/sections/SelectedEditionContext';
 import AboutProgram from '@/components/sections/AboutProgram';
 import HomeImportantPayment from '@/components/sections/HomeImportantPayment';
 import ProgramHighlights from '@/components/sections/ProgramHighlights';
@@ -18,10 +19,9 @@ import Recognition from '@/components/sections/Recognition';
 import Testimonials from '@/components/sections/Testimonials';
 import GetInTouchSection from '@/components/sections/GetInTouchSection';
 import { getHomePageData } from '@/lib/api/home';
-import type { RegistrationType } from '@/components/sections/HomeRegistrationStrip';
 import { resolveBrandDomain } from '@/lib/server/envContext';
 import PromoCTA from '@/components/sections/PromoCTA';
-import { getProgramDetail, getProgramPricingTiers, getProgramsForDisplay } from '@/lib/api/programs';
+import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { resolveActiveRegistration, RegistrationCategory } from '@/lib/registration/deadline';
 import { getActivityData } from '@/lib/api/activity';
@@ -49,15 +49,6 @@ import type {
   PromoCTASection,
 } from '@/types/home';
 
-// Type buat data program yang bakal dikirim ke HomeRegistrationStrip
-type ProgramYearData = {
-  year: number;
-  slug: string;
-  name: string;
-  registerUrl: string;
-  registrationTypes?: RegistrationOverviewSection['content']['registration_types'];
-};
-
 export default async function Home() {
   const host = await resolveBrandDomain();
   let registerUrl = '/login?mode=signup';
@@ -75,102 +66,31 @@ export default async function Home() {
     }),
   ]);
 
-  // Ambil list program (tahun ini + tahun depan) yang udh punya tanggal lengkap
-  // Ini buat handle case kalau 2027 udh active tapi belum ada tanggal
-  let programsForDisplay: ProgramYearData[] = [];
+  // Fetch program details and determine registerUrl
   try {
-    const programs = await getProgramsForDisplay(host);
-
-    // Ambil detail sama pricing tiers tiap program secara bareng-bareng
-    // Biar gak lemot, semua request jalan sekaligus
-    const programDetails = await Promise.all(
-      programs.map(async (program) => {
-        const detail = await getProgramDetail(program.slug, host);
-        let programRegisterUrl = '/login?mode=signup';
-        let programCategory: RegistrationCategory | null = null;
-        let programRegistrationTypes: RegistrationType[] = [];
-
-        if (detail?.id) {
-          try {
-            const pricingTiers = await getProgramPricingTiers(detail.id, host);
-            const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
-            if (activeRegistration) {
-              programCategory = activeRegistration.category;
-              if (programCategory === 'fully_funded') {
-                programRegisterUrl = '/login?mode=signup&applicationCategory=fully_funded';
-              } else if (programCategory === 'self_funded') {
-                programRegisterUrl = '/login?mode=signup&applicationCategory=self_funded';
-              }
+    const settingsData = await getSettingsForBrandDomain(host);
+    const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
+    if (programSlug) {
+      const program = await getProgramDetail(programSlug, host);
+      if (program?.id) {
+        try {
+          const pricingTiers = await getProgramPricingTiers(program.id, host);
+          const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
+          if (activeRegistration) {
+            activeCategory = activeRegistration.category;
+            if (activeCategory === 'fully_funded') {
+              registerUrl = '/login?mode=signup&applicationCategory=fully_funded';
+            } else if (activeCategory === 'self_funded') {
+              registerUrl = '/login?mode=signup&applicationCategory=self_funded';
             }
-
-            // Ubah pricingTiers ke format RegistrationType
-            programRegistrationTypes = pricingTiers.map(tier => ({
-              id: tier.id,
-              name: tier.name,
-              description: tier.description || null,
-              price: String(tier.price),
-              currency: tier.currency,
-              fee_type: tier.feeType || undefined,
-              allowed_categories: tier.allowedCategories || undefined,
-              benefits: tier.benefits || [],
-              requirements: tier.requirements || undefined,
-              validity_periods: tier.validityPeriods?.map(vp => ({
-                start_date: vp.startDate || '',
-                end_date: vp.endDate || '',
-              })) || [],
-            }));
-          } catch (tierError) {
-            console.error(`[Home] Failed to fetch pricing tiers for ${program.slug}:`, tierError);
           }
-        }
-
-        return {
-          year: program.year,
-          slug: program.slug,
-          name: program.name,
-          registerUrl: `${programRegisterUrl}&programSlug=${program.slug}`,
-          registrationTypes: programRegistrationTypes,
-        };
-      })
-    );
-
-    programsForDisplay = programDetails;
-
-    // Set registerUrl default ke program pertama (biasanya tahun ini)
-    if (programsForDisplay.length > 0) {
-      registerUrl = programsForDisplay[0].registerUrl;
-    }
-  } catch (error) {
-    console.error('[Home] Failed to fetch programs for display:', error);
-  }
-
-  // Fallback ke logic lama kalau gagal ambil multi-program
-  if (programsForDisplay.length === 0) {
-    try {
-      const settingsData = await getSettingsForBrandDomain(host);
-      const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
-      if (programSlug) {
-        const program = await getProgramDetail(programSlug, host);
-        if (program?.id) {
-          try {
-            const pricingTiers = await getProgramPricingTiers(program.id, host);
-            const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
-            if (activeRegistration) {
-              activeCategory = activeRegistration.category;
-              if (activeCategory === 'fully_funded') {
-                registerUrl = '/login?mode=signup&applicationCategory=fully_funded';
-              } else if (activeCategory === 'self_funded') {
-                registerUrl = '/login?mode=signup&applicationCategory=self_funded';
-              }
-            }
-          } catch (tierError) {
-            console.error('[Home] Failed to fetch pricing tiers:', tierError);
-          }
+        } catch (tierError) {
+          console.error('[Home] Failed to fetch pricing tiers:', tierError);
         }
       }
-    } catch (error) {
-      console.error('[Home] Failed to fetch program details:', error);
     }
+  } catch (error) {
+    console.error('[Home] Failed to fetch program details:', error);
   }
 
   const mainBannerSection = homeData.sections.find(
@@ -261,9 +181,25 @@ export default async function Home() {
     .map((g, index) => ({
       href: g.url,
       label: g.title,
-      // guideline pertama dibikin gaya primary, sisanya jadi secondary
+      // guideline pertama dibikin gaya primary, sisanya tampil sebagai secondary
       locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
     }));
+
+  // Per-edition guidebooks, same order as HomeRegistrationStrip's tabs, so
+  // the Further Information band follows whichever edition the visitor has
+  // selected instead of always showing the section-level (newest) fallback.
+  const programEditions = registrationOverviewSection?.content.programs ?? [];
+  const guidebookEditions = programEditions.map((edition) =>
+    (edition.guidelines ?? []).slice(0, 2).map((g, index) => ({
+      href: g.url,
+      label: g.title,
+      locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
+    }))
+  );
+  const defaultEditionIndex = (() => {
+    const openIndex = programEditions.findIndex((edition) => edition.status === 'open');
+    return openIndex >= 0 ? openIndex : 0;
+  })();
 
   const galleryTitle = programGallerySection?.content.title;
   const galleryDescription = programGallerySection?.content.description;
@@ -284,12 +220,13 @@ export default async function Home() {
         link={mainBannerSection?.content.link}
         registerUrl={registerUrl}
       />
+      <SelectedEditionProvider defaultIndex={defaultEditionIndex}>
       <HomeRegistrationStrip
         igFeed={registrationOverviewSection?.content.ig_feed}
         registrationTypes={registrationOverviewSection?.content.registration_types}
+        programs={registrationOverviewSection?.content.programs}
         guidelines={registrationOverviewSection?.content.guidelines}
         registerUrl={registerUrl}
-        programsForDisplay={programsForDisplay}
       />
       <HomeImportantPayment section={paymentInfoSection} />
       <AboutProgram
@@ -316,7 +253,7 @@ export default async function Home() {
           videos: tab.videos.map(video => ({
             ...video,
             video_url: 'https://youtu.be/wg30gPtb9eY?si=ikHepE3A6vhXTBeG',
-            thumbnail: '', // Thumbnail kosong biar pake otomatis dari YouTube
+            thumbnail: '', // Empty thumbnail to use automatic YouTube thumbnail
           }))
         }))}
       />
@@ -338,8 +275,10 @@ export default async function Home() {
         mobileBackgroundImageUrl={furtherInformationSection?.content.background_image_mobile_url ?? undefined}
         mockupImageUrl={furtherInformationSection?.content.mockup_image_url ?? undefined}
         guidebooks={furtherGuidebooks}
+        guidebookEditions={guidebookEditions}
         textColorScheme={furtherInformationSection?.content.text_color_scheme ?? 'dark'}
       />
+      </SelectedEditionProvider>
       <WhatMakesUsSpecialSection section={programFeaturesSection} />
       <ProgramBenefitsSection section={programBenefitsSection} />
       <AlumniStoriesSection

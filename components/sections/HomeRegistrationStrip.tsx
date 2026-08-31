@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
-import { getRegistrationPeriodLabel } from "@/lib/format/registration-period";
+import { getRegistrationCountdownLabel, getRegistrationPeriodLabel } from "@/lib/format/registration-period";
 import { useHydrated } from '@/hooks/useHydrated';
-import YearTabToggle, { type ProgramYearOption } from './YearTabToggle';
+import { useSelectedEdition } from '@/components/sections/SelectedEditionContext';
 
 type InstagramFeedItem = {
   id: string;
@@ -21,7 +21,7 @@ type ValidityPeriod = {
   end_date: string;
 };
 
-export type RegistrationType = {
+type RegistrationType = {
   id: string;
   name: string;
   description?: string | null;
@@ -41,21 +41,32 @@ type Guideline = {
   url: string;
 };
 
-// Type buat data program per tahun yang di-pass dari server
-type ProgramYearData = {
-  year: number;
-  slug: string;
-  name: string;
-  registerUrl: string;
-  registrationTypes?: RegistrationType[];
+// One currently-relevant program edition (MEYS 6th/7th concurrent-active-
+// programs bug: a brand can have more than one published+active program
+// with open registration at once). Mirrors
+// types/home.ts#RegistrationProgramEdition.
+type ProgramRegistrationGroup = {
+  program_id?: string;
+  program_name?: string;
+  // Distinguishes which edition a CTA should register into once a brand has
+  // more than one open edition, see currentRegisterHref below.
+  program_slug?: string;
+  status?: 'open' | 'closed';
+  registration_dates?: { open: string | null; close: string | null };
+  registration_types: RegistrationType[];
+  // Per-edition guidebook + Instagram feed (see MEYS 6th/7th bug: a 6th
+  // applicant must not see the 7th's guidebook). Undefined for the internal
+  // single-group fallback built from legacy `registrationTypes` props.
+  guidelines?: Guideline[];
+  ig_feed?: InstagramFeedItem[];
 };
 
 type HomeRegistrationStripProps = {
   igFeed?: InstagramFeedItem[];
   registrationTypes?: RegistrationType[];
+  programs?: ProgramRegistrationGroup[];
   guidelines?: Guideline[];
   registerUrl?: string;
-  programsForDisplay?: ProgramYearData[];
 };
 
 function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): boolean {
@@ -205,39 +216,42 @@ type InstagramWindow = Window & {
   };
 };
 
-export default function HomeRegistrationStrip({
-  igFeed,
+// The self-funded / fully-funded pricing card pair for one program. Its own
+// component (not inline JSX) so each program group gets independent
+// dialog/overflow-detection state instead of sharing one across every group
+// when a brand has more than one open program (see MEYS 6th/7th
+// concurrent-active-programs bug).
+// Appends the edition's program_slug to a category register link, so the
+// CTA on a multi-edition brand signs the visitor up for the edition they are
+// currently looking at instead of whichever one the brand resolves as
+// "active" by default. login/page.tsx and app/api/auth/register/route.ts
+// already read this query param. Single-edition brands pass no slug, so the
+// href is unchanged from before.
+function buildRegisterHref(baseHref: string, programSlug?: string): string {
+  return programSlug ? `${baseHref}&programSlug=${encodeURIComponent(programSlug)}` : baseHref;
+}
+
+function RegistrationTypeCards({
   registrationTypes,
-  guidelines,
-  registerUrl,
-  programsForDisplay,
-}: HomeRegistrationStripProps) {
-  // State buat ganti-ganti tahun program
-  const [selectedProgram, setSelectedProgram] = useState<ProgramYearData | null>(null);
-
-  // Kalau ada data multi-program, set default ke program pertama
-  useEffect(() => {
-    if (programsForDisplay && programsForDisplay.length > 0 && !selectedProgram) {
-      setSelectedProgram(programsForDisplay[0]);
-    }
-  }, [programsForDisplay, selectedProgram]);
-
-  // Pake registrationTypes dari program yang dipilih, atau fallback ke prop lama
-  const safeRegistrationTypes = selectedProgram?.registrationTypes ?? registrationTypes ?? [];
-  const currentRegisterUrl = selectedProgram?.registerUrl ?? registerUrl ?? '/login?mode=signup';
-
-  const [currentNow] = useState<Date>(() => new Date());
-  const hydrated = useHydrated();
-
-  const posts = useMemo(
-    () =>
-      (igFeed ?? []).filter(
-        (item): item is InstagramFeedItem =>
-          Boolean(item?.id && item?.permalink),
-      ),
-    [igFeed],
-  );
-  const [activePostIndex, setActivePostIndex] = useState(0);
+  hydrated,
+  currentNow,
+  showCountdown,
+  programSlug,
+}: {
+  registrationTypes: RegistrationType[];
+  hydrated: boolean;
+  currentNow: Date;
+  // Per-card "closes in X days". The global banner counts down to one
+  // program-level date while a tier's own window can close earlier (see
+  // lib/registration/deadline.ts), which is only ambiguous once a brand shows
+  // more than one edition. Single-edition brands keep the existing layout
+  // untouched, so this is gated on the EDITION COUNT, not on which prop shape
+  // the data arrived in.
+  showCountdown: boolean;
+  // Selected edition's program_slug, when this brand has more than one open
+  // edition. Undefined for single-edition brands (CTA hrefs stay as-is).
+  programSlug?: string;
+}) {
   const [descriptionDialog, setDescriptionDialog] = useState<{
     title: string;
     descriptionHtml: string;
@@ -249,52 +263,6 @@ export default function HomeRegistrationStrip({
   const secondaryContentRef = useRef<HTMLDivElement | null>(null);
   const [showPrimaryReadDetails, setShowPrimaryReadDetails] = useState(false);
   const [showSecondaryReadDetails, setShowSecondaryReadDetails] = useState(false);
-
-  useEffect(() => {
-    if (posts.length <= 1) return;
-
-    const timer = window.setInterval(() => {
-      setActivePostIndex((current) => (current + 1) % posts.length);
-    }, 4500);
-
-    return () => window.clearInterval(timer);
-  }, [posts.length]);
-
-  const normalizedActivePostIndex =
-    activePostIndex >= 0 && activePostIndex < posts.length ? activePostIndex : 0;
-  const activePost = posts[normalizedActivePostIndex] ?? null;
-  const activePostEmbedPermalink = resolveInstagramEmbedPermalink(activePost);
-  const activePostEmbedHtml = activePostEmbedPermalink
-    ? buildInstagramEmbedHtml(activePostEmbedPermalink)
-    : '';
-
-  useEffect(() => {
-    if (!activePostEmbedHtml) return;
-
-    const processEmbeds = () => {
-      (window as InstagramWindow).instgrm?.Embeds?.process();
-    };
-
-    const existingScript = document.querySelector<HTMLScriptElement>(
-      'script[src="https://www.instagram.com/embed.js"]',
-    );
-    const frameId = window.requestAnimationFrame(processEmbeds);
-
-    if (existingScript) {
-      return () => window.cancelAnimationFrame(frameId);
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://www.instagram.com/embed.js';
-    script.async = true;
-    script.onload = processEmbeds;
-    document.body.appendChild(script);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      script.onload = null;
-    };
-  }, [activePostEmbedHtml]);
 
   useEffect(() => {
     if (!descriptionDialog) return;
@@ -313,7 +281,7 @@ export default function HomeRegistrationStrip({
     };
   }, [descriptionDialog]);
 
-  const registrationFeeTypes = safeRegistrationTypes.filter(isRegistrationFeeTier);
+  const registrationFeeTypes = registrationTypes.filter(isRegistrationFeeTier);
   const primaryType = pickRegistrationTier(registrationFeeTypes, 'self_funded');
   const secondaryType = pickRegistrationTier(registrationFeeTypes, 'fully_funded', primaryType?.id);
   const primaryDescriptionHtml = toRichHtml(primaryType?.description);
@@ -366,7 +334,12 @@ export default function HomeRegistrationStrip({
   const primaryOpen = currentNow ? isRegistrationOpen(primaryType?.validity_periods, currentNow) : false;
   const secondaryOpen = currentNow ? isRegistrationOpen(secondaryType?.validity_periods, currentNow) : false;
 
-  const displayedGuidelines = (guidelines ?? []).filter((guide) => Boolean(guide.url)).slice(0, 2);
+  const primaryCountdown = showCountdown
+    ? getRegistrationCountdownLabel(primaryType?.validity_periods, currentNow)
+    : null;
+  const secondaryCountdown = showCountdown
+    ? getRegistrationCountdownLabel(secondaryType?.validity_periods, currentNow)
+    : null;
 
   useEffect(() => {
     const checkOverflow = () => {
@@ -386,7 +359,441 @@ export default function HomeRegistrationStrip({
     return () => window.removeEventListener('resize', checkOverflow);
   }, [primaryDescriptionHtml, secondaryDescriptionHtml, primaryRequirements, secondaryRequirements, primaryBenefits, secondaryBenefits]);
 
-  if (safeRegistrationTypes.length === 0) return null;
+  return (
+    <>
+      <div className="relative">
+        <p className="mb-2 flex items-center justify-end gap-1 text-xs font-medium text-slate-500 lg:hidden">
+          Swipe for more
+          <ArrowRight className="h-3.5 w-3.5" />
+        </p>
+        <div className="flex w-full min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pl-1 pr-8 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:overflow-visible lg:pb-0 lg:pr-0 lg:pt-0">
+      <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.75rem)] snap-start lg:min-w-0`}>
+        <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
+          <div className={componentsTheme.applyRegistrationTypes.headerRow}>
+            <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
+              <span className={componentsTheme.applyRegistrationTypes.iconCircle}>
+                <CreditCard className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
+                  {primaryType?.name ?? 'Self Funded'}
+                </h3>
+              </div>
+            </div>
+            <span
+              className={
+                primaryOpen
+                  ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
+                  : componentsTheme.applyRegistrationTypes.statusBadgeClosed
+              }
+            >
+              {primaryOpen ? 'Open' : 'Closed'}
+            </span>
+          </div>
+          <div className={componentsTheme.applyRegistrationTypes.feeRow}>
+            <span className={componentsTheme.applyRegistrationTypes.priceText}>
+              {primaryType ? `${primaryType.currency} ${primaryType.price}` : '$15.00'}
+            </span>
+            <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
+              Registration Fee
+            </span>
+          </div>
+          <div className={componentsTheme.applyRegistrationTypes.periodRow}>
+            <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
+            <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
+              Registration Period:
+            </span>
+              <span suppressHydrationWarning>
+                {getRegistrationPeriodLabel(primaryType?.validity_periods, hydrated)}
+              </span>
+          </div>
+          {primaryCountdown && (
+            <p className="mt-1 text-xs font-semibold text-amber-600" suppressHydrationWarning>
+              {primaryCountdown}
+            </p>
+          )}
+        </div>
+        <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
+          <div ref={primaryContentRef} className="relative h-[360px] overflow-hidden">
+            {hasRichTextContent(primaryType?.description) && (
+              <div
+                className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
+                dangerouslySetInnerHTML={{ __html: primaryDescriptionHtml }}
+              />
+            )}
+            <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+            <ul className={componentsTheme.applyRegistrationTypes.list}>
+              {primaryRequirements.map((label, idx) => (
+                <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                  <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                </li>
+              ))}
+            </ul>
+            <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>Benefit</p>
+            <ul className={componentsTheme.applyRegistrationTypes.list}>
+              {primaryBenefits.map((label, idx) => (
+                <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                  <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                </li>
+              ))}
+            </ul>
+            {showPrimaryReadDetails && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/95 to-transparent"
+              />
+            )}
+          </div>
+          {showPrimaryReadDetails && (
+            <div className="mt-auto pt-3 flex justify-end">
+              <button
+                type="button"
+                className="text-xs font-semibold text-primary transition hover:text-primary/80"
+                onClick={() =>
+                  setDescriptionDialog({
+                    title: primaryType?.name ?? 'Self Funded',
+                    descriptionHtml: primaryDescriptionHtml,
+                    requirements: primaryRequirements,
+                    benefits: primaryBenefits,
+                    benefitsLabel: 'Benefit',
+                  })
+                }
+              >
+                Read details
+              </button>
+            </div>
+          )}
+        </div>
+        <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
+          <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
+            {primaryOpen ? (
+              <a
+                href={buildRegisterHref('/login?mode=signup&applicationCategory=self_funded', programSlug)}
+                className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
+                onClick={() => trackInitiateCheckout({ content_name: 'self_funded' })}
+              >
+                Register as Self Funded
+              </a>
+            ) : (
+              <button
+                type="button"
+                aria-disabled
+                className="inline-flex w-full max-w-xs cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500"
+              >
+                Registration Closed
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.75rem)] snap-start lg:min-w-0`}>
+        <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
+          <div className={componentsTheme.applyRegistrationTypes.headerRowTopAligned}>
+            <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
+              <span className={componentsTheme.applyRegistrationTypes.iconCircle}>
+                <MapPin className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
+                  {secondaryType?.name ?? 'Fully Funded'}
+                </h3>
+              </div>
+            </div>
+            <span
+              className={
+                secondaryOpen
+                  ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
+                  : componentsTheme.applyRegistrationTypes.statusBadgeClosed
+              }
+            >
+              {secondaryOpen ? 'Open' : 'Closed'}
+            </span>
+          </div>
+          <div className={componentsTheme.applyRegistrationTypes.feeRow}>
+            <span className={componentsTheme.applyRegistrationTypes.priceText}>
+              {secondaryType ? `${secondaryType.currency} ${secondaryType.price}` : '$10.00'}
+            </span>
+            <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
+              Registration Fee
+            </span>
+          </div>
+          <div className={componentsTheme.applyRegistrationTypes.periodRow}>
+            <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
+            <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
+              Registration Period:
+            </span>
+              <span suppressHydrationWarning>
+                {getRegistrationPeriodLabel(secondaryType?.validity_periods, hydrated)}
+              </span>
+          </div>
+          {secondaryCountdown && (
+            <p className="mt-1 text-xs font-semibold text-amber-600" suppressHydrationWarning>
+              {secondaryCountdown}
+            </p>
+          )}
+        </div>
+        <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
+          <div ref={secondaryContentRef} className="relative h-[360px] overflow-hidden">
+            {hasRichTextContent(secondaryType?.description) && (
+              <div
+                className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
+                dangerouslySetInnerHTML={{ __html: secondaryDescriptionHtml }}
+              />
+            )}
+            <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+            <ul className={componentsTheme.applyRegistrationTypes.list}>
+              {secondaryRequirements.map((label, idx) => (
+                <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                  <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                </li>
+              ))}
+            </ul>
+            <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+              Benefit (If Selected)
+            </p>
+            <ul className={componentsTheme.applyRegistrationTypes.list}>
+              {secondaryBenefits.map((label, idx) => (
+                <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                  <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                </li>
+              ))}
+            </ul>
+            {showSecondaryReadDetails && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/95 to-transparent"
+              />
+            )}
+          </div>
+          {showSecondaryReadDetails && (
+            <div className="mt-auto pt-3 flex justify-end">
+              <button
+                type="button"
+                className="text-xs font-semibold text-primary transition hover:text-primary/80"
+                onClick={() =>
+                  setDescriptionDialog({
+                    title: secondaryType?.name ?? 'Fully Funded',
+                    descriptionHtml: secondaryDescriptionHtml,
+                    requirements: secondaryRequirements,
+                    benefits: secondaryBenefits,
+                    benefitsLabel: 'Benefit (If Selected)',
+                  })
+                }
+              >
+                Read details
+              </button>
+            </div>
+          )}
+        </div>
+        <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
+          <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
+            {secondaryOpen ? (
+              <a
+                href={buildRegisterHref('/login?mode=signup&applicationCategory=fully_funded', programSlug)}
+                className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
+                onClick={() => trackInitiateCheckout({ content_name: 'fully_funded' })}
+              >
+                Register as Fully Funded
+              </a>
+            ) : (
+              <button
+                type="button"
+                aria-disabled
+                className="inline-flex w-full max-w-xs cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500"
+              >
+                Registration Closed
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+        </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#ffffff72] to-transparent lg:hidden"
+          />
+      </div>
+      {descriptionDialog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${descriptionDialog.title} details`}
+        >
+          <div
+            className="absolute inset-0 bg-slate-900/45 backdrop-blur-sm"
+            onClick={() => setDescriptionDialog(null)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-full max-w-2xl rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <h3 className="text-sm font-semibold text-slate-900">{descriptionDialog.title} Details</h3>
+              <button
+                type="button"
+                onClick={() => setDescriptionDialog(null)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                aria-label="Close details dialog"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+              {hasRichTextContent(descriptionDialog.descriptionHtml) && (
+                <div
+                  className="prose prose-sm mb-4 max-w-none text-slate-700 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-a:text-primary"
+                  dangerouslySetInnerHTML={{ __html: descriptionDialog.descriptionHtml }}
+                />
+              )}
+              <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
+              <ul className={componentsTheme.applyRegistrationTypes.list}>
+                {descriptionDialog.requirements.map((label, idx) => (
+                  <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                    <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
+                {descriptionDialog.benefitsLabel}
+              </p>
+              <ul className={componentsTheme.applyRegistrationTypes.list}>
+                {descriptionDialog.benefits.map((label, idx) => (
+                  <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
+                    <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export default function HomeRegistrationStrip({
+  igFeed,
+  registrationTypes,
+  programs,
+  guidelines,
+}: HomeRegistrationStripProps) {
+  const safeRegistrationTypes = registrationTypes ?? [];
+  const [currentNow] = useState<Date>(() => new Date());
+  const hydrated = useHydrated();
+
+  // Real edition data (the `programs` prop, however many entries) vs. the
+  // internal single-group fallback built from legacy `registrationTypes`/
+  // `igFeed`/`guidelines` props. Gates the per-card countdown and per-edition
+  // guidelines/feed so the legacy-only path (the committed single-program
+  // snapshot) renders exactly as before.
+  const hasEditionData = Boolean(programs && programs.length > 0);
+  const groups: ProgramRegistrationGroup[] =
+    hasEditionData ? (programs as ProgramRegistrationGroup[]) : [{ registration_types: safeRegistrationTypes }];
+
+  // Default to the soonest-closing OPEN edition. `programs` already arrives
+  // ordered soonest-close-first (see home.strategy.ts), so this is the first
+  // 'open' entry, falling back to the first edition when none are open.
+  const [localSelectedIndex, setLocalSelectedIndex] = useState(() => {
+    const openIndex = groups.findIndex((group) => group.status === 'open');
+    return openIndex >= 0 ? openIndex : 0;
+  });
+
+  // Publish the selected edition to FurtherInformation (a sibling client
+  // component under app/page.tsx) via context, when a provider wraps us.
+  // Falls back to local state so this component still works standalone
+  // (tests, or any page that doesn't wrap it in the provider).
+  const editionContext = useSelectedEdition();
+  const selectedIndex = editionContext ? editionContext.selectedIndex : localSelectedIndex;
+  const setSelectedIndex = editionContext ? editionContext.setSelectedIndex : setLocalSelectedIndex;
+
+  const selectedGroup = groups[selectedIndex] ?? groups[0];
+
+  const activeIgFeed = hasEditionData ? selectedGroup?.ig_feed ?? [] : igFeed ?? [];
+  const activeGuidelines = hasEditionData ? selectedGroup?.guidelines ?? [] : guidelines ?? [];
+
+  const posts = useMemo(
+    () =>
+      activeIgFeed.filter(
+        (item): item is InstagramFeedItem =>
+          Boolean(item?.id && item?.permalink),
+      ),
+    [activeIgFeed],
+  );
+  const [activePostIndex, setActivePostIndex] = useState(0);
+
+  // A tab switch swaps `posts` out from under the carousel; jump back to its
+  // first post instead of keeping a stale index into the new edition's feed.
+  useEffect(() => {
+    setActivePostIndex(0);
+  }, [selectedIndex]);
+
+  useEffect(() => {
+    if (posts.length <= 1) return;
+
+    const timer = window.setInterval(() => {
+      setActivePostIndex((current) => (current + 1) % posts.length);
+    }, 4500);
+
+    return () => window.clearInterval(timer);
+  }, [posts.length]);
+
+  const normalizedActivePostIndex =
+    activePostIndex >= 0 && activePostIndex < posts.length ? activePostIndex : 0;
+  const activePost = posts[normalizedActivePostIndex] ?? null;
+  const activePostEmbedPermalink = resolveInstagramEmbedPermalink(activePost);
+  const activePostEmbedHtml = activePostEmbedPermalink
+    ? buildInstagramEmbedHtml(activePostEmbedPermalink)
+    : '';
+
+  useEffect(() => {
+    if (!activePostEmbedHtml) return;
+
+    const processEmbeds = () => {
+      (window as InstagramWindow).instgrm?.Embeds?.process();
+    };
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://www.instagram.com/embed.js"]',
+    );
+    const frameId = window.requestAnimationFrame(processEmbeds);
+
+    if (existingScript) {
+      return () => window.cancelAnimationFrame(frameId);
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://www.instagram.com/embed.js';
+    script.async = true;
+    script.onload = processEmbeds;
+    document.body.appendChild(script);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      script.onload = null;
+    };
+  }, [activePostEmbedHtml]);
+
+  const displayedGuidelines = activeGuidelines.filter((guide) => Boolean(guide.url)).slice(0, 2);
+
+  if (groups.every((group) => group.registration_types.length === 0)) return null;
 
   return (
     <section className={`${componentsTheme.homeRegistration.sectionWrapper} overflow-x-hidden`}>
@@ -490,340 +897,75 @@ export default function HomeRegistrationStrip({
               </p>
             </div>
 
-            {/* Year Tab Toggle - hanya muncul kalau ada multi-program data */}
-            {programsForDisplay && programsForDisplay.length > 1 && (
-              <div className="flex justify-start">
-                <YearTabToggle
-                  programs={programsForDisplay.map(p => ({
-                    year: p.year,
-                    slug: p.slug,
-                    name: p.name,
-                  }))}
-                  defaultYear={selectedProgram?.year}
-                  onYearChange={(program) => {
-                    setSelectedProgram(programsForDisplay.find(p => p.year === program.year) ?? null);
-                  }}
+            {groups.length > 1 ? (
+              <div>
+                <div
+                  role="tablist"
+                  aria-label="Registration edition"
+                  className={componentsTheme.aboutProgram.tabContainer}
+                >
+                  {groups.map((group, idx) => (
+                    <button
+                      key={group.program_id ?? idx}
+                      type="button"
+                      role="tab"
+                      aria-selected={idx === selectedIndex}
+                      onClick={() => setSelectedIndex(idx)}
+                      className={`${componentsTheme.aboutProgram.tabButtonBase} ${
+                        idx === selectedIndex
+                          ? componentsTheme.aboutProgram.tabButtonActive
+                          : componentsTheme.aboutProgram.tabButtonInactive
+                      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
+                    >
+                      {group.program_name}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mb-3 mt-4 flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-lg font-bold text-blue-950">{selectedGroup?.program_name}</h3>
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <span suppressHydrationWarning>
+                      {getRegistrationPeriodLabel(
+                        selectedGroup?.registration_dates
+                          ? [{
+                              start_date: selectedGroup.registration_dates.open ?? '',
+                              end_date: selectedGroup.registration_dates.close ?? '',
+                            }]
+                          : undefined,
+                        hydrated,
+                      )}
+                    </span>
+                    <span
+                      className={
+                        selectedGroup?.status === 'open'
+                          ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
+                          : componentsTheme.applyRegistrationTypes.statusBadgeClosed
+                      }
+                    >
+                      {selectedGroup?.status === 'open' ? 'Open' : 'Closed'}
+                    </span>
+                  </div>
+                </div>
+                <RegistrationTypeCards
+                  registrationTypes={selectedGroup?.registration_types ?? []}
+                  hydrated={hydrated}
+                  currentNow={currentNow}
+                  showCountdown
+                  programSlug={selectedGroup?.program_slug}
                 />
               </div>
-            )}
-
-            <div className="relative">
-              <p className="mb-2 flex items-center justify-end gap-1 text-xs font-medium text-slate-500 lg:hidden">
-                Swipe for more
-                <ArrowRight className="h-3.5 w-3.5" />
-              </p>
-              <div className="flex w-full min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pl-1 pr-8 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:overflow-visible lg:pb-0 lg:pr-0 lg:pt-0">
-            <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.75rem)] snap-start lg:min-w-0`}>
-              <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
-                <div className={componentsTheme.applyRegistrationTypes.headerRow}>
-                  <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
-                    <span className={componentsTheme.applyRegistrationTypes.iconCircle}>
-                      <CreditCard className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
-                        {primaryType?.name ?? 'Self Funded'}
-                      </h3>
-                    </div>
-                  </div>
-                  <span
-                    className={
-                      primaryOpen
-                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                    }
-                  >
-                    {primaryOpen ? 'Open' : 'Closed'}
-                  </span>
-                </div>
-                <div className={componentsTheme.applyRegistrationTypes.feeRow}>
-                  <span className={componentsTheme.applyRegistrationTypes.priceText}>
-                    {primaryType ? `${primaryType.currency} ${primaryType.price}` : '$15.00'}
-                  </span>
-                  <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
-                    Registration Fee
-                  </span>
-                </div>
-                <div className={componentsTheme.applyRegistrationTypes.periodRow}>
-                  <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
-                  <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
-                    Registration Period:
-                  </span>
-                    <span suppressHydrationWarning>
-                      {getRegistrationPeriodLabel(primaryType?.validity_periods, hydrated)}
-                    </span>
-                </div>
-              </div>
-              <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
-                <div ref={primaryContentRef} className="relative h-[360px] overflow-hidden">
-                  {hasRichTextContent(primaryType?.description) && (
-                    <div
-                      className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
-                      dangerouslySetInnerHTML={{ __html: primaryDescriptionHtml }}
-                    />
-                  )}
-                  <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
-                  <ul className={componentsTheme.applyRegistrationTypes.list}>
-                    {primaryRequirements.map((label, idx) => (
-                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                        <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                          <Check className="h-3 w-3" />
-                        </span>
-                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>Benefit</p>
-                  <ul className={componentsTheme.applyRegistrationTypes.list}>
-                    {primaryBenefits.map((label, idx) => (
-                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                        <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                          <Check className="h-3 w-3" />
-                        </span>
-                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  {showPrimaryReadDetails && (
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/95 to-transparent"
-                    />
-                  )}
-                </div>
-                {showPrimaryReadDetails && (
-                  <div className="mt-auto pt-3 flex justify-end">
-                    <button
-                      type="button"
-                      className="text-xs font-semibold text-primary transition hover:text-primary/80"
-                      onClick={() =>
-                        setDescriptionDialog({
-                          title: primaryType?.name ?? 'Self Funded',
-                          descriptionHtml: primaryDescriptionHtml,
-                          requirements: primaryRequirements,
-                          benefits: primaryBenefits,
-                          benefitsLabel: 'Benefit',
-                        })
-                      }
-                    >
-                      Read details
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
-                <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
-                  {primaryOpen ? (
-                    <a
-                      href={currentRegisterUrl}
-                      className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
-                      onClick={() => trackInitiateCheckout({ content_name: 'self_funded' })}
-                    >
-                      Register as Self Funded
-                    </a>
-                  ) : (
-                    <button
-                      type="button"
-                      aria-disabled
-                      className="inline-flex w-full max-w-xs cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500"
-                    >
-                      Registration Closed
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className={`${componentsTheme.applyRegistrationTypes.card} min-w-[calc(100%-2.75rem)] snap-start lg:min-w-0`}>
-              <div className={componentsTheme.applyRegistrationTypes.headerWrapper}>
-                <div className={componentsTheme.applyRegistrationTypes.headerRowTopAligned}>
-                  <div className={componentsTheme.applyRegistrationTypes.headerTitleRow}>
-                    <span className={componentsTheme.applyRegistrationTypes.iconCircle}>
-                      <MapPin className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h3 className={componentsTheme.applyRegistrationTypes.headerTitle}>
-                        {secondaryType?.name ?? 'Fully Funded'}
-                      </h3>
-                    </div>
-                  </div>
-                  <span
-                    className={
-                      secondaryOpen
-                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                    }
-                  >
-                    {secondaryOpen ? 'Open' : 'Closed'}
-                  </span>
-                </div>
-                <div className={componentsTheme.applyRegistrationTypes.feeRow}>
-                  <span className={componentsTheme.applyRegistrationTypes.priceText}>
-                    {secondaryType ? `${secondaryType.currency} ${secondaryType.price}` : '$10.00'}
-                  </span>
-                  <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
-                    Registration Fee
-                  </span>
-                </div>
-                <div className={componentsTheme.applyRegistrationTypes.periodRow}>
-                  <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
-                  <span className={componentsTheme.applyRegistrationTypes.periodLabel}>
-                    Registration Period:
-                  </span>
-                    <span suppressHydrationWarning>
-                      {getRegistrationPeriodLabel(secondaryType?.validity_periods, hydrated)}
-                    </span>
-                </div>
-              </div>
-              <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
-                <div ref={secondaryContentRef} className="relative h-[360px] overflow-hidden">
-                  {hasRichTextContent(secondaryType?.description) && (
-                    <div
-                      className="mb-3 prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
-                      dangerouslySetInnerHTML={{ __html: secondaryDescriptionHtml }}
-                    />
-                  )}
-                  <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
-                  <ul className={componentsTheme.applyRegistrationTypes.list}>
-                    {secondaryRequirements.map((label, idx) => (
-                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                        <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                          <Check className="h-3 w-3" />
-                        </span>
-                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
-                    Benefit (If Selected)
-                  </p>
-                  <ul className={componentsTheme.applyRegistrationTypes.list}>
-                    {secondaryBenefits.map((label, idx) => (
-                      <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                        <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                          <Check className="h-3 w-3" />
-                        </span>
-                        <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  {showSecondaryReadDetails && (
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/95 to-transparent"
-                    />
-                  )}
-                </div>
-                {showSecondaryReadDetails && (
-                  <div className="mt-auto pt-3 flex justify-end">
-                    <button
-                      type="button"
-                      className="text-xs font-semibold text-primary transition hover:text-primary/80"
-                      onClick={() =>
-                        setDescriptionDialog({
-                          title: secondaryType?.name ?? 'Fully Funded',
-                          descriptionHtml: secondaryDescriptionHtml,
-                          requirements: secondaryRequirements,
-                          benefits: secondaryBenefits,
-                          benefitsLabel: 'Benefit (If Selected)',
-                        })
-                      }
-                    >
-                      Read details
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
-                <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
-                  {secondaryOpen ? (
-                    <a
-                      href={currentRegisterUrl}
-                      className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
-                      onClick={() => trackInitiateCheckout({ content_name: 'fully_funded' })}
-                    >
-                      Register as Fully Funded
-                    </a>
-                  ) : (
-                    <button
-                      type="button"
-                      aria-disabled
-                      className="inline-flex w-full max-w-xs cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500"
-                    >
-                      Registration Closed
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-            </div>
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#ffffff72] to-transparent lg:hidden"
+            ) : (
+              <RegistrationTypeCards
+                registrationTypes={groups[0]?.registration_types ?? []}
+                hydrated={hydrated}
+                currentNow={currentNow}
+                showCountdown={false}
               />
-            </div>
+            )}
           </div>
         </div>
       </div>
-      {descriptionDialog && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${descriptionDialog.title} details`}
-        >
-          <div
-            className="absolute inset-0 bg-slate-900/45 backdrop-blur-sm"
-            onClick={() => setDescriptionDialog(null)}
-            aria-hidden="true"
-          />
-          <div className="relative z-10 w-full max-w-2xl rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <h3 className="text-sm font-semibold text-slate-900">{descriptionDialog.title} Details</h3>
-              <button
-                type="button"
-                onClick={() => setDescriptionDialog(null)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-                aria-label="Close details dialog"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
-              {hasRichTextContent(descriptionDialog.descriptionHtml) && (
-                <div
-                  className="prose prose-sm mb-4 max-w-none text-slate-700 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-a:text-primary"
-                  dangerouslySetInnerHTML={{ __html: descriptionDialog.descriptionHtml }}
-                />
-              )}
-              <p className={componentsTheme.applyRegistrationTypes.sectionLabel}>Requirements</p>
-              <ul className={componentsTheme.applyRegistrationTypes.list}>
-                {descriptionDialog.requirements.map((label, idx) => (
-                  <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                    <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                      <Check className="h-3 w-3" />
-                    </span>
-                    <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className={componentsTheme.applyRegistrationTypes.bodySectionSpacer}>
-                {descriptionDialog.benefitsLabel}
-              </p>
-              <ul className={componentsTheme.applyRegistrationTypes.list}>
-                {descriptionDialog.benefits.map((label, idx) => (
-                  <li key={idx} className={componentsTheme.applyRegistrationTypes.listItemRow}>
-                    <span className={`${componentsTheme.applyRegistrationTypes.bulletCircle} shrink-0`}>
-                      <Check className="h-3 w-3" />
-                    </span>
-                    <span className={componentsTheme.applyRegistrationTypes.listItemText}>{label}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

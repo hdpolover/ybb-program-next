@@ -17,12 +17,14 @@ import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
 import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
-import { getProgramDetail, getProgramPricingTiers, getActivePrograms, hasCompleteDates } from '@/lib/api/programs';
+import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
 import {
   resolveActiveRegistration,
   resolveRegistrationCountdownDeadline,
+  resolveCountdownAcrossPrograms,
   RegistrationCategory,
 } from '@/lib/registration/deadline';
+import type { RegistrationOverviewSection } from '@/types/home';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -130,6 +132,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let brandAccent: string | null = null;
   let settingsData = null;
   let registrationCloseDate: string | null = null;
+  let countdownProgramName: string | null = null;
   let activeProgramSlug = process.env.YBB_PROGRAM_SLUG?.trim() || null;
   let registerUrl = '/login?mode=signup';
   let activeCategory: RegistrationCategory | null = null;
@@ -146,29 +149,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     gaId = settingsResult.value?.brand?.google_analytics_id || null;
     pixelId = settingsResult.value?.brand?.pixel_id || null;
 
-    // Prioritize current year program for countdown
-    // Fetch active programs and find current year program with complete dates
-    try {
-      const currentYear = new Date().getFullYear();
-      const programs = await getActivePrograms(host);
-      const currentYearProgram = programs.find(p => p.year === currentYear && hasCompleteDates(p));
-
-      // Use current year program if available, otherwise fallback to settings
-      if (currentYearProgram) {
-        activeProgramSlug = currentYearProgram.slug;
-      } else {
-        activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
-      }
-    } catch (error) {
-      console.error('[Layout] Failed to fetch programs for current year:', error);
-      // Fallback to settings
-      activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
-    }
-
     // Deadline shown by the homepage countdown/gates: the program's own
     // registrationCloseDate always wins when set (see resolveRegistrationCountdownDeadline
     // for the incident this precedence fixes). The pricing-tier deadline is
     // only a fallback for brands whose program has no registrationCloseDate.
+    activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
     if (activeProgramSlug) {
       try {
         const program = await getProgramDetail(activeProgramSlug, host);
@@ -198,6 +183,45 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       registerUrl = '/login?mode=signup&applicationCategory=fully_funded';
     } else if (activeCategory === 'self_funded') {
       registerUrl = '/login?mode=signup&applicationCategory=self_funded';
+    }
+
+    // Override with the soonest-closing edition ONLY when the brand actually
+    // has more than one program with open registration right now (MEYS
+    // 6th/7th concurrent-active-programs bug). Every other brand keeps the
+    // single-program resolution above untouched, so this can only ever
+    // correct the ambiguous case, never change a brand that was already
+    // showing the right deadline.
+    try {
+      const homeData = await getHomePageData(host);
+      const registrationOverview = homeData.sections?.find(
+        (section): section is RegistrationOverviewSection => section.type === 'registration_overview',
+      );
+      const editions = registrationOverview?.content.programs;
+      if (editions && editions.length > 1) {
+        // Adapt the home API's snake_case registration_types shape to the
+        // camelCase DeadlineTier shape resolveActiveRegistrationDeadline
+        // already expects (same shape getProgramPricingTiers returns above)
+        // rather than re-deriving the fee/category/window logic here.
+        const deadlineEditions = editions.map((edition) => ({
+          program_name: edition.program_name,
+          registration_dates: edition.registration_dates,
+          registration_types: edition.registration_types.map((tier) => ({
+            feeType: tier.fee_type ?? '',
+            allowedCategories: tier.allowed_categories ?? [],
+            validityPeriods: (tier.validity_periods ?? []).map((period) => ({
+              startDate: period.start_date,
+              endDate: period.end_date,
+            })),
+          })),
+        }));
+        const winner = resolveCountdownAcrossPrograms(deadlineEditions, new Date());
+        if (winner) {
+          registrationCloseDate = winner.deadline;
+          countdownProgramName = winner.programName;
+        }
+      }
+    } catch (error) {
+      console.error('[Layout] Failed to resolve multi-program countdown:', error);
     }
   } else {
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
@@ -238,6 +262,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <RegistrationCountdownGate
               registrationDeadline={registrationCloseDate}
               activeProgramSlug={activeProgramSlug}
+              countdownProgramName={countdownProgramName}
             />
             {children}
             <ClientCTAGate />

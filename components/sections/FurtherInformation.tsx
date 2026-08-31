@@ -3,6 +3,7 @@
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
+import { useSelectedEdition } from '@/components/sections/SelectedEditionContext';
 
 interface GuidelineLink {
   href: string;
@@ -18,6 +19,14 @@ interface FurtherInformationProps {
   mobileBackgroundImageUrl?: string;
   mockupImageUrl?: string;
   guidebooks?: GuidelineLink[];
+  /**
+   * Per-edition guidebook lists, same order as HomeRegistrationStrip's tabs.
+   * When present and a SelectedEditionProvider wraps this section, the
+   * guidebooks shown follow the tab the visitor has selected (see MEYS
+   * 6th/7th concurrent-active-programs bug: a 6th applicant must not see the
+   * 7th's guidebook). Falls back to `guidebooks` otherwise.
+   */
+  guidebookEditions?: GuidelineLink[][];
   /** 'dark' = dark text (default); 'light' = white text for dark/vivid backgrounds */
   textColorScheme?: 'light' | 'dark';
 }
@@ -43,9 +52,21 @@ export default function FurtherInformationSection({
   mobileBackgroundImageUrl,
   mockupImageUrl,
   guidebooks = DEFAULT_GUIDELINES,
+  guidebookEditions,
   textColorScheme = 'light',
 }: FurtherInformationProps) {
-  if (!guidebooks || guidebooks.length === 0 || guidebooks.every(g => !g.href || g.href === '#')) return null;
+  const editionContext = useSelectedEdition();
+  const resolvedGuidebooks =
+    editionContext && guidebookEditions && guidebookEditions.length > 0
+      ? guidebookEditions[editionContext.selectedIndex] ?? guidebookEditions[0] ?? guidebooks
+      : guidebooks;
+
+  if (
+    !resolvedGuidebooks ||
+    resolvedGuidebooks.length === 0 ||
+    resolvedGuidebooks.every(g => !g.href || g.href === '#')
+  )
+    return null;
   const resolvedDesktopBackground = desktopBackgroundImageUrl?.trim() || undefined;
   const resolvedMobileBackground = mobileBackgroundImageUrl?.trim() || resolvedDesktopBackground;
   const resolvedMockupImage = mockupImageUrl?.trim() || undefined;
@@ -85,7 +106,7 @@ export default function FurtherInformationSection({
             <p className={`${componentsTheme.furtherInfo.description} break-words`} style={{ color: textColorScheme === 'light' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(15, 23, 42, 0.9)' }}>{subtitle}</p>
 
             <div className={componentsTheme.furtherInfo.buttonsCol}>
-              {guidebooks.map((link, index) => (
+              {resolvedGuidebooks.map((link, index) => (
                 link.href && link.href !== '#' ? (
                   <a
                     key={`${link.locale}-${link.href}-${index}`}

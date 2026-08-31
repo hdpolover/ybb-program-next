@@ -20,34 +20,31 @@ export type ValidityPeriod = {
  * DISPLAY ONLY. Eligibility and payment gating still use the per-period logic
  * elsewhere; a participant must not become eligible because a label looks open.
  */
-export function getRegistrationPeriodLabel(
-  periods: ValidityPeriod[] | undefined,
-  hydrated: boolean = true,
-  now: Date = new Date(),
-): string {
-  if (!periods || periods.length === 0) return "TBD";
+type ParsedPeriod = { period: ValidityPeriod; start: number; end: number };
+
+function parsePeriods(periods: ValidityPeriod[] | undefined): ParsedPeriod[] {
+  if (!periods || periods.length === 0) return [];
 
   const time = (value: string) => {
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
   };
 
-  const parsed = periods
-    .map((period) => ({
-      period,
-      start: time(period.start_date),
-      end: time(period.end_date),
-    }))
-    .filter((entry) => entry.start !== null && entry.end !== null) as Array<{
-    period: ValidityPeriod;
-    start: number;
-    end: number;
-  }>;
+  return periods
+    .map((period) => ({ period, start: time(period.start_date), end: time(period.end_date) }))
+    .filter((entry) => entry.start !== null && entry.end !== null) as ParsedPeriod[];
+}
 
-  if (parsed.length === 0) return "TBD";
+const byEarliestEnd = (a: { end: number }, b: { end: number }) => a.end - b.end;
 
-  const nowTime = now.getTime();
-  const byEarliestEnd = (a: { end: number }, b: { end: number }) => a.end - b.end;
+/**
+ * Pick the window a participant should be shown "right now": the one
+ * covering `now`, falling back to the next upcoming one, then the last one
+ * that ran, so a label never goes blank. Shared by the period label and the
+ * per-card countdown so both describe the same window.
+ */
+function pickDisplayWindow(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
+  if (parsed.length === 0) return undefined;
 
   // Windows may overlap (MEYS has 28 Jul - 31 Aug alongside 28 Jul - 1 Sep).
   // Eligibility holds while ANY window covers now, so the deadline that
@@ -61,7 +58,17 @@ export function getRegistrationPeriodLabel(
   const upcoming = parsed.filter((entry) => entry.start > nowTime).sort((a, b) => a.start - b.start)[0];
   const lapsed = [...parsed].sort(byEarliestEnd)[parsed.length - 1];
 
-  const chosen = current ?? upcoming ?? lapsed;
+  return current ?? upcoming ?? lapsed;
+}
+
+export function getRegistrationPeriodLabel(
+  periods: ValidityPeriod[] | undefined,
+  hydrated: boolean = true,
+  now: Date = new Date(),
+): string {
+  const parsed = parsePeriods(periods);
+  const chosen = pickDisplayWindow(parsed, now.getTime());
+  if (!chosen) return "TBD";
 
   const fmt = (value: string) => {
     const result = hydrated
@@ -74,4 +81,35 @@ export function getRegistrationPeriodLabel(
   const to = fmt(chosen.period.end_date);
   // A single-day window reads better unrepeated.
   return from === to ? from : `${from} - ${to}`;
+}
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * "Closes in X days" (or "X hours" under a day) for the window currently
+ * covering `now`, i.e. the same window `getRegistrationPeriodLabel` prints.
+ * Returns null when no window covers `now` right now (not open, or already
+ * ended) — callers show nothing in that case rather than a stale countdown.
+ */
+export function getRegistrationCountdownLabel(
+  periods: ValidityPeriod[] | undefined,
+  now: Date = new Date(),
+): string | null {
+  const nowTime = now.getTime();
+  const current = parsePeriods(periods)
+    .filter((entry) => entry.start <= nowTime && nowTime <= entry.end)
+    .sort(byEarliestEnd)
+    .pop();
+  if (!current) return null;
+
+  const remainingMs = current.end - nowTime;
+  if (remainingMs <= 0) return null;
+
+  if (remainingMs < ONE_DAY_MS) {
+    const hours = Math.max(1, Math.ceil(remainingMs / (60 * 60 * 1000)));
+    return `Closes in ${hours} hour${hours === 1 ? "" : "s"}`;
+  }
+
+  const days = Math.ceil(remainingMs / ONE_DAY_MS);
+  return `Closes in ${days} day${days === 1 ? "" : "s"}`;
 }
