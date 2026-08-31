@@ -19,6 +19,8 @@ import { trackLead } from '@/lib/analytics/metaPixel';
 import { notifyIfRegistrationClosed } from '@/lib/auth/programRegistrationClosed';
 import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
 import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
+import SignupEditionChoice, { type SignupEdition } from '@/components/auth/SignupEditionChoice';
+import { resolveSignupEditionSlug } from '@/lib/registration/edition';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -88,6 +90,10 @@ export default function LoginPage() {
   const [programSlug, setProgramSlug] = useState(() => {
     return searchParams.get('programSlug') || '';
   });
+  // The brand's currently relevant program editions, used only by signup to
+  // show which edition is being joined. Empty when the fetch failed, which
+  // keeps today's behaviour (no selector, no line, the server picks).
+  const [editions, setEditions] = useState<SignupEdition[]>([]);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string>('');
   const [legalModalOpen, setLegalModalOpen] = useState(false);
@@ -144,6 +150,36 @@ export default function LoginPage() {
 
     return () => clearTimeout(timer);
   }, [searchParams]);
+
+  // MEYS 6th/7th incident: signup silently assigned everyone to whichever
+  // edition was newest and open. Load the editions so the person sees (or
+  // picks) the one they are joining. Any failure leaves the list empty and
+  // signup behaves exactly as it did before, it must never block registration.
+  useEffect(() => {
+    if (mode !== 'signup' || editions.length > 0) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/home', { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = (await res.json()) as {
+          data?: { sections?: { type?: string; content?: { programs?: SignupEdition[] } }[] };
+        };
+        const section = json?.data?.sections?.find(item => item?.type === 'registration_overview');
+        const list = section?.content?.programs;
+        if (cancelled || !Array.isArray(list) || list.length === 0) return;
+        setEditions(list);
+        setProgramSlug(current => resolveSignupEditionSlug(list, current));
+      } catch {
+        // Editions are advisory. Signup continues without them.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, editions.length]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -838,6 +874,11 @@ export default function LoginPage() {
               ) : (
                 <>
                   <div className={componentsTheme.login.card}>
+                    <SignupEditionChoice
+                      editions={editions}
+                      value={programSlug}
+                      onChange={setProgramSlug}
+                    />
                     <div>
                       <label className={componentsTheme.login.fieldLabel}>
                         Email

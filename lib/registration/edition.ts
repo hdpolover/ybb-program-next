@@ -22,3 +22,25 @@ export function pickDefaultEditionIndex(
   });
   return newest;
 }
+
+/**
+ * The edition slug a signup should register into: the one the visitor arrived
+ * with (an edition-specific CTA carries ?programSlug=), else the default
+ * edition above. Returns '' when there are no editions, which leaves the
+ * server to pick exactly as it did before.
+ *
+ * MEYS 6th/7th incident: for one afternoon signup silently assigned everyone
+ * to whichever edition happened to be newest and open. The slug this returns
+ * is what the signup form submits, so the assignment matches what the person
+ * was shown.
+ */
+export function resolveSignupEditionSlug(
+  editions: { program_slug?: string; status?: string; year?: number }[],
+  requestedSlug: string,
+): string {
+  if (editions.length === 0) return '';
+  if (requestedSlug && editions.some((edition) => edition.program_slug === requestedSlug)) {
+    return requestedSlug;
+  }
+  return editions[pickDefaultEditionIndex(editions)]?.program_slug ?? '';
+}

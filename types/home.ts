@@ -62,6 +62,12 @@ export type RegistrationProgramEdition = {
     open: string | null;
     close: string | null;
   };
+  // Event dates. Optional because a cached home payload built before this
+  // field existed will not carry it.
+  program_dates?: {
+    start: string | null;
+    end: string | null;
+  };
   registration_types: RegistrationType[];
   /** Per-edition guidebook (see FurtherInformation's SelectedEditionContext wiring). */
   guidelines?: {
