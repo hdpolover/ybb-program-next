@@ -405,6 +405,10 @@ export default function LoginPage() {
         body: JSON.stringify({
           idToken,
           ...(referralCode ? { referralCode } : {}),
+          // Google signup used to send no program at all, so the server picked
+          // silently. That is the path that put 872 people on the wrong edition
+          // (2026-08-31). Send what the person actually chose.
+          ...(mode === 'signup' && programSlug ? { programSlug } : {}),
         }),
       });
 

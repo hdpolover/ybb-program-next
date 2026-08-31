@@ -8,6 +8,8 @@ type FirebaseLoginBody = {
   idToken: string;
   providerId?: string;
   referralCode?: string;
+  /** The edition the person picked on the signup form, when the brand has more than one. */
+  programSlug?: string;
 };
 
 type ProgramRegistrationClosed = {
@@ -55,6 +57,16 @@ export async function POST(request: Request) {
       brandId = ctx.brandId ?? undefined;
       programId = ctx.programId ?? undefined;
       programSlug = ctx.programSlug ?? undefined;
+
+      // An explicit choice from the signup form wins over the server's pick.
+      // programId must be cleared with it: resolveAuthTargetProgram checks
+      // programId FIRST, so leaving the context's id would silently override
+      // the chosen slug and reintroduce the bug this fixes.
+      const chosenSlug = typeof body.programSlug === 'string' ? body.programSlug.trim() : '';
+      if (chosenSlug && chosenSlug !== programSlug) {
+        programSlug = chosenSlug;
+        programId = undefined;
+      }
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Unknown auth-context error';
       console.error('[firebase-login] auth-context fetch failed', { brandDomain, error: errMsg });
