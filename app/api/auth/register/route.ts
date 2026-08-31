@@ -3,12 +3,14 @@ import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
+import { getProgramDetail } from '@/lib/api/programs';
 
 type RegisterBody = {
   email: string;
   password: string;
   referralCode?: string;
   applicationCategory?: string;
+  programSlug?: string;
 };
 
 type ProgramRegistrationClosed = {
@@ -92,10 +94,25 @@ export async function POST(request: Request) {
     }
 
     const brandId = envBrandId || ctxBrandId;
-    const programId = envProgramId || ctxProgramId;
     const providerId = envLocalProviderId || ctxProviderId || '';
-    const programSlug = ctxProgramSlug;
+    const programSlug = body.programSlug || ctxProgramSlug;
     const needsEmailVerification = ctxRequireEmailVerification ?? true;
+
+    // Fetch program detail to get programId if programSlug is provided
+    let programId = envProgramId || ctxProgramId;
+    if (programSlug && programSlug !== ctxProgramSlug) {
+      try {
+        const programDetail = await getProgramDetail(programSlug, brandDomain);
+        if (programDetail?.id) {
+          programId = programDetail.id;
+        }
+      } catch (err) {
+        console.error('[api/auth/register] Failed to fetch program detail for slug', {
+          programSlug,
+          error: err instanceof Error ? err.message : 'Unknown error',
+        });
+      }
+    }
 
     if (!brandId || !programId || !providerId) {
       const missing = [

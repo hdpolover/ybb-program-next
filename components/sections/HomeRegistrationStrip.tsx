@@ -6,6 +6,7 @@ import { componentsTheme } from '@/lib/theme/components';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import { getRegistrationPeriodLabel } from "@/lib/format/registration-period";
 import { useHydrated } from '@/hooks/useHydrated';
+import YearTabToggle, { type ProgramYearOption } from './YearTabToggle';
 
 type InstagramFeedItem = {
   id: string;
@@ -20,7 +21,7 @@ type ValidityPeriod = {
   end_date: string;
 };
 
-type RegistrationType = {
+export type RegistrationType = {
   id: string;
   name: string;
   description?: string | null;
@@ -40,11 +41,21 @@ type Guideline = {
   url: string;
 };
 
+// Type buat data program per tahun yang di-pass dari server
+type ProgramYearData = {
+  year: number;
+  slug: string;
+  name: string;
+  registerUrl: string;
+  registrationTypes?: RegistrationType[];
+};
+
 type HomeRegistrationStripProps = {
   igFeed?: InstagramFeedItem[];
   registrationTypes?: RegistrationType[];
   guidelines?: Guideline[];
   registerUrl?: string;
+  programsForDisplay?: ProgramYearData[];
 };
 
 function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): boolean {
@@ -199,8 +210,22 @@ export default function HomeRegistrationStrip({
   registrationTypes,
   guidelines,
   registerUrl,
+  programsForDisplay,
 }: HomeRegistrationStripProps) {
-  const safeRegistrationTypes = registrationTypes ?? [];
+  // State buat ganti-ganti tahun program
+  const [selectedProgram, setSelectedProgram] = useState<ProgramYearData | null>(null);
+
+  // Kalau ada data multi-program, set default ke program pertama
+  useEffect(() => {
+    if (programsForDisplay && programsForDisplay.length > 0 && !selectedProgram) {
+      setSelectedProgram(programsForDisplay[0]);
+    }
+  }, [programsForDisplay, selectedProgram]);
+
+  // Pake registrationTypes dari program yang dipilih, atau fallback ke prop lama
+  const safeRegistrationTypes = selectedProgram?.registrationTypes ?? registrationTypes ?? [];
+  const currentRegisterUrl = selectedProgram?.registerUrl ?? registerUrl ?? '/login?mode=signup';
+
   const [currentNow] = useState<Date>(() => new Date());
   const hydrated = useHydrated();
 
@@ -465,6 +490,23 @@ export default function HomeRegistrationStrip({
               </p>
             </div>
 
+            {/* Year Tab Toggle - hanya muncul kalau ada multi-program data */}
+            {programsForDisplay && programsForDisplay.length > 1 && (
+              <div className="flex justify-start">
+                <YearTabToggle
+                  programs={programsForDisplay.map(p => ({
+                    year: p.year,
+                    slug: p.slug,
+                    name: p.name,
+                  }))}
+                  defaultYear={selectedProgram?.year}
+                  onYearChange={(program) => {
+                    setSelectedProgram(programsForDisplay.find(p => p.year === program.year) ?? null);
+                  }}
+                />
+              </div>
+            )}
+
             <div className="relative">
               <p className="mb-2 flex items-center justify-end gap-1 text-xs font-medium text-slate-500 lg:hidden">
                 Swipe for more
@@ -573,7 +615,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {primaryOpen ? (
                     <a
-                      href="/login?mode=signup&applicationCategory=self_funded"
+                      href={currentRegisterUrl}
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                       onClick={() => trackInitiateCheckout({ content_name: 'self_funded' })}
                     >
@@ -696,7 +738,7 @@ export default function HomeRegistrationStrip({
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {secondaryOpen ? (
                     <a
-                      href="/login?mode=signup&applicationCategory=fully_funded"
+                      href={currentRegisterUrl}
                       className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                       onClick={() => trackInitiateCheckout({ content_name: 'fully_funded' })}
                     >

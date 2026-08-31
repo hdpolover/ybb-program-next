@@ -85,6 +85,9 @@ export default function LoginPage() {
   const [applicationCategory, setApplicationCategory] = useState(() => {
     return searchParams.get('applicationCategory') || '';
   });
+  const [programSlug, setProgramSlug] = useState(() => {
+    return searchParams.get('programSlug') || '';
+  });
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string>('');
   const [legalModalOpen, setLegalModalOpen] = useState(false);
@@ -234,6 +237,7 @@ export default function LoginPage() {
           email: signupForm.email,
           password: signupForm.password,
           ...(applicationCategory ? { applicationCategory } : {}),
+          ...(programSlug ? { programSlug } : {}),
         }),
       });
 

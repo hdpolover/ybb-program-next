@@ -12,6 +12,7 @@ import {
   looksLikeImageFile,
   MAX_UPLOAD_BYTES,
 } from "@/lib/media/prepareImageForUpload";
+import ImageCropperModal from "@/components/dashboard/ui/ImageCropperModal";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
 
@@ -28,6 +29,10 @@ export default function SubmissionReadProfileHeaderSection() {
   const [uploading, setUploading] = useState(false);
   const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // State buat cropper modal
+  const [cropperFile, setCropperFile] = useState<File | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
 
   const displayName =
     participantProfile?.displayName?.trim() ||
@@ -91,13 +96,26 @@ export default function SubmissionReadProfileHeaderSection() {
       return;
     }
 
+    setUploading(false);
+
+    // Buka cropper modal setelah image siap
+    setCropperFile(uploadFile);
+    setShowCropper(true);
+  }
+
+  // Handle setelah user selesai cropping
+  async function handleCroppedFile(croppedFile: File) {
+    setShowCropper(false);
+    setCropperFile(null);
+    setUploading(true);
+
     // Optimistic preview
-    const previewUrl = URL.createObjectURL(uploadFile);
+    const previewUrl = URL.createObjectURL(croppedFile);
     setLocalPhotoUrl(previewUrl);
 
     try {
       const form = new FormData();
-      form.append("file", uploadFile);
+      form.append("file", croppedFile);
 
       const res = await fetch("/api/participants/me/photo", {
         method: "POST",
@@ -126,6 +144,12 @@ export default function SubmissionReadProfileHeaderSection() {
     } finally {
       setUploading(false);
     }
+  }
+
+  // Handle kalau user cancel cropping
+  function handleCropperCancel() {
+    setShowCropper(false);
+    setCropperFile(null);
   }
 
   return (
@@ -218,6 +242,15 @@ export default function SubmissionReadProfileHeaderSection() {
           )}
         </div>
       </div>
+
+      {/* Cropper Modal - muncul setelah user pilih file */}
+      {showCropper && cropperFile && (
+        <ImageCropperModal
+          imageFile={cropperFile}
+          onConfirm={handleCroppedFile}
+          onCancel={handleCropperCancel}
+        />
+      )}
     </div>
   );
 }

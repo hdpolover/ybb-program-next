@@ -17,7 +17,7 @@ import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
 import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
-import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
+import { getProgramDetail, getProgramPricingTiers, getActivePrograms, hasCompleteDates } from '@/lib/api/programs';
 import {
   resolveActiveRegistration,
   resolveRegistrationCountdownDeadline,
@@ -146,11 +146,29 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     gaId = settingsResult.value?.brand?.google_analytics_id || null;
     pixelId = settingsResult.value?.brand?.pixel_id || null;
 
+    // Prioritize current year program for countdown
+    // Fetch active programs and find current year program with complete dates
+    try {
+      const currentYear = new Date().getFullYear();
+      const programs = await getActivePrograms(host);
+      const currentYearProgram = programs.find(p => p.year === currentYear && hasCompleteDates(p));
+
+      // Use current year program if available, otherwise fallback to settings
+      if (currentYearProgram) {
+        activeProgramSlug = currentYearProgram.slug;
+      } else {
+        activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
+      }
+    } catch (error) {
+      console.error('[Layout] Failed to fetch programs for current year:', error);
+      // Fallback to settings
+      activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
+    }
+
     // Deadline shown by the homepage countdown/gates: the program's own
     // registrationCloseDate always wins when set (see resolveRegistrationCountdownDeadline
     // for the incident this precedence fixes). The pricing-tier deadline is
     // only a fallback for brands whose program has no registrationCloseDate.
-    activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
     if (activeProgramSlug) {
       try {
         const program = await getProgramDetail(activeProgramSlug, host);

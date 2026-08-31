@@ -393,4 +393,10 @@ export const homeTheme = {
     infoPointBody: 'text-xs text-slate-600',
     infoFooter: 'mt-6 border-t border-slate-200 pt-4 text-xs text-slate-500',
   },
+  yearTabToggle: {
+    wrapper: 'flex items-center justify-center gap-2 mb-6',
+    tab: 'px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200',
+    tabActive: 'bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-sm',
+    tabInactive: 'bg-white/70 text-slate-600 hover:text-slate-900 hover:bg-white/90',
+  },
 };
