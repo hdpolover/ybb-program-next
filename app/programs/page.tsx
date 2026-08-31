@@ -28,10 +28,18 @@ import type {
 import type { FaqListSection } from '@/types/faqs';
 import type { ProgramImpactSection, RegistrationOverviewSection } from '@/types/home';
 
-export default async function ProgramOverviewPage() {
+type ProgramOverviewPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>;
+};
+
+export default async function ProgramOverviewPage({ searchParams }: ProgramOverviewPageProps = {}) {
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const editionParam = resolvedSearchParams.edition;
+  const edition = Array.isArray(editionParam) ? editionParam[0] : editionParam;
+
   const host = (await headers()).get('host') || '';
   const [programsPage, heroMedia, faqsPage, homePage] = await Promise.all([
-    getProgramsPageData(host),
+    getProgramsPageData(host, edition),
     getLandingHeroMedia(host, 'programs', {
       preferredImages: [],
       fallbackImage: '/img/programsbackground.png',
@@ -181,6 +189,7 @@ export default async function ProgramOverviewPage() {
         status={registrationInfoSection?.content.status}
         registrationDates={registrationInfoSection?.content.registration_dates}
         programs={registrationInfoSection?.content.programs}
+        selectedEditionSlug={programSlug}
       />
       <section className="h-10" />
       <ProgramActivities activities={programActivitiesSection?.content} />

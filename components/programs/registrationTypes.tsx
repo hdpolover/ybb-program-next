@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import SectionHeader from '@/components/ui/SectionHeader';
 import {
   Calendar,
@@ -72,6 +73,11 @@ type RegistrationTypeProgramsProps = {
     close: string | null;
   } | null;
   programs?: RegistrationProgramEdition[];
+  /** The program slug the SERVER resolved and rendered the rest of the page
+   * for (hero, overview, activities, schedules, FAQs). The tab bar is a
+   * navigation, not client state, so "selected" always follows this instead
+   * of local UI state (see MEYS 6th/7th concurrent-active-programs bug). */
+  selectedEditionSlug?: string | null;
 };
 
 function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): boolean {
@@ -196,6 +202,7 @@ export default function RegistrationTypePrograms({
   status,
   registrationDates,
   programs,
+  selectedEditionSlug,
 }: RegistrationTypeProgramsProps) {
   const [currentNow] = useState<Date>(() => new Date());
   const hydrated = useHydrated();
@@ -220,10 +227,19 @@ export default function RegistrationTypePrograms({
     ? (programs as RegistrationProgramEdition[])
     : [{ status, registration_dates: registrationDates, registration_types: pricingTiers ?? [] }];
 
-  // Default to the running edition with the closest deadline, same rule the
-  // sticky countdown banner and the home page use (`programs` arrives
-  // ordered soonest-close-first, see registration-editions.util.ts).
-  const [selectedIndex, setSelectedIndex] = useState(() => pickDefaultEditionIndex(groups));
+  // Selection follows the SERVER-rendered edition (selectedEditionSlug), not
+  // client state: the tab bar is a navigation (?edition=<slug>), and the
+  // rest of the page (hero, overview, activities, schedules, FAQs) already
+  // describes that same edition. Falls back to the same closest-deadline
+  // default the server itself uses when no slug is available (single-edition
+  // brands, or this component rendered without the prop).
+  const selectedIndex = useMemo(() => {
+    if (selectedEditionSlug) {
+      const matchIndex = groups.findIndex((group) => group.program_slug === selectedEditionSlug);
+      if (matchIndex >= 0) return matchIndex;
+    }
+    return pickDefaultEditionIndex(groups);
+  }, [groups, selectedEditionSlug]);
   const selectedGroup = groups[selectedIndex] ?? groups[0];
 
   const hasData = Boolean(groups.some((group) => group.registration_types.length > 0) || instructions?.length);
@@ -326,12 +342,11 @@ export default function RegistrationTypePrograms({
               className={componentsTheme.aboutProgram.tabContainer}
             >
               {groups.map((group, idx) => (
-                <button
+                <Link
                   key={group.program_id ?? idx}
-                  type="button"
+                  href={group.program_slug ? `/programs?edition=${group.program_slug}` : '/programs'}
                   role="tab"
                   aria-selected={idx === selectedIndex}
-                  onClick={() => setSelectedIndex(idx)}
                   className={`${componentsTheme.aboutProgram.tabButtonBase} ${
                     idx === selectedIndex
                       ? componentsTheme.aboutProgram.tabButtonActive
@@ -339,7 +354,7 @@ export default function RegistrationTypePrograms({
                   } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
                 >
                   {group.program_name}
-                </button>
+                </Link>
               ))}
             </div>
 

@@ -10,10 +10,10 @@ function resolveBrand(host: string): string {
     : DEFAULT_BRAND_URL;
 }
 
-export async function getProgramsPageData(host: string): Promise<ProgramsPageData> {
+export async function getProgramsPageData(host: string, edition?: string): Promise<ProgramsPageData> {
   const brandUrl = resolveBrand(host);
   return apiGetWithEnvelope<ProgramsPageData>('/v1/landing/programs', {
-    query: { url: brandUrl },
+    query: edition ? { url: brandUrl, edition } : { url: brandUrl },
     headers: {
       'x-brand-domain': brandUrl,
     },
