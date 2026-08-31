@@ -1,0 +1,45 @@
+#!/bin/sh
+# .githooks/pre-push
+#
+# Pushing to develop deploys straight to production, so a bad push is a live
+# outage rather than a red CI run.
+#
+# The rsc-boundary check is here because NOTHING else catches that class: a
+# helper exported from a 'use client' file and called from a server component
+# type checks fine, passes jsdom tests, AND `next build` exits 0, because these
+# pages are server-rendered on demand so the build never renders them. It only
+# throws on a real request. That reached production on 2026-08-31 and took the
+# registration section off all six brand domains. Verified: the check fails on
+# that exact code and passes once it is fixed.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+# Emergency bypass:       git push --no-verify
+
+DEPLOY_BRANCH="refs/heads/develop"
+run_gate=0
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  [ "$remote_ref" = "$DEPLOY_BRANCH" ] && run_gate=1
+done
+
+if [ "$run_gate" -eq 0 ]; then
+  echo "pre-push: not pushing $DEPLOY_BRANCH, skipping the build gate."
+  exit 0
+fi
+
+echo "pre-push: pushing develop (auto-deploys to production). Running the full gate."
+
+echo "pre-push: [1/4] rsc boundary"
+node scripts/check-rsc-boundary.mjs || { echo "pre-push: BLOCKED, a server component imports a function from a client module."; exit 1; }
+
+echo "pre-push: [2/4] tsc"
+npx tsc --noEmit || { echo "pre-push: BLOCKED, typecheck failed."; exit 1; }
+
+echo "pre-push: [3/4] vitest"
+npx vitest run || { echo "pre-push: BLOCKED, tests failed."; exit 1; }
+
+echo "pre-push: [4/4] next build"
+npx next build || { echo "pre-push: BLOCKED, production build failed."; exit 1; }
+
+echo "pre-push: all four passed."
+exit 0
