@@ -1,5 +1,5 @@
 import Hero from '@/components/sections/Hero';
-import HomeRegistrationStrip from '@/components/sections/HomeRegistrationStrip';
+import HomeRegistrationStrip, { pickDefaultEditionIndex } from '@/components/sections/HomeRegistrationStrip';
 import { SelectedEditionProvider } from '@/components/sections/SelectedEditionContext';
 import AboutProgram from '@/components/sections/AboutProgram';
 import HomeImportantPayment from '@/components/sections/HomeImportantPayment';
@@ -196,10 +196,7 @@ export default async function Home() {
       locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
     }))
   );
-  const defaultEditionIndex = (() => {
-    const openIndex = programEditions.findIndex((edition) => edition.status === 'open');
-    return openIndex >= 0 ? openIndex : 0;
-  })();
+  const defaultEditionIndex = pickDefaultEditionIndex(programEditions);
 
   const galleryTitle = programGallerySection?.content.title;
   const galleryDescription = programGallerySection?.content.description;

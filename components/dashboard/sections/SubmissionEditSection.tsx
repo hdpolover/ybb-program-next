@@ -208,7 +208,31 @@ function isCountrySelectorField(field: PortalSubmissionField) {
 
 function isProfilePhotoField(field: PortalSubmissionField) {
   const normalized = normalizeFieldKey(field.name);
-  return normalized === "pictureurl" || normalized === "profilephotourl" || normalized === "profilepictureurl";
+  const normalizedLabel = normalizeFieldKey(field.label);
+
+  // Pattern buat field foto profil - cover lebih banyak variation
+  // Check berdasarkan name DAN label biar lebih robust
+  return (
+    normalized === "pictureurl" ||
+    normalized === "profilephotourl" ||
+    normalized === "profilepictureurl" ||
+    normalized === "profilephoto" ||
+    normalized === "profile_photo" ||
+    normalized === "photourl" ||
+    normalized === "photo_url" ||
+    normalized === "avatar" ||
+    normalized === "avatarurl" ||
+    normalized === "avatar_url" ||
+    // Check label juga (case-insensitive)
+    normalizedLabel === "profilephoto" ||
+    normalizedLabel === "profile_photo" ||
+    normalizedLabel === "photoprofile" ||
+    normalizedLabel === "photo_profile" ||
+    normalizedLabel === "profilepicture" ||
+    normalizedLabel === "profile_picture" ||
+    normalizedLabel === "passportphoto" ||
+    normalizedLabel === "passport_photo"
+  );
 }
 
 function isEmailField(field: PortalSubmissionField) {

@@ -48,6 +48,9 @@ type Guideline = {
 type ProgramRegistrationGroup = {
   program_id?: string;
   program_name?: string;
+  // Distinguishes which edition a CTA should register into once a brand has
+  // more than one open edition, see currentRegisterHref below.
+  program_slug?: string;
   status?: 'open' | 'closed';
   registration_dates?: { open: string | null; close: string | null };
   registration_types: RegistrationType[];
@@ -218,11 +221,40 @@ type InstagramWindow = Window & {
 // dialog/overflow-detection state instead of sharing one across every group
 // when a brand has more than one open program (see MEYS 6th/7th
 // concurrent-active-programs bug).
+// Appends the edition's program_slug to a category register link, so the
+// CTA on a multi-edition brand signs the visitor up for the edition they are
+// currently looking at instead of whichever one the brand resolves as
+// "active" by default. login/page.tsx and app/api/auth/register/route.ts
+// already read this query param. Single-edition brands pass no slug, so the
+// href is unchanged from before.
+function buildRegisterHref(baseHref: string, programSlug?: string): string {
+  return programSlug ? `${baseHref}&programSlug=${encodeURIComponent(programSlug)}` : baseHref;
+}
+
+/**
+ * The edition a visitor should land on: the running one with the closest
+ * deadline, else the newest. Exported so app/page.tsx seeds the shared
+ * context with the same rule this component uses standalone.
+ */
+export function pickDefaultEditionIndex(
+  editions: { status?: string; year?: number }[],
+): number {
+  const openIndex = editions.findIndex((edition) => edition.status === 'open');
+  if (openIndex >= 0) return openIndex;
+  if (editions.length === 0) return 0;
+  let newest = 0;
+  editions.forEach((edition, index) => {
+    if ((edition.year ?? 0) > (editions[newest].year ?? 0)) newest = index;
+  });
+  return newest;
+}
+
 function RegistrationTypeCards({
   registrationTypes,
   hydrated,
   currentNow,
   showCountdown,
+  programSlug,
 }: {
   registrationTypes: RegistrationType[];
   hydrated: boolean;
@@ -234,6 +266,9 @@ function RegistrationTypeCards({
   // untouched, so this is gated on the EDITION COUNT, not on which prop shape
   // the data arrived in.
   showCountdown: boolean;
+  // Selected edition's program_slug, when this brand has more than one open
+  // edition. Undefined for single-edition brands (CTA hrefs stay as-is).
+  programSlug?: string;
 }) {
   const [descriptionDialog, setDescriptionDialog] = useState<{
     title: string;
@@ -457,7 +492,7 @@ function RegistrationTypeCards({
           <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
             {primaryOpen ? (
               <a
-                href="/login?mode=signup&applicationCategory=self_funded"
+                href={buildRegisterHref('/login?mode=signup&applicationCategory=self_funded', programSlug)}
                 className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                 onClick={() => trackInitiateCheckout({ content_name: 'self_funded' })}
               >
@@ -585,7 +620,7 @@ function RegistrationTypeCards({
           <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
             {secondaryOpen ? (
               <a
-                href="/login?mode=signup&applicationCategory=fully_funded"
+                href={buildRegisterHref('/login?mode=signup&applicationCategory=fully_funded', programSlug)}
                 className={`${componentsTheme.applyRegistrationTypes.ctaButton} ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
                 onClick={() => trackInitiateCheckout({ content_name: 'fully_funded' })}
               >
@@ -691,13 +726,14 @@ export default function HomeRegistrationStrip({
   const groups: ProgramRegistrationGroup[] =
     hasEditionData ? (programs as ProgramRegistrationGroup[]) : [{ registration_types: safeRegistrationTypes }];
 
-  // Default to the soonest-closing OPEN edition. `programs` already arrives
-  // ordered soonest-close-first (see home.strategy.ts), so this is the first
-  // 'open' entry, falling back to the first edition when none are open.
-  const [localSelectedIndex, setLocalSelectedIndex] = useState(() => {
-    const openIndex = groups.findIndex((group) => group.status === 'open');
-    return openIndex >= 0 ? openIndex : 0;
-  });
+  // Default to the running edition with the closest deadline. `programs`
+  // already arrives ordered soonest-close-first (see home.strategy.ts), so
+  // that is the first 'open' entry. When nothing is open there is no deadline
+  // to be closest to, so fall back to the NEWEST edition (highest year), which
+  // is the one a visitor is most likely looking for.
+  const [localSelectedIndex, setLocalSelectedIndex] = useState(() =>
+    pickDefaultEditionIndex(groups),
+  );
 
   // Publish the selected edition to FurtherInformation (a sibling client
   // component under app/page.tsx) via context, when a provider wraps us.
@@ -935,6 +971,7 @@ export default function HomeRegistrationStrip({
                   hydrated={hydrated}
                   currentNow={currentNow}
                   showCountdown
+                  programSlug={selectedGroup?.program_slug}
                 />
               </div>
             ) : (
