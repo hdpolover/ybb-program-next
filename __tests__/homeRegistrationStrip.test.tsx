@@ -2,11 +2,12 @@
 //
 // MEYS 6th/7th concurrent-active-programs bug: a brand can have more than one
 // published+active program with open registration at once. The homepage
-// registration strip must render one group per program in that case, while
-// staying byte-identical to today for every brand with a single program.
+// registration strip renders ONE edition at a time behind a tab bar in that
+// case (its own cards, guidelines and Instagram feed), while staying
+// byte-identical to today for every brand with a single program.
 
 import { describe, it, expect } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import HomeRegistrationStrip from '@/components/sections/HomeRegistrationStrip';
 
 function tier(overrides: Partial<{
@@ -33,42 +34,114 @@ function tier(overrides: Partial<{
 }
 
 describe('HomeRegistrationStrip', () => {
-  // The comparison below proves the two INPUT SHAPES agree, but both sides take
-  // the same code path, so it cannot catch a regression in the single-program
-  // path itself. This snapshot locks the actual rendered output instead: five
-  // live brand domains render through here and must not shift.
-  it('single program: rendered output stays locked to the committed snapshot', () => {
-    const { container } = render(<HomeRegistrationStrip registrationTypes={[tier()]} />);
+  // Locks what a single-edition brand actually renders. Five other live brand
+  // domains go through here. The fixture uses the PRODUCTION shape (a one entry
+  // `programs` array), because the API always sends it: a snapshot of the legacy
+  // registrationTypes-only shape would guard a path nothing in production takes.
+  it('single edition: rendered output stays locked to the committed snapshot', () => {
+    const { container } = render(
+      <HomeRegistrationStrip
+        registrationTypes={[tier()]}
+        programs={
+          [
+            {
+              program_name: 'Solo Program',
+              status: 'open',
+              registration_dates: {
+                open: '2026-01-01T00:00:00.000Z',
+                close: '2026-12-05T00:00:00.000Z',
+              },
+              registration_types: [tier()],
+            },
+          ] as never
+        }
+      />,
+    );
     expect(container.innerHTML).toMatchSnapshot();
   });
 
-  it('single program: renders identically whether data arrives via legacy registrationTypes or a one-entry programs array', () => {
-    const tiers = [tier()];
-
-    const legacy = render(<HomeRegistrationStrip registrationTypes={tiers} />);
-    const legacyHtml = legacy.container.innerHTML;
-    legacy.unmount();
-
-    const viaPrograms = render(
-      <HomeRegistrationStrip
-        registrationTypes={tiers}
-        programs={[{ registration_types: tiers }]}
-      />,
-    );
-    const viaProgramsHtml = viaPrograms.container.innerHTML;
-    viaPrograms.unmount();
-
-    expect(viaProgramsHtml).toBe(legacyHtml);
-  });
-
-  it('single program: does not render an edition heading or a top-level status badge', () => {
+  it('single program: does not render an edition heading, a top-level status badge, or a tab bar', () => {
     render(<HomeRegistrationStrip registrationTypes={[tier()]} />);
     // "Self Funded" appears as the card title; there must be no extra
     // program-edition heading above it.
     expect(screen.queryByRole('heading', { level: 3, name: /meys|program|edition/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
   });
 
-  it('two open programs: renders two groups, ordered soonest-close-first, each with its own heading and badge', () => {
+  it('one entry in the `programs` array: still no tab bar (tabs only appear for 2+ editions)', () => {
+    render(<HomeRegistrationStrip programs={[{ registration_types: [tier()] }]} />);
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+  });
+
+  it('two open programs: renders a tab bar and only the selected edition\'s cards, guidelines and feed', () => {
+    render(
+      <HomeRegistrationStrip
+        programs={[
+          {
+            program_id: 'p-6th',
+            program_name: 'MEYS 6th',
+            status: 'open',
+            registration_dates: { open: '2026-01-01T00:00:00.000Z', close: '2026-12-05T00:00:00.000Z' },
+            registration_types: [tier({ id: 't-6th', name: 'Self Funded 6th' })],
+            guidelines: [{ id: 'g-6th', title: '6th Guidebook', type: 'pdf', url: 'guide-6th.pdf' }],
+            ig_feed: [{ id: 'feed-6th', permalink: 'https://instagram.com/p/6th' }],
+          },
+          {
+            program_id: 'p-7th',
+            program_name: 'MEYS 7th',
+            status: 'open',
+            registration_dates: { open: '2026-06-01T00:00:00.000Z', close: '2027-03-20T00:00:00.000Z' },
+            registration_types: [tier({ id: 't-7th', name: 'Self Funded 7th' })],
+            guidelines: [{ id: 'g-7th', title: '7th Guidebook', type: 'pdf', url: 'guide-7th.pdf' }],
+            ig_feed: [{ id: 'feed-7th', permalink: 'https://instagram.com/p/7th' }],
+          },
+        ]}
+      />,
+    );
+
+    // Tab bar lists both editions.
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.map((t) => t.textContent)).toEqual(['MEYS 6th', 'MEYS 7th']);
+
+    // Only the selected (default: soonest-closing open, i.e. 6th) edition's
+    // content renders — not both stacked.
+    expect(screen.getAllByText('Self Funded 6th').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Self Funded 7th')).not.toBeInTheDocument();
+    expect(screen.getByText('6th Guidebook')).toBeInTheDocument();
+    expect(screen.queryByText('7th Guidebook')).not.toBeInTheDocument();
+  });
+
+  it('defaults the selected tab to the soonest-closing OPEN edition, not just the first entry', () => {
+    render(
+      <HomeRegistrationStrip
+        programs={[
+          // Listed first but NOT open (registration hasn't started yet) —
+          // the default selection must skip it.
+          {
+            program_id: 'p-8th',
+            program_name: 'MEYS 8th',
+            status: 'closed',
+            registration_dates: { open: '2027-06-01T00:00:00.000Z', close: '2028-03-20T00:00:00.000Z' },
+            registration_types: [tier({ id: 't-8th', name: 'Self Funded 8th' })],
+          },
+          {
+            program_id: 'p-7th',
+            program_name: 'MEYS 7th',
+            status: 'open',
+            registration_dates: { open: '2026-06-01T00:00:00.000Z', close: '2027-03-20T00:00:00.000Z' },
+            registration_types: [tier({ id: 't-7th', name: 'Self Funded 7th' })],
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole('tab', { name: 'MEYS 7th' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'MEYS 8th' })).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getAllByText('Self Funded 7th').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Self Funded 8th')).not.toBeInTheDocument();
+  });
+
+  it('clicking a tab swaps the displayed edition, and each tab is keyboard-focusable', () => {
     render(
       <HomeRegistrationStrip
         programs={[
@@ -90,19 +163,19 @@ describe('HomeRegistrationStrip', () => {
       />,
     );
 
-    const headings = screen.getAllByRole('heading', { level: 3, name: /^MEYS (6th|7th)$/ });
-    expect(headings.map((h) => h.textContent)).toEqual(['MEYS 6th', 'MEYS 7th']);
+    const seventhTab = screen.getByRole('tab', { name: 'MEYS 7th' });
+    expect(seventhTab.tagName).toBe('BUTTON'); // real button: keyboard-operable by default
+    seventhTab.focus();
+    expect(seventhTab).toHaveFocus();
 
-    expect(screen.getAllByText('Self Funded 6th').length).toBeGreaterThan(0);
+    fireEvent.click(seventhTab);
+
+    expect(seventhTab).toHaveAttribute('aria-selected', 'true');
     expect(screen.getAllByText('Self Funded 7th').length).toBeGreaterThan(0);
-
-    const openBadges = screen.getAllByText('Open');
-    // One edition-level "Open" badge per group, plus one per tier card
-    // (primary/secondary) inside each group.
-    expect(openBadges.length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText('Self Funded 6th')).not.toBeInTheDocument();
   });
 
-  it('a program passed with status "closed" (e.g. registration not yet open) shows a closed edition badge', () => {
+  it('a program passed with status "closed" (e.g. registration not yet open) shows a closed edition badge once selected', () => {
     render(
       <HomeRegistrationStrip
         programs={[
@@ -124,9 +197,10 @@ describe('HomeRegistrationStrip', () => {
       />,
     );
 
+    fireEvent.click(screen.getByRole('tab', { name: 'MEYS 8th' }));
+
     const eighthHeading = screen.getByRole('heading', { level: 3, name: 'MEYS 8th' });
-    // The heading row (heading + edition-level badge), not the whole group
-    // (which also contains the tier cards' own Open/Closed badges).
+    // The heading row (heading + edition-level badge), not the whole group.
     const headingRow = eighthHeading.parentElement as HTMLElement;
     expect(within(headingRow).getByText('Closed')).toBeInTheDocument();
   });
@@ -136,5 +210,81 @@ describe('HomeRegistrationStrip', () => {
       <HomeRegistrationStrip programs={[{ registration_types: [] }]} registrationTypes={[]} />,
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  describe('per-card "closes in" countdown', () => {
+    // The countdown exists to disambiguate a brand showing several editions.
+    // A single-edition brand keeps the layout it has today, so these fixtures
+    // deliberately carry TWO editions.
+    it('shows a countdown on a card whose validity window is currently open', () => {
+      render(
+        <HomeRegistrationStrip
+          programs={[
+            {
+              program_name: 'Edition A',
+              status: 'open',
+              registration_dates: { open: '2026-01-01T00:00:00.000Z', close: '2026-12-05T00:00:00.000Z' },
+              registration_types: [
+                tier({ validity_periods: [{ start_date: '2026-01-01T00:00:00.000Z', end_date: '2026-12-05T00:00:00.000Z' }] }),
+              ],
+            },
+            {
+              program_name: 'Edition B',
+              status: 'open',
+              registration_dates: { open: '2026-01-01T00:00:00.000Z', close: '2027-12-05T00:00:00.000Z' },
+              registration_types: [tier()],
+            },
+          ]}
+        />,
+      );
+      expect(screen.getByText(/^Closes in \d+ (day|hour)s?$/)).toBeInTheDocument();
+    });
+
+    it('shows no countdown for a single edition, which keeps the existing layout', () => {
+      render(
+        <HomeRegistrationStrip
+          programs={[
+            {
+              program_name: 'Solo',
+              status: 'open',
+              registration_dates: { open: '2026-01-01T00:00:00.000Z', close: '2026-12-05T00:00:00.000Z' },
+              registration_types: [
+                tier({ validity_periods: [{ start_date: '2026-01-01T00:00:00.000Z', end_date: '2026-12-05T00:00:00.000Z' }] }),
+              ],
+            },
+          ]}
+        />,
+      );
+      expect(screen.queryByText(/^Closes in/)).not.toBeInTheDocument();
+    });
+
+    it('shows nothing when the card\'s window has already ended', () => {
+      render(
+        <HomeRegistrationStrip
+          programs={[
+            {
+              // Mirrors MEYS 6th today: the program is still open, but this
+              // tier's own pricing window has already ended.
+              program_name: 'Edition A',
+              status: 'open',
+              registration_dates: { open: '2026-01-01T00:00:00.000Z', close: '2026-12-05T00:00:00.000Z' },
+              registration_types: [
+                tier({ validity_periods: [{ start_date: '2020-01-01T00:00:00.000Z', end_date: '2020-02-01T00:00:00.000Z' }] }),
+              ],
+            },
+            // A second edition, so the countdown path is actually reached and
+            // this asserts "the window ended", not "there is only one edition".
+            {
+              program_name: 'Edition B',
+              status: 'open',
+              registration_dates: { open: '2026-01-01T00:00:00.000Z', close: '2027-12-05T00:00:00.000Z' },
+              registration_types: [tier()],
+            },
+          ]}
+        />,
+      );
+      expect(screen.queryByText(/^Closes in/)).not.toBeInTheDocument();
+    });
+
   });
 });

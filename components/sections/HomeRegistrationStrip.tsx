@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
-import { getRegistrationPeriodLabel } from "@/lib/format/registration-period";
+import { getRegistrationCountdownLabel, getRegistrationPeriodLabel } from "@/lib/format/registration-period";
 import { useHydrated } from '@/hooks/useHydrated';
 
 type InstagramFeedItem = {
@@ -50,6 +50,11 @@ type ProgramRegistrationGroup = {
   status?: 'open' | 'closed';
   registration_dates?: { open: string | null; close: string | null };
   registration_types: RegistrationType[];
+  // Per-edition guidebook + Instagram feed (see MEYS 6th/7th bug: a 6th
+  // applicant must not see the 7th's guidebook). Undefined for the internal
+  // single-group fallback built from legacy `registrationTypes` props.
+  guidelines?: Guideline[];
+  ig_feed?: InstagramFeedItem[];
 };
 
 type HomeRegistrationStripProps = {
@@ -216,10 +221,18 @@ function RegistrationTypeCards({
   registrationTypes,
   hydrated,
   currentNow,
+  showCountdown,
 }: {
   registrationTypes: RegistrationType[];
   hydrated: boolean;
   currentNow: Date;
+  // Per-card "closes in X days". The global banner counts down to one
+  // program-level date while a tier's own window can close earlier (see
+  // lib/registration/deadline.ts), which is only ambiguous once a brand shows
+  // more than one edition. Single-edition brands keep the existing layout
+  // untouched, so this is gated on the EDITION COUNT, not on which prop shape
+  // the data arrived in.
+  showCountdown: boolean;
 }) {
   const [descriptionDialog, setDescriptionDialog] = useState<{
     title: string;
@@ -303,6 +316,13 @@ function RegistrationTypeCards({
   const primaryOpen = currentNow ? isRegistrationOpen(primaryType?.validity_periods, currentNow) : false;
   const secondaryOpen = currentNow ? isRegistrationOpen(secondaryType?.validity_periods, currentNow) : false;
 
+  const primaryCountdown = showCountdown
+    ? getRegistrationCountdownLabel(primaryType?.validity_periods, currentNow)
+    : null;
+  const secondaryCountdown = showCountdown
+    ? getRegistrationCountdownLabel(secondaryType?.validity_periods, currentNow)
+    : null;
+
   useEffect(() => {
     const checkOverflow = () => {
       const primaryElement = primaryContentRef.current;
@@ -369,6 +389,11 @@ function RegistrationTypeCards({
                 {getRegistrationPeriodLabel(primaryType?.validity_periods, hydrated)}
               </span>
           </div>
+          {primaryCountdown && (
+            <p className="mt-1 text-xs font-semibold text-amber-600" suppressHydrationWarning>
+              {primaryCountdown}
+            </p>
+          )}
         </div>
         <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
           <div ref={primaryContentRef} className="relative h-[360px] overflow-hidden">
@@ -490,6 +515,11 @@ function RegistrationTypeCards({
                 {getRegistrationPeriodLabel(secondaryType?.validity_periods, hydrated)}
               </span>
           </div>
+          {secondaryCountdown && (
+            <p className="mt-1 text-xs font-semibold text-amber-600" suppressHydrationWarning>
+              {secondaryCountdown}
+            </p>
+          )}
         </div>
         <div className={`${componentsTheme.applyRegistrationTypes.bodyWrapper} flex flex-col`}>
           <div ref={secondaryContentRef} className="relative h-[360px] overflow-hidden">
@@ -651,18 +681,42 @@ export default function HomeRegistrationStrip({
   const [currentNow] = useState<Date>(() => new Date());
   const hydrated = useHydrated();
 
+  // Real edition data (the `programs` prop, however many entries) vs. the
+  // internal single-group fallback built from legacy `registrationTypes`/
+  // `igFeed`/`guidelines` props. Gates the per-card countdown and per-edition
+  // guidelines/feed so the legacy-only path (the committed single-program
+  // snapshot) renders exactly as before.
+  const hasEditionData = Boolean(programs && programs.length > 0);
   const groups: ProgramRegistrationGroup[] =
-    programs && programs.length > 0 ? programs : [{ registration_types: safeRegistrationTypes }];
+    hasEditionData ? (programs as ProgramRegistrationGroup[]) : [{ registration_types: safeRegistrationTypes }];
+
+  // Default to the soonest-closing OPEN edition. `programs` already arrives
+  // ordered soonest-close-first (see home.strategy.ts), so this is the first
+  // 'open' entry, falling back to the first edition when none are open.
+  const [selectedIndex, setSelectedIndex] = useState(() => {
+    const openIndex = groups.findIndex((group) => group.status === 'open');
+    return openIndex >= 0 ? openIndex : 0;
+  });
+  const selectedGroup = groups[selectedIndex] ?? groups[0];
+
+  const activeIgFeed = hasEditionData ? selectedGroup?.ig_feed ?? [] : igFeed ?? [];
+  const activeGuidelines = hasEditionData ? selectedGroup?.guidelines ?? [] : guidelines ?? [];
 
   const posts = useMemo(
     () =>
-      (igFeed ?? []).filter(
+      activeIgFeed.filter(
         (item): item is InstagramFeedItem =>
           Boolean(item?.id && item?.permalink),
       ),
-    [igFeed],
+    [activeIgFeed],
   );
   const [activePostIndex, setActivePostIndex] = useState(0);
+
+  // A tab switch swaps `posts` out from under the carousel; jump back to its
+  // first post instead of keeping a stale index into the new edition's feed.
+  useEffect(() => {
+    setActivePostIndex(0);
+  }, [selectedIndex]);
 
   useEffect(() => {
     if (posts.length <= 1) return;
@@ -710,7 +764,7 @@ export default function HomeRegistrationStrip({
     };
   }, [activePostEmbedHtml]);
 
-  const displayedGuidelines = (guidelines ?? []).filter((guide) => Boolean(guide.url)).slice(0, 2);
+  const displayedGuidelines = activeGuidelines.filter((guide) => Boolean(guide.url)).slice(0, 2);
 
   if (groups.every((group) => group.registration_types.length === 0)) return null;
 
@@ -817,45 +871,68 @@ export default function HomeRegistrationStrip({
             </div>
 
             {groups.length > 1 ? (
-              groups.map((group, idx) => (
-                <div key={group.program_id ?? idx} className={idx > 0 ? 'pt-6' : undefined}>
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-lg font-bold text-blue-950">{group.program_name}</h3>
-                    <div className="flex items-center gap-2 text-xs text-slate-600">
-                      <span suppressHydrationWarning>
-                        {getRegistrationPeriodLabel(
-                          group.registration_dates
-                            ? [{
-                                start_date: group.registration_dates.open ?? '',
-                                end_date: group.registration_dates.close ?? '',
-                              }]
-                            : undefined,
-                          hydrated,
-                        )}
-                      </span>
-                      <span
-                        className={
-                          group.status === 'open'
-                            ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                            : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                        }
-                      >
-                        {group.status === 'open' ? 'Open' : 'Closed'}
-                      </span>
-                    </div>
-                  </div>
-                  <RegistrationTypeCards
-                    registrationTypes={group.registration_types}
-                    hydrated={hydrated}
-                    currentNow={currentNow}
-                  />
+              <div>
+                <div
+                  role="tablist"
+                  aria-label="Registration edition"
+                  className={componentsTheme.aboutProgram.tabContainer}
+                >
+                  {groups.map((group, idx) => (
+                    <button
+                      key={group.program_id ?? idx}
+                      type="button"
+                      role="tab"
+                      aria-selected={idx === selectedIndex}
+                      onClick={() => setSelectedIndex(idx)}
+                      className={`${componentsTheme.aboutProgram.tabButtonBase} ${
+                        idx === selectedIndex
+                          ? componentsTheme.aboutProgram.tabButtonActive
+                          : componentsTheme.aboutProgram.tabButtonInactive
+                      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
+                    >
+                      {group.program_name}
+                    </button>
+                  ))}
                 </div>
-              ))
+
+                <div className="mb-3 mt-4 flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-lg font-bold text-blue-950">{selectedGroup?.program_name}</h3>
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <span suppressHydrationWarning>
+                      {getRegistrationPeriodLabel(
+                        selectedGroup?.registration_dates
+                          ? [{
+                              start_date: selectedGroup.registration_dates.open ?? '',
+                              end_date: selectedGroup.registration_dates.close ?? '',
+                            }]
+                          : undefined,
+                        hydrated,
+                      )}
+                    </span>
+                    <span
+                      className={
+                        selectedGroup?.status === 'open'
+                          ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
+                          : componentsTheme.applyRegistrationTypes.statusBadgeClosed
+                      }
+                    >
+                      {selectedGroup?.status === 'open' ? 'Open' : 'Closed'}
+                    </span>
+                  </div>
+                </div>
+                <RegistrationTypeCards
+                  registrationTypes={selectedGroup?.registration_types ?? []}
+                  hydrated={hydrated}
+                  currentNow={currentNow}
+                  showCountdown
+                />
+              </div>
             ) : (
               <RegistrationTypeCards
                 registrationTypes={groups[0]?.registration_types ?? []}
                 hydrated={hydrated}
                 currentNow={currentNow}
+                showCountdown={false}
               />
             )}
           </div>
