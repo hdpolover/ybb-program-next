@@ -88,6 +88,11 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  // The navbar is fixed but auto-hides on scroll down. On the programs pages the
+  // only other way back is the floating Home button, so pin it there: it stays
+  // put instead of translating out of view.
+  const pinNavbar = pathname?.startsWith('/programs') ?? false;
+
   const navMeasureRef = useRef<HTMLDivElement>(null);
   const [navHeight, setNavHeight] = useState(84);
   const lastScrollYRef = useRef(0);
@@ -959,20 +964,22 @@ export function Navbar() {
     </>
   );
 
+  const navHidden = hidden && !pinNavbar;
+
   return (
     <>
       <div
         aria-hidden
         className="shrink-0 transition-[height] duration-300 ease-out"
-        style={{ height: hidden ? 0 : navHeight }}
+        style={{ height: navHidden ? 0 : navHeight }}
       />
 
       <header
         className={`fixed inset-x-0 top-0 z-[70] transition-[transform] duration-300 ease-out will-change-transform ${
-          hidden ? 'pointer-events-none' : ''
+          navHidden ? 'pointer-events-none' : ''
         }`}
         style={{
-          transform: hidden ? `translate3d(0, -${navHeight}px, 0)` : 'translate3d(0, 0, 0)',
+          transform: navHidden ? `translate3d(0, -${navHeight}px, 0)` : 'translate3d(0, 0, 0)',
         }}
       >
         <div ref={navMeasureRef}>{navbarContent}</div>
