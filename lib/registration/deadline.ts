@@ -149,6 +149,60 @@ export type CountdownWinner = {
  * countdown can never again describe a different program than the cards
  * shown below it.
  */
+/**
+ * The soonest registration window that is OPEN RIGHT NOW, across every edition
+ * and category, with the edition and category it belongs to.
+ *
+ * This is what the banner counts to. The 2026-08-21 incident made the program
+ * level close date win instead, because a lapsed tier chain had the banner
+ * advertising "closes 31 Aug" while registration really ran to 5 Dec. That
+ * failure is not reachable here: a lapsed chain has no window covering now, so
+ * it contributes no candidate and the caller falls back to the program date.
+ * Only a window a visitor can actually act on can win.
+ */
+export function resolveOpenWindowCountdown(
+  editions: CountdownProgramEdition[] | null | undefined,
+  now: Date,
+): (CountdownWinner & { categoryLabel: string | null }) | null {
+  if (!editions || editions.length === 0) return null;
+  const nowMs = now.getTime();
+
+  const candidates: Array<CountdownWinner & { categoryLabel: string | null; ms: number }> = [];
+
+  for (const edition of editions) {
+    for (const tier of edition.registration_types ?? []) {
+      if (!isRegistrationFeeTier(tier)) continue;
+      for (const period of tier.validityPeriods ?? []) {
+        const start = parseDate((period as { startDate?: string | null }).startDate);
+        const end = parseDate((period as { endDate?: string | null }).endDate);
+        if (start === null || end === null) continue;
+        // Only a window covering now. An upcoming window is not something a
+        // visitor can act on yet, and a lapsed one is gone.
+        if (start > nowMs || end < nowMs) continue;
+        candidates.push({
+          deadline: new Date(end).toISOString(),
+          programName: edition.program_name,
+          categoryLabel: describeTierCategory(tier),
+          ms: end,
+        });
+      }
+    }
+  }
+
+  if (candidates.length === 0) return null;
+  const winner = candidates.reduce((soonest, c) => (c.ms < soonest.ms ? c : soonest));
+  return { deadline: winner.deadline, programName: winner.programName, categoryLabel: winner.categoryLabel };
+}
+
+/** "Fully Funded" / "Self Funded" for the banner label, or null when a tier is not category specific. */
+function describeTierCategory(tier: DeadlineTier): string | null {
+  const cats = (tier.allowedCategories ?? []).map(normalizeToken);
+  if (cats.length !== 1) return null;
+  if (cats[0] === 'fully_funded') return 'Fully Funded';
+  if (cats[0] === 'self_funded') return 'Self Funded';
+  return null;
+}
+
 export function resolveCountdownAcrossPrograms(
   editions: CountdownProgramEdition[] | null | undefined,
   now: Date,

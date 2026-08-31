@@ -22,6 +22,7 @@ import {
   resolveActiveRegistration,
   resolveRegistrationCountdownDeadline,
   resolveCountdownAcrossPrograms,
+  resolveOpenWindowCountdown,
   RegistrationCategory,
 } from '@/lib/registration/deadline';
 import type { RegistrationOverviewSection } from '@/types/home';
@@ -185,19 +186,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       registerUrl = '/login?mode=signup&applicationCategory=self_funded';
     }
 
-    // Override with the soonest-closing edition ONLY when the brand actually
-    // has more than one program with open registration right now (MEYS
-    // 6th/7th concurrent-active-programs bug). Every other brand keeps the
-    // single-program resolution above untouched, so this can only ever
-    // correct the ambiguous case, never change a brand that was already
-    // showing the right deadline.
+    // Count down to the soonest registration window that is OPEN RIGHT NOW,
+    // across every edition and category, and name it. The program level close
+    // date describes when the programme stops accepting people, not when the
+    // next thing a visitor can act on shuts: MEYS advertised 96 days to 5 Dec
+    // while fully funded actually closed that same evening.
+    //
+    // The 2026-08-21 incident (a lapsed tier chain making the banner advertise
+    // a date months too early) cannot recur through this path: a lapsed chain
+    // has no window covering now, so it produces no candidate and we keep the
+    // program level date resolved above.
     try {
       const homeData = await getHomePageData(host);
       const registrationOverview = homeData.sections?.find(
         (section): section is RegistrationOverviewSection => section.type === 'registration_overview',
       );
       const editions = registrationOverview?.content.programs;
-      if (editions && editions.length > 1) {
+      if (editions && editions.length > 0) {
         // Adapt the home API's snake_case registration_types shape to the
         // camelCase DeadlineTier shape resolveActiveRegistrationDeadline
         // already expects (same shape getProgramPricingTiers returns above)
@@ -214,10 +219,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             })),
           })),
         }));
-        const winner = resolveCountdownAcrossPrograms(deadlineEditions, new Date());
+        const now = new Date();
+        // An open window wins. Only if nothing is open do we fall back to the
+        // soonest edition close date, so the banner never goes blank.
+        const openWindow = resolveOpenWindowCountdown(deadlineEditions, now);
+        const winner = openWindow ?? resolveCountdownAcrossPrograms(deadlineEditions, now);
         if (winner) {
           registrationCloseDate = winner.deadline;
-          countdownProgramName = winner.programName;
+          countdownProgramName = openWindow?.categoryLabel
+            ? `${winner.programName} ${openWindow.categoryLabel}`
+            : winner.programName;
         }
       }
     } catch (error) {
