@@ -43,7 +43,9 @@ export default async function ProgramsPhotoGalleryPage() {
   ]);
   const currentGallery = homeData ? extractProgramGallery(homeData) : null;
 
-  const currentProgramImages = (currentGallery?.content.gallery ?? currentGallery?.content.images ?? []).map((image) => ({
+  // Full page: prefer the untruncated pool; fall back to the 6-image teaser
+  // field for a stale cache entry written before `full_gallery` existed.
+  const currentProgramImages = (currentGallery?.content.full_gallery ?? currentGallery?.content.gallery ?? currentGallery?.content.images ?? []).map((image) => ({
     id: image.id,
     src: image.url,
     caption: image.caption,

@@ -978,27 +978,40 @@ export default function SubmissionEditSection() {
 
   const isReferralField = (fieldName: string) => referralFieldNames.has(fieldName);
 
-  useEffect(() => {
-    const allValues = Object.values(sectionValues).flatMap(sv => Object.entries(sv));
-    const referralEntries = allValues.filter(([name]) => isReferralField(name));
+  // Scoped to just the referral fields' own values (not the whole sectionValues
+  // object) so a keystroke in an unrelated field - name, address, essay, anything
+  // else on the page - doesn't re-run this effect. It previously depended on
+  // sectionValues wholesale, so every keystroke anywhere in the form re-fired
+  // setReferralFieldStatuses (a real render, on top of the render the keystroke
+  // itself already caused) even though nothing referral-related had changed.
+  const referralFieldEntries = useMemo(
+    () =>
+      Object.values(sectionValues).flatMap(sv =>
+        Object.entries(sv).filter(([name]) => isReferralField(name)),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sectionValues, referralFieldNames],
+  );
+  const referralFieldEntriesKey = referralFieldEntries.map(([name, value]) => `${name}=${value}`).join('|');
 
-    if (referralEntries.length === 0) return;
+  useEffect(() => {
+    if (referralFieldEntries.length === 0) return;
 
     // Batch the immediate idle/checking statuses into a single state update
     // rather than one setState per entry inside the effect body.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setReferralFieldStatuses(prev => {
       const next = { ...prev };
-      for (const [name, code] of referralEntries) {
-        next[name] = (code as string).trim() ? 'checking' : 'idle';
+      for (const [name, code] of referralFieldEntries) {
+        next[name] = code.trim() ? 'checking' : 'idle';
       }
       return next;
     });
 
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    for (const [name, code] of referralEntries) {
-      const trimmed = (code as string).trim();
+    for (const [name, code] of referralFieldEntries) {
+      const trimmed = code.trim();
       if (!trimmed) {
         continue;
       }
@@ -1019,7 +1032,7 @@ export default function SubmissionEditSection() {
 
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sectionValues]);
+  }, [referralFieldEntriesKey]);
 
   const saveActiveSection = async () => {
     if (!activeSection) return;

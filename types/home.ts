@@ -145,6 +145,13 @@ export type ProgramGallerySection = {
 			url: string;
 			caption: string;
 		}[];
+		// Untruncated pool for the full /programs/gallery page; `gallery`/`images`
+		// above stay capped at 6 for the homepage teaser.
+		full_gallery?: {
+			id: string;
+			url: string;
+			caption: string;
+		}[];
 		cta: {
 			label: string;
 			url: string;
