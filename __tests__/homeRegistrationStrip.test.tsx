@@ -8,7 +8,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen, within, fireEvent } from '@testing-library/react';
-import HomeRegistrationStrip, { pickDefaultEditionIndex } from '@/components/sections/HomeRegistrationStrip';
+import HomeRegistrationStrip from '@/components/sections/HomeRegistrationStrip';
+import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 
 function tier(overrides: Partial<{
   id: string;

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
+import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import { componentsTheme } from '@/lib/theme/components';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import { getRegistrationCountdownLabel, getRegistrationPeriodLabel } from "@/lib/format/registration-period";
@@ -229,24 +230,6 @@ type InstagramWindow = Window & {
 // href is unchanged from before.
 function buildRegisterHref(baseHref: string, programSlug?: string): string {
   return programSlug ? `${baseHref}&programSlug=${encodeURIComponent(programSlug)}` : baseHref;
-}
-
-/**
- * The edition a visitor should land on: the running one with the closest
- * deadline, else the newest. Exported so app/page.tsx seeds the shared
- * context with the same rule this component uses standalone.
- */
-export function pickDefaultEditionIndex(
-  editions: { status?: string; year?: number }[],
-): number {
-  const openIndex = editions.findIndex((edition) => edition.status === 'open');
-  if (openIndex >= 0) return openIndex;
-  if (editions.length === 0) return 0;
-  let newest = 0;
-  editions.forEach((edition, index) => {
-    if ((edition.year ?? 0) > (editions[newest].year ?? 0)) newest = index;
-  });
-  return newest;
 }
 
 function RegistrationTypeCards({

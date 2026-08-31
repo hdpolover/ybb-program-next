@@ -1,5 +1,6 @@
 import Hero from '@/components/sections/Hero';
-import HomeRegistrationStrip, { pickDefaultEditionIndex } from '@/components/sections/HomeRegistrationStrip';
+import HomeRegistrationStrip from '@/components/sections/HomeRegistrationStrip';
+import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import { SelectedEditionProvider } from '@/components/sections/SelectedEditionContext';
 import AboutProgram from '@/components/sections/AboutProgram';
 import HomeImportantPayment from '@/components/sections/HomeImportantPayment';
