@@ -206,6 +206,7 @@ export default async function Home() {
       <HomeRegistrationStrip
         igFeed={registrationOverviewSection?.content.ig_feed}
         registrationTypes={registrationOverviewSection?.content.registration_types}
+        programs={registrationOverviewSection?.content.programs}
         guidelines={registrationOverviewSection?.content.guidelines}
         registerUrl={registerUrl}
       />

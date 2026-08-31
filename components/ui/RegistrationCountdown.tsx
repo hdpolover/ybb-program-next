@@ -6,9 +6,15 @@ import { componentsTheme } from '@/lib/theme/components';
 
 interface CountdownProps {
   targetDate: string; // ISO date string
+  // Set only when more than one program edition currently has open
+  // registration, so the countdown names which edition it's counting down
+  // for (see MEYS 6th/7th concurrent-active-programs bug). Undefined for
+  // every brand with a single open program, which keeps this label exactly
+  // as it reads today.
+  programName?: string | null;
 }
 
-export default function RegistrationCountdown({ targetDate }: CountdownProps) {
+export default function RegistrationCountdown({ targetDate, programName }: CountdownProps) {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -50,7 +56,9 @@ export default function RegistrationCountdown({ targetDate }: CountdownProps) {
       <div className={componentsTheme.registrationCountdown.container}>
         <div className={componentsTheme.registrationCountdown.labelWrapper}>
           <Clock className={componentsTheme.registrationCountdown.icon} />
-          <span className={componentsTheme.registrationCountdown.labelDesktop}>Registration closes in:</span>
+          <span className={componentsTheme.registrationCountdown.labelDesktop}>
+            {programName ? `${programName} registration closes in:` : 'Registration closes in:'}
+          </span>
           <span className={componentsTheme.registrationCountdown.labelMobile}>Closes in:</span>
         </div>
         <div className={componentsTheme.registrationCountdown.countdownGrid}>

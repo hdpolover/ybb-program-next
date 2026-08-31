@@ -123,3 +123,54 @@ export function resolveRegistrationCountdownDeadline(
 ): string | null {
   return programRegistrationCloseDate ?? tierDeadline ?? null;
 }
+
+/** One currently-relevant program edition, as carried by the home API's
+ * registration_overview.content.programs (see home.strategy.ts). */
+export type CountdownProgramEdition = {
+  program_name: string;
+  registration_dates: { open: string | null; close: string | null };
+  registration_types: DeadlineTier[];
+};
+
+export type CountdownWinner = {
+  deadline: string;
+  programName: string;
+};
+
+/**
+ * Resolve the homepage countdown across every currently-relevant program
+ * edition (MEYS 6th/7th concurrent-active-programs bug: a brand can have
+ * more than one program with open registration at once, so a single
+ * program's deadline is no longer guaranteed to be the one actually
+ * counting down soonest). For each edition this applies the SAME precedence
+ * as resolveRegistrationCountdownDeadline (that edition's own
+ * registrationCloseDate wins, its tier deadline is only a fallback), then
+ * picks the soonest of those and names the edition it came from, so the
+ * countdown can never again describe a different program than the cards
+ * shown below it.
+ */
+export function resolveCountdownAcrossPrograms(
+  editions: CountdownProgramEdition[] | null | undefined,
+  now: Date,
+): CountdownWinner | null {
+  if (!editions || editions.length === 0) return null;
+
+  const nowMs = now.getTime();
+  const candidates = editions
+    .map((edition) => {
+      const tierDeadline = resolveActiveRegistrationDeadline(edition.registration_types, now);
+      const deadline = resolveRegistrationCountdownDeadline(edition.registration_dates?.close, tierDeadline);
+      return deadline ? { deadline, programName: edition.program_name } : null;
+    })
+    .filter((candidate): candidate is CountdownWinner => candidate !== null)
+    .filter((candidate) => {
+      const ms = parseDate(candidate.deadline);
+      return ms !== null && ms > nowMs;
+    });
+
+  if (candidates.length === 0) return null;
+
+  return candidates.reduce((soonest, candidate) =>
+    (parseDate(candidate.deadline) ?? Infinity) < (parseDate(soonest.deadline) ?? Infinity) ? candidate : soonest,
+  );
+}
