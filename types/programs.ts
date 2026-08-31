@@ -1,5 +1,7 @@
 // Programs page API types
 
+import type { RegistrationProgramEdition } from './home';
+
 export type ProgramsSectionType =
   | 'hero'
   | 'program_list'
@@ -87,6 +89,10 @@ export type RegistrationInfoSection = {
     } | null;
     pricing_tiers: RegistrationInfoPricingTier[];
     instructions: RegistrationInfoInstruction[];
+    // Additive: every currently-relevant edition for this brand, soonest-
+    // close-first (MEYS 6th/7th concurrent-active-programs bug). The fields
+    // above stay driven by the single resolved `currentProgram`, untouched.
+    programs?: RegistrationProgramEdition[];
   };
 };
 

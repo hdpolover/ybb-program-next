@@ -180,6 +180,7 @@ export default async function ProgramOverviewPage() {
         description={registrationInfoSection?.content.description}
         status={registrationInfoSection?.content.status}
         registrationDates={registrationInfoSection?.content.registration_dates}
+        programs={registrationInfoSection?.content.programs}
       />
       <section className="h-10" />
       <ProgramActivities activities={programActivitiesSection?.content} />

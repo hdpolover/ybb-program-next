@@ -17,14 +17,48 @@ import {
 import { componentsTheme } from '@/lib/theme/components';
 import { getRegistrationPeriodLabel } from '@/lib/format/registration-period';
 import { useHydrated } from '@/hooks/useHydrated';
+import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
 } from '@/types/programs';
+import type { RegistrationProgramEdition } from '@/types/home';
 
 type ValidityPeriod = {
   start_date: string;
   end_date: string;
+};
+
+// Loosened structural shape covering both `RegistrationInfoPricingTier`
+// (legacy single-program props) and a `programs[]` edition's own
+// `registration_types` entries (RegistrationType from types/home.ts), so the
+// helper functions below work against either without a cast (see MEYS 6th/
+// 7th concurrent-active-programs bug).
+type PricingTierLike = {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: unknown;
+  currency: string;
+  fee_type?: string;
+  target?: string;
+  allowed_categories?: string[];
+  benefits: string[];
+  requirements?: string[];
+  validity_periods?: ValidityPeriod[];
+};
+
+// One currently-relevant registration edition, or the internal single-group
+// fallback built from legacy `pricingTiers`/`status`/`registrationDates`
+// props (see MEYS 6th/7th concurrent-active-programs bug; mirrors
+// HomeRegistrationStrip's `ProgramRegistrationGroup`).
+type RegistrationEditionGroup = {
+  program_id?: string;
+  program_name?: string;
+  program_slug?: string;
+  status?: string;
+  registration_dates?: { open: string | null; close: string | null } | null;
+  registration_types: PricingTierLike[];
 };
 
 type RegistrationTypeProgramsProps = {
@@ -37,6 +71,7 @@ type RegistrationTypeProgramsProps = {
     open: string | null;
     close: string | null;
   } | null;
+  programs?: RegistrationProgramEdition[];
 };
 
 function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): boolean {
@@ -59,7 +94,7 @@ function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | n
 }
 
 function normalizeValidityPeriods(
-  tier: RegistrationInfoPricingTier | undefined,
+  tier: PricingTierLike | undefined,
   fallbackDates?: { open: string | null; close: string | null } | null
 ): ValidityPeriod[] | undefined {
   if (!tier) return undefined;
@@ -92,7 +127,7 @@ function normalizeValidityPeriods(
 }
 
 function hasCategory(
-  tier: RegistrationInfoPricingTier,
+  tier: PricingTierLike,
   target: 'self_funded' | 'fully_funded',
 ): boolean {
   const categories = [
@@ -105,15 +140,15 @@ function hasCategory(
     .some((item) => item === target);
 }
 
-function isRegistrationFeeTier(tier: RegistrationInfoPricingTier): boolean {
+function isRegistrationFeeTier(tier: PricingTierLike): boolean {
   return (tier.fee_type ?? '').toLowerCase() === 'registration_fee';
 }
 
 function pickRegistrationTier(
-  tiers: RegistrationInfoPricingTier[],
+  tiers: PricingTierLike[],
   target: 'self_funded' | 'fully_funded',
   excludeId?: string,
-): RegistrationInfoPricingTier | undefined {
+): PricingTierLike | undefined {
   const oppositeTarget = target === 'self_funded' ? 'fully_funded' : 'self_funded';
   const candidates = tiers.filter((tier) => tier.id !== excludeId);
   const exact = candidates.find(
@@ -126,7 +161,7 @@ function pickRegistrationTier(
 
   if (candidates.length === 0) return undefined;
 
-  const toPrice = (tier: RegistrationInfoPricingTier) => {
+  const toPrice = (tier: PricingTierLike) => {
     const value = Number(String(tier.price).replace(/[^0-9.-]/g, ''));
     return Number.isFinite(value) ? value : 0;
   };
@@ -160,6 +195,7 @@ export default function RegistrationTypePrograms({
   description,
   status,
   registrationDates,
+  programs,
 }: RegistrationTypeProgramsProps) {
   const [currentNow] = useState<Date>(() => new Date());
   const hydrated = useHydrated();
@@ -174,17 +210,36 @@ export default function RegistrationTypePrograms({
   const [showPrimaryReadDetails, setShowPrimaryReadDetails] = useState(false);
   const [showSecondaryReadDetails, setShowSecondaryReadDetails] = useState(false);
 
-  const hasData = Boolean(pricingTiers?.length || instructions?.length);
+  // Real edition data (the `programs` prop, however many entries) vs. the
+  // internal single-group fallback built from legacy `pricingTiers`/
+  // `status`/`registrationDates` props (see MEYS 6th/7th concurrent-active-
+  // programs bug). Mirrors HomeRegistrationStrip's own gating so a brand
+  // with a single edition renders exactly as before.
+  const hasEditionData = Boolean(programs && programs.length > 0);
+  const groups: RegistrationEditionGroup[] = hasEditionData
+    ? (programs as RegistrationProgramEdition[])
+    : [{ status, registration_dates: registrationDates, registration_types: pricingTiers ?? [] }];
 
-  const registrationFeeTypes = useMemo(() => (pricingTiers ?? []).filter(isRegistrationFeeTier), [pricingTiers]);
+  // Default to the running edition with the closest deadline, same rule the
+  // sticky countdown banner and the home page use (`programs` arrives
+  // ordered soonest-close-first, see registration-editions.util.ts).
+  const [selectedIndex, setSelectedIndex] = useState(() => pickDefaultEditionIndex(groups));
+  const selectedGroup = groups[selectedIndex] ?? groups[0];
+
+  const hasData = Boolean(groups.some((group) => group.registration_types.length > 0) || instructions?.length);
+
+  const registrationFeeTypes = useMemo(
+    () => selectedGroup.registration_types.filter(isRegistrationFeeTier),
+    [selectedGroup.registration_types],
+  );
   const primaryType = useMemo(() => pickRegistrationTier(registrationFeeTypes, 'self_funded'), [registrationFeeTypes]);
   const secondaryType = useMemo(() => pickRegistrationTier(registrationFeeTypes, 'fully_funded', primaryType?.id), [registrationFeeTypes, primaryType?.id]);
 
   const primaryBenefits = useMemo(() => primaryType?.benefits ?? [], [primaryType?.benefits]);
   const secondaryBenefits = useMemo(() => secondaryType?.benefits ?? [], [secondaryType?.benefits]);
 
-  const primaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(primaryType, registrationDates), currentNow) : false;
-  const secondaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(secondaryType, registrationDates), currentNow) : false;
+  const primaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(primaryType, selectedGroup.registration_dates), currentNow) : false;
+  const secondaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(secondaryType, selectedGroup.registration_dates), currentNow) : false;
 
   const selfFundedRequirements = useMemo(
     () =>
@@ -263,6 +318,59 @@ export default function RegistrationTypePrograms({
           subtitle={description}
         />
 
+        {groups.length > 1 && (
+          <div className="mb-4">
+            <div
+              role="tablist"
+              aria-label="Registration edition"
+              className={componentsTheme.aboutProgram.tabContainer}
+            >
+              {groups.map((group, idx) => (
+                <button
+                  key={group.program_id ?? idx}
+                  type="button"
+                  role="tab"
+                  aria-selected={idx === selectedIndex}
+                  onClick={() => setSelectedIndex(idx)}
+                  className={`${componentsTheme.aboutProgram.tabButtonBase} ${
+                    idx === selectedIndex
+                      ? componentsTheme.aboutProgram.tabButtonActive
+                      : componentsTheme.aboutProgram.tabButtonInactive
+                  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
+                >
+                  {group.program_name}
+                </button>
+              ))}
+            </div>
+
+            <div className="mb-2 mt-4 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-lg font-bold text-blue-950">{selectedGroup.program_name}</h3>
+              <div className="flex items-center gap-2 text-xs text-slate-600">
+                <span suppressHydrationWarning>
+                  {getRegistrationPeriodLabel(
+                    selectedGroup.registration_dates
+                      ? [{
+                          start_date: selectedGroup.registration_dates.open ?? '',
+                          end_date: selectedGroup.registration_dates.close ?? '',
+                        }]
+                      : undefined,
+                    hydrated,
+                  )}
+                </span>
+                <span
+                  className={
+                    selectedGroup.status === 'open'
+                      ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
+                      : componentsTheme.applyRegistrationTypes.statusBadgeClosed
+                  }
+                >
+                  {selectedGroup.status === 'open' ? 'Open' : 'Closed'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="relative">
           <p className="mb-2 flex items-center justify-end gap-1 text-xs font-medium text-slate-500 lg:hidden">
             Swipe for more
@@ -304,7 +412,7 @@ export default function RegistrationTypePrograms({
                   </div>
                 )}
                 {(() => {
-                  const periods = normalizeValidityPeriods(primaryType, registrationDates);
+                  const periods = normalizeValidityPeriods(primaryType, selectedGroup.registration_dates);
                   return periods && periods.length > 0 && (
                     <div className={componentsTheme.applyRegistrationTypes.periodRow}>
                       <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
@@ -443,7 +551,7 @@ export default function RegistrationTypePrograms({
                   </div>
                 )}
                 {(() => {
-                  const periods = normalizeValidityPeriods(secondaryType, registrationDates);
+                  const periods = normalizeValidityPeriods(secondaryType, selectedGroup.registration_dates);
                   return periods && periods.length > 0 && (
                     <div className={componentsTheme.applyRegistrationTypes.periodRow}>
                       <Calendar className={componentsTheme.applyRegistrationTypes.calendarIcon} />
