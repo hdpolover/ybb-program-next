@@ -1,5 +1,6 @@
 import { getHomePageData } from '@/lib/api/home';
 import { formatDeadlineWib } from '@/lib/format/deadline';
+import { getRegistrationPeriodLabel } from '@/lib/format/registration-period';
 import {
   getProgramDetail,
   getProgramPricingTiers,
@@ -138,10 +139,17 @@ function formatPriceLabel(tier: TierLike): string {
 function buildPeriods(tier: TierLike): Array<{ label: string; value: string }> {
   const periods = Array.isArray(tier.validityPeriods) ? tier.validityPeriods : [];
   if (periods.length === 0) return [];
-  return periods.map((period, idx) => ({
-    label: `Stage ${idx + 1}`,
-    value: formatDateRange(period.startDate, period.endDate),
-  }));
+  // validityPeriods is a chain of admin-appended extension windows, not priced
+  // stages — listing all of them shows participants the internal edit history.
+  const label = getRegistrationPeriodLabel(
+    periods.map((period) => ({
+      start_date: safeText(period.startDate),
+      end_date: safeText(period.endDate),
+    })),
+    false,
+  );
+  if (label === 'TBD') return [];
+  return [{ label: 'Registration Period', value: label }];
 }
 
 function buildCard(title: string, fallbackSubtitle: string, tier?: TierLike | null): ApplyFeeCard | null {

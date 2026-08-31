@@ -47,8 +47,11 @@ export function parseApiDate(date: unknown): Date {
   const raw = String(date).trim();
   if (!raw) return new Date('');
 
+  // Anchor at UTC midnight, matching parseDeadlineInstant (lib/format/deadline.ts)
+  // and parseLegacyIsoDateUtc (lib/format/timeline.ts). Local midnight made the
+  // same bare date resolve to a different instant per viewer timezone.
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-    return new Date(`${raw}T00:00:00`);
+    return new Date(`${raw}T00:00:00Z`);
   }
 
   const normalized = /(?:[zZ]|[+-]\d{2}:\d{2})$/.test(raw) ? raw : `${raw}Z`;

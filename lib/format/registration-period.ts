@@ -10,42 +10,58 @@ export type ValidityPeriod = {
  * Admins extend a registration window by APPENDING a new validity period that
  * starts where the previous one ended, because the eligibility rule hides a
  * category's CTA and payment option when no period covers "now". A single tier
- * therefore accumulates a chain of windows — in production, 10 to 22 of them.
+ * therefore accumulates a chain of windows: in production, 10 to 22 of them.
  *
- * Displaying only the period that covers "now" (or, once they have all lapsed,
- * the last one) shows a participant the final one-day extension instead of the
- * real registration span: "20 Aug - 21 Aug" rather than "14 Apr - 21 Aug".
+ * Only ONE window is shown: the one covering "now", so a participant sees the
+ * dates that actually apply today rather than an accumulated span ending on the
+ * final extension. Falls back to the next upcoming window, then to the last one
+ * that ran, so the label never goes blank.
  *
- * The span below is DISPLAY ONLY. Eligibility and payment gating still use the
- * per-period logic elsewhere — a participant must not become eligible just
- * because the overall span looks open.
+ * DISPLAY ONLY. Eligibility and payment gating still use the per-period logic
+ * elsewhere; a participant must not become eligible because a label looks open.
  */
 export function getRegistrationPeriodLabel(
   periods: ValidityPeriod[] | undefined,
   hydrated: boolean = true,
+  now: Date = new Date(),
 ): string {
   if (!periods || periods.length === 0) return "TBD";
 
-  const times = (value: string) => {
+  const time = (value: string) => {
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
   };
 
-  let earliest: { time: number; raw: string } | null = null;
-  let latest: { time: number; raw: string } | null = null;
+  const parsed = periods
+    .map((period) => ({
+      period,
+      start: time(period.start_date),
+      end: time(period.end_date),
+    }))
+    .filter((entry) => entry.start !== null && entry.end !== null) as Array<{
+    period: ValidityPeriod;
+    start: number;
+    end: number;
+  }>;
 
-  for (const period of periods) {
-    const start = times(period.start_date);
-    if (start !== null && (earliest === null || start < earliest.time)) {
-      earliest = { time: start, raw: period.start_date };
-    }
-    const end = times(period.end_date);
-    if (end !== null && (latest === null || end > latest.time)) {
-      latest = { time: end, raw: period.end_date };
-    }
-  }
+  if (parsed.length === 0) return "TBD";
 
-  if (!earliest || !latest) return "TBD";
+  const nowTime = now.getTime();
+  const byEarliestEnd = (a: { end: number }, b: { end: number }) => a.end - b.end;
+
+  // Windows may overlap (MEYS has 28 Jul - 31 Aug alongside 28 Jul - 1 Sep).
+  // Eligibility holds while ANY window covers now, so the deadline that
+  // actually applies is the latest end among the windows covering today.
+  // Picking the earliest would tell participants registration closes a day
+  // before it does.
+  const current = parsed
+    .filter((entry) => entry.start <= nowTime && nowTime <= entry.end)
+    .sort(byEarliestEnd)
+    .pop();
+  const upcoming = parsed.filter((entry) => entry.start > nowTime).sort((a, b) => a.start - b.start)[0];
+  const lapsed = [...parsed].sort(byEarliestEnd)[parsed.length - 1];
+
+  const chosen = current ?? upcoming ?? lapsed;
 
   const fmt = (value: string) => {
     const result = hydrated
@@ -54,8 +70,8 @@ export function getRegistrationPeriodLabel(
     return result === "—" ? "TBD" : result;
   };
 
-  const from = fmt(earliest.raw);
-  const to = fmt(latest.raw);
-  // A single-day span reads better unrepeated.
+  const from = fmt(chosen.period.start_date);
+  const to = fmt(chosen.period.end_date);
+  // A single-day window reads better unrepeated.
   return from === to ? from : `${from} - ${to}`;
 }
