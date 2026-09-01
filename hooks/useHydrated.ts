@@ -21,6 +21,7 @@ export function useHydrated(): boolean {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- deps are [] (mount-only effect), so this setState can never re-trigger itself.
     setHydrated(true);
   }, []);
 

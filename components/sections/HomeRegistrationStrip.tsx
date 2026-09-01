@@ -762,6 +762,7 @@ export default function HomeRegistrationStrip({
   // A tab switch swaps `posts` out from under the carousel; jump back to its
   // first post instead of keeping a stale index into the new edition's feed.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets a DIFFERENT state (activePostIndex) than the effect's dep (selectedIndex, driven by user tab clicks/context); cannot feed back into its own dependency.
     setActivePostIndex(0);
   }, [selectedIndex]);
 

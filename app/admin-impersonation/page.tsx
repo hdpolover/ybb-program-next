@@ -53,6 +53,7 @@ export default function AdminImpersonationPage() {
     let cancelled = false;
 
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- effect only re-runs when `token`/`router` change, neither of which this setState touches, so it cannot cascade.
       setError("Missing impersonation token.");
       return;
     }

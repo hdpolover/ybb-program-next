@@ -30,6 +30,7 @@ export default function StickyBottomBar({ deadline, registerUrl }: StickyBottomB
       const timer = setTimeout(() => setShouldAnimate(true), 50);
       return () => clearTimeout(timer);
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- toggles a DIFFERENT state (shouldAnimate) than the dep (isVisible, driven by a scroll listener in a separate effect); cannot feed back into its own dependency.
       setShouldAnimate(false);
     }
   }, [isVisible]);

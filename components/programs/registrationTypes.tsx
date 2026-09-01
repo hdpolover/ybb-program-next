@@ -101,23 +101,33 @@ function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | n
   return null;
 }
 
+// Some upstream sources (raw API payloads before page-level mapping) still
+// carry `validityPeriods`/`startDate`/`endDate` instead of the snake_case
+// shape declared on `PricingTierLike` — this widened view covers both
+// without resorting to `any`.
+type PricingTierWithValidityVariants = PricingTierLike & {
+  validity_periods?: ValidityPeriod[];
+  validityPeriods?: { startDate: string; endDate: string }[];
+};
+
 function normalizeValidityPeriods(
   tier: PricingTierLike | undefined,
   fallbackDates?: { open: string | null; close: string | null } | null
 ): ValidityPeriod[] | undefined {
   if (!tier) return undefined;
-  
+
   // Handle both snake_case (validity_periods) and camelCase (validityPeriods)
-  const snakeCasePeriods = (tier as any).validity_periods;
-  const camelCasePeriods = (tier as any).validityPeriods;
-  
+  const tierWithVariants = tier as PricingTierWithValidityVariants;
+  const snakeCasePeriods = tierWithVariants.validity_periods;
+  const camelCasePeriods = tierWithVariants.validityPeriods;
+
   if (snakeCasePeriods && Array.isArray(snakeCasePeriods) && snakeCasePeriods.length > 0) {
     return snakeCasePeriods;
   }
-  
+
   if (camelCasePeriods && Array.isArray(camelCasePeriods) && camelCasePeriods.length > 0) {
     // Convert camelCase to snake_case format
-    return camelCasePeriods.map((p: any) => ({
+    return camelCasePeriods.map((p) => ({
       start_date: p.startDate,
       end_date: p.endDate,
     }));

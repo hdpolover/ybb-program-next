@@ -15,6 +15,17 @@ function makeFile(name: string, type: string, size = 1024): File {
   return new File([bytes], name, { type });
 }
 
+// jsdom doesn't implement createImageBitmap or URL.createObjectURL/revokeObjectURL,
+// so tests stub them per-case. The stubbed value varies between `undefined` and a
+// vi.fn() mock with a test-specific signature, so the mutable slot itself is typed
+// `unknown` rather than the real (much stricter) DOM signature — the real type is
+// not what's being represented here, a test double is.
+type GlobalThisWithImageBitmapStub = typeof globalThis & { createImageBitmap: unknown };
+type UrlStaticWithObjectUrlStubs = typeof URL & {
+  createObjectURL: unknown;
+  revokeObjectURL: unknown;
+};
+
 describe("isHeicFile", () => {
   it("detects by MIME type", () => {
     expect(isHeicFile({ name: "photo.jpg", type: "image/heic" })).toBe(true);
@@ -70,9 +81,9 @@ describe("prepareImageForUpload", () => {
     // jsdom doesn't implement createImageBitmap or URL.createObjectURL; stub
     // both. createImageBitmap is set per-test; createObjectURL is only
     // exercised by the <img> fallback path but is harmless to stub globally.
-    (globalThis as any).createImageBitmap = undefined;
-    (URL as any).createObjectURL = vi.fn(() => "blob:mock-url");
-    (URL as any).revokeObjectURL = vi.fn();
+    (globalThis as GlobalThisWithImageBitmapStub).createImageBitmap = undefined;
+    (URL as UrlStaticWithObjectUrlStubs).createObjectURL = vi.fn(() => "blob:mock-url");
+    (URL as UrlStaticWithObjectUrlStubs).revokeObjectURL = vi.fn();
   });
 
   afterEach(() => {
@@ -99,7 +110,7 @@ describe("prepareImageForUpload", () => {
 
   it("decodes via createImageBitmap when available, downscales, and re-encodes as JPEG", async () => {
     const closeMock = vi.fn();
-    (globalThis as any).createImageBitmap = vi.fn().mockResolvedValue({
+    (globalThis as GlobalThisWithImageBitmapStub).createImageBitmap = vi.fn().mockResolvedValue({
       width: 4000,
       height: 3000,
       close: closeMock,
@@ -115,7 +126,7 @@ describe("prepareImageForUpload", () => {
   });
 
   it("does not upscale images already under the max dimension", async () => {
-    (globalThis as any).createImageBitmap = vi.fn().mockResolvedValue({
+    (globalThis as GlobalThisWithImageBitmapStub).createImageBitmap = vi.fn().mockResolvedValue({
       width: 800,
       height: 600,
       close: vi.fn(),
@@ -127,7 +138,7 @@ describe("prepareImageForUpload", () => {
   });
 
   it("retries at a lower JPEG quality if the first export is still over the size cap, and throws if still too big", async () => {
-    (globalThis as any).createImageBitmap = vi.fn().mockResolvedValue({ width: 100, height: 100, close: vi.fn() });
+    (globalThis as GlobalThisWithImageBitmapStub).createImageBitmap = vi.fn().mockResolvedValue({ width: 100, height: 100, close: vi.fn() });
     blobSizeToReturn = MAX_UPLOAD_BYTES + 1;
 
     await expect(prepareImageForUpload(makeFile("huge.jpg", "image/jpeg"))).rejects.toThrow(ImagePrepError);
@@ -147,7 +158,7 @@ describe("prepareImageForUpload", () => {
   }
 
   it("throws the HEIC-specific guidance message when a HEIC file can't be decoded", async () => {
-    (globalThis as any).createImageBitmap = vi.fn().mockRejectedValue(new Error("not supported"));
+    (globalThis as GlobalThisWithImageBitmapStub).createImageBitmap = vi.fn().mockRejectedValue(new Error("not supported"));
     vi.stubGlobal("Image", FailingImage);
 
     const file = makeFile("IMG_5678.HEIC", "image/heic");
@@ -157,7 +168,7 @@ describe("prepareImageForUpload", () => {
   });
 
   it("throws a generic unreadable-image message for a non-HEIC file that fails to decode", async () => {
-    (globalThis as any).createImageBitmap = vi.fn().mockRejectedValue(new Error("not supported"));
+    (globalThis as GlobalThisWithImageBitmapStub).createImageBitmap = vi.fn().mockRejectedValue(new Error("not supported"));
     vi.stubGlobal("Image", FailingImage);
 
     const file = makeFile("corrupt.jpg", "image/jpeg");

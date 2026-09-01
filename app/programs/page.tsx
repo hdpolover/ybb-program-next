@@ -67,8 +67,8 @@ export default async function ProgramOverviewPage({ searchParams }: ProgramOverv
           benefits: tier.benefits || [],
           requirements: tier.requirements || [],
           fee_type: tier.feeType || 'registration_fee',
-          target: tier.allowedCategories?.[0] as any,
-          allowed_categories: tier.allowedCategories as any,
+          target: tier.allowedCategories?.[0],
+          allowed_categories: tier.allowedCategories ?? undefined,
           validity_periods: tier.validityPeriods?.map(p => ({
             start_date: p.startDate || '',
             end_date: p.endDate || '',

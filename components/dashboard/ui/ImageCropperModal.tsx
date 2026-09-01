@@ -56,29 +56,6 @@ export default function ImageCropperModal({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onCancel]);
 
-  // Crop gambar dan convert ke File
-  const handleCrop = useCallback(async () => {
-    if (!croppedArea || !imageSrc) return;
-
-    setIsProcessing(true);
-
-    try {
-      const croppedImageBlob = await getCroppedImg(imageSrc, croppedArea);
-      if (croppedImageBlob) {
-        // Convert Blob ke File
-        const croppedFile = new File([croppedImageBlob], imageFile.name, {
-          type: 'image/jpeg',
-          lastModified: Date.now(),
-        });
-        onConfirm(croppedFile);
-      }
-    } catch (error) {
-      console.error('Error cropping image:', error);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [imageSrc, croppedArea, imageFile, onConfirm]);
-
   // Helper function buat crop gambar menggunakan canvas
   const getCroppedImg = async (
     imageSrc: string,
@@ -120,6 +97,29 @@ export default function ImageCropperModal({
       }, 'image/jpeg', JPEG_QUALITY);
     });
   };
+
+  // Crop gambar dan convert ke File
+  const handleCrop = useCallback(async () => {
+    if (!croppedArea || !imageSrc) return;
+
+    setIsProcessing(true);
+
+    try {
+      const croppedImageBlob = await getCroppedImg(imageSrc, croppedArea);
+      if (croppedImageBlob) {
+        // Convert Blob ke File
+        const croppedFile = new File([croppedImageBlob], imageFile.name, {
+          type: 'image/jpeg',
+          lastModified: Date.now(),
+        });
+        onConfirm(croppedFile);
+      }
+    } catch (error) {
+      console.error('Error cropping image:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [imageSrc, croppedArea, imageFile, onConfirm]);
 
   if (typeof document === 'undefined') return null;
 

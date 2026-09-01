@@ -220,6 +220,7 @@ export default function OverviewProgramDetailsSection({
       // No registered program at all — check whether that's because the most
       // recent login/register/firebase-login attempt hit a closed registration
       // window (signal persisted at auth time; see lib/auth/programRegistrationClosed).
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- deps are [] (mount-only effect), so this setState can never re-trigger itself.
       setRegistrationClosedInfo(readRegistrationClosedInfo());
       setSubmissionDetail(null);
       setDetailLoading(false);

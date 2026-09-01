@@ -29,17 +29,21 @@ fi
 
 echo "pre-push: pushing develop (auto-deploys to production). Running the full gate."
 
-echo "pre-push: [1/4] rsc boundary"
+echo "pre-push: [1/5] rsc boundary"
 node scripts/check-rsc-boundary.mjs || { echo "pre-push: BLOCKED, a server component imports a function from a client module."; exit 1; }
 
-echo "pre-push: [2/4] tsc"
+echo "pre-push: [2/5] tsc"
 npx tsc --noEmit || { echo "pre-push: BLOCKED, typecheck failed."; exit 1; }
 
-echo "pre-push: [3/4] vitest"
+echo "pre-push: [3/5] vitest"
 npx vitest run || { echo "pre-push: BLOCKED, tests failed."; exit 1; }
 
-echo "pre-push: [4/4] next build"
+echo "pre-push: [4/5] next build"
 npx next build || { echo "pre-push: BLOCKED, production build failed."; exit 1; }
 
-echo "pre-push: all four passed."
+echo "pre-push: [5/5] eslint"
+( npx eslint app components lib hooks types ) \
+  || { echo "pre-push: BLOCKED, lint errors. Warnings are fine, errors are not."; exit 1; }
+
+echo "pre-push: all five passed."
 exit 0
