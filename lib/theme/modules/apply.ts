@@ -10,7 +10,9 @@ export const applyTheme = {
     card: 'group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30',
     iconCircle:
       'grid h-10 w-10 aspect-square place-items-center rounded-full bg-primary text-white',
-    priceText: 'text-2xl font-extrabold text-primary',
+    // Deliberately smaller than the batch tabs above it: at text-2xl the fee
+    // dominated the block and pulled attention past the batch selector.
+    priceText: 'text-lg font-bold text-primary',
     calendarIcon: 'h-4 w-4 text-primary',
     bulletCircle: 'grid h-7 w-7 place-items-center rounded-full bg-primary text-white',
     ctaButton:

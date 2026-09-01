@@ -221,9 +221,16 @@ export const homeTheme = {
     layoutGrid:
       'grid items-center gap-10 sm:grid-cols-2 sm:gap-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)]',
     leftCol: 'sm:pr-4',
+    // Full-width so the batch tabs line up with the registration-fee cards
+    // below them; `inline-flex` shrank the bar to its labels, which left it
+    // visually subordinate to the fee cards and easy to miss.
     tabContainer:
-      'mt-4 inline-flex rounded-full bg-white/70 p-1 text-xs shadow-sm ring-1 ring-slate-200',
-    tabButtonBase: 'rounded-full px-4 py-2 text-xs font-semibold transition',
+      'mt-4 flex w-full rounded-full bg-white/70 p-1 text-xs shadow-sm ring-1 ring-slate-200',
+    // flex-1 keeps every batch the same width regardless of label length, so
+    // three editions (6th | 7th | 8th) split the bar evenly instead of
+    // each tab shrinking to its text.
+    tabButtonBase:
+      'flex-1 whitespace-nowrap rounded-full px-4 py-2.5 text-center text-sm font-semibold transition',
     tabButtonActive: 'bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-sm',
     tabButtonInactive: 'text-slate-600 hover:text-slate-900',
     contentWrapper: 'mt-5 space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base',

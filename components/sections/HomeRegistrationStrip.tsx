@@ -44,6 +44,35 @@ type Guideline = {
 
 // One currently-relevant program edition (MEYS 6th/7th concurrent-active-
 // programs bug: a brand can have more than one published+active program
+// Event dates are date-only (`@db.Date`) and rendered under each batch tab so
+// an applicant can tell a 2026 edition from a 2027 one before choosing. Held
+// back until hydration for the same reason the period labels are: the server
+// and the visitor can sit in different timezones.
+function formatEventDateRange(
+  dates: { start: string | null; end: string | null } | undefined,
+  hydrated: boolean,
+): string | null {
+  if (!hydrated || !dates?.start) return null;
+  const start = new Date(dates.start);
+  const end = dates.end ? new Date(dates.end) : null;
+  if (Number.isNaN(start.getTime())) return null;
+
+  const sameYear = end && start.getFullYear() === end.getFullYear();
+  const startLabel = start.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    ...(sameYear ? {} : { year: 'numeric' }),
+  });
+  if (!end || Number.isNaN(end.getTime())) return startLabel;
+
+  const endLabel = end.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  return `${startLabel} - ${endLabel}`;
+}
+
 // with open registration at once). Mirrors
 // types/home.ts#RegistrationProgramEdition.
 type ProgramRegistrationGroup = {
@@ -54,6 +83,10 @@ type ProgramRegistrationGroup = {
   program_slug?: string;
   status?: 'open' | 'closed';
   registration_dates?: { open: string | null; close: string | null };
+  // Event/execution dates, distinct from the registration window above. Always
+  // populated server-side (Program.startDate/endDate are NOT NULL); optional
+  // here only because a home payload cached before the field existed omits it.
+  program_dates?: { start: string | null; end: string | null };
   registration_types: RegistrationType[];
   // Per-edition guidebook + Instagram feed (see MEYS 6th/7th bug: a 6th
   // applicant must not see the 7th's guidebook). Undefined for the internal
@@ -728,6 +761,20 @@ export default function HomeRegistrationStrip({
 
   const selectedGroup = groups[selectedIndex] ?? groups[0];
 
+  // Surfaced above the funded cards so the nearest deadline is visible before
+  // the fee options, not buried inside them.
+  const selectedCountdownLabel = getRegistrationCountdownLabel(
+    selectedGroup?.registration_dates
+      ? [
+          {
+            start_date: selectedGroup.registration_dates.open ?? '',
+            end_date: selectedGroup.registration_dates.close ?? '',
+          },
+        ]
+      : undefined,
+    currentNow,
+  );
+
   const activeIgFeed = hasEditionData ? selectedGroup?.ig_feed ?? [] : igFeed ?? [];
   const activeGuidelines = hasEditionData ? selectedGroup?.guidelines ?? [] : guidelines ?? [];
 
@@ -919,7 +966,15 @@ export default function HomeRegistrationStrip({
                           : componentsTheme.aboutProgram.tabButtonInactive
                       } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
                     >
-                      {group.program_name}
+                      <span className="block">{group.program_name}</span>
+                      {formatEventDateRange(group.program_dates, hydrated) && (
+                        <span
+                          className="mt-0.5 block text-[11px] font-medium opacity-80"
+                          suppressHydrationWarning
+                        >
+                          {formatEventDateRange(group.program_dates, hydrated)}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -949,6 +1004,17 @@ export default function HomeRegistrationStrip({
                     </span>
                   </div>
                 </div>
+                {selectedCountdownLabel && (
+                  <div
+                    className="mb-4 flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary ring-1 ring-primary/20"
+                    suppressHydrationWarning
+                  >
+                    <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>
+                      Registration for {selectedGroup?.program_name} {selectedCountdownLabel.toLowerCase()}
+                    </span>
+                  </div>
+                )}
                 <RegistrationTypeCards
                   registrationTypes={selectedGroup?.registration_types ?? []}
                   hydrated={hydrated}
