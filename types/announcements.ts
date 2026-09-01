@@ -24,9 +24,32 @@ export type AnnouncementApiItem = {
   tags?: string[] | null;
 };
 
+export type AnnouncementsPagination = {
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+};
+
+export type AnnouncementsFilterProgramOption = {
+  id: string;
+  title: string;
+};
+
+export type AnnouncementsFilterValues = {
+  categories: string[];
+  tags: string[];
+  programs: AnnouncementsFilterProgramOption[];
+};
+
 export type AnnouncementListSection = {
   type: 'announcement_list';
   data: AnnouncementApiItem[];
+  // Optional: older/mocked payloads may omit this, so callers must not assume presence.
+  content?: {
+    pagination: AnnouncementsPagination;
+    filters: AnnouncementsFilterValues;
+  };
 };
 
 export type AnnouncementsSection = AnnouncementsHeroSection | AnnouncementListSection;

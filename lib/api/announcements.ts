@@ -10,10 +10,34 @@ function resolveBrand(host: string): string {
     : DEFAULT_BRAND_URL;
 }
 
-export async function getAnnouncementsPageData(host: string): Promise<AnnouncementsPageData> {
+// Mirrors the backend's ListAnnouncementsQueryDto (page/limit/search/category/tag/
+// programId/year) — see services/api/src/modules/landing/dto/landing-announcements-query.dto.ts.
+export type AnnouncementsQueryParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  tag?: string;
+  programId?: string;
+  year?: number;
+};
+
+export async function getAnnouncementsPageData(
+  host: string,
+  params: AnnouncementsQueryParams = {},
+): Promise<AnnouncementsPageData> {
   const brandUrl = resolveBrand(host);
   return apiGetWithEnvelope<AnnouncementsPageData>('/v1/landing/announcements', {
-    query: { url: brandUrl },
+    query: {
+      url: brandUrl,
+      page: params.page,
+      limit: params.limit,
+      search: params.search,
+      category: params.category,
+      tag: params.tag,
+      programId: params.programId,
+      year: params.year,
+    },
     headers: {
       'x-brand-domain': brandUrl,
     },

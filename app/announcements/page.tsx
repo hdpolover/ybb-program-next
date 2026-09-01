@@ -1,20 +1,41 @@
 import AnnouncementsGrid from '@/components/announcements/AnnouncementsGrid';
 import HeroSection from '@/components/ui/HeroSection';
 import { getAnnouncementsPageData } from '@/lib/api/announcements';
-import { resolveAnnouncementHref } from '@/lib/announcements';
+import { buildAnnouncementsHref, parseAnnouncementsSearchParams, resolveAnnouncementHref } from '@/lib/announcements';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { headers } from 'next/headers';
 import type { Metadata } from 'next';
 import { resolveBrandDomain } from '@/lib/server/envContext';
-import type { AnnouncementListSection, AnnouncementsHeroSection } from '@/types/announcements';
+import type { AnnouncementApiItem, AnnouncementListSection, AnnouncementsHeroSection } from '@/types/announcements';
 
-export async function generateMetadata(): Promise<Metadata> {
+// The awardees rail is capped rather than paginated: it is a highlight
+// strip, not a browsable list.
+const AWARDS_CATEGORY = 'awards';
+const AWARDS_LIMIT = 6;
+
+type AnnouncementsPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export async function generateMetadata({ searchParams }: AnnouncementsPageProps): Promise<Metadata> {
   const host = await resolveBrandDomain();
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;
+  const parsed = parseAnnouncementsSearchParams(await searchParams);
+  // Self-referencing canonical: each page/filter combination is a distinct,
+  // real HTML document (see SEO requirement in the pagination plumbing task),
+  // not a duplicate of page 1.
+  const canonicalPath = buildAnnouncementsHref(parsed);
 
   try {
-    const announcementsPage = await getAnnouncementsPageData(host);
+    const announcementsPage = await getAnnouncementsPageData(host, {
+      page: parsed.page,
+      search: parsed.search,
+      category: parsed.category,
+      tag: parsed.tag,
+      programId: parsed.programId,
+      year: parsed.year,
+    });
     const heroSection = announcementsPage.sections.find(
       (section): section is AnnouncementsHeroSection => section.type === 'hero',
     );
@@ -28,13 +49,13 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
       alternates: {
-        canonical: '/announcements',
+        canonical: canonicalPath,
       },
       openGraph: {
         title,
         description,
         type: 'website',
-        url: '/announcements',
+        url: canonicalPath,
       },
       twitter: {
         card: 'summary_large_image',
@@ -52,7 +73,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: 'Announcements',
       description: 'Latest announcements from Youth Break the Boundaries.',
       alternates: {
-        canonical: '/announcements',
+        canonical: canonicalPath,
       },
       robots: {
         index: true,
@@ -62,14 +83,39 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function AnnouncementsPage() {
+export default async function AnnouncementsPage({ searchParams }: AnnouncementsPageProps) {
   const host = (await headers()).get('host') || '';
+  const parsed = parseAnnouncementsSearchParams(await searchParams);
   let announcementsPage: Awaited<ReturnType<typeof getAnnouncementsPageData>> | null = null;
 
-  try {
-    announcementsPage = await getAnnouncementsPageData(host);
-  } catch (e) {
-    console.error('Failed to fetch announcements page data', e);
+  // The awardees rail is its own query, not a slice of the main list. Deriving
+  // it from the current page meant it emptied out as soon as a visitor paged
+  // past the awards posts, or filtered to something else.
+  let awardsPage: Awaited<ReturnType<typeof getAnnouncementsPageData>> | null = null;
+
+  const [listResult, awardsResult] = await Promise.allSettled([
+    getAnnouncementsPageData(host, {
+      page: parsed.page,
+      search: parsed.search,
+      category: parsed.category,
+      tag: parsed.tag,
+      programId: parsed.programId,
+      year: parsed.year,
+    }),
+    getAnnouncementsPageData(host, { category: AWARDS_CATEGORY, page: 1, limit: AWARDS_LIMIT }),
+  ]);
+
+  if (listResult.status === 'fulfilled') {
+    announcementsPage = listResult.value;
+  } else {
+    console.error('Failed to fetch announcements page data', listResult.reason);
+  }
+
+  // A failed awards fetch hides that rail; it must not take the page down.
+  if (awardsResult.status === 'fulfilled') {
+    awardsPage = awardsResult.value;
+  } else {
+    console.error('Failed to fetch awardee announcements', awardsResult.reason);
   }
 
   const heroSection = announcementsPage?.sections.find(
@@ -80,7 +126,7 @@ export default async function AnnouncementsPage() {
     (section): section is AnnouncementListSection => section.type === 'announcement_list',
   );
 
-  const items = (announcementListSection?.data ?? []).map(item => ({
+  const toGridItem = (item: AnnouncementApiItem) => ({
     id: item.id,
     image: item.image || '/img/announcementbackground.png',
     title: item.title || announcementsPage?.title || 'Announcements',
@@ -90,9 +136,18 @@ export default async function AnnouncementsPage() {
     href: resolveAnnouncementHref(item.id, item.href),
     category: item.category || undefined,
     tags: item.tags ?? undefined,
-  }));
+  });
 
-  const awardAnnouncements = items.filter(item => item.category === 'awards');
+  const items = (announcementListSection?.data ?? []).map(toGridItem);
+
+  const awardAnnouncements = (
+    awardsPage?.sections.find(
+      (section): section is AnnouncementListSection => section.type === 'announcement_list',
+    )?.data ?? []
+  ).map(toGridItem);
+
+  const pagination = announcementListSection?.content?.pagination;
+  const filterValues = announcementListSection?.content?.filters;
 
   const heroHeadline = heroSection?.content.headline || 'Latest News & Updates';
   const heroSubheadline =
@@ -115,7 +170,7 @@ export default async function AnnouncementsPage() {
 
       {/* Section pengumuman - dipisah ke komponen biar clean */}
       <section id="announcements">
-        <AnnouncementsGrid items={items} />
+        <AnnouncementsGrid items={items} pagination={pagination} filters={filterValues} current={parsed} />
       </section>
 
       {/* Meet Our Awardees - news/announcements about winners using same layout */}
@@ -124,7 +179,7 @@ export default async function AnnouncementsPage() {
           <AnnouncementsGrid
             items={awardAnnouncements}
             title="Meet Our Awardees"
-            subtitle="Announcements and stories about winners from Japan Youth Summit awards."
+            subtitle="Announcements and stories about our award winners."
             showControls={false}
           />
         </section>

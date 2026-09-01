@@ -1,18 +1,21 @@
-'use client';
+// components/announcements/AnnouncementsGrid.tsx
+//
+// Server-rendered announcement list. Filtering, search and pagination all
+// live in the URL (see app/announcements/page.tsx + AnnouncementsFilters /
+// AnnouncementsPagination) instead of client state — every page/filter
+// combination is real, crawlable, server-rendered HTML on first load.
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import EmptyState from '@/components/ui/EmptyState';
-import {
-  formatAnnouncementCategoryLabel,
-  formatAnnouncementDateLabel,
-  isExternalHref,
-} from '@/lib/announcements';
-import { BUSINESS_TIMEZONE } from '@/lib/format/deadline';
+import AnnouncementsFilters from '@/components/announcements/AnnouncementsFilters';
+import AnnouncementsPagination from '@/components/announcements/AnnouncementsPagination';
+import { AnnouncementDateLabel } from '@/components/announcements/AnnouncementDateLabel';
+import { buildAnnouncementsHref, formatAnnouncementCategoryLabel, isExternalHref } from '@/lib/announcements';
+import type { AnnouncementsSearchParams } from '@/lib/announcements';
 import { componentsTheme } from '@/lib/theme/components';
-import { useHydrated } from '@/hooks/useHydrated';
+import type { AnnouncementsFilterValues, AnnouncementsPagination as AnnouncementsPaginationData } from '@/types/announcements';
 
 export type AnnouncementItem = {
   id: number | string;
@@ -27,63 +30,32 @@ export type AnnouncementItem = {
   winners?: string[];
 };
 
+const EMPTY_FILTERS: AnnouncementsFilterValues = { categories: [], tags: [], programs: [] };
+const EMPTY_SEARCH_PARAMS: AnnouncementsSearchParams = { page: 1 };
+
 export default function AnnouncementsGrid({
   items,
   title = 'Information Page',
   subtitle = 'Stay updated with the latest news about our programs.',
   showControls = true,
+  pagination,
+  filters = EMPTY_FILTERS,
+  current = EMPTY_SEARCH_PARAMS,
+  basePath = '/announcements',
 }: {
   items: AnnouncementItem[];
   title?: string;
   subtitle?: string;
   showControls?: boolean;
+  /** Backend pagination metadata for this page — omit (or leave undefined) to render the list unpaginated. */
+  pagination?: AnnouncementsPaginationData;
+  /** Brand-scoped filter picklists, unaffected by the currently applied filters. */
+  filters?: AnnouncementsFilterValues;
+  /** The search params the server rendered this page with — drives pagination/filter link hrefs. */
+  current?: AnnouncementsSearchParams;
+  basePath?: string;
 }) {
-  // false during SSR/first client render; true once hydrated. Gates the date's
-  // timezone — see hooks/useHydrated.ts.
-  const hydrated = useHydrated();
-
-  // search & filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string>('all');
-
-  // tombol load more — biar ga numpuk panjang, tampil bertahap
-  const [visible, setVisible] = useState(Math.min(6, items?.length ?? 0));
-  const categoryOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          items
-            .map((item) => item.category?.trim())
-            .filter((value): value is string => Boolean(value)),
-        ),
-      ),
-    [items],
-  );
-
-  const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return items.filter(item => {
-      const matchCategory = activeCategory === 'all' || item.category === activeCategory;
-      const matchSearch =
-        !q ||
-        item.title.toLowerCase().includes(q) ||
-        item.excerpt.toLowerCase().includes(q) ||
-        (item.tags ?? []).some((tag) => tag.toLowerCase().includes(q));
-      return matchCategory && matchSearch;
-    });
-  }, [items, searchQuery, activeCategory]);
-
-  const visibleItems = filteredItems.slice(0, visible);
-
-  const handleChangeCategory = (category: string) => {
-    setActiveCategory(category);
-    setVisible(6);
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    setVisible(6);
-  };
+  const isFiltered = Boolean(current.search || current.category || current.tag || current.programId || current.year);
 
   if (!items || items.length === 0) {
     return (
@@ -91,6 +63,7 @@ export default function AnnouncementsGrid({
         <div className="mx-auto max-w-7xl">
           <SectionHeader eyebrow="Announcements" title={title} />
           {subtitle ? <p className={componentsTheme.announcementsGrid.subtitle}>{subtitle}</p> : null}
+          {showControls ? <AnnouncementsFilters current={current} filters={filters} basePath={basePath} /> : null}
           <EmptyState
             className="mt-10 w-full rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-16 text-center"
             icon={
@@ -98,8 +71,22 @@ export default function AnnouncementsGrid({
                 <Search className="h-6 w-6 text-slate-400" />
               </span>
             }
-            title="No announcements yet"
-            description="There are no announcements at the moment. Check back later for the latest news and updates."
+            title={isFiltered ? 'No announcements match your filters' : 'No announcements yet'}
+            description={
+              isFiltered
+                ? 'Try a different search term or clear some filters to see more announcements.'
+                : 'There are no announcements at the moment. Check back later for the latest news and updates.'
+            }
+            action={
+              isFiltered ? (
+                <Link
+                  href={basePath}
+                  className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  Clear filters
+                </Link>
+              ) : undefined
+            }
           />
         </div>
       </section>
@@ -112,58 +99,10 @@ export default function AnnouncementsGrid({
         <SectionHeader eyebrow="Announcements" title={title} />
         {subtitle ? <p className={componentsTheme.announcementsGrid.subtitle}>{subtitle}</p> : null}
 
-        {/* Search bar + category filter (optional) */}
-        {showControls ? (
-          <div className="mt-4 md:mt-6">
-            <div className="mx-auto w-full max-w-md">
-              <label className="sr-only" htmlFor="announcements-search">
-                Search announcements
-              </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-                  <Search className="h-4 w-4" aria-hidden="true" />
-                </span>
-                <input
-                  id="announcements-search"
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => handleSearchChange(e.target.value)}
-                  placeholder="Type keywords (e.g. scholarship, visa, deadline)"
-                  className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-blue-950 shadow-sm outline-none transition focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-            </div>
+        {showControls ? <AnnouncementsFilters current={current} filters={filters} basePath={basePath} /> : null}
 
-            {/* Category tabs */}
-            <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs font-medium">
-              {[{ key: 'all', label: 'All' }, ...categoryOptions.map((category) => ({
-                key: category,
-                label: formatAnnouncementCategoryLabel(category),
-              }))].map(tab => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => handleChangeCategory(tab.key)}
-                  className={`inline-flex items-center justify-center rounded-full border px-3 py-1 transition ${
-                    activeCategory === tab.key
-                      ? 'border-primary/100 bg-primary/10 text-primary shadow-sm'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:bg-primary/10/60 hover:text-primary'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {/* grid berita — komponen ini reusable biar gampang dipakai di halaman lain */}
         <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-2 lg:grid-cols-3">
-          {visibleItems.map(n => {
-            const dateLabel = formatAnnouncementDateLabel(
-              n.date,
-              hydrated ? undefined : { timeZone: BUSINESS_TIMEZONE },
-            );
+          {items.map((n) => {
             const cardContent = (
               <>
                 <div className="relative h-44 w-full overflow-hidden sm:h-52">
@@ -184,7 +123,7 @@ export default function AnnouncementsGrid({
                   <h3 className="text-xl font-extrabold text-blue-950">{n.title}</h3>
                   {n.winners && n.winners.length > 0 ? (
                     <ol className="mt-2 list-decimal pl-5 text-sm leading-6 text-slate-700">
-                      {n.winners.map(name => (
+                      {n.winners.map((name) => (
                         <li key={name}>{name}</li>
                       ))}
                     </ol>
@@ -206,7 +145,9 @@ export default function AnnouncementsGrid({
                   <div className="mt-4 h-px w-full bg-slate-200" />
                   <p className="mt-3 text-xs font-semibold text-blue-900">
                     {n.author} <span className="text-slate-500"> - </span>{' '}
-                    <span className="text-blue-900" suppressHydrationWarning>{dateLabel}</span>
+                    <span className="text-blue-900">
+                      <AnnouncementDateLabel value={n.date} />
+                    </span>
                   </p>
                 </div>
               </>
@@ -246,17 +187,13 @@ export default function AnnouncementsGrid({
           })}
         </div>
 
-        {visible < filteredItems.length && (
-          <div className="mt-8 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setVisible(v => Math.min(v + 6, filteredItems.length))}
-              className={componentsTheme.announcementsGrid.loadMoreButton}
-            >
-              Load More
-            </button>
-          </div>
-        )}
+        {pagination ? (
+          <AnnouncementsPagination
+            currentPage={pagination.page}
+            totalPages={pagination.total_pages}
+            buildHref={(page) => buildAnnouncementsHref(current, { page }, basePath)}
+          />
+        ) : null}
       </div>
     </section>
   );
