@@ -58,6 +58,69 @@ services:
       - traefik.http.routers.ybb-program-next-china-http.rule=Host(`chinayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-china-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-china-http.middlewares=redirect-to-https@file
+      # Every domain this app serves is declared here, not only the two it
+      # started with. Dokploy also injects its own routers from the domains
+      # configured in its UI, so these were redundant in a Dokploy deploy and
+      # easy to leave out — until a deploy that bypassed Dokploy recreated the
+      # container from this file alone and took seven domains down. Declaring
+      # them keeps the file true on its own. Router names are distinct from
+      # Dokploy's (<appName>-<n>-web), so the two sets coexist.
+      # istanbulyouthsummit.com
+      - traefik.http.routers.ybb-program-next-istanbul.rule=Host(`istanbulyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-istanbul.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-istanbul.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-istanbul.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-istanbul-http.rule=Host(`istanbulyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-istanbul-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-istanbul-http.middlewares=redirect-to-https@file
+      # koreayouthsummit.com
+      - traefik.http.routers.ybb-program-next-korea.rule=Host(`koreayouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-korea.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-korea.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-korea.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-korea-http.rule=Host(`koreayouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-korea-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-korea-http.middlewares=redirect-to-https@file
+      # youthacademicforum.com
+      - traefik.http.routers.ybb-program-next-yaf.rule=Host(`youthacademicforum.com`)
+      - traefik.http.routers.ybb-program-next-yaf.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-yaf.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-yaf.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-yaf-http.rule=Host(`youthacademicforum.com`)
+      - traefik.http.routers.ybb-program-next-yaf-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-yaf-http.middlewares=redirect-to-https@file
+      # www.middleeastyouthsummit.com
+      - traefik.http.routers.ybb-program-next-wwwmeys.rule=Host(`www.middleeastyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwmeys.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-wwwmeys.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-wwwmeys.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-wwwmeys-http.rule=Host(`www.middleeastyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwmeys-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-wwwmeys-http.middlewares=redirect-to-https@file
+      # www.chinayouthsummit.com
+      - traefik.http.routers.ybb-program-next-wwwchina.rule=Host(`www.chinayouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwchina.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-wwwchina.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-wwwchina.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-wwwchina-http.rule=Host(`www.chinayouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwchina-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-wwwchina-http.middlewares=redirect-to-https@file
+      # www.istanbulyouthsummit.com
+      - traefik.http.routers.ybb-program-next-wwwistanbul.rule=Host(`www.istanbulyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwistanbul.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-wwwistanbul.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-wwwistanbul.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-wwwistanbul-http.rule=Host(`www.istanbulyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwistanbul-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-wwwistanbul-http.middlewares=redirect-to-https@file
+      # www.koreayouthsummit.com
+      - traefik.http.routers.ybb-program-next-wwwkorea.rule=Host(`www.koreayouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwkorea.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-wwwkorea.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-wwwkorea.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-wwwkorea-http.rule=Host(`www.koreayouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwkorea-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-wwwkorea-http.middlewares=redirect-to-https@file
     networks:
       - dokploy-network
 
