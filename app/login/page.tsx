@@ -665,6 +665,7 @@ export default function LoginPage() {
         {/* Panel Form (selalu di kanan) */}
         <div className={componentsTheme.login.formPanelOuter}>
           <div className={componentsTheme.login.formPanelInner}>
+          <div className={componentsTheme.login.formPanelCard}>
             <div>
               {settings?.active_program?.name && (
                 <p className={componentsTheme.login.formProgramName}>
@@ -1036,6 +1037,7 @@ export default function LoginPage() {
                 </>
               )}
             </form>
+          </div>
           </div>
         </div>
       </div>

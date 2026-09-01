@@ -210,6 +210,7 @@ export default function VerifyEmailPage() {
 
         <div className={componentsTheme.login.formPanelOuter}>
           <div className={componentsTheme.login.formPanelInner}>
+          <div className={componentsTheme.login.formPanelCard}>
             <div>
               {settings?.active_program?.name && (
                 <p className={componentsTheme.login.formProgramName}>{settings.active_program.name}</p>
@@ -268,6 +269,7 @@ export default function VerifyEmailPage() {
                 )}
               </p>
             </div>
+          </div>
           </div>
         </div>
       </div>
