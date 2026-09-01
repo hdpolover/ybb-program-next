@@ -16,7 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
-import { getRegistrationPeriodLabel } from '@/lib/format/registration-period';
+import { formatEventDateRange, getRegistrationPeriodLabel } from '@/lib/format/registration-period';
 import { useHydrated } from '@/hooks/useHydrated';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import type {
@@ -59,6 +59,8 @@ type RegistrationEditionGroup = {
   program_slug?: string;
   status?: string;
   registration_dates?: { open: string | null; close: string | null } | null;
+  // Event/execution dates, distinct from the registration window above.
+  program_dates?: { start: string | null; end: string | null } | null;
   registration_types: PricingTierLike[];
 };
 
@@ -353,7 +355,15 @@ export default function RegistrationTypePrograms({
                       : componentsTheme.aboutProgram.tabButtonInactive
                   } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
                 >
-                  {group.program_name}
+                  <span className="block">{group.program_name}</span>
+                  {formatEventDateRange(group.program_dates, hydrated) && (
+                    <span
+                      className="mt-0.5 block text-[11px] font-medium opacity-80"
+                      suppressHydrationWarning
+                    >
+                      {formatEventDateRange(group.program_dates, hydrated)}
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>

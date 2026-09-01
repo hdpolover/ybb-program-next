@@ -57,13 +57,25 @@ export function appendProgramId(path: string, programId?: string | null): string
 export function syncActiveProgramId(programId: string): void {
   if (typeof window === "undefined") return;
 
+  // Only announce a real change. Announcing unconditionally let two components
+  // syncing different editions ping-pong: each dispatch made the other re-sync
+  // and dispatch back, and every bounce refetched
+  // usePortalSubmissionProgress. Harmless while a brand had one open edition;
+  // once MEYS ran its 6th and 7th concurrently it became a request storm that
+  // the API rate limiter had to absorb.
+  let changed = true;
   try {
-    if (window.localStorage.getItem(ACTIVE_PROGRAM_STORAGE_KEY) !== programId) {
+    changed = window.localStorage.getItem(ACTIVE_PROGRAM_STORAGE_KEY) !== programId;
+    if (changed) {
       window.localStorage.setItem(ACTIVE_PROGRAM_STORAGE_KEY, programId);
     }
   } catch {
-    // Ignore storage failures and still notify in-memory listeners.
+    // Storage unavailable (private mode, blocked cookies): fall back to
+    // announcing, since we cannot tell whether this is a repeat.
+    changed = true;
   }
+
+  if (!changed) return;
 
   announceActiveProgramChange(programId);
 }

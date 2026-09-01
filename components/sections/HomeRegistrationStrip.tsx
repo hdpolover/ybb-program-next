@@ -5,7 +5,7 @@ import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import { componentsTheme } from '@/lib/theme/components';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
-import { getRegistrationCountdownLabel, getRegistrationPeriodLabel } from "@/lib/format/registration-period";
+import { formatEventDateRange, getRegistrationCountdownLabel, getRegistrationPeriodLabel } from "@/lib/format/registration-period";
 import { useHydrated } from '@/hooks/useHydrated';
 import { useSelectedEdition } from '@/components/sections/SelectedEditionContext';
 
@@ -44,35 +44,6 @@ type Guideline = {
 
 // One currently-relevant program edition (MEYS 6th/7th concurrent-active-
 // programs bug: a brand can have more than one published+active program
-// Event dates are date-only (`@db.Date`) and rendered under each batch tab so
-// an applicant can tell a 2026 edition from a 2027 one before choosing. Held
-// back until hydration for the same reason the period labels are: the server
-// and the visitor can sit in different timezones.
-function formatEventDateRange(
-  dates: { start: string | null; end: string | null } | undefined,
-  hydrated: boolean,
-): string | null {
-  if (!hydrated || !dates?.start) return null;
-  const start = new Date(dates.start);
-  const end = dates.end ? new Date(dates.end) : null;
-  if (Number.isNaN(start.getTime())) return null;
-
-  const sameYear = end && start.getFullYear() === end.getFullYear();
-  const startLabel = start.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    ...(sameYear ? {} : { year: 'numeric' }),
-  });
-  if (!end || Number.isNaN(end.getTime())) return startLabel;
-
-  const endLabel = end.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-  return `${startLabel} - ${endLabel}`;
-}
-
 // with open registration at once). Mirrors
 // types/home.ts#RegistrationProgramEdition.
 type ProgramRegistrationGroup = {
