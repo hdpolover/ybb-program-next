@@ -745,12 +745,12 @@ export default function HomeRegistrationStrip({
   );
   const [activePostIndex, setActivePostIndex] = useState(0);
 
-  // A tab switch swaps `posts` out from under the carousel; jump back to its
-  // first post instead of keeping a stale index into the new edition's feed.
+  // Reset index ke 0 kalau posts berubah (misal feed beda banget atau kosong)
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets a DIFFERENT state (activePostIndex) than the effect's dep (selectedIndex, driven by user tab clicks/context); cannot feed back into its own dependency.
-    setActivePostIndex(0);
-  }, [selectedIndex]);
+    if (posts.length === 0) {
+      setActivePostIndex(0);
+    }
+  }, [posts.length]);
 
   useEffect(() => {
     if (posts.length <= 1) return;

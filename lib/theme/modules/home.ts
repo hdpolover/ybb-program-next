@@ -221,16 +221,14 @@ export const homeTheme = {
     layoutGrid:
       'grid items-center gap-10 sm:grid-cols-2 sm:gap-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)]',
     leftCol: 'sm:pr-4',
-    // Full-width so the batch tabs line up with the registration-fee cards
-    // below them; `inline-flex` shrank the bar to its labels, which left it
-    // visually subordinate to the fee cards and easy to miss.
+    // Full-width biar batch tabs sejajar sama registration-fee cards di bawahnya
+    // `inline-flex` bikin bar nge-shrink ke label-nya, jadi keliatan kecil dan gampang kelewat
     tabContainer:
-      'mt-4 flex w-full rounded-full bg-white/70 p-1 text-xs shadow-sm ring-1 ring-slate-200',
-    // flex-1 keeps every batch the same width regardless of label length, so
-    // three editions (6th | 7th | 8th) split the bar evenly instead of
-    // each tab shrinking to its text.
+      'mt-4 flex w-full rounded-full bg-white/70 p-1 text-xs shadow-sm ring-1 ring-slate-200 sm:text-sm',
+    // flex-1 bikin tiap batch lebar-nya sama gak peduli panjang label-nya, jadi
+    // tiga edition (6th | 7th | 8th) bagi bar secara rata gak masing-masing nge-shrink ke text-nya
     tabButtonBase:
-      'flex-1 whitespace-nowrap rounded-full px-4 py-2.5 text-center text-sm font-semibold transition',
+      'flex-1 whitespace-nowrap rounded-full px-3 py-2 text-center font-semibold transition sm:px-4 sm:py-2.5',
     tabButtonActive: 'bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-sm',
     tabButtonInactive: 'text-slate-600 hover:text-slate-900',
     contentWrapper: 'mt-5 space-y-4 text-sm leading-relaxed text-slate-600 sm:text-base',
