@@ -14,6 +14,10 @@ export type CanvaEmbedSection = {
   type: 'canva_embed';
   content: {
     url: string;
+    // Null for the legacy brand-level fallback embed (pre per-program
+    // migration); set for every per-program embed.
+    program_id?: string | null;
+    program_name?: string | null;
   };
 };
 

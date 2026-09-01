@@ -26,7 +26,7 @@ export default async function PartnersSponsorsPage() {
   ]);
 
   const heroSection = partnersPage.sections.find(section => section.type === 'hero');
-  const canvaEmbedSection = partnersPage.sections.find(
+  const canvaEmbedSections = partnersPage.sections.filter(
     (section): section is CanvaEmbedSectionType => section.type === 'canva_embed',
   );
   const sponsorsGridSection = partnersPage.sections.find(
@@ -61,8 +61,13 @@ export default async function PartnersSponsorsPage() {
         ]}
       />
 
-      {canvaEmbedSection && (
-        <CanvaEmbedSection url={canvaEmbedSection.content.url} />
+      {canvaEmbedSections.length > 0 && (
+        <CanvaEmbedSection
+          embeds={canvaEmbedSections.map(section => ({
+            url: section.content.url,
+            programName: section.content.program_name ?? null,
+          }))}
+        />
       )}
 
       {ctaBecomePartnerSection?.content.text && ctaBecomePartnerSection?.content.link ? (
