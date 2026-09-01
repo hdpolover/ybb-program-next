@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
+import { isRegistrationOpen, type RegistrationValidityPeriod } from '@/lib/registration/isRegistrationOpen';
 import { componentsTheme } from '@/lib/theme/components';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import { formatEventDateRange, getRegistrationCountdownLabel, getRegistrationPeriodLabel } from "@/lib/format/registration-period";
@@ -17,10 +18,7 @@ type InstagramFeedItem = {
   embedHtml?: string | null;
 };
 
-type ValidityPeriod = {
-  start_date: string;
-  end_date: string;
-};
+type ValidityPeriod = RegistrationValidityPeriod;
 
 type RegistrationType = {
   id: string;
@@ -73,18 +71,6 @@ type HomeRegistrationStripProps = {
   guidelines?: Guideline[];
   registerUrl?: string;
 };
-
-function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): boolean {
-  if (!periods || periods.length === 0) return false;
-
-  return periods.some((p) => {
-    const start = new Date(p.start_date);
-    const end = new Date(p.end_date);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
-    return start <= now && now <= end;
-  });
-}
-
 
 function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | null {
   const normalized = category.trim().toLowerCase();

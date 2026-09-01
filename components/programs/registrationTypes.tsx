@@ -19,16 +19,14 @@ import { componentsTheme } from '@/lib/theme/components';
 import { formatEventDateRange, getRegistrationPeriodLabel } from '@/lib/format/registration-period';
 import { useHydrated } from '@/hooks/useHydrated';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
+import { isRegistrationOpen, type RegistrationValidityPeriod } from '@/lib/registration/isRegistrationOpen';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
 } from '@/types/programs';
 import type { RegistrationProgramEdition } from '@/types/home';
 
-type ValidityPeriod = {
-  start_date: string;
-  end_date: string;
-};
+type ValidityPeriod = RegistrationValidityPeriod;
 
 // Loosened structural shape covering both `RegistrationInfoPricingTier`
 // (legacy single-program props) and a `programs[]` edition's own
@@ -81,18 +79,6 @@ type RegistrationTypeProgramsProps = {
    * of local UI state (see MEYS 6th/7th concurrent-active-programs bug). */
   selectedEditionSlug?: string | null;
 };
-
-function isRegistrationOpen(periods: ValidityPeriod[] | undefined, now: Date): boolean {
-  if (!periods || periods.length === 0) return false;
-
-  return periods.some((p) => {
-    const start = new Date(p.start_date);
-    const end = new Date(p.end_date);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
-    return start <= now && now <= end;
-  });
-}
-
 
 function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | null {
   const normalized = category.trim().toLowerCase();
