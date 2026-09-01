@@ -61,6 +61,11 @@ export const homeTheme = {
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
     subtitle: '-mt-6 mb-10 text-center text-sm text-primary',
     rowsWrapper: 'space-y-8',
+    tabList: 'mt-8 flex items-center justify-center gap-2',
+    tabBase:
+      'cursor-pointer rounded-full px-5 py-2 text-sm font-semibold tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+    tabActive: 'bg-primary text-white shadow-sm',
+    tabInactive: 'bg-white text-primary ring-1 ring-primary/25 hover:bg-primary/5',
     rowOuter: 'relative overflow-hidden py-3',
     fadeLeft:
       'pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent',

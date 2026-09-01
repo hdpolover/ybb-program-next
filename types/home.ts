@@ -126,6 +126,7 @@ export type AlumniStoriesSection = {
 			thumbnail_url: string | null;
 			avatar_url: string | null;
 			is_featured: boolean;
+			alumni_year: number | null;
 		}[];
 	};
 };
@@ -274,18 +275,23 @@ export type ProgramBenefitsSection = {
   };
 };
 
+export type QuoteTestimonial = {
+  id: string;
+  name: string;
+  role: string;
+  quote: string;
+  country: string;
+  photo: string;
+  year: number | null;
+};
+
 export type DelegateTestimonialsSection = {
   type: 'delegate_testimonials';
   content: {
-    items: {
-      id: string;
-      name: string;
-      role: string;
-      quote: string;
-      country: string;
-      photo: string;
-      year: number | null;
-    }[];
+    items: QuoteTestimonial[];
+    // category: 'speaker' rows. Optional so a cached payload predating the
+    // speaker query still type-checks; the section falls back to delegates-only.
+    speakers?: QuoteTestimonial[];
   };
 };
 

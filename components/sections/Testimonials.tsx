@@ -1,9 +1,9 @@
 'use client';
-import { useState, useEffect, type CSSProperties } from 'react';
+import { useState, useEffect, type CSSProperties, type KeyboardEvent } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import Image from 'next/image';
 import { componentsTheme } from '@/lib/theme/components';
-import type { DelegateTestimonialsSection } from '@/types/home';
+import type { DelegateTestimonialsSection, QuoteTestimonial } from '@/types/home';
 
 type Testimonial = {
   name: string;
@@ -17,6 +17,25 @@ type Testimonial = {
 
 interface Props {
   section?: DelegateTestimonialsSection;
+}
+
+type TabId = 'delegates' | 'speakers';
+
+const TAB_LABELS: Record<TabId, string> = {
+  delegates: 'Delegates',
+  speakers: 'Speakers',
+};
+
+function toTestimonial(t: QuoteTestimonial): Testimonial {
+  return {
+    name: t.name,
+    role: t.role,
+    quote: t.quote,
+    flag: '',
+    country: t.country,
+    year: typeof t.year === 'number' ? t.year : null,
+    photo: t.photo || undefined,
+  };
 }
 
 type MarqueeStyle = CSSProperties & {
@@ -43,6 +62,7 @@ function truncateWords(text: string, maxWords: number) {
 export default function Testimonials({ section }: Props) {
   const [active, setActive] = useState<Testimonial | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [tab, setTab] = useState<TabId>('delegates');
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
@@ -51,17 +71,24 @@ export default function Testimonials({ section }: Props) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  if (!section || !section.content.items || section.content.items.length === 0) return null;
+  const delegates = section?.content.items ?? [];
+  const speakers = section?.content.speakers ?? [];
 
-  const allItems: Testimonial[] = section.content.items.map(t => ({
-    name: t.name,
-    role: t.role,
-    quote: t.quote,
-    flag: '',
-    country: t.country,
-    year: typeof t.year === 'number' ? t.year : null,
-    photo: t.photo || undefined,
-  }));
+  if (!section || (delegates.length === 0 && speakers.length === 0)) return null;
+
+  // Only offer the tabs when both sides have something to show; a brand with no
+  // speaker testimonials keeps the original single-marquee layout.
+  const tabs: TabId[] = delegates.length > 0 && speakers.length > 0 ? ['delegates', 'speakers'] : [];
+  const activeTab: TabId = tabs.length === 0 ? (delegates.length > 0 ? 'delegates' : 'speakers') : tab;
+  const allItems: Testimonial[] = (activeTab === 'speakers' ? speakers : delegates).map(toTestimonial);
+
+  function onTabKeyDown(e: KeyboardEvent<HTMLButtonElement>, index: number) {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const next = e.key === 'ArrowRight' ? (index + 1) % tabs.length : (index - 1 + tabs.length) % tabs.length;
+    setTab(tabs[next]);
+    document.getElementById(`testimonials-tab-${tabs[next]}`)?.focus();
+  }
 
   return (
     <section className={componentsTheme.testimonialsHome.sectionWrapper}>
@@ -71,12 +98,42 @@ export default function Testimonials({ section }: Props) {
           Real stories from participants who've experienced transformational results with our
           program
         </p>
+        {tabs.length > 0 && (
+          <div className={componentsTheme.testimonialsHome.tabList} role="tablist" aria-label="Testimonial category">
+            {tabs.map((id, index) => (
+              <button
+                key={id}
+                id={`testimonials-tab-${id}`}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === id}
+                aria-controls="testimonials-panel"
+                tabIndex={activeTab === id ? 0 : -1}
+                onClick={() => setTab(id)}
+                onKeyDown={e => onTabKeyDown(e, index)}
+                className={`${componentsTheme.testimonialsHome.tabBase} ${
+                  activeTab === id
+                    ? componentsTheme.testimonialsHome.tabActive
+                    : componentsTheme.testimonialsHome.tabInactive
+                }`}
+              >
+                {TAB_LABELS[id]}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      <div className={componentsTheme.testimonialsHome.rowsWrapper}>
+      <div
+        className={componentsTheme.testimonialsHome.rowsWrapper}
+        id="testimonials-panel"
+        role={tabs.length > 0 ? 'tabpanel' : undefined}
+        aria-labelledby={tabs.length > 0 ? `testimonials-tab-${activeTab}` : undefined}
+      >
         <div className={componentsTheme.testimonialsHome.rowOuter}>
           <div className={componentsTheme.testimonialsHome.fadeLeft} />
           <div className={componentsTheme.testimonialsHome.fadeRight} />
           <div
+            key={activeTab}
             className={`${componentsTheme.testimonialsHome.marqueeRowBase} animate-marquee`}
             style={MARQUEE_STYLE}
           >
