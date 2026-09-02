@@ -216,9 +216,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     // a date months too early) cannot recur through this path: a lapsed chain
     // has no window covering now, so it produces no candidate and we keep the
     // program level date resolved above.
-    if (homeResult.status === 'rejected') {
-      console.error('[Layout] Failed to resolve multi-program countdown:', homeResult.reason);
-    } else {
+    try {
+      if (homeResult.status === 'rejected') {
+        throw homeResult.reason;
+      }
       const homeData = homeResult.value;
       const registrationOverview = homeData.sections?.find(
         (section): section is RegistrationOverviewSection => section.type === 'registration_overview',
@@ -253,6 +254,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             : winner.programName;
         }
       }
+    } catch (error) {
+      console.error('[Layout] Failed to resolve multi-program countdown:', error);
     }
   } else {
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
