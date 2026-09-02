@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { unstable_cache } from 'next/cache';
 import type { HomePageData } from '@/types/home';
 import { apiGetWithEnvelope, ApiRequestError } from '@/lib/api/httpClient';
@@ -51,9 +52,12 @@ function buildHomeFallback(): HomePageData {
   } as unknown as HomePageData;
 }
 
-export async function getHomePageData(host: string): Promise<HomePageData> {
-  return fetchHomePageData(host);
-}
+// Per-request memo: generateMetadata, the root layout and the page below it all
+// ask for the same payload on a single render. unstable_cache still owns the
+// cross-request TTL; this just stops the repeat work within one render.
+export const getHomePageData = cache(
+  async (host: string): Promise<HomePageData> => fetchHomePageData(host),
+);
 
 async function fetchHomePageData(host: string): Promise<HomePageData> {
   if (Date.now() < homeRateLimitUntil) {

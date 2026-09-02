@@ -5,6 +5,9 @@ export const SETTINGS_CACHE_TAG = 'settings';
 export const SETTINGS_CACHE_TTL = 300; // seconds
 export const HOME_CACHE_TAG = 'home';
 export const HOME_CACHE_TTL = 120; // seconds
+// Program detail + pricing tiers feed the same landing countdown/CTA as the home
+// payload, so they ride the HOME tags and are busted by /api/home/revalidate.
+export const PROGRAM_CACHE_TTL = 60; // seconds
 export const ACTIVITY_CACHE_TAG = 'landing-activity';
 export const ACTIVITY_CACHE_TTL = 300; // seconds
 

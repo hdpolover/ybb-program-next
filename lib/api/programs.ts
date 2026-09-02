@@ -1,6 +1,9 @@
+import { unstable_cache } from 'next/cache';
 import type { ProgramsPageData } from '@/types/programs';
 import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
+import { getHomeCacheTag, HOME_CACHE_TAG, PROGRAM_CACHE_TTL } from '@/lib/constants/cache';
+import { dedupeInFlight } from '@/lib/server/stampede';
 
 const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
@@ -144,14 +147,58 @@ export type ProgramPricingTier = {
   }> | null;
 };
 
+// Program detail and pricing tiers are near-static but were refetched, uncached,
+// on every render by the root layout AND the page below it. Cached per brand with
+// the home tags so an admin publish still busts them instantly; the try/catch stays
+// outside the cached fetcher so a transient failure is never cached.
+const detailFetcherByBrand = new Map<string, (slug: string) => Promise<ProgramDetail>>();
+
+function getDetailFetcher(brandUrl: string): (slug: string) => Promise<ProgramDetail> {
+  const cacheKey = brandUrl || 'default';
+  const existing = detailFetcherByBrand.get(cacheKey);
+  if (existing) return existing;
+
+  const fetcher = unstable_cache(
+    async (slug: string): Promise<ProgramDetail> =>
+      apiGetWithEnvelope<ProgramDetail>(`/v1/programs/${slug}`, {
+        headers: { 'x-brand-domain': brandUrl },
+        cache: 'no-store', // unstable_cache owns the TTL
+      }),
+    ['program-detail', cacheKey],
+    { revalidate: PROGRAM_CACHE_TTL, tags: [HOME_CACHE_TAG, getHomeCacheTag(brandUrl)] },
+  );
+
+  detailFetcherByBrand.set(cacheKey, fetcher);
+  return fetcher;
+}
+
+const tiersFetcherByBrand = new Map<string, (programId: string) => Promise<ProgramPricingTier[]>>();
+
+function getTiersFetcher(brandUrl: string): (programId: string) => Promise<ProgramPricingTier[]> {
+  const cacheKey = brandUrl || 'default';
+  const existing = tiersFetcherByBrand.get(cacheKey);
+  if (existing) return existing;
+
+  const fetcher = unstable_cache(
+    async (programId: string): Promise<ProgramPricingTier[]> =>
+      apiGetWithEnvelope<ProgramPricingTier[]>(`/v1/programs/${programId}/pricing-tiers`, {
+        headers: { 'x-brand-domain': brandUrl },
+        cache: 'no-store', // unstable_cache owns the TTL
+      }),
+    ['program-pricing-tiers', cacheKey],
+    { revalidate: PROGRAM_CACHE_TTL, tags: [HOME_CACHE_TAG, getHomeCacheTag(brandUrl)] },
+  );
+
+  tiersFetcherByBrand.set(cacheKey, fetcher);
+  return fetcher;
+}
+
 export async function getProgramDetail(slug: string, host: string = ''): Promise<ProgramDetail | null> {
   const brandUrl = resolveBrand(host);
   try {
-    return await apiGetWithEnvelope<ProgramDetail>(`/v1/programs/${slug}`, {
-      headers: {
-        'x-brand-domain': brandUrl,
-      },
-    });
+    return await dedupeInFlight(`program-detail:${brandUrl}:${slug}`, () =>
+      getDetailFetcher(brandUrl)(slug),
+    );
   } catch {
     return null;
   }
@@ -169,9 +216,7 @@ export async function getProgramPricingTiers(
   host: string = '',
 ): Promise<ProgramPricingTier[]> {
   const brandUrl = resolveBrand(host);
-  return apiGetWithEnvelope<ProgramPricingTier[]>(`/v1/programs/${programId}/pricing-tiers`, {
-    headers: {
-      'x-brand-domain': brandUrl,
-    },
-  });
+  return dedupeInFlight(`program-tiers:${brandUrl}:${programId}`, () =>
+    getTiersFetcher(brandUrl)(programId),
+  );
 }
