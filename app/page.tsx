@@ -50,6 +50,16 @@ import type {
   PromoCTASection,
 } from '@/types/home';
 
+// "Korea Youth Summit 4th" + 2026 -> "Korea Youth Summit 4th 2026". The year is
+// only appended when the program name doesn't already carry it, so editions
+// already named with their year ("KYS 2025") don't read as "KYS 2025 2025".
+function galleryEditionLabel(programName: string, year: number | null): string {
+  const name = programName.trim();
+  if (year === null) return name;
+  if (!name) return String(year);
+  return name.includes(String(year)) ? name : `${name} ${year}`;
+}
+
 export default async function Home() {
   const host = await resolveBrandDomain();
   let registerUrl = '/login?mode=signup';
@@ -206,6 +216,19 @@ export default async function Home() {
     src: img.url,
     caption: img.caption,
   }));
+  // Per-edition tabs for the homepage gallery, mirroring the video section's
+  // `tabs`. Absent on a payload cached before the tabs shipped, in which case
+  // PhotoGallery falls back to the flat `gallery`/`images` list above.
+  const galleryEditions = (programGallerySection?.content.tabs ?? []).map(tab => ({
+    id: tab.program_id,
+    label: galleryEditionLabel(tab.program_name, tab.year),
+    isActive: tab.is_active,
+    images: tab.gallery.map(img => ({
+      id: img.id,
+      src: img.url,
+      caption: img.caption,
+    })),
+  }));
   const galleryCtaLabel = programGallerySection?.content.cta.label;
   const galleryCtaUrl = programGallerySection?.content.cta.url;
 
@@ -290,6 +313,7 @@ export default async function Home() {
         title={galleryTitle}
         description={galleryDescription}
         images={galleryImages}
+        editions={galleryEditions}
         ctaLabel={galleryCtaLabel}
         ctaUrl={galleryCtaUrl}
       />

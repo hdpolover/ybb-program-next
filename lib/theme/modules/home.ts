@@ -321,6 +321,13 @@ export const homeTheme = {
     sectionWrapper: 'relative w-full py-12 sm:py-16 lg:py-20',
     container: 'mx-auto max-w-7xl px-6 lg:px-8',
     subtitle: '-mt-6 mb-8 text-center text-sm text-[var(--brand-accent)]',
+    // Same pill treatment as the delegates/speakers tabs in testimonialsHome so
+    // the edition switcher reads as native to the page.
+    tabList: 'mb-8 flex flex-wrap items-center justify-center gap-2',
+    tabBase:
+      'cursor-pointer rounded-full px-5 py-2 text-sm font-semibold tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+    tabActive: 'bg-primary text-white shadow-sm',
+    tabInactive: 'bg-white text-primary ring-1 ring-primary/25 hover:bg-primary/5',
     grid: 'grid grid-cols-2 gap-3 sm:gap-5 md:gap-6 lg:grid-cols-4',
     itemWrapper: 'group overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200',
     itemButton: 'block aspect-[16/10] w-full cursor-zoom-in overflow-hidden',

@@ -147,11 +147,25 @@ export type ProgramGallerySection = {
 			caption: string;
 		}[];
 		// Untruncated pool for the full /programs/gallery page; `gallery`/`images`
-		// above stay capped at 6 for the homepage teaser.
+		// above stay capped at 12 for the homepage teaser.
 		full_gallery?: {
 			id: string;
 			url: string;
 			caption: string;
+		}[];
+		// Per-edition tabs, same shape as `program_highlight_videos`' `tabs`.
+		// Optional: a payload cached before the tabs shipped has none, and the
+		// gallery falls back to the flat `gallery`/`images` list.
+		tabs?: {
+			program_id: string;
+			program_name: string;
+			year: number | null;
+			is_active: boolean;
+			gallery: {
+				id: string;
+				url: string;
+				caption: string;
+			}[];
 		}[];
 		cta: {
 			label: string;
