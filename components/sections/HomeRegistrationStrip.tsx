@@ -9,6 +9,7 @@ import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import { formatEventDateRange, getRegistrationCountdownLabel, getRegistrationPeriodLabel } from "@/lib/format/registration-period";
 import { useHydrated } from '@/hooks/useHydrated';
 import { useSelectedEdition } from '@/components/sections/SelectedEditionContext';
+import { decodeHtmlEntities, escapeHtml, sanitizeRichTextHtml } from '@/lib/content/richText';
 
 type InstagramFeedItem = {
   id: string;
@@ -116,41 +117,12 @@ function pickRegistrationTier(
   return [...candidates].sort((a, b) => toPrice(a) - toPrice(b))[target === 'self_funded' ? candidates.length - 1 : 0];
 }
 
-function decodePossiblyEncodedHtml(value: string): string {
-  if (!value.includes('&lt;')) return value;
-  return value
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&amp;/gi, '&');
-}
-
-function sanitizeRichHtml(value: string): string {
-  return value
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
-    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, '')
-    .replace(/\son\w+="[^"]*"/gi, '')
-    .replace(/\son\w+='[^']*'/gi, '')
-    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, '');
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 function toRichHtml(value?: string | null): string {
-  const raw = decodePossiblyEncodedHtml((value ?? '').trim());
+  const raw = decodeHtmlEntities((value ?? '').trim());
   if (!raw) return '';
   const hasHtml = /<\/?[a-z][\s\S]*>/i.test(raw);
   const html = hasHtml ? raw : `<p>${escapeHtml(raw).replace(/\r?\n/g, '<br />')}</p>`;
-  return sanitizeRichHtml(html);
+  return sanitizeRichTextHtml(html);
 }
 
 function hasRichTextContent(value?: string | null): boolean {
@@ -161,7 +133,7 @@ function hasRichTextContent(value?: string | null): boolean {
 }
 
 function extractInstagramPermalink(input?: string | null): string | null {
-  const raw = decodePossiblyEncodedHtml((input ?? '').trim());
+  const raw = decodeHtmlEntities((input ?? '').trim());
   if (!raw || !/instagram\.com/i.test(raw)) return null;
 
   const permalinkCandidate =

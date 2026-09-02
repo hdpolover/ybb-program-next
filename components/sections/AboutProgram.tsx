@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import { normalizeLandingCtaHref } from '@/lib/landing/cta';
+import { decodeHtmlEntities, sanitizeRichTextHtml } from '@/lib/content/richText';
 
 type AboutProgramProps = {
   about?: string;
@@ -32,36 +33,16 @@ export default function AboutProgram({ about, vision, mission, images, backgroun
     return trimmed.startsWith('<') && trimmed.includes('</');
   };
 
-  const decodePossiblyEncodedHtml = (value: string): string => {
-    if (!value.includes("&lt;")) return value;
-    return value
-      .replace(/&lt;/gi, "<")
-      .replace(/&gt;/gi, ">")
-      .replace(/&quot;/gi, '"')
-      .replace(/&#39;/gi, "'")
-      .replace(/&amp;/gi, "&");
-  };
-
-  const sanitizeRichHtml = (value: string): string => {
-    return value
-      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
-      .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, '')
-      .replace(/\son\w+="[^"]*"/gi, '')
-      .replace(/\son\w+='[^']*'/gi, '')
-      .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, '');
-  };
-
   const renderContent = (value?: string) => {
     if (!value) return null;
     if (!isHtmlContent(value)) {
       return <p className={hasBackground ? 'text-white/90' : undefined}>{value}</p>;
     }
-    const safeHtml = sanitizeRichHtml(decodePossiblyEncodedHtml(value));
+    const safeHtml = sanitizeRichTextHtml(decodeHtmlEntities(value));
     return <div className={hasBackground ? t.richTextOnBg : t.richText} dangerouslySetInnerHTML={{ __html: safeHtml }} />;
   };
 
-  const decodedAbout = about ? decodePossiblyEncodedHtml(about) : '';
+  const decodedAbout = about ? decodeHtmlEntities(about) : '';
   const aboutContainsList = /<(ul|ol|li)\b/i.test(decodedAbout);
   const aboutPlainText = decodedAbout
     ? decodedAbout

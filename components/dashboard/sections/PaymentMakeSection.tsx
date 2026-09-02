@@ -26,6 +26,7 @@ import {
   readActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
 import { upsertCachedPaymentPreview } from "@/lib/dashboard/payments-cache";
+import { sanitizeRichTextHtml } from "@/lib/content/richText";
 import EnglishTextInput from "@/components/ui/EnglishTextInput";
 import EnglishTextArea from "@/components/ui/EnglishTextArea";
 
@@ -765,7 +766,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
               {paymentInfoHtml ? (
                 <div
                   className="prose prose-sm text-xs max-w-none"
-                  dangerouslySetInnerHTML={{ __html: paymentInfoHtml }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(paymentInfoHtml) }}
                 />
               ) : (
                 <p className="text-xs">
@@ -1117,7 +1118,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                             {hasHtmlMarkup(selectedManualMethodObj.instructions) ? (
                               <div
                                 className="prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
-                                dangerouslySetInnerHTML={{ __html: selectedManualMethodObj.instructions }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(selectedManualMethodObj.instructions) }}
                               />
                             ) : (
                               <div className="whitespace-pre-line">{selectedManualMethodObj.instructions}</div>

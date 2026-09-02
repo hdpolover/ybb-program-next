@@ -7,6 +7,7 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 import type { ProgramOverviewSection } from '@/types/programs';
 import { parseApiDate } from '@/lib/utils';
+import { sanitizeRichTextHtml } from '@/lib/content/richText';
 
 type InstagramFeedItem = {
   id: string;
@@ -230,7 +231,7 @@ export default function CurrentProgram({ overview, coverImage, guidebooks: backe
                 {isHtmlContent(description) ? (
                   <div
                     className={componentsTheme.programsCurrent.richText}
-                    dangerouslySetInnerHTML={{ __html: description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(description) }}
                   />
                 ) : (
                   <p className={componentsTheme.programsCurrent.bodyParagraph}>{description}</p>

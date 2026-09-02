@@ -5,6 +5,7 @@ import { ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2, X } from 'luc
 import { useSettings } from '@/components/providers/SettingsProvider';
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
 import { useHydrated } from '@/hooks/useHydrated';
+import { sanitizeRichTextHtml } from '@/lib/content/richText';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'normal' | 'high' | 'urgent';
@@ -95,17 +96,6 @@ const CATEGORY_OPTIONS: CategoryOption[] = [
   },
 ];
 
-function sanitizeRichHtml(value: string): string {
-  if (!value.trim()) return '';
-  return value
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
-    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, '')
-    .replace(/\son\w+="[^"]*"/gi, '')
-    .replace(/\son\w+='[^']*'/gi, '')
-    .replace(/<(?!\/?(p|br|strong|b|em|i|u|ul|ol|li|blockquote|code|pre)\b)[^>]*>/gi, '');
-}
-
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -119,7 +109,7 @@ function buildTicketDescription(
   description: string,
   attachments: SupportTicketAttachment[],
 ): string {
-  const sanitizedDescription = sanitizeRichHtml(description);
+  const sanitizedDescription = sanitizeRichTextHtml(description);
   if (attachments.length === 0) return sanitizedDescription;
 
   const attachmentList = attachments
@@ -622,7 +612,7 @@ export default function SupportTicketsPage() {
           category: category.trim(),
           subCategory: subCategory || undefined,
           subject: subject.trim(),
-          description: sanitizeRichHtml(description),
+          description: sanitizeRichTextHtml(description),
           attachments: createAttachments,
         }),
       });
@@ -676,7 +666,7 @@ export default function SupportTicketsPage() {
       const res = await fetch(`/api/support/tickets/${selectedId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: sanitizeRichHtml(replyMessage), attachments: replyAttachments }),
+        body: JSON.stringify({ message: sanitizeRichTextHtml(replyMessage), attachments: replyAttachments }),
       });
       const json = (await res.json().catch(() => null)) as { message?: string } | null;
       if (!res.ok) {
@@ -942,7 +932,7 @@ export default function SupportTicketsPage() {
                         </div>
                         <div
                           className="prose prose-sm max-w-none text-zinc-700"
-                          dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(message.message) }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(message.message) }}
                         />
                         {attachmentsForDisplay.length > 0 ? (
                           <CompactAttachmentGrid attachments={attachmentsForDisplay} />
