@@ -25,6 +25,7 @@ import { ResendVerificationEmail } from '@/components/auth/ResendVerificationEma
 import { useEmailTypoHint } from '@/hooks/useEmailTypoHint';
 import { rememberPendingVerificationEmail } from '@/lib/auth/pendingVerificationEmail';
 import { resolveSignupEditionSlug } from '@/lib/registration/edition';
+import { sanitizeRichTextHtml } from '@/lib/content/richText';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -1053,7 +1054,7 @@ export default function LoginPage() {
                 legalDocLooksLikeHtml ? (
                   <div
                     className="prose prose-slate max-w-none text-sm"
-                    dangerouslySetInnerHTML={{ __html: activeLegalDoc.content }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(activeLegalDoc.content) }}
                   />
                 ) : (
                   <div className="whitespace-pre-wrap text-sm leading-6 text-slate-700">

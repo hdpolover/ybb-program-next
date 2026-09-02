@@ -1,29 +1,10 @@
 "use client";
 
+import { decodeHtmlEntities, sanitizeRichTextHtml } from "@/lib/content/richText";
+
 interface FieldHelpTextProps {
   html?: string | null;
   className?: string;
-}
-
-function decodePossiblyEncodedHtml(value: string): string {
-  if (!value.includes("&lt;")) return value;
-
-  return value
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&amp;/gi, "&");
-}
-
-function sanitizeRichHtml(value: string): string {
-  return value
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, "")
-    .replace(/\son\w+="[^"]*"/gi, "")
-    .replace(/\son\w+='[^']*'/gi, "")
-    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, "");
 }
 
 export function plainTextFromRichText(html?: string | null): string {
@@ -51,7 +32,7 @@ export function hasRichTextContent(html?: string | null): boolean {
 }
 
 export function FieldHelpText({ html, className }: FieldHelpTextProps) {
-  const safeHtml = sanitizeRichHtml(decodePossiblyEncodedHtml(html ?? ""));
+  const safeHtml = sanitizeRichTextHtml(decodeHtmlEntities(html ?? ""));
   if (!hasRichTextContent(safeHtml)) return null;
 
   return (

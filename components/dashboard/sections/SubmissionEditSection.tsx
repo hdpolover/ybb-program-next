@@ -43,17 +43,9 @@ import { formatSubmissionDateValue, isDateLikeField } from "@/lib/dashboard/date
 import { useAutoSave, loadFromLocalStorage, clearLocalStorage, type DraftEnvelope } from "@/hooks/useAutoSave";
 import { normalizeEmailInput } from "@/lib/utils";
 import { isValidPhone, sanitizePhone } from "@/lib/phone";
+import { sanitizeRichTextHtml } from "@/lib/content/richText";
 
 const submissionTheme = componentsTheme.dashboardSubmission;
-
-function sanitizeInlineHtml(value: string): string {
-  return value
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-    .replace(/\son\w+="[^"]*"/gi, "")
-    .replace(/\son\w+='[^']*'/gi, "")
-    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, "");
-}
 
 export type PersonalDetails = {
   fullName: string;
@@ -1728,7 +1720,7 @@ export default function SubmissionEditSection() {
                       </p>
                       <div
                         className="prose prose-sm max-w-none text-slate-700"
-                        dangerouslySetInnerHTML={{ __html: detail.termsAndConditions }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(detail.termsAndConditions) }}
                       />
                     </div>
                   ) : null}
@@ -1899,7 +1891,7 @@ export default function SubmissionEditSection() {
                         }`}
                       >
                         <div className={submissionTheme.editFieldLabelText}>
-                          <span dangerouslySetInnerHTML={{ __html: sanitizeInlineHtml(field.label) }} />
+                          <span>{field.label}</span>
                           {field.isRequired ? " *" : ""}
                         </div>
                         {renderFieldInput(activeSection, field, isLocked)}
@@ -1928,7 +1920,7 @@ export default function SubmissionEditSection() {
                         {sectionEssayGuideline.text ? (
                           <div
                             className="prose prose-sm max-w-none text-blue-800 prose-headings:text-blue-900 prose-p:my-0 prose-a:text-blue-700"
-                            dangerouslySetInnerHTML={{ __html: sectionEssayGuideline.text }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(sectionEssayGuideline.text) }}
                           />
                         ) : null}
                         {sectionEssayGuideline.url ? (
