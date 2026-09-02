@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { componentsTheme } from '@/lib/theme/components';
 import { useSettings } from '@/components/providers/SettingsProvider';
+import { ResendVerificationEmail } from '@/components/auth/ResendVerificationEmail';
+import { readPendingVerificationEmail } from '@/lib/auth/pendingVerificationEmail';
 
 type VerifyStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -28,6 +30,14 @@ export default function VerifyEmailPage() {
   const [message, setMessage] = useState('');
   const [imageIndex, setImageIndex] = useState(0);
   const [loginImages, setLoginImages] = useState<string[]>(FALLBACK_IMAGES);
+  // Prefilled from the signup that sent the participant here, when that
+  // happened in this tab. Empty is fine — they can type the address.
+  const [resendEmail, setResendEmail] = useState('');
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- deps are [] (mount-only), and sessionStorage cannot be read during render without a hydration mismatch.
+    setResendEmail(readPendingVerificationEmail());
+  }, []);
 
   const buttonLabel = useMemo(() => {
     if (status === 'loading') return 'Verifying...';
@@ -46,9 +56,14 @@ export default function VerifyEmailPage() {
   const statusHint = useMemo(() => {
     if (status === 'loading') return 'This usually takes only a few seconds.';
     if (status === 'success') return 'You will be redirected to login shortly.';
-    if (status === 'error') return 'Please request a new verification email and try again.';
+    if (status === 'error') return 'Request a new verification email below and try again.';
     return 'Open the email and click the verification link to activate your account.';
   }, [status]);
+
+  // A wrong or expired link, or an email that never arrived, both end here —
+  // and until now the only advice was "go back to the login page". Success is
+  // the one state where a resend would be nonsense.
+  const showResend = status !== 'success' && status !== 'loading';
 
   useEffect(() => {
     async function fetchGalleryImages() {
@@ -231,7 +246,14 @@ export default function VerifyEmailPage() {
 
               {status === 'error' ? (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-primary">
-                  If the link is expired, request a new verification email from the login page.
+                  If the link has expired, request a new verification email below.
+                </div>
+              ) : null}
+
+              {showResend ? (
+                <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold text-slate-700">Didn&apos;t get the email?</p>
+                  <ResendVerificationEmail email={resendEmail} onEmailChange={setResendEmail} />
                 </div>
               ) : null}
 

@@ -2,13 +2,15 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import { normalizeEmailInput } from '@/lib/utils';
 import { useEffect } from 'react';
 import { useSettings } from '@/components/providers/SettingsProvider';
+import { EmailTypoHint } from '@/components/auth/EmailTypoHint';
+import { useEmailTypoHint } from '@/hooks/useEmailTypoHint';
 
 type RequestState = 'idle' | 'success' | 'error';
 
@@ -29,6 +31,10 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState('');
   const [imageIndex, setImageIndex] = useState(0);
   const [loginImages, setLoginImages] = useState<string[]>(FALLBACK_IMAGES);
+  // A reset link sent to a mistyped domain is as silent a failure as a
+  // verification email sent there. Suggest, never block.
+  const acceptEmail = useCallback((next: string) => setEmail(next), []);
+  const emailHint = useEmailTypoHint(email, acceptEmail);
 
   useEffect(() => {
     async function fetchGalleryImages() {
@@ -181,10 +187,12 @@ export default function ForgotPasswordPage() {
                       required
                       value={email}
                       onChange={e => setEmail(normalizeEmailInput(e.target.value))}
+                      onBlur={emailHint.onBlur}
                       className={componentsTheme.login.input}
                       placeholder="you@example.com"
                     />
                   </div>
+                  <EmailTypoHint hint={emailHint} />
                 </div>
 
                 {state === 'success' ? (

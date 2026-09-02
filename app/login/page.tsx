@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { componentsTheme } from '@/lib/theme/components';
 import { useSettings } from '@/components/providers/SettingsProvider';
 // import { useSettings } from '@/components/providers/SettingsProvider';
@@ -20,6 +20,10 @@ import { notifyIfRegistrationClosed } from '@/lib/auth/programRegistrationClosed
 import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
 import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 import SignupEditionChoice, { type SignupEdition } from '@/components/auth/SignupEditionChoice';
+import { EmailTypoHint } from '@/components/auth/EmailTypoHint';
+import { ResendVerificationEmail } from '@/components/auth/ResendVerificationEmail';
+import { useEmailTypoHint } from '@/hooks/useEmailTypoHint';
+import { rememberPendingVerificationEmail } from '@/lib/auth/pendingVerificationEmail';
 import { resolveSignupEditionSlug } from '@/lib/registration/edition';
 
 // Fallback images if API fails
@@ -79,8 +83,6 @@ export default function LoginPage() {
   const [localError, setLocalError] = useState<string>('');
   const [localErrorAction, setLocalErrorAction] = useState<'use-google' | undefined>(undefined);
   const [showResendVerification, setShowResendVerification] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resendMessage, setResendMessage] = useState('');
   const [ambassadorMode, setAmbassadorMode] = useState(() => {
     return searchParams.get('role') === 'ambassador';
   });
@@ -112,13 +114,25 @@ export default function LoginPage() {
     confirmPassword: '',
   });
 
+  // A mistyped domain (`gamil.com` was the real bounce pattern in production)
+  // becomes "I can't register", because login is blocked until the address is
+  // verified and nothing else in the flow ever mentions the address again.
+  // These are suggestions only — they never block submit.
+  const acceptLoginEmail = useCallback((email: string) => {
+    setLoginForm(prev => ({ ...prev, email }));
+  }, []);
+  const acceptSignupEmail = useCallback((email: string) => {
+    setSignupForm(prev => ({ ...prev, email }));
+  }, []);
+  const loginEmailHint = useEmailTypoHint(loginForm.email, acceptLoginEmail);
+  const signupEmailHint = useEmailTypoHint(signupForm.email, acceptSignupEmail);
+
   const onChangeLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name } = e.target;
     const value = name === 'email' ? normalizeEmailInput(e.target.value) : e.target.value;
     setLoginForm(prev => ({ ...prev, [name]: value }));
     if (name === 'email') {
       setShowResendVerification(false);
-      setResendMessage('');
     }
   };
   const onChangeSignup = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,7 +203,6 @@ export default function LoginPage() {
       setLocalError('');
       setLocalErrorAction(undefined);
       setShowResendVerification(false);
-      setResendMessage('');
       try {
         if (ambassadorMode) {
           const res = await fetch('/api/auth/ambassador-login', {
@@ -301,6 +314,10 @@ export default function LoginPage() {
       const needsEmailVerification = json?.data?.needsEmailVerification ?? true;
       trackLead({ content_name: 'account_signup' }, { email: signupForm.email });
       notifyIfRegistrationClosed(json?.data?.programRegistration);
+      if (needsEmailVerification) {
+        // Lets /verify-email offer a resend without asking for the address again.
+        rememberPendingVerificationEmail(signupForm.email);
+      }
       router.push(needsEmailVerification ? '/verify-email' : '/onboarding');
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : 'Register failed';
@@ -311,33 +328,6 @@ export default function LoginPage() {
       );
     } finally {
       setRegisterLoading(false);
-    }
-  };
-
-  const onResendVerification = async () => {
-    if (!loginForm.email.trim() || resendLoading) return;
-
-    setResendLoading(true);
-    setResendMessage('');
-    try {
-      const res = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: loginForm.email.trim() }),
-      });
-
-      const json = (await res.json().catch(() => ({}))) as { message?: string };
-      if (!res.ok) {
-        throw new Error(json?.message || 'Failed to resend verification email');
-      }
-
-      setResendMessage('Verification email sent. Please check your inbox and spam folder.');
-    } catch (error) {
-      setResendMessage(error instanceof Error ? error.message : 'Failed to resend verification email');
-    } finally {
-      setResendLoading(false);
     }
   };
 
@@ -698,12 +688,14 @@ export default function LoginPage() {
                           name="email"
                           value={loginForm.email}
                           onChange={onChangeLogin}
+                          onBlur={loginEmailHint.onBlur}
                           type="email"
                           required
                           className={componentsTheme.login.input}
                           placeholder="you@example.com"
                         />
                       </div>
+                      <EmailTypoHint hint={loginEmailHint} />
                     </div>
                     <div>
                       <label className={componentsTheme.login.fieldLabel}>
@@ -766,23 +758,7 @@ export default function LoginPage() {
                       </div>
                     ) : null}
                     {showResendVerification && loginForm.email.trim() ? (
-                      <div className="mt-3">
-                        <button
-                          type="button"
-                          onClick={onResendVerification}
-                          className="text-xs font-semibold text-primary underline underline-offset-2 disabled:opacity-60"
-                          disabled={resendLoading}
-                        >
-                          {resendLoading ? 'Sending verification email...' : 'Resend verification email'}
-                        </button>
-                        {resendMessage ? (
-                          <div className="mt-2">
-                            <Alert variant={/sent/i.test(resendMessage) ? 'success' : 'error'}>
-                              {resendMessage}
-                            </Alert>
-                          </div>
-                        ) : null}
-                      </div>
+                      <ResendVerificationEmail className="mt-3" email={loginForm.email} />
                     ) : null}
                     <div className="pt-2">
                       <button
@@ -894,12 +870,14 @@ export default function LoginPage() {
                           name="email"
                           value={signupForm.email}
                           onChange={onChangeSignup}
+                          onBlur={signupEmailHint.onBlur}
                           type="email"
                           required
                           className={componentsTheme.login.input}
                           placeholder="you@example.com"
                         />
                       </div>
+                      <EmailTypoHint hint={signupEmailHint} />
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
