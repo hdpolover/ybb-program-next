@@ -17,7 +17,7 @@ import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
 import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
-import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
+import { getProgramDetail, getProgramPricingTiers, type ProgramPricingTier } from '@/lib/api/programs';
 import {
   resolveActiveRegistration,
   resolveRegistrationCountdownDeadline,
@@ -138,7 +138,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let registerUrl = '/login?mode=signup';
   let activeCategory: RegistrationCategory | null = null;
 
-  const [settingsResult] = await Promise.allSettled([getSettingsForBrandDomain(host)]);
+  // Settings and the home payload are independent, so fire them together
+  // rather than serializing four backend round trips per page render.
+  const [settingsResult, homeResult] = await Promise.allSettled([
+    getSettingsForBrandDomain(host),
+    getHomePageData(host),
+  ]);
 
   let gaId: string | null = null;
   let pixelId: string | null = null;
@@ -156,28 +161,43 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     // only a fallback for brands whose program has no registrationCloseDate.
     activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
     if (activeProgramSlug) {
-      try {
-        const program = await getProgramDetail(activeProgramSlug, host);
-        let tierDeadline: string | null = null;
-        if (program?.id) {
-          try {
-            const pricingTiers = await getProgramPricingTiers(program.id, host);
-            const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
-            if (activeRegistration) {
-              tierDeadline = activeRegistration.deadline;
-              activeCategory = activeRegistration.category;
-            }
-          } catch (tierError) {
-            console.error('[Layout] Failed to fetch pricing tiers:', tierError);
-          }
-        }
-        registrationCloseDate = resolveRegistrationCountdownDeadline(
-          program?.registrationCloseDate,
-          tierDeadline,
-        );
-      } catch (error) {
-        console.error('[Layout] Failed to fetch program detail:', error);
+      // Settings already carries the active program id, so the tiers call does
+      // not have to wait on program detail to learn it. Only the env-slug path
+      // (no active_program in settings) still needs the id from the detail call.
+      const settingsProgramId = settingsData?.active_program?.id?.trim() || null;
+      const [programResult, tiersResult] = await Promise.allSettled([
+        getProgramDetail(activeProgramSlug, host),
+        settingsProgramId
+          ? getProgramPricingTiers(settingsProgramId, host)
+          : Promise.resolve<ProgramPricingTier[]>([]),
+      ]);
+
+      if (programResult.status === 'rejected') {
+        console.error('[Layout] Failed to fetch program detail:', programResult.reason);
       }
+      if (tiersResult.status === 'rejected') {
+        console.error('[Layout] Failed to fetch pricing tiers:', tiersResult.reason);
+      }
+
+      const program = programResult.status === 'fulfilled' ? programResult.value : null;
+      let pricingTiers = tiersResult.status === 'fulfilled' ? tiersResult.value : [];
+      if (!settingsProgramId && program?.id) {
+        pricingTiers = await getProgramPricingTiers(program.id, host).catch((tierError) => {
+          console.error('[Layout] Failed to fetch pricing tiers:', tierError);
+          return [];
+        });
+      }
+
+      let tierDeadline: string | null = null;
+      const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
+      if (activeRegistration) {
+        tierDeadline = activeRegistration.deadline;
+        activeCategory = activeRegistration.category;
+      }
+      registrationCloseDate = resolveRegistrationCountdownDeadline(
+        program?.registrationCloseDate,
+        tierDeadline,
+      );
     }
 
     if (activeCategory === 'fully_funded') {
@@ -196,8 +216,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     // a date months too early) cannot recur through this path: a lapsed chain
     // has no window covering now, so it produces no candidate and we keep the
     // program level date resolved above.
-    try {
-      const homeData = await getHomePageData(host);
+    if (homeResult.status === 'rejected') {
+      console.error('[Layout] Failed to resolve multi-program countdown:', homeResult.reason);
+    } else {
+      const homeData = homeResult.value;
       const registrationOverview = homeData.sections?.find(
         (section): section is RegistrationOverviewSection => section.type === 'registration_overview',
       );
@@ -231,8 +253,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             : winner.programName;
         }
       }
-    } catch (error) {
-      console.error('[Layout] Failed to resolve multi-program countdown:', error);
     }
   } else {
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
