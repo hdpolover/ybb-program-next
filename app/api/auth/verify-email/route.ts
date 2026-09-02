@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { forwardedForHeader } from '@/lib/server/forwardedFor';
 
 type VerifyEmailBody = {
   token: string;
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
       headers: {
         'Content-Type': 'application/json',
         'x-brand-domain': brandDomain,
+        ...forwardedForHeader(request),
       },
       body: JSON.stringify({
         token: body.token,

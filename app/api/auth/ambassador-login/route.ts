@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { forwardedForHeader } from '@/lib/server/forwardedFor';
 
 type AmbassadorLoginBody = {
   email: string;
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
       headers: {
         'Content-Type': 'application/json',
         'x-brand-domain': brandDomain,
+        ...forwardedForHeader(request),
       },
       body: JSON.stringify({
         email: body.email,

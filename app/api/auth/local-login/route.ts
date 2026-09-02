@@ -3,6 +3,7 @@ import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
+import { forwardedForHeader } from '@/lib/server/forwardedFor';
 
 type LocalLoginBody = {
   email: string;
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
       headers: {
         'Content-Type': 'application/json',
         'x-brand-domain': brandDomain,
+        ...forwardedForHeader(request),
       },
       body: JSON.stringify({
         email: body.email,
