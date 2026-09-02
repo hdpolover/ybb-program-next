@@ -138,18 +138,24 @@ export default function FurtherInformationSection({
             </div>
           </div>
 
-          <div className={componentsTheme.furtherInfo.rightCol}>
-            <div
-              className={componentsTheme.furtherInfo.mockupWrapper}
-              style={{
-                backgroundImage: `url(${resolvedMockupImage})`,
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: 'contain',
-              }}
-              aria-hidden="true"
-            />
-          </div>
+          {/* Omitted entirely when no mockup is uploaded. Previously the API
+              defaulted to a Japan Youth Summit poster, so other brands
+              advertised JYS; without a default, rendering this unconditionally
+              would emit url(undefined) and an empty framed box. */}
+          {resolvedMockupImage && (
+            <div className={componentsTheme.furtherInfo.rightCol}>
+              <div
+                className={componentsTheme.furtherInfo.mockupWrapper}
+                style={{
+                  backgroundImage: `url(${resolvedMockupImage})`,
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: 'contain',
+                }}
+                aria-hidden="true"
+              />
+            </div>
+          )}
         </div>
       </div>
     </section>
