@@ -273,18 +273,19 @@ export default function SettingsSection() {
     setLinkState("linking");
     setLinkError("");
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/identities/local", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: authMe.email,
-          password: linkForm.password,
-        }),
+        body: JSON.stringify({ password: linkForm.password }),
       });
       const json = (await res.json().catch(() => ({}))) as {
         statusCode?: number;
         message?: string;
       };
+
+      if (res.status === 409) {
+        throw new Error("Email & password sign-in is already set up for this account.");
+      }
 
       if (!res.ok) {
         throw new Error(json?.message || "Failed to add email & password sign-in.");
