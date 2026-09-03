@@ -128,12 +128,18 @@ function supportsCategory(tier: TierLike, category: ApplyCategory): boolean {
 }
 
 function formatPriceLabel(tier: TierLike): string {
-  const currency = safeText(tier.currency) || 'USD';
+  // No currency default. This platform prices in both USD and IDR - the payment
+  // service settles in IDR and invoices carry a dual USD/IDR snapshot - so
+  // assuming 'USD' for a tier whose currency is missing asserts a specific
+  // currency about a specific amount that nobody entered. A half-configured
+  // tier now reads as unconfigured rather than as a wrong price.
+  const currency = safeText(tier.currency);
   const rawPrice =
     typeof tier.price === 'number'
       ? tier.price.toLocaleString('en-US', { maximumFractionDigits: 2 })
       : safeText(tier.price);
-  return rawPrice ? `${currency} ${rawPrice}` : 'Not configured';
+  if (!rawPrice || !currency) return 'Not configured';
+  return `${currency} ${rawPrice}`;
 }
 
 function buildPeriods(tier: TierLike): Array<{ label: string; value: string }> {
