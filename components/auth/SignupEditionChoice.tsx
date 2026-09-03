@@ -44,6 +44,29 @@ function eventDates(edition: SignupEdition): string | null {
   return end && end !== start ? `${start} to ${end}` : start;
 }
 
+/**
+ * The OPEN date, when it is still in the future.
+ *
+ * This banner only ever named the close date, so a visitor arriving before
+ * registration opened was told "Registration closes 5 Mar 2027" for a programme
+ * they could not yet register for -- while the navbar said REGISTER NOW and the
+ * fee cards said Closed. Naming the opening is the difference between a
+ * confusing form and an honest one.
+ *
+ * Compared RAW, not widened to the WIB day boundary: the backend gates the
+ * programme-level open date raw (auth-program-linking.util.ts and three
+ * siblings), and widening here would tell a visitor registration is open up to
+ * 7 hours before the API accepts them. Validity-WINDOW starts are widened;
+ * this date is not one.
+ */
+function opensOn(edition: SignupEdition): string | null {
+  const raw = edition.registration_dates?.open;
+  if (!raw) return null;
+  const openMs = new Date(raw).getTime();
+  if (Number.isNaN(openMs) || openMs <= Date.now()) return null;
+  return formatDeadlineWib(raw, { withTime: false });
+}
+
 /** The close date is an instant, so it keeps the app's WIB rendering. */
 function closesOn(edition: SignupEdition): string | null {
   const formatted = formatDeadlineWib(edition.registration_dates?.close, { withTime: false });
@@ -58,16 +81,22 @@ export default function SignupEditionChoice({ editions, value, onChange }: Props
   if (editions.length === 1) {
     const only = editions[0];
     const event = eventDates(only);
-    const close = closesOn(only);
+    const opens = opensOn(only);
+    // Once open, the close date is the useful one; before that, the opening is.
+    const close = opens ? null : closesOn(only);
     return (
       <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
         <p className="text-sm text-slate-700">
           You are registering for{' '}
           <span className="font-bold text-slate-900">{only.program_name}</span>.
         </p>
-        {(event || close) && (
+        {(event || opens || close) && (
           <p className="mt-1 text-xs text-slate-500">
-            {[event && `Event ${event}`, close && `Registration closes ${close}`]
+            {[
+              event && `Event ${event}`,
+              opens && `Registration opens ${opens}`,
+              close && `Registration closes ${close}`,
+            ]
               .filter(Boolean)
               .join(' · ')}
           </p>

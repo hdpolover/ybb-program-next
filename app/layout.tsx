@@ -5,6 +5,7 @@ import { getHomePageData } from '@/lib/api/home';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { resolveBrandDomain } from '@/lib/server/envContext';
 import { SettingsProvider } from '@/components/providers/SettingsProvider';
+import { formatDayMonthWib } from '@/lib/format/deadline';
 import './globals.css';
 import ClientNavbarGate from '@/components/layout/ClientNavbarGate';
 import ClientFooterGate from '@/components/layout/ClientFooterGate';
@@ -266,7 +267,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" suppressHydrationWarning>
       <body className={plusJakarta.className} data-program={programSlug} style={themeStyle}>
         <AppVersionWatcher currentVersion={appVersion} />
-        <SettingsProvider initialSettings={settingsData}>
+        <SettingsProvider
+          initialSettings={settingsData}
+          registrationPhase={countdownPhase}
+          registrationOpensLabel={
+            countdownPhase === 'upcoming' ? formatDayMonthWib(registrationCloseDate) : null
+          }
+        >
           <PromoCTAProvider>
             <ClientNavbarGate />
             <RegistrationCountdownGate
