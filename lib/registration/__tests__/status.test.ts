@@ -86,3 +86,30 @@ describe('isProgramRegistrationOpen', () => {
     expect(isProgramRegistrationOpen(null, at('2026-09-03T00:00:00.000Z'))).toBe(false);
   });
 });
+
+describe('degenerate date configurations', () => {
+  it('is closed when the close date precedes the open date', () => {
+    // A window nobody can ever be inside. 'upcoming' would promise an opening
+    // that can never arrive.
+    const program = {
+      ...base,
+      registrationOpenDate: '2027-01-01T00:00:00.000Z',
+      registrationCloseDate: '2026-01-01T00:00:00.000Z',
+    };
+    expect(getRegistrationPhase(program, at('2026-06-01T00:00:00.000Z'))).toBe('closed');
+    expect(getRegistrationPhase(program, at('2027-06-01T00:00:00.000Z'))).toBe('closed');
+  });
+
+  it('treats an unparseable date as absent, i.e. as no constraint', () => {
+    const program = { ...base, registrationOpenDate: 'not-a-date', registrationCloseDate: null };
+    expect(getRegistrationPhase(program, at('2026-09-03T00:00:00.000Z'))).toBe('open');
+  });
+
+  it('handles an instantaneous window (open === close)', () => {
+    const instant = '2026-09-03T00:00:00.000Z';
+    const program = { ...base, registrationOpenDate: instant, registrationCloseDate: instant };
+    expect(getRegistrationPhase(program, at('2026-09-02T23:59:59.000Z'))).toBe('upcoming');
+    expect(getRegistrationPhase(program, at(instant))).toBe('open');
+    expect(getRegistrationPhase(program, at('2026-09-03T00:00:01.000Z'))).toBe('closed');
+  });
+});

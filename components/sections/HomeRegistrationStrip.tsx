@@ -4,8 +4,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import {
-  combineRegistrationPhases,
-  getRegistrationWindowPhase,
+  getEditionRegistrationPhase,
+  getTierRegistrationPhase,
+  isRegistrationFeeTier,
+  normalizeValidityPeriods,
+  type RegistrationDates,
   type RegistrationValidityPeriod,
 } from '@/lib/registration/isRegistrationOpen';
 import { componentsTheme } from '@/lib/theme/components';
@@ -91,10 +94,6 @@ function hasCategory(
   return (tier.allowed_categories ?? [])
     .map((item) => normalizeCategory(String(item)))
     .some((item) => item === target);
-}
-
-function isRegistrationFeeTier(tier: RegistrationType): boolean {
-  return (tier.fee_type ?? '').toLowerCase() === 'registration_fee';
 }
 
 function pickRegistrationTier(
@@ -200,12 +199,17 @@ function buildRegisterHref(baseHref: string, programSlug?: string): string {
 
 function RegistrationTypeCards({
   registrationTypes,
+  registrationDates,
   hydrated,
   currentNow,
   showCountdown,
   programSlug,
 }: {
   registrationTypes: RegistrationType[];
+  // The edition's own registration window, used for any tier that carries no
+  // validity periods of its own. Without it these cards read Closed under an
+  // edition badge that reads Open (see normalizeValidityPeriods).
+  registrationDates?: RegistrationDates;
   hydrated: boolean;
   currentNow: Date;
   // Per-card "closes in X days". The global banner counts down to one
@@ -301,17 +305,15 @@ function RegistrationTypeCards({
   // Tri-state, not boolean: a fee window that has not started yet is
   // 'upcoming'. Badging it "Closed" tells a visitor to go away days before
   // registration opens (Korea Youth Summit 4th, 2026-09-03).
-  const primaryPhase = currentNow ? getRegistrationWindowPhase(primaryType?.validity_periods, currentNow) : 'closed';
-  const secondaryPhase = currentNow ? getRegistrationWindowPhase(secondaryType?.validity_periods, currentNow) : 'closed';
+  const primaryPeriods = normalizeValidityPeriods(primaryType, registrationDates);
+  const secondaryPeriods = normalizeValidityPeriods(secondaryType, registrationDates);
+  const primaryPhase = getTierRegistrationPhase(primaryType, registrationDates, currentNow);
+  const secondaryPhase = getTierRegistrationPhase(secondaryType, registrationDates, currentNow);
   const primaryOpen = primaryPhase === 'open';
   const secondaryOpen = secondaryPhase === 'open';
 
-  const primaryCountdown = showCountdown
-    ? getRegistrationCountdownLabel(primaryType?.validity_periods, currentNow)
-    : null;
-  const secondaryCountdown = showCountdown
-    ? getRegistrationCountdownLabel(secondaryType?.validity_periods, currentNow)
-    : null;
+  const primaryCountdown = showCountdown ? getRegistrationCountdownLabel(primaryPeriods, currentNow) : null;
+  const secondaryCountdown = showCountdown ? getRegistrationCountdownLabel(secondaryPeriods, currentNow) : null;
 
   useEffect(() => {
     const checkOverflow = () => {
@@ -704,10 +706,10 @@ export default function HomeRegistrationStrip({
   // The edition badge is derived from the edition's OWN fee windows rather
   // than the backend `status` flag, which ignores allowRegistration and the
   // tier windows and so read "Open" above two "Closed" cards on KYS 4th.
-  const selectedGroupPhase = combineRegistrationPhases(
-    (selectedGroup?.registration_types ?? [])
-      .filter(isRegistrationFeeTier)
-      .map((tier) => getRegistrationWindowPhase(tier.validity_periods, currentNow)),
+  const selectedGroupPhase = getEditionRegistrationPhase(
+    selectedGroup?.registration_types ?? [],
+    selectedGroup?.registration_dates,
+    currentNow,
   );
 
   const activeIgFeed = hasEditionData ? selectedGroup?.ig_feed ?? [] : igFeed ?? [];
@@ -954,6 +956,7 @@ export default function HomeRegistrationStrip({
                 )}
                 <RegistrationTypeCards
                   registrationTypes={selectedGroup?.registration_types ?? []}
+                  registrationDates={selectedGroup?.registration_dates}
                   hydrated={hydrated}
                   currentNow={currentNow}
                   showCountdown
@@ -963,6 +966,7 @@ export default function HomeRegistrationStrip({
             ) : (
               <RegistrationTypeCards
                 registrationTypes={groups[0]?.registration_types ?? []}
+                registrationDates={groups[0]?.registration_dates}
                 hydrated={hydrated}
                 currentNow={currentNow}
                 showCountdown={false}

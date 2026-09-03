@@ -1,4 +1,8 @@
 import type { ProgramPricingTier } from '@/lib/api/programs';
+import {
+  getEditionWindows,
+  isRegistrationFeeTier,
+} from '@/lib/registration/isRegistrationOpen';
 
 /**
  * Registration countdown deadline derivation.
@@ -19,8 +23,6 @@ import type { ProgramPricingTier } from '@/lib/api/programs';
 
 export type RegistrationCategory = 'fully_funded' | 'self_funded';
 
-const REGISTRATION_FEE_TYPE = 'registration_fee';
-
 type DeadlineTier = Pick<
   ProgramPricingTier,
   'feeType' | 'allowedCategories' | 'validityPeriods'
@@ -28,10 +30,6 @@ type DeadlineTier = Pick<
 
 function normalizeToken(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase().replace(/-/g, '_');
-}
-
-function isRegistrationFeeTier(tier: DeadlineTier): boolean {
-  return normalizeToken(tier.feeType) === REGISTRATION_FEE_TYPE;
 }
 
 function tierAllowsCategory(tier: DeadlineTier, category: RegistrationCategory): boolean {
@@ -52,7 +50,7 @@ function parseDate(value: string | null | undefined): number | null {
  * `endDate` greater than `now` across all matching registration-fee tier
  * validity periods. Returns an ISO string, or null when no future date exists.
  */
-export function getRegistrationCloseForCategory(
+function getRegistrationCloseForCategory(
   tiers: DeadlineTier[],
   category: RegistrationCategory,
   now: Date,
@@ -67,23 +65,6 @@ export function getRegistrationCloseForCategory(
 
   if (futureEndDatesMs.length === 0) return null;
   return new Date(Math.min(...futureEndDatesMs)).toISOString();
-}
-
-/**
- * Resolve the active registration deadline: fully funded close while any
- * future window exists, otherwise self funded close, otherwise null.
- */
-export function resolveActiveRegistrationDeadline(
-  tiers: DeadlineTier[] | null | undefined,
-  now: Date,
-): string | null {
-  if (!tiers || tiers.length === 0) return null;
-
-  return (
-    getRegistrationCloseForCategory(tiers, 'fully_funded', now) ??
-    getRegistrationCloseForCategory(tiers, 'self_funded', now) ??
-    null
-  );
 }
 
 /**
@@ -150,6 +131,30 @@ export type CountdownWinner = {
  * shown below it.
  */
 /**
+ * Every registration window on every edition, as instants, tagged with the
+ * edition and category it belongs to.
+ *
+ * The start rule lives in lib/registration/isRegistrationOpen (WIB
+ * start-of-day widening on a tier's earliest window, program dates as the
+ * fallback for a tier or an edition that carries none) and is NOT restated
+ * here. Comparing raw `startDate` here instead is what had the fee card
+ * badging Open next to a sticky bar reading "Opens 31 Aug" for the same 23
+ * hours: one rule, two implementations.
+ */
+function allWindows(
+  editions: CountdownProgramEdition[],
+): Array<{ start: number; end: number; programName: string; categoryLabel: string | null }> {
+  return editions.flatMap((edition) =>
+    getEditionWindows(edition.registration_types, edition.registration_dates).map((w) => ({
+      start: w.start,
+      end: w.end,
+      programName: edition.program_name,
+      categoryLabel: w.tier ? describeTierCategory(w.tier) : null,
+    })),
+  );
+}
+
+/**
  * The soonest registration window that is OPEN RIGHT NOW, across every edition
  * and category, with the edition and category it belongs to.
  *
@@ -167,31 +172,19 @@ export function resolveOpenWindowCountdown(
   if (!editions || editions.length === 0) return null;
   const nowMs = now.getTime();
 
-  const candidates: Array<CountdownWinner & { categoryLabel: string | null; ms: number }> = [];
-
-  for (const edition of editions) {
-    for (const tier of edition.registration_types ?? []) {
-      if (!isRegistrationFeeTier(tier)) continue;
-      for (const period of tier.validityPeriods ?? []) {
-        const start = parseDate((period as { startDate?: string | null }).startDate);
-        const end = parseDate((period as { endDate?: string | null }).endDate);
-        if (start === null || end === null) continue;
-        // Only a window covering now. An upcoming window is not something a
-        // visitor can act on yet, and a lapsed one is gone.
-        if (start > nowMs || end < nowMs) continue;
-        candidates.push({
-          deadline: new Date(end).toISOString(),
-          programName: edition.program_name,
-          categoryLabel: describeTierCategory(tier),
-          ms: end,
-        });
-      }
-    }
-  }
-
+  // An open window with no close date has nothing to count down to; the CTA
+  // still shows via the phase, the clock just has no target.
+  const candidates = allWindows(editions).filter(
+    (w) => w.start <= nowMs && nowMs <= w.end && Number.isFinite(w.end),
+  );
   if (candidates.length === 0) return null;
-  const winner = candidates.reduce((soonest, c) => (c.ms < soonest.ms ? c : soonest));
-  return { deadline: winner.deadline, programName: winner.programName, categoryLabel: winner.categoryLabel };
+
+  const winner = candidates.reduce((soonest, c) => (c.end < soonest.end ? c : soonest));
+  return {
+    deadline: new Date(winner.end).toISOString(),
+    programName: winner.programName,
+    categoryLabel: winner.categoryLabel,
+  };
 }
 
 /** "Fully Funded" / "Self Funded" for the banner label, or null when a tier is not category specific. */
@@ -201,32 +194,6 @@ function describeTierCategory(tier: DeadlineTier): string | null {
   if (cats[0] === 'fully_funded') return 'Fully Funded';
   if (cats[0] === 'self_funded') return 'Self Funded';
   return null;
-}
-
-export function resolveCountdownAcrossPrograms(
-  editions: CountdownProgramEdition[] | null | undefined,
-  now: Date,
-): CountdownWinner | null {
-  if (!editions || editions.length === 0) return null;
-
-  const nowMs = now.getTime();
-  const candidates = editions
-    .map((edition) => {
-      const tierDeadline = resolveActiveRegistrationDeadline(edition.registration_types, now);
-      const deadline = resolveRegistrationCountdownDeadline(edition.registration_dates?.close, tierDeadline);
-      return deadline ? { deadline, programName: edition.program_name } : null;
-    })
-    .filter((candidate): candidate is CountdownWinner => candidate !== null)
-    .filter((candidate) => {
-      const ms = parseDate(candidate.deadline);
-      return ms !== null && ms > nowMs;
-    });
-
-  if (candidates.length === 0) return null;
-
-  return candidates.reduce((soonest, candidate) =>
-    (parseDate(candidate.deadline) ?? Infinity) < (parseDate(soonest.deadline) ?? Infinity) ? candidate : soonest,
-  );
 }
 
 /**
@@ -243,35 +210,15 @@ export function resolveUpcomingWindowCountdown(
   if (!editions || editions.length === 0) return null;
   const nowMs = now.getTime();
 
-  const candidates: Array<CountdownWinner & { categoryLabel: string | null; ms: number }> = [];
-
-  for (const edition of editions) {
-    for (const tier of edition.registration_types ?? []) {
-      if (!isRegistrationFeeTier(tier)) continue;
-      for (const period of tier.validityPeriods ?? []) {
-        const start = parseDate((period as { startDate?: string | null }).startDate);
-        if (start === null || start <= nowMs) continue;
-        candidates.push({
-          deadline: new Date(start).toISOString(),
-          programName: edition.program_name,
-          categoryLabel: describeTierCategory(tier),
-          ms: start,
-        });
-      }
-    }
-  }
-
+  const candidates = allWindows(editions).filter((w) => w.start > nowMs && Number.isFinite(w.start));
   if (candidates.length === 0) return null;
-  const winner = candidates.reduce((soonest, c) => (c.ms < soonest.ms ? c : soonest));
-  return { deadline: winner.deadline, programName: winner.programName, categoryLabel: winner.categoryLabel };
-}
 
-function hasAnyRegistrationWindow(editions: CountdownProgramEdition[]): boolean {
-  return editions.some((edition) =>
-    (edition.registration_types ?? []).some(
-      (tier) => isRegistrationFeeTier(tier) && (tier.validityPeriods ?? []).length > 0,
-    ),
-  );
+  const winner = candidates.reduce((soonest, c) => (c.start < soonest.start ? c : soonest));
+  return {
+    deadline: new Date(winner.start).toISOString(),
+    programName: winner.programName,
+    categoryLabel: winner.categoryLabel,
+  };
 }
 
 export type RegistrationCountdownResolution = CountdownWinner & {
@@ -283,7 +230,7 @@ export type RegistrationCountdownResolution = CountdownWinner & {
 
 /**
  * The homepage countdown rule, in resolution order. Kept here rather than
- * inlined in app/layout.tsx so the three branches are one readable rule AND
+ * inlined in app/layout.tsx so the branches are one readable rule AND
  * unit-testable; layout calls it in a single line.
  *
  *   1. Something OPEN  -> count down to that window's close. Register CTA live.
@@ -292,10 +239,12 @@ export type RegistrationCountdownResolution = CountdownWinner & {
  *      Caller must not render a register CTA. (KYS 4th shape, 2026-09-03.)
  *   3. Nothing open, nothing upcoming -> null. "Closed" is finally the truth.
  *
- * Exception inside branch 3: editions that carry no registration-fee validity
- * windows AT ALL are governed purely by their program-level dates (Istanbul
- * Youth Summit, Youth Academic Forum). For those we keep the pre-existing
- * program-date countdown rather than blanking their banner.
+ * Editions that carry no registration-fee validity windows are not a fourth
+ * branch: `getEditionWindows` already turns their program-level registration
+ * dates into a window, so Istanbul Youth Summit keeps its countdown to 5 Dec
+ * even when a sibling edition's windows have all lapsed. That used to be an
+ * all-or-nothing global test (`hasAnyRegistrationWindow`), which blanked
+ * Istanbul's banner and bar whenever ANY edition anywhere had a window.
  */
 export function resolveRegistrationCountdown(
   editions: CountdownProgramEdition[] | null | undefined,
@@ -308,11 +257,6 @@ export function resolveRegistrationCountdown(
 
   const upcoming = resolveUpcomingWindowCountdown(editions, now);
   if (upcoming) return { ...upcoming, phase: 'upcoming' };
-
-  if (!hasAnyRegistrationWindow(editions)) {
-    const fallback = resolveCountdownAcrossPrograms(editions, now);
-    return fallback ? { ...fallback, categoryLabel: null, phase: 'open' } : null;
-  }
 
   return null;
 }

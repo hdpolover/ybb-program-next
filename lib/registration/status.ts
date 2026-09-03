@@ -53,11 +53,21 @@ export function getRegistrationPhase(
   if (!program.isPublished || !program.isActive || !program.allowRegistration) return 'closed';
 
   const nowMs = now.getTime();
-
   const openMs = parseDate(program.registrationOpenDate);
-  if (openMs !== null && openMs > nowMs) return 'upcoming';
-
   const closeMs = parseDate(program.registrationCloseDate);
+
+  // Degenerate configurations, decided here rather than left emergent:
+  //  - close BEFORE open: a window no visitor can ever be inside. It is a
+  //    misconfiguration, and the only safe reading is 'closed'. Reporting
+  //    'upcoming' would promise an opening that can never arrive.
+  //  - open === close: a real, instantaneous window; it opens and shuts on
+  //    that instant, which the comparisons below already handle.
+  //  - an unparseable date: treated as ABSENT, i.e. no constraint, matching
+  //    the backend's `!registrationOpenDate` shape. Absent dates are the
+  //    normal case for programmes gated only by allowRegistration.
+  if (openMs !== null && closeMs !== null && closeMs < openMs) return 'closed';
+
+  if (openMs !== null && openMs > nowMs) return 'upcoming';
   if (closeMs !== null && closeMs < nowMs) return 'closed';
 
   return 'open';

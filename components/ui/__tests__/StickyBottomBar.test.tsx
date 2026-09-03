@@ -40,4 +40,33 @@ describe('StickyBottomBar', () => {
     expect(screen.queryByText('Register Now')).toBeNull();
     expect(screen.getByText(/^Opens /)).toBeInTheDocument();
   });
+
+  it('labels the opening day in WIB, not in the viewer timezone', () => {
+    // 2026-09-04T17:00Z is 5 Sept in Jakarta and 4 Sept in UTC. The bar must
+    // say the Jakarta day whoever is looking.
+    render(<StickyBottomBar deadline="2026-09-04T17:00:00.000Z" registerUrl="/login?mode=signup" phase="upcoming" />);
+    scrollIntoView();
+
+    expect(screen.getByText('Opens 5 Sept')).toBeInTheDocument();
+  });
+
+  it('shows the register CTA once an upcoming countdown reaches zero', () => {
+    // `phase` is baked at server render behind a 120s cache, so unmounting at
+    // zero deleted the loudest register CTA on the site at the exact moment
+    // registration opened - indefinitely for an already-open tab.
+    const openedAlready = new Date(Date.now() - 60 * 1000).toISOString();
+    render(<StickyBottomBar deadline={openedAlready} registerUrl="/login?mode=signup" phase="upcoming" />);
+    scrollIntoView();
+
+    expect(screen.getByRole('link', { name: 'Register Now' })).toHaveAttribute('href', '/login?mode=signup');
+    expect(screen.queryByText(/^Opens /)).toBeNull();
+  });
+
+  it('still unmounts when an OPEN countdown reaches zero', () => {
+    const closedAlready = new Date(Date.now() - 60 * 1000).toISOString();
+    const { container } = render(<StickyBottomBar deadline={closedAlready} registerUrl="/login?mode=signup" phase="open" />);
+    scrollIntoView();
+
+    expect(container).toBeEmptyDOMElement();
+  });
 });

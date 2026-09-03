@@ -1,10 +1,11 @@
 // lib/format/registration-period.ts
 import { formatDeadlineLocal, formatDeadlineWib } from "@/lib/format/deadline";
+import {
+  parseRegistrationWindows,
+  type RegistrationValidityPeriod,
+} from "@/lib/registration/isRegistrationOpen";
 
-export type ValidityPeriod = {
-  start_date: string;
-  end_date: string;
-};
+export type ValidityPeriod = RegistrationValidityPeriod;
 
 /**
  * Admins extend a registration window by APPENDING a new validity period that
@@ -20,22 +21,25 @@ export type ValidityPeriod = {
  * DISPLAY ONLY. Eligibility and payment gating still use the per-period logic
  * elsewhere; a participant must not become eligible because a label looks open.
  */
+// Windows come from lib/registration/isRegistrationOpen, the same parser the
+// open/closed gate uses, so "the window covering now" means the same thing in
+// a label as it does in a badge (including the WIB start-of-day widening on
+// the earliest window).
 type ParsedPeriod = { period: ValidityPeriod; start: number; end: number };
 
-function parsePeriods(periods: ValidityPeriod[] | undefined): ParsedPeriod[] {
-  if (!periods || periods.length === 0) return [];
-
-  const time = (value: string) => {
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
-  };
-
-  return periods
-    .map((period) => ({ period, start: time(period.start_date), end: time(period.end_date) }))
-    .filter((entry) => entry.start !== null && entry.end !== null) as ParsedPeriod[];
-}
-
 const byEarliestEnd = (a: { end: number }, b: { end: number }) => a.end - b.end;
+
+/**
+ * The window that applies right now, or undefined when none does.
+ *
+ * Windows may overlap (MEYS has 28 Jul - 31 Aug alongside 28 Jul - 1 Sep).
+ * Eligibility holds while ANY window covers now, so the deadline that actually
+ * applies is the LATEST end among the windows covering today. Picking the
+ * earliest would tell participants registration closes a day before it does.
+ */
+function pickCurrentWindow(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
+  return parsed.filter((entry) => entry.start <= nowTime && nowTime <= entry.end).sort(byEarliestEnd).pop();
+}
 
 /**
  * Pick the window a participant should be shown "right now": the one
@@ -46,19 +50,10 @@ const byEarliestEnd = (a: { end: number }, b: { end: number }) => a.end - b.end;
 function pickDisplayWindow(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
   if (parsed.length === 0) return undefined;
 
-  // Windows may overlap (MEYS has 28 Jul - 31 Aug alongside 28 Jul - 1 Sep).
-  // Eligibility holds while ANY window covers now, so the deadline that
-  // actually applies is the latest end among the windows covering today.
-  // Picking the earliest would tell participants registration closes a day
-  // before it does.
-  const current = parsed
-    .filter((entry) => entry.start <= nowTime && nowTime <= entry.end)
-    .sort(byEarliestEnd)
-    .pop();
   const upcoming = parsed.filter((entry) => entry.start > nowTime).sort((a, b) => a.start - b.start)[0];
   const lapsed = [...parsed].sort(byEarliestEnd)[parsed.length - 1];
 
-  return current ?? upcoming ?? lapsed;
+  return pickCurrentWindow(parsed, nowTime) ?? upcoming ?? lapsed;
 }
 
 export function getRegistrationPeriodLabel(
@@ -66,7 +61,7 @@ export function getRegistrationPeriodLabel(
   hydrated: boolean = true,
   now: Date = new Date(),
 ): string {
-  const parsed = parsePeriods(periods);
+  const parsed = parseRegistrationWindows(periods);
   const chosen = pickDisplayWindow(parsed, now.getTime());
   if (!chosen) return "TBD";
 
@@ -96,10 +91,7 @@ export function getRegistrationCountdownLabel(
   now: Date = new Date(),
 ): string | null {
   const nowTime = now.getTime();
-  const current = parsePeriods(periods)
-    .filter((entry) => entry.start <= nowTime && nowTime <= entry.end)
-    .sort(byEarliestEnd)
-    .pop();
+  const current = pickCurrentWindow(parseRegistrationWindows(periods), nowTime);
   if (!current) return null;
 
   const remainingMs = current.end - nowTime;

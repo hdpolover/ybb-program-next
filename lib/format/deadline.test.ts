@@ -10,7 +10,7 @@
  * regardless of what timezone actually runs this suite.
  */
 import { describe, it, expect, vi } from "vitest";
-import { formatDeadlineLocal, formatDeadlineWib } from "./deadline";
+import { formatDayMonthWib, formatDeadlineLocal, formatDeadlineWib } from "./deadline";
 
 const UTC_INSTANT = "2026-07-15T16:59:00.000Z";
 // In WIB (UTC+7): 2026-07-15 23:59
@@ -66,5 +66,27 @@ describe("formatDeadlineLocal", () => {
 
     expect(result).toContain("16 Jul 2026");
     expect(result).toContain("00:59");
+  });
+});
+
+describe("formatDayMonthWib", () => {
+  // The opening date sits next to a countdown ticking to the exact instant, so
+  // the DAY has to be the Jakarta day no matter where the viewer is. Rendered
+  // in the viewer's zone, this instant reads "4 Sept" in UTC and "5 Sept" in
+  // Jakarta: same clock, wrong date.
+  const OPENS_AT = "2026-09-04T17:00:00.000Z";
+
+  it("renders the WIB day even when the runtime timezone is not WIB", () => {
+    vi.stubEnv("TZ", "UTC");
+    const result = formatDayMonthWib(OPENS_AT);
+    vi.unstubAllEnvs();
+
+    expect(result).toBe("5 Sept");
+  });
+
+  it("returns null for missing or invalid values", () => {
+    expect(formatDayMonthWib(null)).toBeNull();
+    expect(formatDayMonthWib("")).toBeNull();
+    expect(formatDayMonthWib("not-a-date")).toBeNull();
   });
 });

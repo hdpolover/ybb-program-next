@@ -20,8 +20,10 @@ import { formatEventDateRange, getRegistrationPeriodLabel } from '@/lib/format/r
 import { useHydrated } from '@/hooks/useHydrated';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import {
-  combineRegistrationPhases,
-  getRegistrationWindowPhase,
+  getEditionRegistrationPhase,
+  getTierRegistrationPhase,
+  isRegistrationFeeTier,
+  normalizeValidityPeriods,
   type RegistrationValidityPeriod,
 } from '@/lib/registration/isRegistrationOpen';
 import type {
@@ -91,49 +93,6 @@ function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | n
   return null;
 }
 
-// Some upstream sources (raw API payloads before page-level mapping) still
-// carry `validityPeriods`/`startDate`/`endDate` instead of the snake_case
-// shape declared on `PricingTierLike` — this widened view covers both
-// without resorting to `any`.
-type PricingTierWithValidityVariants = PricingTierLike & {
-  validity_periods?: ValidityPeriod[];
-  validityPeriods?: { startDate: string; endDate: string }[];
-};
-
-function normalizeValidityPeriods(
-  tier: PricingTierLike | undefined,
-  fallbackDates?: { open: string | null; close: string | null } | null
-): ValidityPeriod[] | undefined {
-  if (!tier) return undefined;
-
-  // Handle both snake_case (validity_periods) and camelCase (validityPeriods)
-  const tierWithVariants = tier as PricingTierWithValidityVariants;
-  const snakeCasePeriods = tierWithVariants.validity_periods;
-  const camelCasePeriods = tierWithVariants.validityPeriods;
-
-  if (snakeCasePeriods && Array.isArray(snakeCasePeriods) && snakeCasePeriods.length > 0) {
-    return snakeCasePeriods;
-  }
-
-  if (camelCasePeriods && Array.isArray(camelCasePeriods) && camelCasePeriods.length > 0) {
-    // Convert camelCase to snake_case format
-    return camelCasePeriods.map((p) => ({
-      start_date: p.startDate,
-      end_date: p.endDate,
-    }));
-  }
-  
-  // Fallback to shared registration dates if individual validity periods are not available
-  if (fallbackDates?.open && fallbackDates?.close) {
-    return [{
-      start_date: fallbackDates.open,
-      end_date: fallbackDates.close,
-    }];
-  }
-  
-  return undefined;
-}
-
 function hasCategory(
   tier: PricingTierLike,
   target: 'self_funded' | 'fully_funded',
@@ -146,10 +105,6 @@ function hasCategory(
   return categories
     .map((item) => normalizeCategory(String(item)))
     .some((item) => item === target);
-}
-
-function isRegistrationFeeTier(tier: PricingTierLike): boolean {
-  return (tier.fee_type ?? '').toLowerCase() === 'registration_fee';
 }
 
 function pickRegistrationTier(
@@ -257,28 +212,17 @@ export default function RegistrationTypePrograms({
   const secondaryBenefits = useMemo(() => secondaryType?.benefits ?? [], [secondaryType?.benefits]);
 
   // Tri-state, not boolean -- see lib/registration/isRegistrationOpen.
-  const primaryPhase = getRegistrationWindowPhase(
-    normalizeValidityPeriods(primaryType, selectedGroup.registration_dates),
-    currentNow,
-  );
-  const secondaryPhase = getRegistrationWindowPhase(
-    normalizeValidityPeriods(secondaryType, selectedGroup.registration_dates),
-    currentNow,
-  );
+  const primaryPhase = getTierRegistrationPhase(primaryType, selectedGroup.registration_dates, currentNow);
+  const secondaryPhase = getTierRegistrationPhase(secondaryType, selectedGroup.registration_dates, currentNow);
   const primaryOpen = primaryPhase === 'open';
   const secondaryOpen = secondaryPhase === 'open';
   // Derived from this edition's own windows, not the backend `status` flag,
   // which ignored allowRegistration and the tier windows and so read "Open"
   // above two "Closed" fee cards on KYS 4th.
-  const selectedGroupPhase = combineRegistrationPhases(
-    selectedGroup.registration_types
-      .filter(isRegistrationFeeTier)
-      .map((tier) =>
-        getRegistrationWindowPhase(
-          normalizeValidityPeriods(tier, selectedGroup.registration_dates),
-          currentNow,
-        ),
-      ),
+  const selectedGroupPhase = getEditionRegistrationPhase(
+    selectedGroup.registration_types,
+    selectedGroup.registration_dates,
+    currentNow,
   );
 
   const selfFundedRequirements = useMemo(

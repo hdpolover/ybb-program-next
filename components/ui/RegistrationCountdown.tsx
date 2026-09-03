@@ -28,28 +28,34 @@ export default function RegistrationCountdown({ targetDate, programName, phase =
 
   useEffect(() => {
     const target = new Date(targetDate).getTime();
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = target - now;
+
+    const tick = () => {
+      const distance = target - Date.now();
 
       if (distance < 0) {
         setIsExpired(true);
-        clearInterval(interval);
         return;
       }
 
+      setIsExpired(false);
       setTimeLeft({
         days: Math.floor(distance / (1000 * 60 * 60 * 24)),
         hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
         minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
         seconds: Math.floor((distance % (1000 * 60)) / 1000),
       });
-    }, 1000);
+    };
 
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [targetDate]);
 
-  if (isExpired) {
+  // An expired 'upcoming' clock means registration just OPENED, not that the
+  // banner should disappear: `phase` was baked at server render behind a 120s
+  // cache (HOME_CACHE_TTL), so an already-open tab would never learn better.
+  const isOpeningNow = isExpired && phase === 'upcoming';
+  if (isExpired && !isOpeningNow) {
     return null;
   }
 
@@ -62,35 +68,39 @@ export default function RegistrationCountdown({ targetDate, programName, phase =
         <div className={componentsTheme.registrationCountdown.labelWrapper}>
           <Clock className={componentsTheme.registrationCountdown.icon} />
           <span className={componentsTheme.registrationCountdown.labelDesktop}>
-            {programName
-              ? `${programName} registration ${verb} in:`
-              : `Registration ${verb} in:`}
+            {isOpeningNow
+              ? `${programName ? `${programName} r` : 'R'}egistration is now open`
+              : programName
+                ? `${programName} registration ${verb} in:`
+                : `Registration ${verb} in:`}
           </span>
           <span className={componentsTheme.registrationCountdown.labelMobile}>
-            {phase === 'upcoming' ? 'Opens in:' : 'Closes in:'}
+            {isOpeningNow ? 'Registration is open' : phase === 'upcoming' ? 'Opens in:' : 'Closes in:'}
           </span>
         </div>
-        <div className={componentsTheme.registrationCountdown.countdownGrid}>
-          <div className={componentsTheme.registrationCountdown.timeCard}>
-            <span className={componentsTheme.registrationCountdown.timeValue}>{timeLeft.days}</span>
-            <span className={componentsTheme.registrationCountdown.timeLabel}>Days</span>
+        {!isOpeningNow && (
+          <div className={componentsTheme.registrationCountdown.countdownGrid}>
+            <div className={componentsTheme.registrationCountdown.timeCard}>
+              <span className={componentsTheme.registrationCountdown.timeValue}>{timeLeft.days}</span>
+              <span className={componentsTheme.registrationCountdown.timeLabel}>Days</span>
+            </div>
+            <span className={componentsTheme.registrationCountdown.separator}>:</span>
+            <div className={componentsTheme.registrationCountdown.timeCard}>
+              <span className={componentsTheme.registrationCountdown.timeValue}>{timeLeft.hours}</span>
+              <span className={componentsTheme.registrationCountdown.timeLabel}>Hrs</span>
+            </div>
+            <span className={componentsTheme.registrationCountdown.separator}>:</span>
+            <div className={componentsTheme.registrationCountdown.timeCard}>
+              <span className={componentsTheme.registrationCountdown.timeValue}>{timeLeft.minutes}</span>
+              <span className={componentsTheme.registrationCountdown.timeLabel}>Min</span>
+            </div>
+            <span className={componentsTheme.registrationCountdown.separatorDesktop}>:</span>
+            <div className={componentsTheme.registrationCountdown.timeCard}>
+              <span className={componentsTheme.registrationCountdown.timeValue}>{timeLeft.seconds}</span>
+              <span className={componentsTheme.registrationCountdown.timeLabel}>Sec</span>
+            </div>
           </div>
-          <span className={componentsTheme.registrationCountdown.separator}>:</span>
-          <div className={componentsTheme.registrationCountdown.timeCard}>
-            <span className={componentsTheme.registrationCountdown.timeValue}>{timeLeft.hours}</span>
-            <span className={componentsTheme.registrationCountdown.timeLabel}>Hrs</span>
-          </div>
-          <span className={componentsTheme.registrationCountdown.separator}>:</span>
-          <div className={componentsTheme.registrationCountdown.timeCard}>
-            <span className={componentsTheme.registrationCountdown.timeValue}>{timeLeft.minutes}</span>
-            <span className={componentsTheme.registrationCountdown.timeLabel}>Min</span>
-          </div>
-          <span className={componentsTheme.registrationCountdown.separatorDesktop}>:</span>
-          <div className={componentsTheme.registrationCountdown.timeCard}>
-            <span className={componentsTheme.registrationCountdown.timeValue}>{timeLeft.seconds}</span>
-            <span className={componentsTheme.registrationCountdown.timeLabel}>Sec</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

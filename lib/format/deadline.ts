@@ -84,3 +84,27 @@ export function formatDeadlineWib(
 
   return new Intl.DateTimeFormat("en-GB", formatOptions).format(date) + " WIB";
 }
+
+/**
+ * "5 Sept" in WIB, for the opening DAY shown next to a countdown that ticks to
+ * the exact opening instant.
+ *
+ * The day MUST be pinned to the business timezone: formatted in the viewer's
+ * zone, an open date of 2026-09-04T17:00:00.000Z reads "4 Sept" in UTC and
+ * "5 Sept" in Jakarta, so every non-WIB visitor was told the wrong day beside
+ * a clock counting to the right instant. Third instance of that defect class
+ * here (see audit M66 and the WIB analytics buckets).
+ *
+ * Returns null for missing or invalid values so callers can fall back to a
+ * label with no date in it at all.
+ */
+export function formatDayMonthWib(value: string | Date | null | undefined): string | null {
+  const date = parseDeadlineInstant(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    timeZone: BUSINESS_TIMEZONE,
+  }).format(date);
+}

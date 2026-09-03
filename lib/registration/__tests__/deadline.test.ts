@@ -219,3 +219,83 @@ describe('resolveUpcomingWindowCountdown', () => {
     expect(resolveUpcomingWindowCountdown(editions, now)).toBeNull();
   });
 });
+
+/**
+ * D1: the fee card and the banner must answer "has this window started" the
+ * same way, because they are the same question.
+ *
+ * The card asks lib/registration/isRegistrationOpen (WIB start-of-day widening
+ * on the earliest window); the banner asks the resolvers above. When the
+ * banner compared the RAW startDate instead, a period stored at 23:59 WIB the
+ * day before opening produced 23 hours of "Open" fee card + live Register
+ * button beside a dead "Opens 31 Aug" span.
+ */
+import { getEditionRegistrationPhase } from '../isRegistrationOpen';
+
+describe('card phase and banner phase agree', () => {
+  // The documented 2026-09-01 MEYS shape: opening period stored at 23:59 WIB
+  // on 30 Aug, i.e. the whole WIB day of 31 Aug is meant to be open.
+  const period = { startDate: '2026-08-31T16:59:00.000Z', endDate: '2026-10-01T16:59:00.000Z' };
+  const editions = [
+    {
+      program_name: 'Middle East Youth Summit 7th',
+      registration_dates: { open: null, close: null },
+      registration_types: [feeTier(['self_funded'], [period])],
+    },
+  ];
+  const cardTiers = [
+    {
+      fee_type: 'registration_fee',
+      validity_periods: [{ start_date: period.startDate, end_date: period.endDate }],
+    },
+  ];
+
+  // WIB midnight on 31 Aug is 2026-08-30T17:00:00Z. Walk the 23 hours the two
+  // implementations used to disagree over, plus an hour either side.
+  const hours = Array.from({ length: 26 }, (_, i) => new Date(Date.UTC(2026, 7, 30, 16, 0, 0) + i * 3600_000));
+
+  it.each(hours.map((now) => [now.toISOString()] as const))('agrees at %s', (iso) => {
+    const now = new Date(iso);
+    const cardPhase = getEditionRegistrationPhase(cardTiers, null, now);
+    const bannerPhase = resolveRegistrationCountdown(editions, now)?.phase ?? 'closed';
+    expect(bannerPhase).toBe(cardPhase);
+  });
+
+  it('is open (not upcoming) from WIB midnight, the same as the fee card', () => {
+    const justAfterWibMidnight = new Date('2026-08-30T18:00:00.000Z');
+    expect(getEditionRegistrationPhase(cardTiers, null, justAfterWibMidnight)).toBe('open');
+    expect(resolveRegistrationCountdown(editions, justAfterWibMidnight)?.phase).toBe('open');
+  });
+});
+
+/**
+ * D5: "this edition has no fee windows" is a PER-EDITION question. Asking it
+ * globally blanked Istanbul's banner and sticky bar whenever any sibling
+ * edition anywhere carried a window.
+ */
+describe('editions with no fee windows keep their program-date countdown', () => {
+  it('Istanbul keeps counting down beside a sibling whose windows have all lapsed', () => {
+    const now = new Date('2026-09-03T00:00:00.000Z');
+    const editions = [
+      {
+        program_name: 'Istanbul Youth Summit',
+        registration_dates: { open: null, close: '2026-12-05T16:59:00.000Z' },
+        registration_types: [],
+      },
+      {
+        program_name: 'Lapsed sibling',
+        registration_dates: { open: '2026-01-01T00:00:00.000Z', close: '2026-02-01T00:00:00.000Z' },
+        registration_types: [
+          feeTier(['self_funded'], [
+            { startDate: '2026-01-01T00:00:00.000Z', endDate: '2026-02-01T00:00:00.000Z' },
+          ]),
+        ],
+      },
+    ];
+
+    const result = resolveRegistrationCountdown(editions, now);
+    expect(result?.phase).toBe('open');
+    expect(result?.programName).toBe('Istanbul Youth Summit');
+    expect(result?.deadline).toBe('2026-12-05T16:59:00.000Z');
+  });
+});

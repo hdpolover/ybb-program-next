@@ -176,7 +176,7 @@ describe('HomeRegistrationStrip', () => {
     expect(screen.queryByText('Self Funded 6th')).not.toBeInTheDocument();
   });
 
-  it('a program passed with status "closed" (e.g. registration not yet open) shows a closed edition badge once selected', () => {
+  it('an edition with no fee tiers is badged from its own registration dates, not hard-Closed', () => {
     render(
       <HomeRegistrationStrip
         programs={[
@@ -203,7 +203,13 @@ describe('HomeRegistrationStrip', () => {
     const eighthHeading = screen.getByRole('heading', { level: 3, name: 'MEYS 8th' });
     // The heading row (heading + edition-level badge), not the whole group.
     const headingRow = eighthHeading.parentElement as HTMLElement;
-    expect(within(headingRow).getByText('Closed')).toBeInTheDocument();
+    // MEYS 8th ships no registration-fee tiers and registers from 1 Jun 2027.
+    // An empty tier set is not evidence of closure (Istanbul Youth Summit and
+    // Youth Academic Forum ship none and register for months), so the badge
+    // comes from the edition's own dates: not yet open is UPCOMING, and
+    // "Closed" would tell a visitor to go away a year early.
+    expect(within(headingRow).getByText('Upcoming')).toBeInTheDocument();
+    expect(within(headingRow).queryByText('Closed')).toBeNull();
   });
 
   it('renders nothing when every program has zero registration types', () => {
