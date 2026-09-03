@@ -9,7 +9,7 @@ import ProgramFAQ from '@/components/programs/ProgramFAQ';
 import ProgramDetailImage from '@/components/programs/ProgramDetailImage';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
-import { getProgramDetail } from '@/lib/api/programs';
+import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
 import { isRichTextHtml, richTextToPlainText, sanitizeRichTextHtml } from '@/lib/content/richText';
 import { formatTokenLabel, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
 import {
@@ -26,6 +26,7 @@ import { getActivityData } from '@/lib/api/activity';
 import { ActivityToast } from '@/components/marketing/ActivityToast';
 import { resolveBrandDomain } from '@/lib/server/envContext';
 import { getRegistrationPhase } from '@/lib/registration/status';
+import { getEditionRegistrationPhase, narrowestPhase } from '@/lib/registration/isRegistrationOpen';
 
 function parseValidDate(value: unknown): Date | null {
   if (!value) return null;
@@ -105,7 +106,34 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   const isArchiveProgram = program.status === 'completed' || hasEnded;
   // Tri-state: a program whose registrationOpenDate has not arrived is
   // 'upcoming', and must not be labelled "Registration Closed".
-  const registrationPhase = isArchiveProgram ? 'closed' : getRegistrationPhase(program, new Date(now));
+  //
+  // BOTH gates, narrowed: the program gate answers "would the backend accept a
+  // registration at all", the window gate answers "is there a fee tier a
+  // visitor can pick and pay for today". This hero's CTA lands on /apply, so a
+  // programme open until December whose only fee window lapsed in August used
+  // to send visitors to a page where every card read Closed and nothing was
+  // purchasable. lib/registration/isRegistrationOpen documents that these two
+  // must never contradict each other on one screen; narrowing is how.
+  //
+  // A failed tiers call yields no tiers, and an edition with no fee tiers at
+  // all falls back to the programme's own dates, so the hero degrades to the
+  // program-gate answer rather than to "Closed".
+  const pricingTiers = isArchiveProgram
+    ? []
+    : await getProgramPricingTiers(program.id, host).catch((tierError) => {
+        console.error('[ProgramDetail] Failed to fetch pricing tiers:', tierError);
+        return [];
+      });
+  const registrationPhase = isArchiveProgram
+    ? 'closed'
+    : narrowestPhase(
+        getRegistrationPhase(program, new Date(now)),
+        getEditionRegistrationPhase(
+          pricingTiers,
+          { open: program.registrationOpenDate ?? null, close: program.registrationCloseDate ?? null },
+          new Date(now),
+        ),
+      );
   const isOpen = registrationPhase === 'open';
   const isUpcoming = registrationPhase === 'upcoming';
   const resolvedProgramTitle =

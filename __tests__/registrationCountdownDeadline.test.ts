@@ -47,7 +47,9 @@ describe('countdown across concurrent editions', () => {
       NOW,
     );
 
-    expect(winner?.deadline).toBe('2026-12-05T00:00:00.000Z');
+    // Ends are compared at WIB end-of-day, so a date stored at UTC midnight
+    // runs to 16:59:59.999Z, not out at 07:00 Jakarta.
+    expect(winner?.deadline).toBe('2026-12-05T16:59:59.999Z');
     expect(winner?.programName).toBe('MEYS 6th');
     expect(winner?.phase).toBe('open');
   });
@@ -88,7 +90,7 @@ describe('countdown across concurrent editions', () => {
       NOW,
     );
 
-    expect(winner?.deadline).toBe('2026-10-01T00:00:00.000Z');
+    expect(winner?.deadline).toBe('2026-10-01T16:59:59.999Z');
     expect(winner?.programName).toBe('No Close Date');
   });
 
@@ -98,7 +100,7 @@ describe('countdown across concurrent editions', () => {
       NOW,
     );
 
-    expect(winner?.deadline).toBe('2026-12-31T00:00:00.000Z');
+    expect(winner?.deadline).toBe('2026-12-31T16:59:59.999Z');
     expect(winner?.programName).toBe('Solo');
   });
 });

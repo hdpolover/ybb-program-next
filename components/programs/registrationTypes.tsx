@@ -16,8 +16,13 @@ import {
   X,
 } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
-import { formatEventDateRange, getRegistrationPeriodLabel } from '@/lib/format/registration-period';
+import {
+  formatEventDateRange,
+  getRegistrationDatesDisplay,
+  getRegistrationPeriodLabel,
+} from '@/lib/format/registration-period';
 import { useHydrated } from '@/hooks/useHydrated';
+import { useNow } from '@/hooks/useNow';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import {
   getEditionRegistrationPhase,
@@ -161,7 +166,7 @@ export default function RegistrationTypePrograms({
   programs,
   selectedEditionSlug,
 }: RegistrationTypeProgramsProps) {
-  const [currentNow] = useState<Date>(() => new Date());
+  const currentNow = useNow();
   const hydrated = useHydrated();
   const [descriptionDialog, setDescriptionDialog] = useState<{
     title: string;
@@ -338,15 +343,7 @@ export default function RegistrationTypePrograms({
               <h3 className="text-lg font-bold text-blue-950">{selectedGroup.program_name}</h3>
               <div className="flex items-center gap-2 text-xs text-slate-600">
                 <span suppressHydrationWarning>
-                  {getRegistrationPeriodLabel(
-                    selectedGroup.registration_dates
-                      ? [{
-                          start_date: selectedGroup.registration_dates.open ?? '',
-                          end_date: selectedGroup.registration_dates.close ?? '',
-                        }]
-                      : undefined,
-                    hydrated,
-                  )}
+                  {getRegistrationDatesDisplay(selectedGroup.registration_dates, currentNow).label}
                 </span>
                 <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[selectedGroupPhase]}>
                   {componentsTheme.applyRegistrationTypes.statusLabelByPhase[selectedGroupPhase]}
@@ -399,7 +396,7 @@ export default function RegistrationTypePrograms({
                         Registration Period:
                       </span>
                       <span suppressHydrationWarning>
-                        {getRegistrationPeriodLabel(periods, hydrated)}
+                        {getRegistrationPeriodLabel(periods, currentNow)}
                       </span>
                     </div>
                   );
@@ -532,7 +529,7 @@ export default function RegistrationTypePrograms({
                         Registration Period:
                       </span>
                       <span suppressHydrationWarning>
-                        {getRegistrationPeriodLabel(periods, hydrated)}
+                        {getRegistrationPeriodLabel(periods, currentNow)}
                       </span>
                     </div>
                   );

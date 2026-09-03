@@ -322,3 +322,32 @@ describe('pickDefaultEditionIndex', () => {
     expect(pickDefaultEditionIndex([])).toBe(0);
   });
 });
+
+/**
+ * The badge, the period label and the "closes in X days" line under one fee
+ * card must all describe the same window.
+ *
+ * A registration-fee tier with no validity periods is governed by the
+ * edition's own dates. The BADGE and the COUNTDOWN moved onto that fallback;
+ * the LABEL kept reading the tier's raw (empty) field, so the card rendered
+ * "Open" plus "Closes in 12 days" directly under "Registration Period: TBD".
+ */
+describe('fee card label, badge and countdown describe one window', () => {
+  const edition = {
+    program_name: 'Fallback Edition',
+    status: 'open',
+    registration_dates: { open: '2026-01-01T00:00:00.000Z', close: '2026-12-05T00:00:00.000Z' },
+    registration_types: [tier({ validity_periods: [] })],
+  };
+
+  it('shows the edition dates rather than TBD for a tier with no windows', () => {
+    render(<HomeRegistrationStrip registrationTypes={[]} programs={[edition] as never} />);
+
+    const card = screen.getByRole('heading', { level: 3, name: 'Self Funded' }).closest('div.group')!;
+    const period = within(card as HTMLElement).getByText(/Registration Period:/).parentElement!;
+    expect(period.textContent).not.toContain('TBD');
+    expect(period.textContent).toContain('1 Jan 2026');
+    expect(period.textContent).toContain('5 Dec 2026');
+  });
+
+});

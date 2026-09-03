@@ -97,8 +97,15 @@ export function formatDeadlineWib(
  *
  * Returns null for missing or invalid values so callers can fall back to a
  * label with no date in it at all.
+ *
+ * `withYear` adds the year, for registration period ranges that can straddle
+ * one. Those are business calendar days for the same reason and must not be
+ * rendered in the viewer's zone either.
  */
-export function formatDayMonthWib(value: string | Date | null | undefined): string | null {
+export function formatDayMonthWib(
+  value: string | Date | null | undefined,
+  opts?: { withYear?: boolean },
+): string | null {
   const date = parseDeadlineInstant(value);
   if (Number.isNaN(date.getTime())) return null;
 
@@ -106,5 +113,6 @@ export function formatDayMonthWib(value: string | Date | null | undefined): stri
     day: "numeric",
     month: "short",
     timeZone: BUSINESS_TIMEZONE,
+    ...(opts?.withYear ? { year: "numeric" } : {}),
   }).format(date);
 }

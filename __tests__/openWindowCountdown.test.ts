@@ -28,7 +28,9 @@ describe('resolveOpenWindowCountdown', () => {
       ],
       NOW,
     );
-    expect(winner?.deadline).toBe('2026-08-31T16:59:00.000Z');
+    // WIB end-of-day on the window's last calendar day, the same boundary
+    // the server's tier-period gate uses.
+    expect(winner?.deadline).toBe('2026-08-31T16:59:59.999Z');
     expect(winner?.programName).toBe('MEYS 6th');
     expect(winner?.categoryLabel).toBe('Fully Funded');
   });

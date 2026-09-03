@@ -24,6 +24,22 @@ function startOfWibDay(ms: number): number {
   return Math.floor(wallClockMs / MS_PER_DAY) * MS_PER_DAY - WIB_OFFSET_MS;
 }
 
+/**
+ * The LAST instant of the WIB calendar day containing `date`.
+ *
+ * Mirrors services/api/src/shared/utils/wib-time.ts#endOfWibDay, which the
+ * server applies to EVERY window end (see tier-period.util.ts#isWithinPeriod).
+ * Admins pick whole calendar days, so an end stored at UTC midnight is 07:00
+ * WIB: comparing the raw value closed every window at 7am Jakarta on its last
+ * day while the API went on accepting registrations for another 17 hours.
+ *
+ * Fourth instance of this codebase's WIB defect class (audit M66, the admin
+ * analytics day buckets, the "Opens 5 Sept" sticky-bar label).
+ */
+function endOfWibDay(ms: number): number {
+  return startOfWibDay(ms) + MS_PER_DAY - 1;
+}
+
 export type RegistrationValidityPeriod = {
   start_date: string;
   end_date: string;
@@ -82,14 +98,18 @@ export function normalizeValidityPeriods(
   // purchasable.)
   if (!tier) return undefined;
 
+  // EITHER dialect, never both: the two fields are two spellings of one list,
+  // so a payload carrying both (the /apply page hydrates a snake_case edition
+  // with camelCase pricing tiers) used to yield every window twice.
   const snake = tier?.validity_periods ?? [];
   const camel = tier?.validityPeriods ?? [];
-  const merged: RegistrationValidityPeriod[] = [
-    ...snake.map((p) => ({ start_date: p.start_date ?? '', end_date: p.end_date ?? '' })),
-    ...camel.map((p) => ({ start_date: p.startDate ?? '', end_date: p.endDate ?? '' })),
-  ].filter((p) => p.start_date !== '' && p.end_date !== '');
+  const own: RegistrationValidityPeriod[] =
+    snake.length > 0
+      ? snake.map((p) => ({ start_date: p.start_date ?? '', end_date: p.end_date ?? '' }))
+      : camel.map((p) => ({ start_date: p.startDate ?? '', end_date: p.endDate ?? '' }));
 
-  if (merged.length > 0) return merged;
+  const usable = own.filter((p) => p.start_date !== '' && p.end_date !== '');
+  if (usable.length > 0) return usable;
   return periodsFromDates(fallbackDates);
 }
 
@@ -101,21 +121,33 @@ export type RegistrationWindow = { start: number; end: number };
 
 /**
  * Parse validity periods into instants, applying the one rule for "when has
- * this window started".
+ * this window started" and the one rule for "when does it stop".
  *
- * Admins pick whole calendar days for a period's start/end, but a period's
- * `start_date` is only guaranteed to be WIB start-of-day for the
- * chronologically-EARLIEST period on a tier — that's the one gating "is
- * registration open" and the only one this widens (see
- * services/api/src/shared/utils/tier-period.util.ts for the server-side
- * counterpart and the 2026-09-01 Middle East Youth Summit 7th incident this
- * closes off: its opening period was stored at 23:59 WIB instead of 00:00,
- * so the strip read "Closed" all day it was meant to open).
+ * Admins pick whole CALENDAR DAYS, so both boundaries mean that day in
+ * Jakarta:
  *
- * Every other period is compared exactly as received: chained periods
- * intentionally hand over at an exact instant (installment 2 starts the
- * moment installment 1 ends, frequently 23:59 WIB), and widening those too
- * would make adjacent installments overlap — two prices open at once.
+ *   END: always widened to WIB end-of-day, exactly as the server does for
+ *   every period (services/api/src/shared/utils/tier-period.util.ts). An end
+ *   stored at UTC midnight is 07:00 WIB, so the raw comparison shut every
+ *   window at 7am Jakarta on its last day while the API kept accepting.
+ *
+ *   START: widened to WIB start-of-day UNLESS the period is CHAINED, i.e.
+ *   some sibling ends at exactly this instant. Chained periods hand over on
+ *   purpose (installment 2 begins the moment installment 1 ends, frequently
+ *   23:59 WIB) and widening those would open two prices at once. Everything
+ *   else is a window an admin opened on a calendar day, whether or not it
+ *   happens to be the tier's first: the 2026-09-01 Middle East Youth Summit
+ *   7th incident (opening period stored at 23:59 WIB, strip read "Closed" all
+ *   day it was meant to open) recurs on any UNCHAINED window, not only on the
+ *   array minimum, which is all the previous rule covered.
+ *
+ * DIVERGENCE, deliberate: tier-period.util.ts still widens only the
+ * chronologically-earliest start, so a later unchained window reads open here
+ * up to a day before the server's PRICING gate agrees. Registration itself is
+ * gated by the programme's registration_close_date, which is unaffected, and
+ * resolveTierPeriod falls through to the next unlapsed period, so the price
+ * still resolves. The server should adopt the chained rule; until it does this
+ * side is the one that matches what the admin entered.
  *
  * Windows that end before they start are dropped: no instant can fall inside
  * one, so honouring it would only ever produce a phantom "upcoming".
@@ -139,11 +171,18 @@ export function parseRegistrationWindows<T extends RegistrationValidityPeriod>(
     .filter((p) => !Number.isNaN(p.start) && !Number.isNaN(p.end) && p.end >= p.start);
   if (parsed.length === 0) return [];
 
-  const earliestStart = Math.min(...parsed.map((p) => p.start));
-  return parsed.map((p) => ({
+  // Chaining is decided on RAW instants, before either widening, or a widened
+  // end would invent handovers that the admin never entered. `index` guards
+  // the self-comparison so a single-day window (start === end) is not read as
+  // chained to itself. Tiers carry 10-22 periods in production, so the
+  // pairwise scan is cheaper than the index it would take to avoid it.
+  const isChained = (start: number, index: number) =>
+    parsed.some((other, i) => i !== index && other.end === start);
+
+  return parsed.map((p, i) => ({
     period: p.period,
-    start: p.start === earliestStart ? startOfWibDay(p.start) : p.start,
-    end: p.end,
+    start: isChained(p.start, i) ? p.start : startOfWibDay(p.start),
+    end: endOfWibDay(p.end),
   }));
 }
 
@@ -158,7 +197,7 @@ export function parseRegistrationWindows<T extends RegistrationValidityPeriod>(
  * before the open is a misconfiguration that can never be acted on; it is
  * dropped for the same reason an inverted validity period is.
  */
-function windowsFromDates(dates: RegistrationDates): RegistrationWindow[] {
+export function windowsFromDates(dates: RegistrationDates): RegistrationWindow[] {
   if (!dates?.open && !dates?.close) return [];
 
   const openMs = dates?.open ? new Date(dates.open).getTime() : -Infinity;
@@ -166,9 +205,14 @@ function windowsFromDates(dates: RegistrationDates): RegistrationWindow[] {
   if (Number.isNaN(openMs) || Number.isNaN(closeMs)) return [];
   if (closeMs < openMs) return [];
 
-  // Same WIB start-of-day widening the earliest tier window gets: an admin
-  // picking a calendar day means that day in Jakarta.
-  return [{ start: openMs === -Infinity ? openMs : startOfWibDay(openMs), end: closeMs }];
+  // Same WIB widening a tier window gets at both ends: an admin picking a
+  // calendar day means that whole day in Jakarta.
+  return [
+    {
+      start: openMs === -Infinity ? openMs : startOfWibDay(openMs),
+      end: closeMs === Infinity ? closeMs : endOfWibDay(closeMs),
+    },
+  ];
 }
 
 /**
@@ -185,8 +229,18 @@ function getWindowsPhase(windows: RegistrationWindow[], now: Date): Registration
 
 /**
  * Every window a single tier offers: its own validity periods, or the
- * edition's registration dates when it has none. A tier without windows is
- * not a closed tier, it is a tier governed by the programme's dates.
+ * edition's registration dates when it carries NONE AT ALL. A tier without
+ * windows is not a closed tier, it is a tier governed by the programme's
+ * dates.
+ *
+ * The fallback is deliberately not unconditional: a tier whose windows have
+ * all LAPSED keeps that answer and reads `closed`, because the admin did
+ * configure a window and it ended. Falling back there would resurrect a price
+ * nobody may pay for as long as the programme's own close date is in the
+ * future. The cost is that the programme-level gate
+ * (lib/registration/status.ts) can still read `open` over a tier set that
+ * reads `closed`; surfaces that funnel a visitor to /apply must therefore
+ * combine the two with `narrowestPhase` rather than trusting either alone.
  */
 function getTierWindows(
   tier: RegistrationTierLike | null | undefined,
@@ -210,6 +264,14 @@ function getTierWindows(
  *
  * Both the per-edition badge and the layout countdown are built on this, so
  * "what windows does this edition have" has exactly one answer.
+ *
+ * GAP, known and not worked around here: `RegistrationProgramEdition` (the
+ * home payload) carries no `allow_registration`, so every marketing surface
+ * fed by it is blind to the programme-level kill switch that
+ * lib/registration/status.ts checks first. An admin switching registration off
+ * still leaves these badges and the banner reading Open until the API exposes
+ * the flag on the edition. Faking it client-side would just be a fourth place
+ * for the gate to drift.
  */
 export function getEditionWindows<T extends RegistrationTierLike>(
   tiers: T[] | null | undefined,
@@ -252,4 +314,20 @@ export function getEditionRegistrationPhase(
   now: Date,
 ): RegistrationPhase {
   return getWindowsPhase(getEditionWindows(tiers, registrationDates), now);
+}
+
+const PHASE_RANK: Record<RegistrationPhase, number> = { closed: 0, upcoming: 1, open: 2 };
+
+/**
+ * The more restrictive of two phases (closed < upcoming < open).
+ *
+ * The PROGRAM-level gate (lib/registration/status.ts) and the VALIDITY-WINDOW
+ * gate above answer different questions, and a surface that offers a visitor a
+ * way to act needs both to say yes. A programme open until December whose only
+ * fee window lapsed in August is `open` program-side and `closed` window-side:
+ * a hero that trusted the program gate alone sent visitors to an /apply page
+ * where every card said Closed and nothing was purchasable.
+ */
+export function narrowestPhase(a: RegistrationPhase, b: RegistrationPhase): RegistrationPhase {
+  return PHASE_RANK[a] <= PHASE_RANK[b] ? a : b;
 }

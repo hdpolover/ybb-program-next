@@ -146,7 +146,6 @@ function buildPeriods(tier: TierLike): Array<{ label: string; value: string }> {
       start_date: safeText(period.startDate),
       end_date: safeText(period.endDate),
     })),
-    false,
   );
   if (label === 'TBD') return [];
   return [{ label: 'Registration Period', value: label }];

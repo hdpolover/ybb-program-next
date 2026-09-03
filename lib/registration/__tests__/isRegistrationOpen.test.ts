@@ -11,7 +11,9 @@ import {
   getEditionRegistrationPhase,
   getTierRegistrationPhase,
   isRegistrationFeeTier,
+  narrowestPhase,
   normalizeValidityPeriods,
+  parseRegistrationWindows,
 } from '../isRegistrationOpen';
 
 const at = (iso: string) => new Date(iso);
@@ -60,15 +62,71 @@ describe('getTierRegistrationPhase', () => {
       expect(getTierRegistrationPhase(t, null, at('2026-08-31T02:00:00.000Z'))).toBe('upcoming');
     });
 
-    it('does NOT widen a mid-chain window that hands over at 23:59 WIB', () => {
-      // Installment 2 starts exactly when a real gap after installment 1 ends;
-      // widening it too would open two prices at once.
+    // The general rule, asserted on the parser rather than on one reported
+    // input: a start is widened to WIB start-of-day unless a SIBLING ends at
+    // exactly that instant, in which case the handover is deliberate.
+    it.each([
+      ['unchained, first in the array', '2026-08-01T16:59:00.000Z', '2026-09-10T16:59:00.000Z', true],
+      ['unchained, later in the array', '2026-09-09T16:59:00.000Z', '2026-09-10T16:59:00.000Z', true],
+      ['chained to the previous end', '2026-09-10T16:59:00.000Z', '2026-09-10T16:59:00.000Z', false],
+    ])('%s -> widened: %s', (_label, previousEnd, start, shouldWiden) => {
+      const windows = parseRegistrationWindows([
+        { start_date: '2026-07-01T00:00:00.000Z', end_date: previousEnd },
+        { start_date: start, end_date: '2026-09-30T16:59:00.000Z' },
+      ]);
+      const second = windows.find((w) => w.period.start_date === start)!;
+      const raw = new Date(start).getTime();
+      // WIB midnight on 10 Sept.
+      const widened = Date.parse('2026-09-09T17:00:00.000Z');
+      expect(second.start).toBe(shouldWiden ? widened : raw);
+    });
+
+    it('opens a later unchained window from WIB midnight, not 23:59', () => {
+      // The reported production shape: a second season window stored at 23:59
+      // WIB. The earliest-only rule left it raw, so the whole opening day read
+      // Closed -- the MEYS incident, recurring on a non-first window.
       const t = tier([
-        { start_date: '2026-09-01T00:00:00.000Z', end_date: '2026-09-05T00:00:00.000Z' },
+        { start_date: '2026-07-01T00:00:00.000Z', end_date: '2026-08-01T16:59:00.000Z' },
         { start_date: '2026-09-10T16:59:00.000Z', end_date: '2026-09-30T16:59:00.000Z' },
       ]);
-      expect(getTierRegistrationPhase(t, null, at('2026-09-10T00:00:00.000Z'))).toBe('upcoming');
-      expect(getTierRegistrationPhase(t, null, at('2026-09-10T17:00:00.000Z'))).toBe('open');
+      expect(getTierRegistrationPhase(t, null, at('2026-09-09T16:00:00.000Z'))).toBe('upcoming');
+      expect(getTierRegistrationPhase(t, null, at('2026-09-10T00:00:00.000Z'))).toBe('open');
+    });
+
+    it('keeps chained installments from overlapping', () => {
+      // Two prices must never be valid at once, which is why a chained start
+      // is left alone. The real China chain: date-only rows handing over at
+      // UTC midnight.
+      const windows = parseRegistrationWindows([
+        { start_date: '2026-04-14', end_date: '2026-07-15' },
+        { start_date: '2026-07-15', end_date: '2026-07-16' },
+      ]);
+      const [first, second] = [...windows].sort((a, b) => a.start - b.start);
+      expect(second.start).toBe(Date.parse('2026-07-15T00:00:00.000Z'));
+      // Only the shared WIB day they both cover overlaps, never a whole day of
+      // the earlier price reopening.
+      expect(second.start).toBeLessThanOrEqual(first.end);
+      expect(first.end - second.start).toBeLessThan(24 * 60 * 60 * 1000);
+    });
+  });
+
+  describe('window ends run to WIB end-of-day, like the server gate', () => {
+    // 4th instance of the WIB defect class. An end stored at UTC midnight is
+    // 07:00 Jakarta: the raw comparison shut every window at 7am on its last
+    // day while services/api tier-period.util.ts kept it open for 17 more
+    // hours, so the site said Closed while the API still accepted.
+    it('stays open all of the last WIB day of a tier window', () => {
+      const t = tier([{ start_date: '2026-07-01T00:00:00.000Z', end_date: '2026-08-01T00:00:00.000Z' }]);
+      expect(getTierRegistrationPhase(t, null, at('2026-08-01T00:30:00.000Z'))).toBe('open');
+      expect(getTierRegistrationPhase(t, null, at('2026-08-01T16:00:00.000Z'))).toBe('open');
+      // 17:00Z is WIB midnight on 2 Aug: now it really is over.
+      expect(getTierRegistrationPhase(t, null, at('2026-08-01T17:00:00.000Z'))).toBe('closed');
+    });
+
+    it('does the same for an edition-level close date', () => {
+      const dates = { open: null, close: '2026-08-01T00:00:00.000Z' };
+      expect(getEditionRegistrationPhase([], dates, at('2026-08-01T16:00:00.000Z'))).toBe('open');
+      expect(getEditionRegistrationPhase([], dates, at('2026-08-01T17:00:00.000Z'))).toBe('closed');
     });
   });
 
@@ -144,5 +202,60 @@ describe('normalizeValidityPeriods', () => {
     ]);
     // A label needs two printable dates; a half-bounded window has none.
     expect(normalizeValidityPeriods(tier([]), { open: null, close: '2026-02-01T00:00:00.000Z' })).toBeUndefined();
+  });
+});
+
+describe('normalizeValidityPeriods reads one dialect, not both', () => {
+  it('does not duplicate a payload that carries snake AND camel windows', () => {
+    // The /apply page hydrates a snake_case edition with camelCase pricing
+    // tiers; concatenating the two spellings yielded every window twice.
+    const both = {
+      fee_type: 'registration_fee',
+      validity_periods: [{ start_date: '2026-07-01T00:00:00.000Z', end_date: '2026-12-01T00:00:00.000Z' }],
+      validityPeriods: [{ startDate: '2026-07-01T00:00:00.000Z', endDate: '2026-12-01T00:00:00.000Z' }],
+    };
+    expect(normalizeValidityPeriods(both)).toHaveLength(1);
+  });
+
+  it('still reads camelCase when there is no snake_case list', () => {
+    const camel = {
+      feeType: 'registration_fee',
+      validityPeriods: [{ startDate: '2026-07-01T00:00:00.000Z', endDate: '2026-12-01T00:00:00.000Z' }],
+    };
+    expect(normalizeValidityPeriods(camel)).toHaveLength(1);
+  });
+});
+
+describe('narrowestPhase', () => {
+  // The hero on a programme page funnels to /apply. The programme gate can
+  // read `open` (backend would accept a registration) over a tier set that
+  // reads `closed` (every fee window lapsed), and sending a visitor to a page
+  // where nothing is purchasable is the contradiction the two gates are
+  // documented never to produce.
+  it('takes the more restrictive of the two gates', () => {
+    expect(narrowestPhase('open', 'closed')).toBe('closed');
+    expect(narrowestPhase('open', 'upcoming')).toBe('upcoming');
+    expect(narrowestPhase('upcoming', 'closed')).toBe('closed');
+    expect(narrowestPhase('open', 'open')).toBe('open');
+  });
+
+  it('is symmetric', () => {
+    const phases = ['closed', 'upcoming', 'open'] as const;
+    for (const a of phases) {
+      for (const b of phases) {
+        expect(narrowestPhase(a, b)).toBe(narrowestPhase(b, a));
+      }
+    }
+  });
+
+  it('reproduces the reported shape: programme open, only window lapsed', () => {
+    const now = at('2026-09-03T00:00:00.000Z');
+    const programmeDates = { open: '2026-01-01T00:00:00.000Z', close: '2026-12-05T00:00:00.000Z' };
+    const lapsed = [tier([{ start_date: '2026-07-01T00:00:00.000Z', end_date: '2026-08-01T00:00:00.000Z' }])];
+
+    expect(getEditionRegistrationPhase(lapsed, programmeDates, now)).toBe('closed');
+    // The programme gate would say 'open' here; narrowed, the hero does not
+    // advertise a Register CTA into an /apply page with nothing on it.
+    expect(narrowestPhase('open', getEditionRegistrationPhase(lapsed, programmeDates, now))).toBe('closed');
   });
 });
