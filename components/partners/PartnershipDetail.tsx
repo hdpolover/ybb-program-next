@@ -126,8 +126,14 @@ export default function PartnershipDetailSection({
           ? sponsorshipTiers.diamond
           : pkg.price;
 
-  const fullyFundedPct = affiliateCommission?.fully_funded_pct ?? 5;
-  const selfFundedPct = affiliateCommission?.self_funded_pct ?? 20;
+  // No default rate. These render as "Earn 5% commission per successful
+  // registration" -- a specific contractual term offered to a prospective
+  // affiliate. Defaulting it meant an unconfigured brand promised 5% and 20%
+  // that nobody had agreed to, and a partner could reasonably hold YBB to a
+  // figure it published. When the rate is unknown the bullet states the offer
+  // without inventing the number.
+  const fullyFundedPct = affiliateCommission?.fully_funded_pct ?? null;
+  const selfFundedPct = affiliateCommission?.self_funded_pct ?? null;
 
    const gradientVariant =
     slug === 'community-partner' || slug === 'community-institution' || slug === 'ambassador-program'
@@ -155,7 +161,9 @@ export default function PartnershipDetailSection({
               <>
                 <div className="pb-1 text-sm font-extrabold text-blue-900">Fully-funded Affiliate</div>
                 {[
-                  `Earn ${fullyFundedPct}% commission per successful registration`,
+                  fullyFundedPct === null
+                    ? 'Earn commission per successful registration'
+                    : `Earn ${fullyFundedPct}% commission per successful registration`,
                   'Commission applies to registration fee',
                   'Performance-based partnership',
                 ].map(item => (
@@ -169,7 +177,9 @@ export default function PartnershipDetailSection({
                   Self-Funded Affiliate
                 </div>
                 {[
-                  `Earn ${selfFundedPct}% commission from program fees`,
+                  selfFundedPct === null
+                    ? 'Earn commission from program fees'
+                    : `Earn ${selfFundedPct}% commission from program fees`,
                   'No minimum referrals required',
                   'Flexible and results-driven',
                 ].map(item => (
