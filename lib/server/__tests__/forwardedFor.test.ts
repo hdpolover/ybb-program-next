@@ -10,8 +10,25 @@ describe('forwardedForHeader', () => {
     });
   });
 
-  it('omits the header when there is none, rather than sending an empty one', () => {
+  it('forwards cf-connecting-ip too, or the API cannot see past the Cloudflare edge', () => {
+    // The last forwarded hop behind the CDN is a CF edge, and CF rotates
+    // edges. Without this header the API keyed one client across several
+    // rotating buckets — the exact bug its Cloudflare handling exists to fix.
+    expect(
+      forwardedForHeader(
+        req({ 'x-forwarded-for': '198.51.100.7, 172.68.1.1', 'cf-connecting-ip': '198.51.100.7' }),
+      ),
+    ).toEqual({
+      'x-forwarded-for': '198.51.100.7, 172.68.1.1',
+      'cf-connecting-ip': '198.51.100.7',
+    });
+  });
+
+  it('omits each header independently when it is absent or blank', () => {
     expect(forwardedForHeader(req({}))).toEqual({});
     expect(forwardedForHeader(req({ 'x-forwarded-for': '   ' }))).toEqual({});
+    expect(forwardedForHeader(req({ 'cf-connecting-ip': '198.51.100.7' }))).toEqual({
+      'cf-connecting-ip': '198.51.100.7',
+    });
   });
 });
