@@ -179,6 +179,9 @@ export const commonTheme = {
     timeValue: 'text-sm font-bold text-slate-900',
     timeLabel: 'text-[10px] font-medium uppercase tracking-wider text-slate-600',
     registerButton: 'flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-primary/90 transition-colors whitespace-nowrap',
+    // Registration has not opened yet: informational, deliberately not a link
+    // and deliberately without a hover affordance (if it hovers, it clicks).
+    registerButtonPending: 'flex items-center justify-center rounded-full bg-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-700 whitespace-nowrap',
   },
 heroSectionBadges: {
     wrapper: 'absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 flex-col md:flex-row gap-1.5 px-2 sm:bottom-6 sm:gap-2 items-center',

@@ -228,3 +228,91 @@ export function resolveCountdownAcrossPrograms(
     (parseDate(candidate.deadline) ?? Infinity) < (parseDate(soonest.deadline) ?? Infinity) ? candidate : soonest,
   );
 }
+
+/**
+ * The soonest registration window that has NOT STARTED YET, across every
+ * edition and category. The "deadline" it returns is that window's START:
+ * what the banner should count down to when nothing is open, so a programme
+ * opening in two days stops advertising a countdown to a close date months
+ * away that nobody can act on.
+ */
+export function resolveUpcomingWindowCountdown(
+  editions: CountdownProgramEdition[] | null | undefined,
+  now: Date,
+): (CountdownWinner & { categoryLabel: string | null }) | null {
+  if (!editions || editions.length === 0) return null;
+  const nowMs = now.getTime();
+
+  const candidates: Array<CountdownWinner & { categoryLabel: string | null; ms: number }> = [];
+
+  for (const edition of editions) {
+    for (const tier of edition.registration_types ?? []) {
+      if (!isRegistrationFeeTier(tier)) continue;
+      for (const period of tier.validityPeriods ?? []) {
+        const start = parseDate((period as { startDate?: string | null }).startDate);
+        if (start === null || start <= nowMs) continue;
+        candidates.push({
+          deadline: new Date(start).toISOString(),
+          programName: edition.program_name,
+          categoryLabel: describeTierCategory(tier),
+          ms: start,
+        });
+      }
+    }
+  }
+
+  if (candidates.length === 0) return null;
+  const winner = candidates.reduce((soonest, c) => (c.ms < soonest.ms ? c : soonest));
+  return { deadline: winner.deadline, programName: winner.programName, categoryLabel: winner.categoryLabel };
+}
+
+function hasAnyRegistrationWindow(editions: CountdownProgramEdition[]): boolean {
+  return editions.some((edition) =>
+    (edition.registration_types ?? []).some(
+      (tier) => isRegistrationFeeTier(tier) && (tier.validityPeriods ?? []).length > 0,
+    ),
+  );
+}
+
+export type RegistrationCountdownResolution = CountdownWinner & {
+  categoryLabel: string | null;
+  /** What the deadline MEANS: 'open' counts down to a close, 'upcoming' to an
+   * opening. One value, so the CTA and the clock can never disagree. */
+  phase: 'open' | 'upcoming';
+};
+
+/**
+ * The homepage countdown rule, in resolution order. Kept here rather than
+ * inlined in app/layout.tsx so the three branches are one readable rule AND
+ * unit-testable; layout calls it in a single line.
+ *
+ *   1. Something OPEN  -> count down to that window's close. Register CTA live.
+ *      (MEYS shape: one edition open, another upcoming. Must not regress.)
+ *   2. Nothing open, something UPCOMING -> count down to the soonest OPEN date.
+ *      Caller must not render a register CTA. (KYS 4th shape, 2026-09-03.)
+ *   3. Nothing open, nothing upcoming -> null. "Closed" is finally the truth.
+ *
+ * Exception inside branch 3: editions that carry no registration-fee validity
+ * windows AT ALL are governed purely by their program-level dates (Istanbul
+ * Youth Summit, Youth Academic Forum). For those we keep the pre-existing
+ * program-date countdown rather than blanking their banner.
+ */
+export function resolveRegistrationCountdown(
+  editions: CountdownProgramEdition[] | null | undefined,
+  now: Date,
+): RegistrationCountdownResolution | null {
+  if (!editions || editions.length === 0) return null;
+
+  const open = resolveOpenWindowCountdown(editions, now);
+  if (open) return { ...open, phase: 'open' };
+
+  const upcoming = resolveUpcomingWindowCountdown(editions, now);
+  if (upcoming) return { ...upcoming, phase: 'upcoming' };
+
+  if (!hasAnyRegistrationWindow(editions)) {
+    const fallback = resolveCountdownAcrossPrograms(editions, now);
+    return fallback ? { ...fallback, categoryLabel: null, phase: 'open' } : null;
+  }
+
+  return null;
+}

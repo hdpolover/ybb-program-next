@@ -21,8 +21,7 @@ import { getProgramDetail, getProgramPricingTiers, type ProgramPricingTier } fro
 import {
   resolveActiveRegistration,
   resolveRegistrationCountdownDeadline,
-  resolveCountdownAcrossPrograms,
-  resolveOpenWindowCountdown,
+  resolveRegistrationCountdown,
   RegistrationCategory,
 } from '@/lib/registration/deadline';
 import type { RegistrationOverviewSection } from '@/types/home';
@@ -134,6 +133,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let settingsData = null;
   let registrationCloseDate: string | null = null;
   let countdownProgramName: string | null = null;
+  // What registrationCloseDate MEANS. 'upcoming' = it is an OPEN date, so the
+  // prompts must count down to an opening and must not offer a register CTA.
+  let countdownPhase: 'open' | 'upcoming' = 'open';
   let activeProgramSlug = process.env.YBB_PROGRAM_SLUG?.trim() || null;
   let registerUrl = '/login?mode=signup';
   let activeCategory: RegistrationCategory | null = null;
@@ -243,16 +245,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           })),
         }));
         const now = new Date();
-        // An open window wins. Only if nothing is open do we fall back to the
-        // soonest edition close date, so the banner never goes blank.
-        const openWindow = resolveOpenWindowCountdown(deadlineEditions, now);
-        const winner = openWindow ?? resolveCountdownAcrossPrograms(deadlineEditions, now);
-        if (winner) {
-          registrationCloseDate = winner.deadline;
-          countdownProgramName = openWindow?.categoryLabel
-            ? `${winner.programName} ${openWindow.categoryLabel}`
-            : winner.programName;
-        }
+        // Open window -> its close. Nothing open but something upcoming -> the
+        // soonest OPEN date. Nothing either way -> no countdown at all, rather
+        // than a 183-day clock to a window nobody can act on (KYS 4th).
+        const winner = resolveRegistrationCountdown(deadlineEditions, now);
+        registrationCloseDate = winner?.deadline ?? null;
+        countdownPhase = winner?.phase ?? 'open';
+        countdownProgramName = winner
+          ? winner.categoryLabel
+            ? `${winner.programName} ${winner.categoryLabel}`
+            : winner.programName
+          : null;
       }
     } catch (error) {
       console.error('[Layout] Failed to resolve multi-program countdown:', error);
@@ -297,6 +300,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               registrationDeadline={registrationCloseDate}
               activeProgramSlug={activeProgramSlug}
               countdownProgramName={countdownProgramName}
+              phase={countdownPhase}
             />
             {children}
             <ClientCTAGate />
@@ -306,6 +310,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <StickyBottomBarGate
               deadline={registrationCloseDate}
               registerUrl={registerUrl}
+              phase={countdownPhase}
               activeProgramSlug={activeProgramSlug}
             />
           </PromoCTAProvider>

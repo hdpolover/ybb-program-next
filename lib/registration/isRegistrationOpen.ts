@@ -6,6 +6,8 @@
 // components/programs/registrationTypes.tsx), which is exactly how a
 // duplicated bug fix stays half-applied.
 
+import type { RegistrationPhase } from '@/lib/registration/status';
+
 const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -42,18 +44,44 @@ export function isRegistrationOpen(
   periods: RegistrationValidityPeriod[] | undefined,
   now: Date,
 ): boolean {
-  if (!periods || periods.length === 0) return false;
+  return getRegistrationWindowPhase(periods, now) === 'open';
+}
+
+/**
+ * The same question as `isRegistrationOpen`, answered in three states instead
+ * of two: a window chain whose earliest period has not started yet is
+ * `upcoming`, not `closed`.
+ *
+ * This is the VALIDITY-WINDOW gate ("can a visitor pick this fee tier and pay
+ * today"). `lib/registration/status.ts` answers the PROGRAM-level question
+ * ("would the backend accept a registration for this program at all"). They
+ * are different questions with the same three answers, and they must never
+ * contradict each other on one screen -- hence the shared `RegistrationPhase`.
+ */
+export function getRegistrationWindowPhase(
+  periods: RegistrationValidityPeriod[] | undefined,
+  now: Date,
+): RegistrationPhase {
+  if (!periods || periods.length === 0) return 'closed';
 
   const parsed = periods
     .map((p) => ({ start: new Date(p.start_date), end: new Date(p.end_date) }))
     .filter((p) => !Number.isNaN(p.start.getTime()) && !Number.isNaN(p.end.getTime()));
-  if (parsed.length === 0) return false;
+  if (parsed.length === 0) return 'closed';
 
   const earliestStartMs = Math.min(...parsed.map((p) => p.start.getTime()));
+  const effectiveStart = (p: { start: Date }) =>
+    p.start.getTime() === earliestStartMs ? startOfWibDay(p.start) : p.start;
 
-  return parsed.some((p) => {
-    const isEarliest = p.start.getTime() === earliestStartMs;
-    const effectiveStart = isEarliest ? startOfWibDay(p.start) : p.start;
-    return effectiveStart <= now && now <= p.end;
-  });
+  if (parsed.some((p) => effectiveStart(p) <= now && now <= p.end)) return 'open';
+  if (parsed.some((p) => effectiveStart(p) > now)) return 'upcoming';
+  return 'closed';
+}
+
+/** Phase of a group of tiers: open beats upcoming beats closed. Used for the
+ * per-edition badge, so it can never disagree with the fee cards under it. */
+export function combineRegistrationPhases(phases: RegistrationPhase[]): RegistrationPhase {
+  if (phases.includes('open')) return 'open';
+  if (phases.includes('upcoming')) return 'upcoming';
+  return 'closed';
 }

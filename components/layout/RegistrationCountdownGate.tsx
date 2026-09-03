@@ -8,12 +8,14 @@ type RegistrationCountdownGateProps = {
   registrationDeadline?: string | null;
   activeProgramSlug?: string | null;
   countdownProgramName?: string | null;
+  phase?: 'open' | 'upcoming';
 };
 
 export default function RegistrationCountdownGate({
   registrationDeadline,
   activeProgramSlug,
   countdownProgramName,
+  phase = 'open',
 }: RegistrationCountdownGateProps) {
   const pathname = usePathname();
 
@@ -25,5 +27,5 @@ export default function RegistrationCountdownGate({
     return null;
   }
 
-  return <RegistrationCountdown targetDate={registrationDeadline} programName={countdownProgramName} />;
+  return <RegistrationCountdown targetDate={registrationDeadline} programName={countdownProgramName} phase={phase} />;
 }

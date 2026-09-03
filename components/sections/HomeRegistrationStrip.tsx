@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Calendar, Check, CreditCard, ExternalLink, MapPin, X } from 'lucide-react';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
-import { isRegistrationOpen, type RegistrationValidityPeriod } from '@/lib/registration/isRegistrationOpen';
+import {
+  combineRegistrationPhases,
+  getRegistrationWindowPhase,
+  type RegistrationValidityPeriod,
+} from '@/lib/registration/isRegistrationOpen';
 import { componentsTheme } from '@/lib/theme/components';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import { formatEventDateRange, getRegistrationCountdownLabel, getRegistrationPeriodLabel } from "@/lib/format/registration-period";
@@ -294,8 +298,13 @@ function RegistrationTypeCards({
     [secondaryType],
   );
 
-  const primaryOpen = currentNow ? isRegistrationOpen(primaryType?.validity_periods, currentNow) : false;
-  const secondaryOpen = currentNow ? isRegistrationOpen(secondaryType?.validity_periods, currentNow) : false;
+  // Tri-state, not boolean: a fee window that has not started yet is
+  // 'upcoming'. Badging it "Closed" tells a visitor to go away days before
+  // registration opens (Korea Youth Summit 4th, 2026-09-03).
+  const primaryPhase = currentNow ? getRegistrationWindowPhase(primaryType?.validity_periods, currentNow) : 'closed';
+  const secondaryPhase = currentNow ? getRegistrationWindowPhase(secondaryType?.validity_periods, currentNow) : 'closed';
+  const primaryOpen = primaryPhase === 'open';
+  const secondaryOpen = secondaryPhase === 'open';
 
   const primaryCountdown = showCountdown
     ? getRegistrationCountdownLabel(primaryType?.validity_periods, currentNow)
@@ -343,14 +352,8 @@ function RegistrationTypeCards({
                 </h3>
               </div>
             </div>
-            <span
-              className={
-                primaryOpen
-                  ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                  : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-              }
-            >
-              {primaryOpen ? 'Open' : 'Closed'}
+            <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[primaryPhase]}>
+              {componentsTheme.applyRegistrationTypes.statusLabelByPhase[primaryPhase]}
             </span>
           </div>
           <div className={componentsTheme.applyRegistrationTypes.feeRow}>
@@ -449,7 +452,7 @@ function RegistrationTypeCards({
                 aria-disabled
                 className="inline-flex w-full max-w-xs cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500"
               >
-                Registration Closed
+                {primaryPhase === 'upcoming' ? 'Registration Not Open Yet' : 'Registration Closed'}
               </button>
             )}
           </div>
@@ -469,14 +472,8 @@ function RegistrationTypeCards({
                 </h3>
               </div>
             </div>
-            <span
-              className={
-                secondaryOpen
-                  ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                  : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-              }
-            >
-              {secondaryOpen ? 'Open' : 'Closed'}
+            <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[secondaryPhase]}>
+              {componentsTheme.applyRegistrationTypes.statusLabelByPhase[secondaryPhase]}
             </span>
           </div>
           <div className={componentsTheme.applyRegistrationTypes.feeRow}>
@@ -577,7 +574,7 @@ function RegistrationTypeCards({
                 aria-disabled
                 className="inline-flex w-full max-w-xs cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-500"
               >
-                Registration Closed
+                {secondaryPhase === 'upcoming' ? 'Registration Not Open Yet' : 'Registration Closed'}
               </button>
             )}
           </div>
@@ -702,6 +699,15 @@ export default function HomeRegistrationStrip({
         ]
       : undefined,
     currentNow,
+  );
+
+  // The edition badge is derived from the edition's OWN fee windows rather
+  // than the backend `status` flag, which ignores allowRegistration and the
+  // tier windows and so read "Open" above two "Closed" cards on KYS 4th.
+  const selectedGroupPhase = combineRegistrationPhases(
+    (selectedGroup?.registration_types ?? [])
+      .filter(isRegistrationFeeTier)
+      .map((tier) => getRegistrationWindowPhase(tier.validity_periods, currentNow)),
   );
 
   const activeIgFeed = hasEditionData ? selectedGroup?.ig_feed ?? [] : igFeed ?? [];
@@ -930,14 +936,8 @@ export default function HomeRegistrationStrip({
                         hydrated,
                       )}
                     </span>
-                    <span
-                      className={
-                        selectedGroup?.status === 'open'
-                          ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                          : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                      }
-                    >
-                      {selectedGroup?.status === 'open' ? 'Open' : 'Closed'}
+                    <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[selectedGroupPhase]}>
+                      {componentsTheme.applyRegistrationTypes.statusLabelByPhase[selectedGroupPhase]}
                     </span>
                   </div>
                 </div>

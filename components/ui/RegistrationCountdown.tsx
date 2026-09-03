@@ -12,9 +12,12 @@ interface CountdownProps {
   // every brand with a single open program, which keeps this label exactly
   // as it reads today.
   programName?: string | null;
+  // 'upcoming' means targetDate is the date registration OPENS, not closes.
+  // Same clock, opposite sentence -- see lib/registration/deadline.ts.
+  phase?: 'open' | 'upcoming';
 }
 
-export default function RegistrationCountdown({ targetDate, programName }: CountdownProps) {
+export default function RegistrationCountdown({ targetDate, programName, phase = 'open' }: CountdownProps) {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -50,6 +53,8 @@ export default function RegistrationCountdown({ targetDate, programName }: Count
     return null;
   }
 
+  const verb = phase === 'upcoming' ? 'opens' : 'closes';
+
   return (
     <div className={componentsTheme.registrationCountdown.wrapper}>
       <div className={componentsTheme.registrationCountdown.overlay} />
@@ -57,9 +62,13 @@ export default function RegistrationCountdown({ targetDate, programName }: Count
         <div className={componentsTheme.registrationCountdown.labelWrapper}>
           <Clock className={componentsTheme.registrationCountdown.icon} />
           <span className={componentsTheme.registrationCountdown.labelDesktop}>
-            {programName ? `${programName} registration closes in:` : 'Registration closes in:'}
+            {programName
+              ? `${programName} registration ${verb} in:`
+              : `Registration ${verb} in:`}
           </span>
-          <span className={componentsTheme.registrationCountdown.labelMobile}>Closes in:</span>
+          <span className={componentsTheme.registrationCountdown.labelMobile}>
+            {phase === 'upcoming' ? 'Opens in:' : 'Closes in:'}
+          </span>
         </div>
         <div className={componentsTheme.registrationCountdown.countdownGrid}>
           <div className={componentsTheme.registrationCountdown.timeCard}>

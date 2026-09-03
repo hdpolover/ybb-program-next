@@ -25,7 +25,7 @@ import { headers } from 'next/headers';
 import { getActivityData } from '@/lib/api/activity';
 import { ActivityToast } from '@/components/marketing/ActivityToast';
 import { resolveBrandDomain } from '@/lib/server/envContext';
-import { isProgramRegistrationOpen } from '@/lib/registration/status';
+import { getRegistrationPhase } from '@/lib/registration/status';
 
 function parseValidDate(value: unknown): Date | null {
   if (!value) return null;
@@ -103,7 +103,11 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   const endDate = parseValidDate(program.endDate ?? program.startDate);
   const hasEnded = endDate ? endDate.getTime() < now : false;
   const isArchiveProgram = program.status === 'completed' || hasEnded;
-  const isOpen = !isArchiveProgram && isProgramRegistrationOpen(program, new Date(now));
+  // Tri-state: a program whose registrationOpenDate has not arrived is
+  // 'upcoming', and must not be labelled "Registration Closed".
+  const registrationPhase = isArchiveProgram ? 'closed' : getRegistrationPhase(program, new Date(now));
+  const isOpen = registrationPhase === 'open';
+  const isUpcoming = registrationPhase === 'upcoming';
   const resolvedProgramTitle =
     firstNonEmpty(program.name, [program.brand?.name, program.year].filter(Boolean).join(' ')) ?? 'Program Archive';
   const heroEyebrow = isArchiveProgram ? 'Program Archive' : 'Featured Program';
@@ -111,13 +115,19 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
     ? 'Register Now'
     : isArchiveProgram
       ? 'View Previous Programs'
-      : 'Registration Closed';
+      : isUpcoming
+        ? 'Registration Opens Soon'
+        : 'Registration Closed';
   const heroCtaHref = isOpen ? '/apply' : isArchiveProgram ? '/programs/previous' : undefined;
   const applicationTitle = isArchiveProgram ? `Explore ${resolvedProgramTitle}` : `Join ${resolvedProgramTitle}`;
   const applicationSubtitle = isArchiveProgram
     ? 'Browse the highlights, schedule, speakers, and resources from this completed edition.'
     : 'Secure your spot and be part of an inspiring cohort of young leaders.';
-  const applicationFallbackLabel = isArchiveProgram ? 'Back to Previous Programs' : 'Registration Closed';
+  const applicationFallbackLabel = isArchiveProgram
+    ? 'Back to Previous Programs'
+    : isUpcoming
+      ? 'Registration Opens Soon'
+      : 'Registration Closed';
   const applicationFallbackHref = isArchiveProgram ? '/programs/previous' : undefined;
 
   const programTitle = resolvedProgramTitle;

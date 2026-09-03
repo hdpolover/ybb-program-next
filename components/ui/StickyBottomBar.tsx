@@ -8,9 +8,14 @@ import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 interface StickyBottomBarProps {
   deadline?: string | null;
   registerUrl?: string;
+  // 'upcoming' means `deadline` is the date registration OPENS. The bar must
+  // not offer a register link then -- signing up would create an account and
+  // then tell the user registration "has closed" (see
+  // lib/auth/programRegistrationClosed.ts).
+  phase?: 'open' | 'upcoming';
 }
 
-export default function StickyBottomBar({ deadline, registerUrl }: StickyBottomBarProps) {
+export default function StickyBottomBar({ deadline, registerUrl, phase = 'open' }: StickyBottomBarProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -65,6 +70,13 @@ export default function StickyBottomBar({ deadline, registerUrl }: StickyBottomB
     return null;
   }
 
+  // Rendered only after the visibility gate above, which is client-only, so
+  // there is no server/client locale mismatch to guard against here.
+  const opensLabel =
+    phase === 'upcoming' && deadline
+      ? new Date(deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+      : null;
+
   return (
     <div
       className={componentsTheme.stickyBottomBar.wrapper}
@@ -94,13 +106,19 @@ export default function StickyBottomBar({ deadline, registerUrl }: StickyBottomB
             </div>
           </div>
         </div>
-        <a
-          href={registerUrl || '#'}
-          className={componentsTheme.stickyBottomBar.registerButton}
-          onClick={() => trackInitiateCheckout()}
-        >
-          Register Now
-        </a>
+        {phase === 'upcoming' ? (
+          <span className={componentsTheme.stickyBottomBar.registerButtonPending}>
+            {opensLabel ? `Opens ${opensLabel}` : 'Opens soon'}
+          </span>
+        ) : (
+          <a
+            href={registerUrl || '#'}
+            className={componentsTheme.stickyBottomBar.registerButton}
+            onClick={() => trackInitiateCheckout()}
+          >
+            Register Now
+          </a>
+        )}
       </div>
     </div>
   );

@@ -19,7 +19,11 @@ import { componentsTheme } from '@/lib/theme/components';
 import { formatEventDateRange, getRegistrationPeriodLabel } from '@/lib/format/registration-period';
 import { useHydrated } from '@/hooks/useHydrated';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
-import { isRegistrationOpen, type RegistrationValidityPeriod } from '@/lib/registration/isRegistrationOpen';
+import {
+  combineRegistrationPhases,
+  getRegistrationWindowPhase,
+  type RegistrationValidityPeriod,
+} from '@/lib/registration/isRegistrationOpen';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
@@ -252,8 +256,30 @@ export default function RegistrationTypePrograms({
   const primaryBenefits = useMemo(() => primaryType?.benefits ?? [], [primaryType?.benefits]);
   const secondaryBenefits = useMemo(() => secondaryType?.benefits ?? [], [secondaryType?.benefits]);
 
-  const primaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(primaryType, selectedGroup.registration_dates), currentNow) : false;
-  const secondaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(secondaryType, selectedGroup.registration_dates), currentNow) : false;
+  // Tri-state, not boolean -- see lib/registration/isRegistrationOpen.
+  const primaryPhase = getRegistrationWindowPhase(
+    normalizeValidityPeriods(primaryType, selectedGroup.registration_dates),
+    currentNow,
+  );
+  const secondaryPhase = getRegistrationWindowPhase(
+    normalizeValidityPeriods(secondaryType, selectedGroup.registration_dates),
+    currentNow,
+  );
+  const primaryOpen = primaryPhase === 'open';
+  const secondaryOpen = secondaryPhase === 'open';
+  // Derived from this edition's own windows, not the backend `status` flag,
+  // which ignored allowRegistration and the tier windows and so read "Open"
+  // above two "Closed" fee cards on KYS 4th.
+  const selectedGroupPhase = combineRegistrationPhases(
+    selectedGroup.registration_types
+      .filter(isRegistrationFeeTier)
+      .map((tier) =>
+        getRegistrationWindowPhase(
+          normalizeValidityPeriods(tier, selectedGroup.registration_dates),
+          currentNow,
+        ),
+      ),
+  );
 
   const selfFundedRequirements = useMemo(
     () =>
@@ -378,14 +404,8 @@ export default function RegistrationTypePrograms({
                     hydrated,
                   )}
                 </span>
-                <span
-                  className={
-                    selectedGroup.status === 'open'
-                      ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                      : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                  }
-                >
-                  {selectedGroup.status === 'open' ? 'Open' : 'Closed'}
+                <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[selectedGroupPhase]}>
+                  {componentsTheme.applyRegistrationTypes.statusLabelByPhase[selectedGroupPhase]}
                 </span>
               </div>
             </div>
@@ -412,14 +432,8 @@ export default function RegistrationTypePrograms({
                       </h3>
                     </div>
                   </div>
-                  <span
-                    className={
-                      primaryOpen
-                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                    }
-                  >
-                    {primaryOpen ? 'Open' : 'Closed'}
+                  <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[primaryPhase]}>
+                    {componentsTheme.applyRegistrationTypes.statusLabelByPhase[primaryPhase]}
                   </span>
                 </div>
                 {primaryType && (
@@ -551,14 +565,8 @@ export default function RegistrationTypePrograms({
                       </h3>
                     </div>
                   </div>
-                  <span
-                    className={
-                      secondaryOpen
-                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                    }
-                  >
-                    {secondaryOpen ? 'Open' : 'Closed'}
+                  <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[secondaryPhase]}>
+                    {componentsTheme.applyRegistrationTypes.statusLabelByPhase[secondaryPhase]}
                   </span>
                 </div>
                 {secondaryType && (
