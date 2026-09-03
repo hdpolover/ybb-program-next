@@ -299,11 +299,15 @@ export default function LoginPage() {
 
       if (!res.ok) {
         const backendMessage = json?.message || '';
+        // A bare 409 is no longer sufficient: the API maps EVERY Prisma unique
+        // constraint violation to 409 DUPLICATE_RECORD, not just a duplicate
+        // email, so a collision on any other column would otherwise tell a new
+        // user their email is already registered. Require the message to
+        // actually be about the email address.
         const isDuplicateEmail =
-          res.status === 409 ||
-          /already\s+(has|registered|exists)|authentication\s+configured|email\s+already/i.test(
-            backendMessage,
-          );
+          /authentication\s+configured/i.test(backendMessage) ||
+          (/already\s+(has|registered|exists)|email\s+already/i.test(backendMessage) &&
+            /email/i.test(backendMessage));
 
         if (isDuplicateEmail) {
           throw new Error(DUPLICATE_EMAIL_MESSAGE);
