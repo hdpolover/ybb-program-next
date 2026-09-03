@@ -34,6 +34,8 @@ export type PortalDashboardSummary = {
     progress?: number;
     currentStep?: string;
     daysUntilDeadline?: number;
+    /** ISO date: FF registration window end while open, else the SF one. */
+    submissionDeadline?: string;
     guidebooks?: PortalDashboardGuidebook[];
   };
   alerts?: Array<{
