@@ -20,6 +20,13 @@ export async function GET(request: NextRequest) {
     // Path is fixed — no user-controlled input injected into the URL path.
     const apiUrl = new URL('/v1/portal/loa/download', getServerApiBaseUrl());
 
+    // Forward programId so a participant with letters available in more than one
+    // programme gets the one they are looking at, instead of a 409 asking which.
+    const programId = request.nextUrl.searchParams.get('programId');
+    if (programId) {
+      apiUrl.searchParams.set('programId', programId);
+    }
+
     const upstream = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
