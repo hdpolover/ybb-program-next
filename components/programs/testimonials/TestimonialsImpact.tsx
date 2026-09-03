@@ -1,60 +1,38 @@
-import { Users, Globe2, Smile, Award } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
+import { IMPACT_STAT_ICONS } from '@/components/sections/impactStatIcons';
+import type { ImpactStat } from '@/types/home';
 
-type ImpactStats = {
-  alumniWorldwide?: string;
-  countriesRepresented?: string;
-  satisfactionRate?: string;
-  socialProjects?: string;
-};
-
-// Section angka-angka impact di halaman Testimonials
-export default function TestimonialsImpact({
-  stats,
-}: {
-  stats?: ImpactStats;
-}) {
-  const alumniWorldwide = stats?.alumniWorldwide ?? '4,000+';
-  const countriesRepresented = stats?.countriesRepresented ?? '120+';
-  const satisfactionRate = stats?.satisfactionRate ?? '95%';
-  const socialProjects = stats?.socialProjects ?? '500+';
+// Section angka-angka impact di halaman Testimonials.
+//
+// Sourced from the single platform `impact_stats` PlatformSetting row (via the
+// `program_impact` section of the home payload this page already fetches), the
+// same row the homepage reads. It used to hardcode four figures, two of which
+// ("95%" satisfaction rate, "500+" social projects) had no source anywhere in
+// the schema — no survey table, no project entity — so they are gone rather
+// than defaulted: a satisfaction rate is measured or it is invented.
+export default function TestimonialsImpact({ stats }: { stats?: ImpactStat[] }) {
+  // No curated figures = no section. Never a placeholder or a dash.
+  if (!stats || stats.length === 0) return null;
 
   return (
     <section className={componentsTheme.programsTestimonialsImpact.sectionWrapper}>
       <div className={componentsTheme.programsTestimonialsImpact.container}>
         <SectionHeader eyebrow="Our Impact" title="Join Our Growing Community" />
         <div className={componentsTheme.programsTestimonialsImpact.grid}>
-          <div className={componentsTheme.programsTestimonialsImpact.card}>
-            <div className={componentsTheme.programsTestimonialsImpact.iconCircle}>
-              <Users className={componentsTheme.programsTestimonialsImpact.icon} />
-            </div>
-            <p className={componentsTheme.programsTestimonialsImpact.value}>{alumniWorldwide}</p>
-            <p className={componentsTheme.programsTestimonialsImpact.label}>Alumni Worldwide</p>
-          </div>
-          <div className={componentsTheme.programsTestimonialsImpact.card}>
-            <div className={componentsTheme.programsTestimonialsImpact.iconCircle}>
-              <Globe2 className={componentsTheme.programsTestimonialsImpact.icon} />
-            </div>
-            <p className={componentsTheme.programsTestimonialsImpact.value}>{countriesRepresented}</p>
-            <p className={componentsTheme.programsTestimonialsImpact.label}>
-              Countries Represented
-            </p>
-          </div>
-          <div className={componentsTheme.programsTestimonialsImpact.card}>
-            <div className={componentsTheme.programsTestimonialsImpact.iconCircle}>
-              <Smile className={componentsTheme.programsTestimonialsImpact.icon} />
-            </div>
-            <p className={componentsTheme.programsTestimonialsImpact.value}>{satisfactionRate}</p>
-            <p className={componentsTheme.programsTestimonialsImpact.label}>Satisfaction Rate</p>
-          </div>
-          <div className={componentsTheme.programsTestimonialsImpact.card}>
-            <div className={componentsTheme.programsTestimonialsImpact.iconCircle}>
-              <Award className={componentsTheme.programsTestimonialsImpact.icon} />
-            </div>
-            <p className={componentsTheme.programsTestimonialsImpact.value}>{socialProjects}</p>
-            <p className={componentsTheme.programsTestimonialsImpact.label}>Social Projects</p>
-          </div>
+          {stats.map(stat => {
+            const Icon = IMPACT_STAT_ICONS[stat.icon] ?? GraduationCap;
+            return (
+              <div key={stat.id} className={componentsTheme.programsTestimonialsImpact.card}>
+                <div className={componentsTheme.programsTestimonialsImpact.iconCircle}>
+                  <Icon className={componentsTheme.programsTestimonialsImpact.icon} />
+                </div>
+                <p className={componentsTheme.programsTestimonialsImpact.value}>{stat.value}</p>
+                <p className={componentsTheme.programsTestimonialsImpact.label}>{stat.label}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -4,7 +4,7 @@ import TestimonialsImpact from '@/components/programs/testimonials/TestimonialsI
 import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { getHomePageData } from '@/lib/api/home';
 import { headers } from 'next/headers';
-import type { AlumniStoriesSection, DelegateTestimonialsSection, HomePageData } from '@/types/home';
+import type { AlumniStoriesSection, DelegateTestimonialsSection, HomePageData, ProgramImpactSection } from '@/types/home';
 
 function findSection<T extends HomePageData['sections'][number]>(
   homeData: HomePageData,
@@ -84,8 +84,9 @@ export default async function ProgramsTestimonialsPage() {
       {/* grid testimoni utama */}
       <TestimonialsGrid testimonials={testimonials} />
 
-      {/* section impact testimoni lanjutan */}
-      <TestimonialsImpact />
+      {/* Curated platform impact figures, already carried by the home payload
+          this page fetches — suppressed entirely when impact_stats is unset. */}
+      <TestimonialsImpact stats={findSection<ProgramImpactSection>(homeData, 'program_impact')?.content.stats} />
     </main>
   );
 }

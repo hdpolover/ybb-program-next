@@ -82,11 +82,6 @@ export const partnersTheme = {
       'flex items-center justify-center rounded-xl bg-white p-4 transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(15,23,42,0.18)] focus:outline-none focus:ring-2 focus:ring-primary/40',
     logoImg: 'h-12 w-auto object-contain',
   },
-  partnersImpact: {
-    sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8',
-    container: 'mx-auto max-w-7xl',
-    grid: 'grid gap-6 sm:grid-cols-2 lg:grid-cols-4',
-  },
   partnersRequire: {
     sectionWrapper: 'px-6 py-16 sm:py-20 lg:py-24 lg:px-8 bg-white',
     container: 'mx-auto max-w-4xl',

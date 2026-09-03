@@ -257,12 +257,22 @@ export type ProgramShortsSection = {
   };
 };
 
+export type ImpactStat = {
+  id: string;
+  label: string;
+  value: string;
+  icon: 'participants' | 'countries' | 'alumni' | 'editions';
+};
+
 export type ProgramImpactSection = {
   type: 'program_impact';
   content: {
     eyebrow: string;
     title: string;
-    stats: { id: string; label: string; value: string; icon: 'participants' | 'countries' | 'alumni' }[];
+    /** Only the figures actually present in the platform `impact_stats` row.
+     *  A missing figure is dropped upstream and the whole section is omitted
+     *  when none survive — never a placeholder value. */
+    stats: ImpactStat[];
   };
 };
 

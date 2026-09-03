@@ -3,17 +3,15 @@ import Link from 'next/link';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
-// Section: Proven Results — impact angka + logo sponsor
-export default function ProvenResultsSection({
-  impactValue,
-  impactLabel,
-}: {
-  impactValue?: string;
-  impactLabel?: string;
-}) {
-  const displayValue = impactValue ?? '630,000+';
-  const displayLabel = impactLabel ?? 'people directly impacted by funded initiatives';
-
+// Section: Proven Results — impact angka + logo sponsor.
+//
+// The figure comes from the platform `impact_stats` row (total_participants),
+// carried on the /partners payload. It used to be a hardcoded "630,000+ people
+// directly impacted by funded initiatives" — two orders of magnitude above the
+// entire users table, describing an outcome the schema does not model at all.
+// No fallback: with no curated figure the impact column is dropped and only the
+// sponsor logos remain.
+export default function ProvenResultsSection({ impactValue }: { impactValue?: string }) {
   return (
     <section className={componentsTheme.partnersProven.sectionWrapper}>
       <div className={componentsTheme.partnersProven.container}>
@@ -22,14 +20,17 @@ export default function ProvenResultsSection({
           Tangible outcomes powered by our partners and sponsors across programs and regions.
         </p>
 
-        <div className={componentsTheme.partnersProven.layout}>
-          {/* Left: impact text */}
-          <div className={componentsTheme.partnersProven.impactCol}>
-            <p className={componentsTheme.partnersProven.impactValue}>{displayValue}</p>
-            <p className={componentsTheme.partnersProven.impactLabel}>
-              {displayLabel}
-            </p>
-          </div>
+        {/* Without the impact column the two-column split would squeeze the
+            logo card into the narrow 0.35fr track, so drop the grid with it. */}
+        <div className={impactValue ? componentsTheme.partnersProven.layout : 'mt-10'}>
+          {impactValue ? (
+            <div className={componentsTheme.partnersProven.impactCol}>
+              <p className={componentsTheme.partnersProven.impactValue}>{impactValue}</p>
+              <p className={componentsTheme.partnersProven.impactLabel}>
+                participants across our programs
+              </p>
+            </div>
+          ) : null}
 
           {/* Right: card with logos */}
           <div className={componentsTheme.partnersProven.card}>

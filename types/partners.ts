@@ -1,6 +1,11 @@
 // Partners & Sponsors page API types
 
-export type PartnersSectionType = 'hero' | 'sponsors_grid' | 'partners_grid' | 'cta_become_partner' | 'canva_embed';
+// The partners payload carries the same platform-wide `program_impact` section
+// the home payload does (one PlatformSetting row, one builder in the API), so
+// reuse that type instead of declaring a second, driftable copy.
+import type { ProgramImpactSection } from '@/types/home';
+
+export type PartnersSectionType = 'hero' | 'sponsors_grid' | 'partners_grid' | 'cta_become_partner' | 'canva_embed' | 'program_impact';
 
 export type PartnersHeroSection = {
   type: 'hero';
@@ -64,7 +69,8 @@ export type PartnersSection =
   | CanvaEmbedSection
   | SponsorsGridSection
   | PartnersGridSection
-  | CtaBecomePartnerSection;
+  | CtaBecomePartnerSection
+  | ProgramImpactSection;
 
 export type PartnersPageData = {
   slug: string;

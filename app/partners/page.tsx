@@ -5,13 +5,13 @@ import ProvenResultsSection from '@/components/partners/ProvenResults';
 import CommunityPartnersSection from '@/components/partners/CommunityPartners';
 import PartnershipOpportunitiesSection from '@/components/partners/PartnershipOpportunities';
 import RequireNowSection from '@/components/partners/RequireNow';
-// import PartnershipImpactSection from '@/components/partners/PartnershipImpact';
 import PartnershipJourneySection from '@/components/partners/PartnershipJourney';
 import PartnerFAQSection from '@/components/partners/PartnerFAQ';
 import CanvaEmbedSection from '@/components/partners/CanvaEmbed';
 import { getPartnersPageData } from '@/lib/api/partners';
 import { headers } from 'next/headers';
 import type { CanvaEmbedSection as CanvaEmbedSectionType, CtaBecomePartnerSection, PartnersGridSection, SponsorsGridSection } from '@/types/partners';
+import type { ProgramImpactSection } from '@/types/home';
 import { SetPromoCTA } from '@/components/sections/PromoCTAContext';
 import { componentsTheme } from '@/lib/theme/components';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
@@ -140,11 +140,20 @@ export default async function PartnersSponsorsPage() {
       />
       <CommunityPartnersSection partners={partnersGridSection?.data} />
       <SponsorTiersSection sponsors={sponsorsGridSection?.data} />
-      <ProvenResultsSection />
+      {/* Curated platform figure, carried on the same partners payload the
+          rest of this page uses. Undefined when impact_stats has no
+          total_participants — the component drops the column rather than
+          printing anything invented. */}
+      <ProvenResultsSection
+        impactValue={
+          partnersPage.sections
+            .find((section): section is ProgramImpactSection => section.type === 'program_impact')
+            ?.content.stats.find(stat => stat.icon === 'participants')?.value
+        }
+      />
       <PartnershipJourneySection />
       <RequireNowSection />
       <PartnerFAQSection />
-      {/* <PartnershipImpactSection /> */}
     </main>
   );
 }
