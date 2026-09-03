@@ -717,12 +717,19 @@ export default function HomeRegistrationStrip({
   );
   const [activePostIndex, setActivePostIndex] = useState(0);
 
-  // A tab switch swaps `posts` out from under the carousel; jump back to its
-  // first post instead of keeping a stale index into the new edition's feed.
+  // Reset the carousel only when the FEED itself changes, not on every tab
+  // click. Keying this on selectedIndex reset it even when two tabs resolve to
+  // the same ig_feed, which is the flicker this fixes. Keying it on
+  // posts.length alone is not enough either: two different editions whose
+  // feeds happen to be the same length would skip the reset and leave the
+  // index pointing into unrelated content. The first post's id plus the length
+  // identifies the feed, and being a string it is a stable dependency even
+  // though `activeIgFeed` is rebuilt by `?? []` whenever it is absent.
+  const feedIdentity = `${posts.length}:${posts[0]?.id ?? ''}`;
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets a DIFFERENT state (activePostIndex) than the effect's dep (selectedIndex, driven by user tab clicks/context); cannot feed back into its own dependency.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets a DIFFERENT state (activePostIndex) than the effect's dep (feedIdentity, derived from the feed contents); cannot feed back into its own dependency.
     setActivePostIndex(0);
-  }, [selectedIndex]);
+  }, [feedIdentity]);
 
   useEffect(() => {
     if (posts.length <= 1) return;
