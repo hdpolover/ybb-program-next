@@ -84,7 +84,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [dynamicSearchEntries, setDynamicSearchEntries] = useState<QuickSearchEntry[]>([]);
-  const { settings } = useSettings();
+  const { settings, registrationPhase } = useSettings();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -412,8 +412,33 @@ export function Navbar() {
 
   // "REGISTER NOW" has to open the sign-up form, not the login form. A visitor
   // with no account was being shown a password prompt.
-  const ctaHref = isAuthenticated ? '/dashboard' : '/login?mode=signup';
-  const ctaLabel = isAuthenticated ? 'DASHBOARD' : 'REGISTER NOW';
+  //
+  // It also has to be true. This label asserted that registration was open
+  // regardless of whether it was: on a programme whose windows had not started
+  // the navbar still said REGISTER NOW while the fee cards said Closed and the
+  // sticky bar said "Opens 5 Sept". The phase comes from SettingsProvider,
+  // resolved once per request by the same rule the countdown uses, so this
+  // cannot drift from the other CTAs the way it did.
+  // Three states, and the third one exists because closing registration must
+  // never lock out people who already have an account. A programme spends most
+  // of its life with registration CLOSED and participants using the portal
+  // daily, so that is the case where a navbar that only offers signup does the
+  // most damage. When registration is not open the button becomes a sign-in
+  // route, which is honest for a visitor and useful for a participant; the
+  // opening date is carried by the sticky bar, the fee cards and the hero,
+  // which are announcements rather than navigation.
+  const registrationOpen = registrationPhase === 'open';
+  const ctaHref = isAuthenticated
+    ? '/dashboard'
+    : registrationOpen
+      ? '/login?mode=signup'
+      : '/login';
+  // Width matters here, not just wording: the button is `whitespace-nowrap
+  // shrink-0`, so a longer label neither wraps nor shrinks -- it widens the
+  // button and squeezes five nav links plus search at the md breakpoint.
+  // "REGISTER NOW" is 12 characters, "SIGN IN" is 7, and the rejected
+  // "REGISTRATION OPENS SOON" was 23.
+  const ctaLabel = isAuthenticated ? 'DASHBOARD' : registrationOpen ? 'REGISTER NOW' : 'SIGN IN';
   const currentProgramLogo = pickCurrentProgramLogo(settings);
 
   const logoSrc =

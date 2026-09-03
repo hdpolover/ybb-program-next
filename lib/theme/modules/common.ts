@@ -74,7 +74,7 @@ export const commonTheme = {
     listMeta: 'mt-0.5 text-xs text-slate-500',
   },
   getInTouch: {
-    sectionWrapper: 'relative w-full bg-[var(--brand-accent)] py-16 sm:py-20 text-white',
+    sectionWrapper: 'relative w-full bg-[var(--brand-accent)] py-16 sm:py-20 text-[var(--brand-accent-foreground)]',
     item: 'flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_10px_30px_rgba(15,23,42,0.18)]',
     itemIconCircle:
       'grid aspect-square h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-[var(--brand-accent)] text-[var(--brand-accent-foreground)] shadow-[0_6px_20px_rgba(15,23,42,0.25)]',
@@ -126,12 +126,12 @@ export const commonTheme = {
     iconCircle: 'mb-3 grid h-16 w-16 place-items-center rounded-full bg-primary text-white shadow',
   },
   footer: {
-    sectionWrapper: 'relative w-full bg-[var(--brand-accent)] py-12 text-white sm:py-16',
+    sectionWrapper: 'relative w-full bg-[var(--brand-accent)] py-12 text-[var(--brand-accent-foreground)] sm:py-16',
     navLink: 'transition hover:opacity-80',
     contactLink: 'transition hover:opacity-80',
     socialLink: 'transition hover:opacity-80',
     newsletterButton:
-      'bg-[var(--brand-accent)] px-4 text-sm font-semibold text-white transition hover:opacity-90',
+      'bg-[var(--brand-accent)] px-4 text-sm font-semibold text-[var(--brand-accent-foreground)] transition hover:opacity-90',
   },
   heroHome: {
     sectionWrapper: 'relative w-full',
