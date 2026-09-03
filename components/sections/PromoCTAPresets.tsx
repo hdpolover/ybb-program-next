@@ -11,7 +11,7 @@ export function getCTAPreset(pathname: string | null | undefined) {
   }
   if (p.startsWith('/programs')) {
     return (
-      <section className="relative w-full overflow-hidden bg-[url('/img/bg3strip.png')] bg-cover bg-center py-12 text-white sm:py-16 lg:py-20">
+      <section className="relative w-full overflow-hidden bg-[var(--brand-accent)] py-12 text-[var(--brand-accent-foreground)] sm:py-16 lg:py-20">
         <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
           <h2 className="text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
             Ready to join the next cohort?

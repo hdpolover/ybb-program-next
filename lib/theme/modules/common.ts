@@ -122,7 +122,7 @@ export const commonTheme = {
       'shrink-0 rounded-full bg-primary/10 p-2 text-primary ring-1 ring-primary/30 transition group-open:rotate-180',
   },
   ctaCard: {
-    card: "relative flex w-full max-w-md flex-col items-center justify-center overflow-hidden rounded-2xl bg-[url('/img/bgourprogram.png')] bg-cover bg-center p-10 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-primary/20 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30",
+    card: "relative flex w-full max-w-md flex-col items-center justify-center overflow-hidden rounded-2xl bg-[var(--brand-accent-soft)] p-10 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-primary/20 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30",
     iconCircle: 'mb-3 grid h-16 w-16 place-items-center rounded-full bg-primary text-white shadow',
   },
   footer: {

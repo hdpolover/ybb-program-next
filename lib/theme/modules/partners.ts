@@ -157,7 +157,7 @@ export const partnersTheme = {
   },
   partnersCommunity: {
     sectionWrapper:
-      "relative w-full bg-[url('/img/sebelumfooter.png')] bg-cover bg-center px-6 py-12 sm:py-14 md:py-16 lg:px-8",
+      'relative w-full bg-[var(--brand-accent-soft)] px-6 py-12 sm:py-14 md:py-16 lg:px-8',
     container: 'mx-auto max-w-7xl',
     listWrapper:
       'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pl-1 pr-6 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:justify-center sm:gap-6 sm:overflow-visible sm:pb-0 sm:pr-0 sm:pt-0',
