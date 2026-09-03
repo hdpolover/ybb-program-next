@@ -23,10 +23,14 @@ export const applyTheme = {
     headerTitleRow: 'flex items-center gap-3',
     headerTitle: 'text-xl font-extrabold text-slate-900',
     headerSubtitle: 'text-xs font-medium text-slate-600',
-    statusBadgeOpen:
-      'whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-[11px] font-semibold text-green-700',
-    statusBadgeClosed:
-      'rounded-full bg-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-700',
+    // Keyed by RegistrationPhase so a badge cannot be styled 'closed' while the
+    // CTA under it says otherwise. 'upcoming' is amber: not yet, but coming.
+    statusBadgeByPhase: {
+      open: 'whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-[11px] font-semibold text-green-700',
+      upcoming: 'whitespace-nowrap rounded-full bg-amber-100 px-3 py-1 text-[11px] font-semibold text-amber-700',
+      closed: 'rounded-full bg-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-700',
+    },
+    statusLabelByPhase: { open: 'Open', upcoming: 'Upcoming', closed: 'Closed' },
     feeRow: 'mt-3 flex items-baseline gap-2',
     feeLabel: 'text-xs font-medium text-slate-500',
     periodRow: 'mt-2 flex items-center gap-2 text-xs text-slate-600',

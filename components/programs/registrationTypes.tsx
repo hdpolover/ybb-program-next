@@ -16,10 +16,21 @@ import {
   X,
 } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
-import { formatEventDateRange, getRegistrationPeriodLabel } from '@/lib/format/registration-period';
+import {
+  formatEventDateRange,
+  getRegistrationDatesDisplay,
+  getRegistrationPeriodLabel,
+} from '@/lib/format/registration-period';
 import { useHydrated } from '@/hooks/useHydrated';
+import { useNow } from '@/hooks/useNow';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
-import { isRegistrationOpen, type RegistrationValidityPeriod } from '@/lib/registration/isRegistrationOpen';
+import {
+  getEditionRegistrationPhase,
+  getTierRegistrationPhase,
+  isRegistrationFeeTier,
+  normalizeValidityPeriods,
+  type RegistrationValidityPeriod,
+} from '@/lib/registration/isRegistrationOpen';
 import type {
   RegistrationInfoInstruction,
   RegistrationInfoPricingTier,
@@ -87,49 +98,6 @@ function normalizeCategory(category: string): 'self_funded' | 'fully_funded' | n
   return null;
 }
 
-// Some upstream sources (raw API payloads before page-level mapping) still
-// carry `validityPeriods`/`startDate`/`endDate` instead of the snake_case
-// shape declared on `PricingTierLike` — this widened view covers both
-// without resorting to `any`.
-type PricingTierWithValidityVariants = PricingTierLike & {
-  validity_periods?: ValidityPeriod[];
-  validityPeriods?: { startDate: string; endDate: string }[];
-};
-
-function normalizeValidityPeriods(
-  tier: PricingTierLike | undefined,
-  fallbackDates?: { open: string | null; close: string | null } | null
-): ValidityPeriod[] | undefined {
-  if (!tier) return undefined;
-
-  // Handle both snake_case (validity_periods) and camelCase (validityPeriods)
-  const tierWithVariants = tier as PricingTierWithValidityVariants;
-  const snakeCasePeriods = tierWithVariants.validity_periods;
-  const camelCasePeriods = tierWithVariants.validityPeriods;
-
-  if (snakeCasePeriods && Array.isArray(snakeCasePeriods) && snakeCasePeriods.length > 0) {
-    return snakeCasePeriods;
-  }
-
-  if (camelCasePeriods && Array.isArray(camelCasePeriods) && camelCasePeriods.length > 0) {
-    // Convert camelCase to snake_case format
-    return camelCasePeriods.map((p) => ({
-      start_date: p.startDate,
-      end_date: p.endDate,
-    }));
-  }
-  
-  // Fallback to shared registration dates if individual validity periods are not available
-  if (fallbackDates?.open && fallbackDates?.close) {
-    return [{
-      start_date: fallbackDates.open,
-      end_date: fallbackDates.close,
-    }];
-  }
-  
-  return undefined;
-}
-
 function hasCategory(
   tier: PricingTierLike,
   target: 'self_funded' | 'fully_funded',
@@ -142,10 +110,6 @@ function hasCategory(
   return categories
     .map((item) => normalizeCategory(String(item)))
     .some((item) => item === target);
-}
-
-function isRegistrationFeeTier(tier: PricingTierLike): boolean {
-  return (tier.fee_type ?? '').toLowerCase() === 'registration_fee';
 }
 
 function pickRegistrationTier(
@@ -202,7 +166,7 @@ export default function RegistrationTypePrograms({
   programs,
   selectedEditionSlug,
 }: RegistrationTypeProgramsProps) {
-  const [currentNow] = useState<Date>(() => new Date());
+  const currentNow = useNow();
   const hydrated = useHydrated();
   const [descriptionDialog, setDescriptionDialog] = useState<{
     title: string;
@@ -252,8 +216,19 @@ export default function RegistrationTypePrograms({
   const primaryBenefits = useMemo(() => primaryType?.benefits ?? [], [primaryType?.benefits]);
   const secondaryBenefits = useMemo(() => secondaryType?.benefits ?? [], [secondaryType?.benefits]);
 
-  const primaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(primaryType, selectedGroup.registration_dates), currentNow) : false;
-  const secondaryOpen = currentNow ? isRegistrationOpen(normalizeValidityPeriods(secondaryType, selectedGroup.registration_dates), currentNow) : false;
+  // Tri-state, not boolean -- see lib/registration/isRegistrationOpen.
+  const primaryPhase = getTierRegistrationPhase(primaryType, selectedGroup.registration_dates, currentNow);
+  const secondaryPhase = getTierRegistrationPhase(secondaryType, selectedGroup.registration_dates, currentNow);
+  const primaryOpen = primaryPhase === 'open';
+  const secondaryOpen = secondaryPhase === 'open';
+  // Derived from this edition's own windows, not the backend `status` flag,
+  // which ignored allowRegistration and the tier windows and so read "Open"
+  // above two "Closed" fee cards on KYS 4th.
+  const selectedGroupPhase = getEditionRegistrationPhase(
+    selectedGroup.registration_types,
+    selectedGroup.registration_dates,
+    currentNow,
+  );
 
   const selfFundedRequirements = useMemo(
     () =>
@@ -368,24 +343,10 @@ export default function RegistrationTypePrograms({
               <h3 className="text-lg font-bold text-blue-950">{selectedGroup.program_name}</h3>
               <div className="flex items-center gap-2 text-xs text-slate-600">
                 <span suppressHydrationWarning>
-                  {getRegistrationPeriodLabel(
-                    selectedGroup.registration_dates
-                      ? [{
-                          start_date: selectedGroup.registration_dates.open ?? '',
-                          end_date: selectedGroup.registration_dates.close ?? '',
-                        }]
-                      : undefined,
-                    hydrated,
-                  )}
+                  {getRegistrationDatesDisplay(selectedGroup.registration_dates, currentNow).label}
                 </span>
-                <span
-                  className={
-                    selectedGroup.status === 'open'
-                      ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                      : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                  }
-                >
-                  {selectedGroup.status === 'open' ? 'Open' : 'Closed'}
+                <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[selectedGroupPhase]}>
+                  {componentsTheme.applyRegistrationTypes.statusLabelByPhase[selectedGroupPhase]}
                 </span>
               </div>
             </div>
@@ -412,14 +373,8 @@ export default function RegistrationTypePrograms({
                       </h3>
                     </div>
                   </div>
-                  <span
-                    className={
-                      primaryOpen
-                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                    }
-                  >
-                    {primaryOpen ? 'Open' : 'Closed'}
+                  <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[primaryPhase]}>
+                    {componentsTheme.applyRegistrationTypes.statusLabelByPhase[primaryPhase]}
                   </span>
                 </div>
                 {primaryType && (
@@ -441,7 +396,7 @@ export default function RegistrationTypePrograms({
                         Registration Period:
                       </span>
                       <span suppressHydrationWarning>
-                        {getRegistrationPeriodLabel(periods, hydrated)}
+                        {getRegistrationPeriodLabel(periods, currentNow)}
                       </span>
                     </div>
                   );
@@ -551,14 +506,8 @@ export default function RegistrationTypePrograms({
                       </h3>
                     </div>
                   </div>
-                  <span
-                    className={
-                      secondaryOpen
-                        ? componentsTheme.applyRegistrationTypes.statusBadgeOpen
-                        : componentsTheme.applyRegistrationTypes.statusBadgeClosed
-                    }
-                  >
-                    {secondaryOpen ? 'Open' : 'Closed'}
+                  <span className={componentsTheme.applyRegistrationTypes.statusBadgeByPhase[secondaryPhase]}>
+                    {componentsTheme.applyRegistrationTypes.statusLabelByPhase[secondaryPhase]}
                   </span>
                 </div>
                 {secondaryType && (
@@ -580,7 +529,7 @@ export default function RegistrationTypePrograms({
                         Registration Period:
                       </span>
                       <span suppressHydrationWarning>
-                        {getRegistrationPeriodLabel(periods, hydrated)}
+                        {getRegistrationPeriodLabel(periods, currentNow)}
                       </span>
                     </div>
                   );

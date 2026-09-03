@@ -22,9 +22,7 @@ import GetInTouchSection from '@/components/sections/GetInTouchSection';
 import { getHomePageData } from '@/lib/api/home';
 import { resolveBrandDomain } from '@/lib/server/envContext';
 import PromoCTA from '@/components/sections/PromoCTA';
-import { getProgramDetail, getProgramPricingTiers } from '@/lib/api/programs';
-import { getSettingsForBrandDomain } from '@/lib/api/settings';
-import { resolveActiveRegistration, RegistrationCategory } from '@/lib/registration/deadline';
+import { resolveRegistrationCountdown, type RegistrationCategory } from '@/lib/registration/deadline';
 import { getActivityData } from '@/lib/api/activity';
 import { ActivityToast } from '@/components/marketing/ActivityToast';
 import type {
@@ -62,8 +60,6 @@ function galleryEditionLabel(programName: string, year: number | null): string {
 
 export default async function Home() {
   const host = await resolveBrandDomain();
-  let registerUrl = '/login?mode=signup';
-  let activeCategory: RegistrationCategory | null = null;
 
   const [activityItems, homeData] = await Promise.all([
     getActivityData(host),
@@ -77,32 +73,6 @@ export default async function Home() {
     }),
   ]);
 
-  // Fetch program details and determine registerUrl
-  try {
-    const settingsData = await getSettingsForBrandDomain(host);
-    const programSlug = settingsData?.active_program?.slug || process.env.YBB_PROGRAM_SLUG?.trim();
-    if (programSlug) {
-      const program = await getProgramDetail(programSlug, host);
-      if (program?.id) {
-        try {
-          const pricingTiers = await getProgramPricingTiers(program.id, host);
-          const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
-          if (activeRegistration) {
-            activeCategory = activeRegistration.category;
-            if (activeCategory === 'fully_funded') {
-              registerUrl = '/login?mode=signup&applicationCategory=fully_funded';
-            } else if (activeCategory === 'self_funded') {
-              registerUrl = '/login?mode=signup&applicationCategory=self_funded';
-            }
-          }
-        } catch (tierError) {
-          console.error('[Home] Failed to fetch pricing tiers:', tierError);
-        }
-      }
-    }
-  } catch (error) {
-    console.error('[Home] Failed to fetch program details:', error);
-  }
 
   const mainBannerSection = homeData.sections.find(
     (section): section is MainBannerSection => section.type === 'main_banner'
@@ -111,6 +81,23 @@ export default async function Home() {
     (section): section is RegistrationOverviewSection =>
       section.type === 'registration_overview'
   );
+
+  // The signup link's applicationCategory: the category of the registration
+  // window that is actually running, read off the home payload we already
+  // have. This used to be three sequential backend calls (settings, program
+  // detail, pricing tiers) feeding a scanner that compared raw end dates and
+  // ignored whether a window had started, so it could preselect a category
+  // that does not open until October. Same rule, same windows as the layout
+  // countdown and the fee card badges now.
+  const runningWindow = resolveRegistrationCountdown(
+    registrationOverviewSection?.content.programs,
+    new Date(),
+  );
+  const activeCategory: RegistrationCategory | null = runningWindow?.category ?? null;
+  const registerUrl = activeCategory
+    ? `/login?mode=signup&applicationCategory=${activeCategory}`
+    : '/login?mode=signup';
+
   const programOverviewSection = homeData.sections.find(
     (section): section is ProgramOverviewSection => section.type === 'program_overview'
   );

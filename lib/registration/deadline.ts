@@ -1,127 +1,37 @@
-import type { ProgramPricingTier } from '@/lib/api/programs';
+import {
+  getEditionWindows,
+  type RegistrationTierLike,
+} from '@/lib/registration/isRegistrationOpen';
+import type { RegistrationPhase } from '@/lib/registration/status';
 
 /**
- * Registration countdown deadline derivation.
+ * The homepage countdown: what it counts to, which edition it names, and which
+ * application category the Register CTA should carry.
  *
- * The deadline shown by the homepage countdowns follows the program's
- * registration-fee windows rather than a single program-level field:
- *   1. While ANY fully funded registration window is still open, count down to
- *      the nearest upcoming close date for that category. Fully funded is always
- *      the anchor — as long as any future period exists, it takes precedence.
- *   2. Once all fully funded windows have closed, fall back to the nearest
- *      upcoming self funded registration close date.
- *   3. When both categories have no future windows, there is no active deadline (null).
- *
- * Dates come from each pricing tier's `validityPeriods`, scoped to tiers whose
- * `feeType` is `registration_fee` and whose `allowedCategories` include the
- * target category.
+ * All four answers come from ONE pass over the edition windows built by
+ * lib/registration/isRegistrationOpen, so the clock, the CTA label and the
+ * `?applicationCategory=` on the signup link can never describe different
+ * windows. The category used to come from a separate scanner that took the
+ * minimum future `endDate` compared RAW: it ignored whether the window had
+ * started (so a category opening in October could win over one open today)
+ * and it dropped the category from the signup link from 07:00 WIB on a
+ * window's last day.
  */
 
 export type RegistrationCategory = 'fully_funded' | 'self_funded';
 
-const REGISTRATION_FEE_TYPE = 'registration_fee';
-
-type DeadlineTier = Pick<
-  ProgramPricingTier,
-  'feeType' | 'allowedCategories' | 'validityPeriods'
->;
+/** A pricing tier in EITHER wire shape, exactly like `RegistrationTierLike`:
+ * snake_case from the home payload, camelCase from
+ * /v1/programs/:id/pricing-tiers. Both reach these resolvers, and the
+ * hand-rolled snake-to-camel adapter that used to sit in app/layout.tsx was a
+ * second place for the fee-type and category rules to drift. */
+type DeadlineTier = RegistrationTierLike & {
+  allowedCategories?: Array<string> | null;
+  allowed_categories?: Array<string> | null;
+};
 
 function normalizeToken(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase().replace(/-/g, '_');
-}
-
-function isRegistrationFeeTier(tier: DeadlineTier): boolean {
-  return normalizeToken(tier.feeType) === REGISTRATION_FEE_TYPE;
-}
-
-function tierAllowsCategory(tier: DeadlineTier, category: RegistrationCategory): boolean {
-  const categories = (tier.allowedCategories ?? []).map(normalizeToken);
-  // An empty list means the tier is not category-restricted, so it applies to all.
-  if (categories.length === 0) return true;
-  return categories.includes(category);
-}
-
-function parseDate(value: string | null | undefined): number | null {
-  if (!value) return null;
-  const ms = new Date(value).getTime();
-  return Number.isNaN(ms) ? null : ms;
-}
-
-/**
- * The nearest upcoming registration close date for a category: the minimum
- * `endDate` greater than `now` across all matching registration-fee tier
- * validity periods. Returns an ISO string, or null when no future date exists.
- */
-export function getRegistrationCloseForCategory(
-  tiers: DeadlineTier[],
-  category: RegistrationCategory,
-  now: Date,
-): string | null {
-  const nowMs = now.getTime();
-  const futureEndDatesMs = tiers
-    .filter(isRegistrationFeeTier)
-    .filter((tier) => tierAllowsCategory(tier, category))
-    .flatMap((tier) => tier.validityPeriods ?? [])
-    .map((period) => parseDate(period.endDate))
-    .filter((ms): ms is number => ms !== null && ms > nowMs);
-
-  if (futureEndDatesMs.length === 0) return null;
-  return new Date(Math.min(...futureEndDatesMs)).toISOString();
-}
-
-/**
- * Resolve the active registration deadline: fully funded close while any
- * future window exists, otherwise self funded close, otherwise null.
- */
-export function resolveActiveRegistrationDeadline(
-  tiers: DeadlineTier[] | null | undefined,
-  now: Date,
-): string | null {
-  if (!tiers || tiers.length === 0) return null;
-
-  return (
-    getRegistrationCloseForCategory(tiers, 'fully_funded', now) ??
-    getRegistrationCloseForCategory(tiers, 'self_funded', now) ??
-    null
-  );
-}
-
-/**
- * Resolve the active registration category and its deadline together.
- * Fully funded is always checked first; if any future window remains it takes
- * precedence over self funded. Returns null when no open window exists.
- */
-export function resolveActiveRegistration(
-  tiers: DeadlineTier[] | null | undefined,
-  now: Date,
-): { category: RegistrationCategory; deadline: string } | null {
-  if (!tiers || tiers.length === 0) return null;
-
-  const fullyFundedClose = getRegistrationCloseForCategory(tiers, 'fully_funded', now);
-  if (fullyFundedClose) return { category: 'fully_funded', deadline: fullyFundedClose };
-
-  const selfFundedClose = getRegistrationCloseForCategory(tiers, 'self_funded', now);
-  if (selfFundedClose) return { category: 'self_funded', deadline: selfFundedClose };
-
-  return null;
-}
-
-/**
- * Resolve the deadline shown by the homepage countdown/gates.
- *
- * Incident (2026-08-21): the program's real registrationCloseDate was
- * overridden by a pricing tier's registration-fee validity window, which can
- * close months earlier. middleeastyouthsummit.com advertised "closes in"
- * Aug 31 while the real registrationCloseDate was Dec 5. The program's own
- * close date must always win when it is set; the tier deadline is only a
- * fallback for the handful of brands whose program has no
- * registrationCloseDate at all (Istanbul Youth Summit, Youth Academic Forum).
- */
-export function resolveRegistrationCountdownDeadline(
-  programRegistrationCloseDate: string | null | undefined,
-  tierDeadline: string | null | undefined,
-): string | null {
-  return programRegistrationCloseDate ?? tierDeadline ?? null;
 }
 
 /** One currently-relevant program edition, as carried by the home API's
@@ -138,17 +48,39 @@ export type CountdownWinner = {
 };
 
 /**
- * Resolve the homepage countdown across every currently-relevant program
- * edition (MEYS 6th/7th concurrent-active-programs bug: a brand can have
- * more than one program with open registration at once, so a single
- * program's deadline is no longer guaranteed to be the one actually
- * counting down soonest). For each edition this applies the SAME precedence
- * as resolveRegistrationCountdownDeadline (that edition's own
- * registrationCloseDate wins, its tier deadline is only a fallback), then
- * picks the soonest of those and names the edition it came from, so the
- * countdown can never again describe a different program than the cards
- * shown below it.
+ * Every registration window on every edition, as instants, tagged with the
+ * edition and category it belongs to.
+ *
+ * The start rule lives in lib/registration/isRegistrationOpen (WIB
+ * start-of-day widening on a tier's earliest window, program dates as the
+ * fallback for a tier or an edition that carries none) and is NOT restated
+ * here. Comparing raw `startDate` here instead is what had the fee card
+ * badging Open next to a sticky bar reading "Opens 31 Aug" for the same 23
+ * hours: one rule, two implementations.
  */
+function allWindows(
+  editions: CountdownProgramEdition[],
+): Array<{
+  start: number;
+  end: number;
+  programName: string;
+  category: RegistrationCategory | null;
+  categoryLabel: string | null;
+}> {
+  return editions.flatMap((edition) =>
+    getEditionWindows(edition.registration_types, edition.registration_dates).map((w) => {
+      const category = w.tier ? tierCategory(w.tier) : null;
+      return {
+        start: w.start,
+        end: w.end,
+        programName: edition.program_name,
+        category,
+        categoryLabel: category ? CATEGORY_LABELS[category] : null,
+      };
+    }),
+  );
+}
+
 /**
  * The soonest registration window that is OPEN RIGHT NOW, across every edition
  * and category, with the edition and category it belongs to.
@@ -163,68 +95,139 @@ export type CountdownWinner = {
 export function resolveOpenWindowCountdown(
   editions: CountdownProgramEdition[] | null | undefined,
   now: Date,
-): (CountdownWinner & { categoryLabel: string | null }) | null {
+): (CountdownWinner & { category: RegistrationCategory | null; categoryLabel: string | null }) | null {
   if (!editions || editions.length === 0) return null;
   const nowMs = now.getTime();
 
-  const candidates: Array<CountdownWinner & { categoryLabel: string | null; ms: number }> = [];
-
-  for (const edition of editions) {
-    for (const tier of edition.registration_types ?? []) {
-      if (!isRegistrationFeeTier(tier)) continue;
-      for (const period of tier.validityPeriods ?? []) {
-        const start = parseDate((period as { startDate?: string | null }).startDate);
-        const end = parseDate((period as { endDate?: string | null }).endDate);
-        if (start === null || end === null) continue;
-        // Only a window covering now. An upcoming window is not something a
-        // visitor can act on yet, and a lapsed one is gone.
-        if (start > nowMs || end < nowMs) continue;
-        candidates.push({
-          deadline: new Date(end).toISOString(),
-          programName: edition.program_name,
-          categoryLabel: describeTierCategory(tier),
-          ms: end,
-        });
-      }
-    }
-  }
-
+  // An open window with no close date is skipped: there is nothing to count
+  // down to, and both the banner and the sticky bar unmount on a null
+  // deadline, so this really does cost the CTA. That shape only reaches here
+  // for a programme with a registration open date and no close date at all;
+  // giving the bar a deadline-less mode is the fix, and is not this change.
+  const candidates = allWindows(editions).filter(
+    (w) => w.start <= nowMs && nowMs <= w.end && Number.isFinite(w.end),
+  );
   if (candidates.length === 0) return null;
-  const winner = candidates.reduce((soonest, c) => (c.ms < soonest.ms ? c : soonest));
-  return { deadline: winner.deadline, programName: winner.programName, categoryLabel: winner.categoryLabel };
+
+  const winner = candidates.reduce((soonest, c) => (c.end < soonest.end ? c : soonest));
+  return {
+    deadline: new Date(winner.end).toISOString(),
+    programName: winner.programName,
+    category: winner.category,
+    categoryLabel: winner.categoryLabel,
+  };
 }
 
-/** "Fully Funded" / "Self Funded" for the banner label, or null when a tier is not category specific. */
-function describeTierCategory(tier: DeadlineTier): string | null {
-  const cats = (tier.allowedCategories ?? []).map(normalizeToken);
+const CATEGORY_LABELS: Record<RegistrationCategory, string> = {
+  fully_funded: 'Fully Funded',
+  self_funded: 'Self Funded',
+};
+
+/** The single category a tier is restricted to, or null when it serves more
+ * than one (or none): the banner has nothing specific to name and the signup
+ * link must not preselect a category the visitor did not choose. */
+function tierCategory(tier: DeadlineTier): RegistrationCategory | null {
+  const cats = (tier.allowedCategories ?? tier.allowed_categories ?? []).map(normalizeToken);
   if (cats.length !== 1) return null;
-  if (cats[0] === 'fully_funded') return 'Fully Funded';
-  if (cats[0] === 'self_funded') return 'Self Funded';
-  return null;
+  return cats[0] === 'fully_funded' || cats[0] === 'self_funded' ? cats[0] : null;
 }
 
-export function resolveCountdownAcrossPrograms(
+/**
+ * The soonest registration window that has NOT STARTED YET, across every
+ * edition and category. The "deadline" it returns is that window's START:
+ * what the banner should count down to when nothing is open, so a programme
+ * opening in two days stops advertising a countdown to a close date months
+ * away that nobody can act on.
+ */
+export function resolveUpcomingWindowCountdown(
   editions: CountdownProgramEdition[] | null | undefined,
   now: Date,
-): CountdownWinner | null {
+): (CountdownWinner & { category: RegistrationCategory | null; categoryLabel: string | null }) | null {
   if (!editions || editions.length === 0) return null;
-
   const nowMs = now.getTime();
-  const candidates = editions
-    .map((edition) => {
-      const tierDeadline = resolveActiveRegistrationDeadline(edition.registration_types, now);
-      const deadline = resolveRegistrationCountdownDeadline(edition.registration_dates?.close, tierDeadline);
-      return deadline ? { deadline, programName: edition.program_name } : null;
-    })
-    .filter((candidate): candidate is CountdownWinner => candidate !== null)
-    .filter((candidate) => {
-      const ms = parseDate(candidate.deadline);
-      return ms !== null && ms > nowMs;
-    });
 
+  const candidates = allWindows(editions).filter((w) => w.start > nowMs && Number.isFinite(w.start));
   if (candidates.length === 0) return null;
 
-  return candidates.reduce((soonest, candidate) =>
-    (parseDate(candidate.deadline) ?? Infinity) < (parseDate(soonest.deadline) ?? Infinity) ? candidate : soonest,
-  );
+  const winner = candidates.reduce((soonest, c) => (c.start < soonest.start ? c : soonest));
+  return {
+    deadline: new Date(winner.start).toISOString(),
+    programName: winner.programName,
+    category: winner.category,
+    categoryLabel: winner.categoryLabel,
+  };
+}
+
+export type RegistrationCountdownResolution = CountdownWinner & {
+  /** The application category the Register CTA should carry, or null when the
+   * winning window is not restricted to one. */
+  category: RegistrationCategory | null;
+  categoryLabel: string | null;
+  /** What the deadline MEANS: 'open' counts down to a close, 'upcoming' to an
+   * opening. One value, so the CTA and the clock can never disagree. */
+  phase: 'open' | 'upcoming';
+};
+
+/**
+ * The programme the layout resolved on its own, offered as the last-resort
+ * countdown target. `phase` is the PROGRAM-level answer from
+ * lib/registration/status.ts, i.e. "would the backend accept a registration
+ * for this programme at all".
+ */
+export type CountdownProgramFallback = {
+  deadline: string | null;
+  phase: RegistrationPhase;
+  programName: string;
+};
+
+/**
+ * The homepage countdown rule, in resolution order. Kept here rather than
+ * inlined in app/layout.tsx so the branches are one readable rule AND
+ * unit-testable; layout calls it in a single line.
+ *
+ *   1. Something OPEN  -> count down to that window's close. Register CTA live.
+ *      (MEYS shape: one edition open, another upcoming. Must not regress.)
+ *   2. Nothing open, something UPCOMING -> count down to the soonest OPEN date.
+ *      Caller must not render a register CTA. (KYS 4th shape, 2026-09-03.)
+ *   3. No edition window either way, but the PROGRAMME itself is open ->
+ *      count down to its own close date.
+ *   4. Otherwise null. "Closed" is finally the truth.
+ *
+ * Branch 3 is the never-blank guarantee and it is not cosmetic: the banner and
+ * the sticky Register button BOTH unmount on a null deadline, so on all six
+ * brands a silent tier configuration would delete the site's primary
+ * conversion element while registration was genuinely live. It is deliberately
+ * gated on the program phase rather than on the date alone: a lapsed
+ * programme with a stale future close date must still go quiet, which is what
+ * branch 4 is for.
+ *
+ * Editions that carry no registration-fee validity windows do not need branch
+ * 3: `getEditionWindows` already turns their program-level registration dates
+ * into a window, so Istanbul Youth Summit keeps its countdown to 5 Dec even
+ * when a sibling edition's windows have all lapsed. That used to be an
+ * all-or-nothing global test (`hasAnyRegistrationWindow`), which blanked
+ * Istanbul's banner and bar whenever ANY edition anywhere had a window.
+ */
+export function resolveRegistrationCountdown(
+  editions: CountdownProgramEdition[] | null | undefined,
+  now: Date,
+  programFallback?: CountdownProgramFallback | null,
+): RegistrationCountdownResolution | null {
+  const open = resolveOpenWindowCountdown(editions, now);
+  if (open) return { ...open, phase: 'open' };
+
+  const upcoming = resolveUpcomingWindowCountdown(editions, now);
+  if (upcoming) return { ...upcoming, phase: 'upcoming' };
+
+  if (programFallback?.phase === 'open' && programFallback.deadline) {
+    return {
+      deadline: programFallback.deadline,
+      programName: programFallback.programName,
+      category: null,
+      categoryLabel: null,
+      phase: 'open',
+    };
+  }
+
+  return null;
 }

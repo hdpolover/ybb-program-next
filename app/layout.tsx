@@ -17,14 +17,13 @@ import AppVersionWatcher from '@/components/layout/AppVersionWatcher';
 import RegistrationCountdownGate from '@/components/layout/RegistrationCountdownGate';
 import StickyBottomBarGate from '@/components/layout/StickyBottomBarGate';
 import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
-import { getProgramDetail, getProgramPricingTiers, type ProgramPricingTier } from '@/lib/api/programs';
+import { getProgramDetail } from '@/lib/api/programs';
 import {
-  resolveActiveRegistration,
-  resolveRegistrationCountdownDeadline,
-  resolveCountdownAcrossPrograms,
-  resolveOpenWindowCountdown,
-  RegistrationCategory,
+  resolveRegistrationCountdown,
+  type CountdownProgramFallback,
+  type RegistrationCategory,
 } from '@/lib/registration/deadline';
+import { getRegistrationPhase } from '@/lib/registration/status';
 import type { RegistrationOverviewSection } from '@/types/home';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -134,9 +133,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let settingsData = null;
   let registrationCloseDate: string | null = null;
   let countdownProgramName: string | null = null;
+  // What registrationCloseDate MEANS. 'upcoming' = it is an OPEN date, so the
+  // prompts must count down to an opening and must not offer a register CTA.
+  let countdownPhase: 'open' | 'upcoming' = 'open';
   let activeProgramSlug = process.env.YBB_PROGRAM_SLUG?.trim() || null;
   let registerUrl = '/login?mode=signup';
   let activeCategory: RegistrationCategory | null = null;
+  // The programme's own close date, offered to the countdown resolver as the
+  // last-resort target so a silent tier configuration cannot blank the banner
+  // AND the sticky Register button at once (see resolveRegistrationCountdown).
+  let programFallback: CountdownProgramFallback | null = null;
 
   // Settings and the home payload are independent, so fire them together
   // rather than serializing four backend round trips per page render.
@@ -155,55 +161,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     gaId = settingsResult.value?.brand?.google_analytics_id || null;
     pixelId = settingsResult.value?.brand?.pixel_id || null;
 
-    // Deadline shown by the homepage countdown/gates: the program's own
-    // registrationCloseDate always wins when set (see resolveRegistrationCountdownDeadline
-    // for the incident this precedence fixes). The pricing-tier deadline is
-    // only a fallback for brands whose program has no registrationCloseDate.
+    // The programme behind the countdown fallback below. Its own
+    // registrationCloseDate is the last-resort target; the live registration
+    // windows come from the home payload, which is where every category and
+    // every edition is visible at once.
     activeProgramSlug = settingsData?.active_program?.slug?.trim() || activeProgramSlug;
     if (activeProgramSlug) {
-      // Settings already carries the active program id, so the tiers call does
-      // not have to wait on program detail to learn it. Only the env-slug path
-      // (no active_program in settings) still needs the id from the detail call.
-      const settingsProgramId = settingsData?.active_program?.id?.trim() || null;
-      const [programResult, tiersResult] = await Promise.allSettled([
-        getProgramDetail(activeProgramSlug, host),
-        settingsProgramId
-          ? getProgramPricingTiers(settingsProgramId, host)
-          : Promise.resolve<ProgramPricingTier[]>([]),
-      ]);
+      // The pricing-tier call that used to sit here is gone: it existed only to
+      // pick the signup link's applicationCategory, which now comes from the
+      // window that actually wins the countdown. That is one fewer backend
+      // round trip on every page render, on every brand.
+      const program = await getProgramDetail(activeProgramSlug, host).catch((programError) => {
+        console.error('[Layout] Failed to fetch program detail:', programError);
+        return null;
+      });
 
-      if (programResult.status === 'rejected') {
-        console.error('[Layout] Failed to fetch program detail:', programResult.reason);
-      }
-      if (tiersResult.status === 'rejected') {
-        console.error('[Layout] Failed to fetch pricing tiers:', tiersResult.reason);
-      }
-
-      const program = programResult.status === 'fulfilled' ? programResult.value : null;
-      let pricingTiers = tiersResult.status === 'fulfilled' ? tiersResult.value : [];
-      if (!settingsProgramId && program?.id) {
-        pricingTiers = await getProgramPricingTiers(program.id, host).catch((tierError) => {
-          console.error('[Layout] Failed to fetch pricing tiers:', tierError);
-          return [];
-        });
-      }
-
-      let tierDeadline: string | null = null;
-      const activeRegistration = resolveActiveRegistration(pricingTiers, new Date());
-      if (activeRegistration) {
-        tierDeadline = activeRegistration.deadline;
-        activeCategory = activeRegistration.category;
-      }
-      registrationCloseDate = resolveRegistrationCountdownDeadline(
-        program?.registrationCloseDate,
-        tierDeadline,
-      );
-    }
-
-    if (activeCategory === 'fully_funded') {
-      registerUrl = '/login?mode=signup&applicationCategory=fully_funded';
-    } else if (activeCategory === 'self_funded') {
-      registerUrl = '/login?mode=signup&applicationCategory=self_funded';
+      registrationCloseDate = program?.registrationCloseDate ?? null;
+      programFallback = {
+        deadline: registrationCloseDate,
+        phase: getRegistrationPhase(program, new Date()),
+        programName: program?.name ?? '',
+      };
     }
 
     // Count down to the soonest registration window that is OPEN RIGHT NOW,
@@ -224,35 +202,33 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       const registrationOverview = homeData.sections?.find(
         (section): section is RegistrationOverviewSection => section.type === 'registration_overview',
       );
+      // Passed through as-is: the resolvers read both wire dialects (see
+      // DeadlineTier), so the snake-to-camel adapter that used to sit here --
+      // a second place for the fee-type and category rules to drift -- is gone.
       const editions = registrationOverview?.content.programs;
-      if (editions && editions.length > 0) {
-        // Adapt the home API's snake_case registration_types shape to the
-        // camelCase DeadlineTier shape resolveActiveRegistrationDeadline
-        // already expects (same shape getProgramPricingTiers returns above)
-        // rather than re-deriving the fee/category/window logic here.
-        const deadlineEditions = editions.map((edition) => ({
-          program_name: edition.program_name,
-          registration_dates: edition.registration_dates,
-          registration_types: edition.registration_types.map((tier) => ({
-            feeType: tier.fee_type ?? '',
-            allowedCategories: tier.allowed_categories ?? [],
-            validityPeriods: (tier.validity_periods ?? []).map((period) => ({
-              startDate: period.start_date,
-              endDate: period.end_date,
-            })),
-          })),
-        }));
-        const now = new Date();
-        // An open window wins. Only if nothing is open do we fall back to the
-        // soonest edition close date, so the banner never goes blank.
-        const openWindow = resolveOpenWindowCountdown(deadlineEditions, now);
-        const winner = openWindow ?? resolveCountdownAcrossPrograms(deadlineEditions, now);
-        if (winner) {
-          registrationCloseDate = winner.deadline;
-          countdownProgramName = openWindow?.categoryLabel
-            ? `${winner.programName} ${openWindow.categoryLabel}`
-            : winner.programName;
-        }
+
+      // Open window -> its close. Nothing open but something upcoming -> the
+      // soonest OPEN date. Neither, but the programme itself open -> its own
+      // close date, so the banner and the sticky Register button never go
+      // blank while registration is live. Nothing at all -> no countdown,
+      // rather than a 183-day clock nobody can act on (KYS 4th).
+      //
+      // Deliberately NOT guarded on `editions.length > 0` any more: an empty
+      // edition list is exactly when the programme fallback has to run.
+      const winner = resolveRegistrationCountdown(editions, new Date(), programFallback);
+      registrationCloseDate = winner?.deadline ?? null;
+      countdownPhase = winner?.phase ?? 'open';
+      countdownProgramName = winner
+        ? winner.categoryLabel
+          ? `${winner.programName} ${winner.categoryLabel}`
+          : winner.programName
+        : null;
+      // The signup link's applicationCategory now comes from the SAME window
+      // that won the countdown, so the CTA cannot preselect a category whose
+      // window is not the one the clock is describing.
+      activeCategory = winner?.category ?? null;
+      if (activeCategory) {
+        registerUrl = `/login?mode=signup&applicationCategory=${activeCategory}`;
       }
     } catch (error) {
       console.error('[Layout] Failed to resolve multi-program countdown:', error);
@@ -297,6 +273,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               registrationDeadline={registrationCloseDate}
               activeProgramSlug={activeProgramSlug}
               countdownProgramName={countdownProgramName}
+              phase={countdownPhase}
             />
             {children}
             <ClientCTAGate />
@@ -306,6 +283,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <StickyBottomBarGate
               deadline={registrationCloseDate}
               registerUrl={registerUrl}
+              phase={countdownPhase}
               activeProgramSlug={activeProgramSlug}
             />
           </PromoCTAProvider>

@@ -176,7 +176,7 @@ describe('HomeRegistrationStrip', () => {
     expect(screen.queryByText('Self Funded 6th')).not.toBeInTheDocument();
   });
 
-  it('a program passed with status "closed" (e.g. registration not yet open) shows a closed edition badge once selected', () => {
+  it('an edition with no fee tiers is badged from its own registration dates, not hard-Closed', () => {
     render(
       <HomeRegistrationStrip
         programs={[
@@ -203,7 +203,13 @@ describe('HomeRegistrationStrip', () => {
     const eighthHeading = screen.getByRole('heading', { level: 3, name: 'MEYS 8th' });
     // The heading row (heading + edition-level badge), not the whole group.
     const headingRow = eighthHeading.parentElement as HTMLElement;
-    expect(within(headingRow).getByText('Closed')).toBeInTheDocument();
+    // MEYS 8th ships no registration-fee tiers and registers from 1 Jun 2027.
+    // An empty tier set is not evidence of closure (Istanbul Youth Summit and
+    // Youth Academic Forum ship none and register for months), so the badge
+    // comes from the edition's own dates: not yet open is UPCOMING, and
+    // "Closed" would tell a visitor to go away a year early.
+    expect(within(headingRow).getByText('Upcoming')).toBeInTheDocument();
+    expect(within(headingRow).queryByText('Closed')).toBeNull();
   });
 
   it('renders nothing when every program has zero registration types', () => {
@@ -315,4 +321,33 @@ describe('pickDefaultEditionIndex', () => {
   it('returns 0 for an empty list', () => {
     expect(pickDefaultEditionIndex([])).toBe(0);
   });
+});
+
+/**
+ * The badge, the period label and the "closes in X days" line under one fee
+ * card must all describe the same window.
+ *
+ * A registration-fee tier with no validity periods is governed by the
+ * edition's own dates. The BADGE and the COUNTDOWN moved onto that fallback;
+ * the LABEL kept reading the tier's raw (empty) field, so the card rendered
+ * "Open" plus "Closes in 12 days" directly under "Registration Period: TBD".
+ */
+describe('fee card label, badge and countdown describe one window', () => {
+  const edition = {
+    program_name: 'Fallback Edition',
+    status: 'open',
+    registration_dates: { open: '2026-01-01T00:00:00.000Z', close: '2026-12-05T00:00:00.000Z' },
+    registration_types: [tier({ validity_periods: [] })],
+  };
+
+  it('shows the edition dates rather than TBD for a tier with no windows', () => {
+    render(<HomeRegistrationStrip registrationTypes={[]} programs={[edition] as never} />);
+
+    const card = screen.getByRole('heading', { level: 3, name: 'Self Funded' }).closest('div.group')!;
+    const period = within(card as HTMLElement).getByText(/Registration Period:/).parentElement!;
+    expect(period.textContent).not.toContain('TBD');
+    expect(period.textContent).toContain('1 Jan 2026');
+    expect(period.textContent).toContain('5 Dec 2026');
+  });
+
 });

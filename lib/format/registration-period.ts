@@ -1,10 +1,13 @@
 // lib/format/registration-period.ts
-import { formatDeadlineLocal, formatDeadlineWib } from "@/lib/format/deadline";
+import { formatDayMonthWib } from "@/lib/format/deadline";
+import {
+  parseRegistrationWindows,
+  windowsFromDates,
+  type RegistrationDates,
+  type RegistrationValidityPeriod,
+} from "@/lib/registration/isRegistrationOpen";
 
-export type ValidityPeriod = {
-  start_date: string;
-  end_date: string;
-};
+export type ValidityPeriod = RegistrationValidityPeriod;
 
 /**
  * Admins extend a registration window by APPENDING a new validity period that
@@ -20,22 +23,25 @@ export type ValidityPeriod = {
  * DISPLAY ONLY. Eligibility and payment gating still use the per-period logic
  * elsewhere; a participant must not become eligible because a label looks open.
  */
+// Windows come from lib/registration/isRegistrationOpen, the same parser the
+// open/closed gate uses, so "the window covering now" means the same thing in
+// a label as it does in a badge (including the WIB start-of-day widening on
+// the earliest window).
 type ParsedPeriod = { period: ValidityPeriod; start: number; end: number };
 
-function parsePeriods(periods: ValidityPeriod[] | undefined): ParsedPeriod[] {
-  if (!periods || periods.length === 0) return [];
-
-  const time = (value: string) => {
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
-  };
-
-  return periods
-    .map((period) => ({ period, start: time(period.start_date), end: time(period.end_date) }))
-    .filter((entry) => entry.start !== null && entry.end !== null) as ParsedPeriod[];
-}
-
 const byEarliestEnd = (a: { end: number }, b: { end: number }) => a.end - b.end;
+
+/**
+ * The window that applies right now, or undefined when none does.
+ *
+ * Windows may overlap (MEYS has 28 Jul - 31 Aug alongside 28 Jul - 1 Sep).
+ * Eligibility holds while ANY window covers now, so the deadline that actually
+ * applies is the LATEST end among the windows covering today. Picking the
+ * earliest would tell participants registration closes a day before it does.
+ */
+function pickCurrentWindow<T extends { start: number; end: number }>(parsed: T[], nowTime: number): T | undefined {
+  return parsed.filter((entry) => entry.start <= nowTime && nowTime <= entry.end).sort(byEarliestEnd).pop();
+}
 
 /**
  * Pick the window a participant should be shown "right now": the one
@@ -46,39 +52,31 @@ const byEarliestEnd = (a: { end: number }, b: { end: number }) => a.end - b.end;
 function pickDisplayWindow(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
   if (parsed.length === 0) return undefined;
 
-  // Windows may overlap (MEYS has 28 Jul - 31 Aug alongside 28 Jul - 1 Sep).
-  // Eligibility holds while ANY window covers now, so the deadline that
-  // actually applies is the latest end among the windows covering today.
-  // Picking the earliest would tell participants registration closes a day
-  // before it does.
-  const current = parsed
-    .filter((entry) => entry.start <= nowTime && nowTime <= entry.end)
-    .sort(byEarliestEnd)
-    .pop();
   const upcoming = parsed.filter((entry) => entry.start > nowTime).sort((a, b) => a.start - b.start)[0];
   const lapsed = [...parsed].sort(byEarliestEnd)[parsed.length - 1];
 
-  return current ?? upcoming ?? lapsed;
+  return pickCurrentWindow(parsed, nowTime) ?? upcoming ?? lapsed;
+}
+
+/** A registration period boundary is a CALENDAR DAY the admin picked, not an
+ * instant, so it is always rendered in the business timezone. Rendered in the
+ * viewer's zone instead, an end stored at 23:59 WIB reads as the next day for
+ * everyone east of Jakarta. Same defect formatDayMonthWib exists to stop,
+ * and it also made the server and client HTML differ for no reason. */
+function formatPeriodDay(value: string): string {
+  return formatDayMonthWib(value, { withYear: true }) ?? "TBD";
 }
 
 export function getRegistrationPeriodLabel(
   periods: ValidityPeriod[] | undefined,
-  hydrated: boolean = true,
   now: Date = new Date(),
 ): string {
-  const parsed = parsePeriods(periods);
+  const parsed = parseRegistrationWindows(periods);
   const chosen = pickDisplayWindow(parsed, now.getTime());
   if (!chosen) return "TBD";
 
-  const fmt = (value: string) => {
-    const result = hydrated
-      ? formatDeadlineLocal(value, { withTime: false })
-      : formatDeadlineWib(value, { withTime: false });
-    return result === "—" ? "TBD" : result;
-  };
-
-  const from = fmt(chosen.period.start_date);
-  const to = fmt(chosen.period.end_date);
+  const from = formatPeriodDay(chosen.period.start_date);
+  const to = formatPeriodDay(chosen.period.end_date);
   // A single-day window reads better unrepeated.
   return from === to ? from : `${from} - ${to}`;
 }
@@ -95,12 +93,20 @@ export function getRegistrationCountdownLabel(
   periods: ValidityPeriod[] | undefined,
   now: Date = new Date(),
 ): string | null {
+  return getWindowCountdownLabel(parseRegistrationWindows(periods), now);
+}
+
+/** The same countdown over already-parsed windows, so an edition's own
+ * half-bounded registration dates (which cannot be expressed as a period pair)
+ * get the identical rule. An open-ended window has no target and returns
+ * null. */
+function getWindowCountdownLabel(
+  windows: Array<{ start: number; end: number }>,
+  now: Date,
+): string | null {
   const nowTime = now.getTime();
-  const current = parsePeriods(periods)
-    .filter((entry) => entry.start <= nowTime && nowTime <= entry.end)
-    .sort(byEarliestEnd)
-    .pop();
-  if (!current) return null;
+  const current = pickCurrentWindow(windows, nowTime);
+  if (!current || !Number.isFinite(current.end)) return null;
 
   const remainingMs = current.end - nowTime;
   if (remainingMs <= 0) return null;
@@ -143,4 +149,31 @@ export function formatEventDateRange(
     year: 'numeric',
   });
   return `${startLabel} - ${endLabel}`;
+}
+
+/**
+ * Label and countdown for an EDITION's own registration dates.
+ *
+ * Unlike a tier's validity periods these may be HALF-BOUNDED (a null open
+ * date means "already open", a null close means "no end yet"), which is why
+ * three call sites hand-building `{ start_date: open ?? '', end_date: close ??
+ * '' }` was wrong: an empty string parses to NaN, the window was dropped, and
+ * the edition rendered badge "Open" over label "TBD" with no countdown while
+ * the gate (which reads windowsFromDates) correctly said open. One
+ * constructor, so the label, the countdown and the badge describe the same
+ * window.
+ */
+export function getRegistrationDatesDisplay(
+  dates: RegistrationDates,
+  now: Date = new Date(),
+): { label: string; countdown: string | null } {
+  const windows = windowsFromDates(dates);
+  if (windows.length === 0) return { label: "TBD", countdown: null };
+
+  const open = dates?.open ? formatPeriodDay(dates.open) : null;
+  const close = dates?.close ? formatPeriodDay(dates.close) : null;
+  const label =
+    open && close ? (open === close ? open : `${open} - ${close}`) : close ? `Until ${close}` : `From ${open}`;
+
+  return { label, countdown: getWindowCountdownLabel(windows, now) };
 }

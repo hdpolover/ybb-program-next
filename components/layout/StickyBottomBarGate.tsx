@@ -8,12 +8,14 @@ type StickyBottomBarGateProps = {
   deadline?: string | null;
   registerUrl?: string;
   activeProgramSlug?: string | null;
+  phase?: 'open' | 'upcoming';
 };
 
 export default function StickyBottomBarGate({
   deadline,
   registerUrl,
   activeProgramSlug,
+  phase = 'open',
 }: StickyBottomBarGateProps) {
   const pathname = usePathname();
 
@@ -21,5 +23,5 @@ export default function StickyBottomBarGate({
     return null;
   }
 
-  return <StickyBottomBar deadline={deadline} registerUrl={registerUrl || '/login?mode=signup'} />;
+  return <StickyBottomBar deadline={deadline} registerUrl={registerUrl || '/login?mode=signup'} phase={phase} />;
 }
