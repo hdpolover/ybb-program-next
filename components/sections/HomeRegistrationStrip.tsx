@@ -364,7 +364,7 @@ function RegistrationTypeCards({
           </div>
           <div className={componentsTheme.applyRegistrationTypes.feeRow}>
             <span className={componentsTheme.applyRegistrationTypes.priceText}>
-              {primaryType ? `${primaryType.currency} ${primaryType.price}` : '$15.00'}
+              {primaryType ? `${primaryType.currency} ${primaryType.price}` : 'To be announced'}
             </span>
             <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
               Registration Fee
@@ -484,7 +484,7 @@ function RegistrationTypeCards({
           </div>
           <div className={componentsTheme.applyRegistrationTypes.feeRow}>
             <span className={componentsTheme.applyRegistrationTypes.priceText}>
-              {secondaryType ? `${secondaryType.currency} ${secondaryType.price}` : '$10.00'}
+              {secondaryType ? `${secondaryType.currency} ${secondaryType.price}` : 'To be announced'}
             </span>
             <span className={componentsTheme.applyRegistrationTypes.feeLabel}>
               Registration Fee
