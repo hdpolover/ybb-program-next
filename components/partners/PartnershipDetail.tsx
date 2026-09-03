@@ -58,7 +58,7 @@ const PACKAGES: Record<
   'silver-partner': {
     title: 'Silver Partner',
     bestFor: 'Best for: Organizations starting strategic collaboration.',
-    price: '$10,000+',
+    price: 'Contact us',
     bullets: [
       'Logo placement on website',
       'Newsletter mentions',
@@ -70,7 +70,7 @@ const PACKAGES: Record<
   'gold-partner': {
     title: 'Gold Partner',
     bestFor: 'Best for: Strong brand exposure across main program activities.',
-    price: '$25,000+',
+    price: 'Contact us',
     bullets: [
       'Prominent logo placement',
       'Workshop sponsorship opportunities',
@@ -89,7 +89,7 @@ const PACKAGES: Record<
   'diamond-partner': {
     title: 'Diamond Partner',
     bestFor: 'Best for: Communities and service-based organizations.',
-    price: '$50,000+',
+    price: 'Contact us',
     bullets: [
       'Premier logo placement on all materials',
       'Speaking opportunities at main events',
@@ -116,7 +116,12 @@ export default function PartnershipDetailSection({
 }) {
   const pkg = getPackage(slug);
 
-  // Override prices from API when available
+  // Override prices from API when available. The silver/gold/diamond fallbacks
+  // used to be literal '$10,000+'/'$25,000+'/'$50,000+' -- an asking price nobody
+  // entered, shown on the page whose whole job is to get an organisation to commit
+  // money. No brand has sponsorship_tiers configured, so every brand published the
+  // same invented figure. Same reasoning as the commission rate below: when the
+  // number is unknown, ask them to get in touch rather than quote one.
   const resolvedPrice =
     slug === 'silver-partner' && sponsorshipTiers?.silver
       ? sponsorshipTiers.silver
