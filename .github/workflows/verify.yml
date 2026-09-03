@@ -1,0 +1,50 @@
+name: Verify
+
+# Runs on every PR into the branch that DEPLOYS. Dokploy deploys this repo from
+# `develop`, and nothing previously ran vitest or a build between a merge and
+# production.
+#
+# `npm run build` is not optional here. tsc and vitest are both blind to React
+# Server Component boundary errors in this app - skipping the build once took the
+# registration section down on all six brands.
+on:
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Test and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches this repo's Dockerfile, so CI cannot pass on a Node version
+          # production does not run.
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Test
+        run: npx vitest run
+
+      # next.config.js hard-fails a production build when APP_BUILD_ID or
+      # API_INTERNAL_URL is missing, and `next build` sets NODE_ENV=production,
+      # so both must be present or the build throws before compiling.
+      #
+      # These are deliberately placeholders. This job verifies that the app
+      # COMPILES - including the RSC boundaries tsc cannot see - not that it can
+      # reach a backend. Every route in this app is dynamic, so the build does no
+      # data fetching and never dials API_INTERNAL_URL.
+      - name: Build
+        run: npm run build
+        env:
+          APP_BUILD_ID: ${{ github.sha }}
+          API_INTERNAL_URL: http://localhost:3000
