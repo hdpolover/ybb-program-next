@@ -141,9 +141,9 @@ export const applyTheme = {
     paypalMetaValue: 'font-semibold text-slate-900',
     notesGrid: 'mt-4 grid gap-6 text-xs leading-relaxed text-slate-600 sm:grid-cols-2 sm:text-sm',
   },
-  applyEarlyBidCta: {
+  applyRegistrationDeadlineCta: {
     sectionWrapper:
-      "relative w-full overflow-hidden bg-[url('/img/ctabekground.png')] bg-cover bg-center bg-no-repeat py-12 text-[#172554] sm:py-16 lg:py-20",
+      'relative w-full overflow-hidden bg-[var(--brand-accent-soft)] py-12 text-slate-900 sm:py-16 lg:py-20',
     blurTop:
       'pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl',
     blurMiddle:

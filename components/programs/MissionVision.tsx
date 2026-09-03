@@ -27,7 +27,7 @@ export default function MissionVision({
         <SectionHeader eyebrow={eyebrow} title={title} />
         <div className="grid gap-6 md:grid-cols-2">
           {/* Mission */}
-          <div className="rounded-2xl bg-[url('/img/bgourprogram.png')] bg-cover bg-center shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 sm:p-8">
+          <div className="rounded-2xl bg-[var(--brand-accent-soft)] shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 sm:p-8">
             <div className="flex items-center gap-3">
               <span className={componentsTheme.programsMissionVision.missionIconMain}>
                 <Goal className="h-5 w-5" />
@@ -47,7 +47,7 @@ export default function MissionVision({
           </div>
 
           {/* Vision */}
-          <div className="rounded-2xl bg-[url('/img/bgprogramoverview.png')] bg-cover bg-center p-6 text-white shadow-[0_10px_40px_rgba(2,6,23,0.12)] ring-1 ring-white/20 sm:p-8">
+          <div className="rounded-2xl bg-[var(--brand-accent)] p-6 text-[var(--brand-accent-foreground)] shadow-[0_10px_40px_rgba(2,6,23,0.12)] ring-1 ring-white/20 sm:p-8">
             <div className="flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-white/20 text-white">
                 <Eye className="h-5 w-5" />

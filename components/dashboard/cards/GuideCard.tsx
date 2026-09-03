@@ -1,7 +1,7 @@
 // Kartu panduan pendaftaran — biar peserta tau next step apa aja
 export default function GuideCard() {
   return (
-    <div className="overflow-hidden rounded-2xl bg-[url('/img/bgprogramoverview.png')] bg-cover bg-center p-5 text-white shadow-[0_12px_40px_rgba(2,6,23,0.12)] ring-1 ring-white/10">
+    <div className="overflow-hidden rounded-2xl bg-[var(--brand-accent)] p-5 text-[var(--brand-accent-foreground)] shadow-[0_12px_40px_rgba(2,6,23,0.12)] ring-1 ring-white/10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-white/80">

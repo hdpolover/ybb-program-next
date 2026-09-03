@@ -1,5 +1,5 @@
 import HeroSection from '@/components/ui/HeroSection';
-import EarlyBidCTA from '@/components/sections/EarlyBidCTA';
+import RegistrationDeadlineCTA from '@/components/sections/RegistrationDeadlineCTA';
 import SelfFundedOverviewSection from '@/components/apply/self-funded/SelfFundedOverview';
 import SelfFundedPaymentSection from '@/components/apply/self-funded/SelfFundedPayment';
 import SelfFundedPaymentMethodsSection from '@/components/apply/self-funded/SelfFundedPaymentMethods';
@@ -31,7 +31,7 @@ export default async function SelfFundedPage() {
         ]}
       />
       <SelfFundedOverviewSection data={applyData.overview} />
-      <EarlyBidCTA deadlineIso={applyData.registrationDeadline} />
+      <RegistrationDeadlineCTA deadlineIso={applyData.registrationDeadline} />
       <SelfFundedPaymentSection
         schemeLabel="Self Funded"
         registrationCard={applyData.payment.registrationCard}

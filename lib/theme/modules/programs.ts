@@ -112,7 +112,7 @@ export const programsTheme = {
   },
   programsActivities: {
     sectionWrapper:
-      "relative w-full bg-[url('/img/bgshorts60.jpg')] bg-cover bg-center bg-no-repeat py-10 sm:py-14 lg:py-16",
+      'relative w-full bg-[var(--brand-accent-soft)] py-10 sm:py-14 lg:py-16',
     overlay: 'absolute inset-0 bg-white/80',
     container: 'relative mx-auto max-w-7xl px-6 lg:px-8',
     cardsGrid:
@@ -269,7 +269,7 @@ export const programsTheme = {
     guidelinesSection: 'relative bg-white',
     guidelinesContainer: 'mx-auto max-w-7xl px-6 py-16 lg:px-8',
     guidelinesCard:
-      "mx-auto max-w-3xl overflow-hidden rounded-2xl bg-[url('/img/bgourprogram.png')] bg-cover bg-center bg-blend-multiply ring-1 ring-gray-200",
+      'mx-auto max-w-3xl overflow-hidden rounded-2xl bg-[var(--brand-accent-soft)] ring-1 ring-gray-200',
     guidelinesBody: 'p-6 text-center sm:p-8',
     guidelinesIconCircle:
       'mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border-2 border-primary/100/80 bg-primary/10',
@@ -280,7 +280,7 @@ export const programsTheme = {
     guidelinesCtaWrapper: 'mt-6 flex justify-center',
     guidelinesDownloadIcon: 'h-4 w-4',
     // Overview + Application section
-    overviewSection: 'relative bg-[#eef5ff]',
+    overviewSection: 'relative bg-[var(--brand-accent-soft)]',
     overviewContainer: 'mx-auto max-w-7xl px-6 py-16 lg:px-8',
     overviewGrid: 'grid gap-6 lg:grid-cols-2',
     overviewCard: 'overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
@@ -316,7 +316,7 @@ export const programsTheme = {
     requirementsContainer: 'mx-auto max-w-7xl px-6 py-16 lg:px-8',
     requirementsCard: 'mx-auto max-w-3xl overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
     // Terms & Conditions section
-    termsSection: 'relative bg-[#eef5ff]',
+    termsSection: 'relative bg-[var(--brand-accent-soft)]',
     termsContainer: 'mx-auto max-w-3xl px-6 py-16 lg:px-8',
     termsDetails: 'group overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
     termsSummary:
@@ -360,7 +360,7 @@ export const programsTheme = {
     noteIcon: 'mt-0.5 h-5 w-5 flex-shrink-0 text-primary',
   },
   programFAQ: {
-    sectionWrapper: 'bg-[#eef5ff] px-6 py-12 sm:py-14 md:py-16 lg:px-8',
+    sectionWrapper: 'bg-[var(--brand-accent-soft)] px-6 py-12 sm:py-14 md:py-16 lg:px-8',
     container: 'mx-auto max-w-7xl',
     tabsCard: 'mx-auto mt-2 w-full overflow-hidden rounded-2xl border border-blue-100 bg-white',
     tabsGrid: 'grid grid-cols-3',

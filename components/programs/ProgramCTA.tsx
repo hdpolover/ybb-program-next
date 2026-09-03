@@ -24,7 +24,7 @@ export default function ProgramCTA({
   const resolvedPrimaryCtaHref = normalizeLandingCtaHref(primaryCtaHref);
 
   return (
-    <section className="relative w-full overflow-hidden bg-[url('/img/programregist.png')] bg-cover bg-center bg-no-repeat py-12 text-[#172554] sm:py-16 lg:py-20">
+    <section className="relative w-full overflow-hidden bg-[var(--brand-accent-soft)] py-12 text-slate-900 sm:py-16 lg:py-20">
       <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
       <div className="pointer-events-none absolute -right-24 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
       <div className="bg-accent/20 pointer-events-none absolute bottom-0 left-1/4 h-32 w-32 rounded-full blur-2xl" />
