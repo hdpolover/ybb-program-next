@@ -185,6 +185,9 @@ export default function DocumentsSection() {
   const [loadingCerts, setLoadingCerts] = useState(true);
   const [errorDocs, setErrorDocs] = useState<string | null>(null);
   const [errorCerts, setErrorCerts] = useState<string | null>(null);
+  // Held in state rather than read during render: readActiveProgramId touches
+  // localStorage, which is not available server-side and would desync hydration.
+  const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
 
   // Fetch program documents
   const fetchDocuments = async () => {
@@ -193,6 +196,7 @@ export default function DocumentsSection() {
       setErrorDocs(null);
 
       const programId = readActiveProgramId();
+      setActiveProgramId(programId ?? null);
       const url = appendProgramId('/api/portal/documents', programId);
 
       const response = await fetch(url, {
@@ -796,7 +800,7 @@ export default function DocumentsSection() {
                         </p>
                       )}
                       <a
-                        href="/api/portal/loa/download"
+                        href={appendProgramId('/api/portal/loa/download', activeProgramId)}
                         download
                         className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:underline"
                       >
