@@ -1,5 +1,5 @@
 import HeroSection from '@/components/ui/HeroSection';
-import EarlyBidCTA from '@/components/sections/EarlyBidCTA';
+import RegistrationDeadlineCTA from '@/components/sections/RegistrationDeadlineCTA';
 import FullyFundedOverviewSection from '@/components/apply/fully-funded/FullyFundedOverview';
 import FullyFundedPaymentSection from '@/components/apply/fully-funded/FullyFundedPayment';
 import FullyFundedPaymentMethodsSection from '@/components/apply/fully-funded/FullyFundedPaymentMethods';
@@ -31,7 +31,7 @@ export default async function FullyFundedPage() {
         ]}
       />
       <FullyFundedOverviewSection data={applyData.overview} />
-      <EarlyBidCTA deadlineIso={applyData.registrationDeadline} />
+      <RegistrationDeadlineCTA deadlineIso={applyData.registrationDeadline} />
       <FullyFundedPaymentSection
         schemeLabel="Fully Funded"
         registrationCard={applyData.payment.registrationCard}
