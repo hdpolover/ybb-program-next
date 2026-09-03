@@ -68,8 +68,32 @@ function relativeLuminance(hex: string): number {
   return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
 }
 
+/**
+ * The more readable of the two foregrounds on `hex`, by actual contrast ratio.
+ *
+ * This used to threshold on `luminance > 0.6`, which is far above the point
+ * where dark text overtakes light. The real crossover against these two values
+ * is ~0.18, so every accent between 0.18 and 0.6 was given white when black was
+ * more readable -- and three of the five live brands sit in that band:
+ *
+ *   middle-east-youth-summit  #EDA507  white 2.10:1  ->  black 9.99:1
+ *   japan-youth-summit        #EF4444  white 3.76:1  ->  black 5.58:1
+ *   china-youth-summit        #FA0000  white 4.15:1  ->  black 5.06:1
+ *
+ * WCAG AA wants 4.5:1 for body text, so MEYS was failing by a wide margin on
+ * every surface that trusted this. Comparing the ratios directly is exact,
+ * needs no magic number, and cannot drift as brands change their colours.
+ */
 function pickForeground(hex: string): string {
-  return relativeLuminance(hex) > 0.6 ? '#020617' : '#ffffff';
+  const DARK = '#020617';
+  const LIGHT = '#ffffff';
+  return contrastRatio(hex, DARK) >= contrastRatio(hex, LIGHT) ? DARK : LIGHT;
+}
+
+/** WCAG relative-contrast ratio between two hex colours. */
+function contrastRatio(a: string, b: string): number {
+  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
 }
 
 export async function generateMetadata(): Promise<Metadata> {
