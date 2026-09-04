@@ -8,6 +8,13 @@ const FORWARDED_REQUEST_HEADERS = [
   'cookie',
   'content-type',
   'x-brand-domain',
+  // The caller's address. Without these the API sees this container as the
+  // client for everything the catch-all proxies and rate limits all anonymous
+  // traffic as one caller. Forwarded verbatim and never rebuilt: the edge
+  // appends the address it observed, so the rightmost entry is the trustworthy
+  // one and the API reads that end. See lib/server/forwardedFor.ts.
+  'x-forwarded-for',
+  'cf-connecting-ip',
 ] as const;
 
 const RESPONSE_HEADERS = ['content-type', 'content-disposition', 'cache-control'] as const;

@@ -74,6 +74,56 @@ function buildApiUrl(path: string): URL {
   return new URL(`/api/proxy${normalizedPath}`, getApiBaseUrl());
 }
 
+/**
+ * The caller's address, for server-side calls the API will rate limit.
+ *
+ * Route handlers run in the Next container, so unless the client address is
+ * passed through, the API sees that one container as the client for every
+ * proxied request and rate limits the entire site as a single caller. Nine
+ * handlers already do this explicitly with forwardedForHeader() - all of them
+ * auth routes, where per-IP limiting matters most - but the other fifty-odd do
+ * not, and most of those cannot: they call apiGet without a `request` object at
+ * all (see app/api/metadata/countries/route.ts).
+ *
+ * Reading the headers here rather than threading `request` through fifty
+ * handlers means every server-side call gets it, including ones added later
+ * that nobody remembers to wire up.
+ *
+ * Authenticated traffic was never affected - the API's UserAwareThrottlerGuard
+ * keys those on the token's subject - so this specifically fixes ANONYMOUS
+ * requests, which all shared one bucket against the global tiers.
+ *
+ * `x-forwarded-for` is passed verbatim, never rebuilt or appended to: the edge
+ * appends the address it actually observed, so the rightmost entry is the
+ * trustworthy one and the API reads that end. Adding an entry here would put an
+ * untrusted value last and let callers choose their own throttle bucket. See
+ * lib/server/forwardedFor.ts, which documents the same rule for the handlers
+ * that call it directly.
+ *
+ * Returns {} in the browser, and on any failure. next/headers throws outside a
+ * request scope - during static generation, for instance - and a rate-limit
+ * hint is never worth failing a request over.
+ */
+async function inboundClientIpHeaders(): Promise<Record<string, string>> {
+  if (typeof window !== 'undefined') return {};
+
+  try {
+    const { headers } = await import('next/headers');
+    const inbound = await headers();
+    const forwarded: Record<string, string> = {};
+
+    const xff = inbound.get('x-forwarded-for')?.trim();
+    if (xff) forwarded['x-forwarded-for'] = xff;
+
+    const cfIp = inbound.get('cf-connecting-ip')?.trim();
+    if (cfIp) forwarded['cf-connecting-ip'] = cfIp;
+
+    return forwarded;
+  } catch {
+    return {};
+  }
+}
+
 export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Promise<T> {
   const url = buildApiUrl(path);
 
@@ -93,6 +143,9 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
       next: options.next,
       headers: {
         'Content-Type': 'application/json',
+        // Before options.headers, so a handler that already forwards the
+        // address explicitly still wins.
+        ...(await inboundClientIpHeaders()),
         ...(options.headers ?? {}),
       },
     },
@@ -123,6 +176,9 @@ export async function apiPost<T>(path: string, options: ApiPostOptions = {}): Pr
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // Before options.headers, so a handler that already forwards the
+        // address explicitly still wins.
+        ...(await inboundClientIpHeaders()),
         ...(options.headers ?? {}),
       },
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
