@@ -31,8 +31,13 @@ export async function GET(request: Request) {
     }
 
     const brandDomain = resolveBrandDomainFromRequest(request);
+    const requestUrl = new URL(request.url);
+    const programId = requestUrl.searchParams.get('programId');
 
     const apiUrl = new URL('/v1/portal/dashboard', getServerApiBaseUrl());
+    if (programId) {
+      apiUrl.searchParams.set('programId', programId);
+    }
     const res = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {

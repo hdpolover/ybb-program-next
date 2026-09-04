@@ -262,6 +262,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     console.error('[Layout] Failed to load settings:', settingsResult.reason);
   }
 
+  // Without this, a returning user's signup CTA created no application at
+  // all (auth-program-linking.util.ts falls back to "latest open program"
+  // only when no programSlug/programId is given, which can silently pick the
+  // wrong edition for a multi-program brand).
+  if (activeProgramSlug) {
+    registerUrl += `${registerUrl.includes('?') ? '&' : '?'}programSlug=${encodeURIComponent(activeProgramSlug)}`;
+  }
+
   if (!brandAccent) {
     brandAccent = normalizeHex(process.env.NEXT_PUBLIC_DEFAULT_BRAND_COLOR) || '#1c57b3';
   }

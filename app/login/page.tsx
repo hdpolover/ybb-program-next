@@ -16,7 +16,8 @@ import { Alert } from '@/components/ui';
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
 import { resolveLoginMode } from '@/lib/auth/loginMode';
 import { trackLead } from '@/lib/analytics/metaPixel';
-import { notifyIfRegistrationClosed } from '@/lib/auth/programRegistrationClosed';
+import { notifyIfRegistrationClosed, extractProgramRegistrationId } from '@/lib/auth/programRegistrationClosed';
+import { syncActiveProgramId } from '@/lib/dashboard/activeProgram';
 import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
 import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 import SignupEditionChoice, { type SignupEdition } from '@/components/auth/SignupEditionChoice';
@@ -248,6 +249,8 @@ export default function LoginPage() {
         }
 
         notifyIfRegistrationClosed(json?.data?.programRegistration);
+        const loginProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
+        if (loginProgramId) syncActiveProgramId(loginProgramId);
         router.push(json?.data?.redirectTo || '/onboarding');
       } catch (error) {
         const rawMessage = error instanceof Error ? error.message : 'Login failed';
@@ -319,6 +322,8 @@ export default function LoginPage() {
       const needsEmailVerification = json?.data?.needsEmailVerification ?? true;
       trackLead({ content_name: 'account_signup' }, { email: signupForm.email });
       notifyIfRegistrationClosed(json?.data?.programRegistration);
+      const registerProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
+      if (registerProgramId) syncActiveProgramId(registerProgramId);
       if (needsEmailVerification) {
         // Lets /verify-email offer a resend without asking for the address again.
         rememberPendingVerificationEmail(signupForm.email);
@@ -404,6 +409,11 @@ export default function LoginPage() {
           // silently. That is the path that put 872 people on the wrong edition
           // (2026-08-31). Send what the person actually chose.
           ...(mode === 'signup' && programSlug ? { programSlug } : {}),
+          // The email/password signup form always sent this; Google signup
+          // dropped it, so ensureProgramApplication fell through to its
+          // self_funded default even for a participant who picked Fully
+          // Funded on the edition-choice screen.
+          ...(mode === 'signup' && applicationCategory ? { applicationCategory } : {}),
         }),
       });
 
@@ -421,6 +431,12 @@ export default function LoginPage() {
       }
 
       notifyIfRegistrationClosed(json?.data?.programRegistration);
+      // Pin the dashboard's active-program selector to whatever program this
+      // auth response actually attached the participant to, BEFORE any of the
+      // redirects below — otherwise a stale ybb_active_program_id from an
+      // earlier session on a different program wins by default (MEYS 6th/7th).
+      const firebaseProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
+      if (firebaseProgramId) syncActiveProgramId(firebaseProgramId);
 
       if (typeof json?.data?.isOnboardingCompleted === 'boolean') {
         router.push(json.data.isOnboardingCompleted ? '/dashboard' : '/onboarding');

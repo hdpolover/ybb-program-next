@@ -428,10 +428,15 @@ export function Navbar() {
   // opening date is carried by the sticky bar, the fee cards and the hero,
   // which are announcements rather than navigation.
   const registrationOpen = registrationPhase === 'open';
+  // Without a programSlug, a returning user's signup CTA created no
+  // application at all — the backend only falls back to "latest open
+  // program" when neither is given, which can silently pick the wrong
+  // edition for a multi-program brand.
+  const navProgramSlug = settings?.active_program?.slug?.trim();
   const ctaHref = isAuthenticated
     ? '/dashboard'
     : registrationOpen
-      ? '/login?mode=signup'
+      ? `/login?mode=signup${navProgramSlug ? `&programSlug=${encodeURIComponent(navProgramSlug)}` : ''}`
       : '/login';
   // Width matters here, not just wording: the button is `whitespace-nowrap
   // shrink-0`, so a longer label neither wraps nor shrinks -- it widens the
