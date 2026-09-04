@@ -38,6 +38,11 @@ export class ApiRequestError extends Error {
 
 function getApiBaseUrl(): string {
   if (typeof window === 'undefined') {
+    // Must be the container-to-container URL, not a public HTTPS one. Routing
+    // these calls through Traefik makes it append this container's address to
+    // x-forwarded-for, which breaks the API's Cloudflare check and collapses
+    // every participant into one throttle bucket. Full reasoning in
+    // lib/server/apiBaseUrl.ts.
     const serverBaseUrl = process.env.API_INTERNAL_URL?.trim();
     if (!serverBaseUrl) {
       throw new Error('API_INTERNAL_URL must be configured for server-side API calls.');
