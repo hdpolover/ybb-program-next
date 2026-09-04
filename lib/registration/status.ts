@@ -101,5 +101,16 @@ export function resolveChromePhase(
   winnerPhase: RegistrationPhase | null | undefined,
   programPhase: RegistrationPhase | null | undefined,
 ): RegistrationPhase {
+  // The programme gate takes PRECEDENCE, it is not a fallback. This shipped
+  // once as `winnerPhase ?? programPhase ?? 'open'` and did nothing for the case
+  // it was written for: Korea Youth Summit 4th has allowRegistration:false AND
+  // open pricing-tier windows, so a window won, reported 'open', and the kill
+  // switch was never consulted. getRegistrationPhase's own docblock says the
+  // publish/active/allowRegistration flags are "a hard kill switch checked
+  // first" - checked FIRST, not last.
+  //
+  // A closed programme cannot be reopened by a tier window, because the backend
+  // will refuse the registration regardless of what the tiers say.
+  if (programPhase === 'closed') return 'closed';
   return winnerPhase ?? programPhase ?? 'open';
 }

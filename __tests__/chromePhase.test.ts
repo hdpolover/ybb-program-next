@@ -26,8 +26,8 @@ describe('resolveChromePhase', () => {
     expect(resolveChromePhase(undefined, programPhase)).toBe('closed');
   });
 
-  it('still reports open when a window genuinely won', () => {
-    expect(resolveChromePhase('open', 'closed')).toBe('open');
+  it('still reports open when a window won and the programme itself is open', () => {
+    expect(resolveChromePhase('open', 'open')).toBe('open');
   });
 
   it('passes upcoming through from the programme when no window won', () => {
@@ -39,5 +39,19 @@ describe('resolveChromePhase', () => {
     // the default exists for.
     expect(resolveChromePhase(undefined, null)).toBe('open');
     expect(resolveChromePhase(undefined, undefined)).toBe('open');
+  });
+
+  // The case the first version of this helper missed entirely, and the reason
+  // koreayouthsummit.com still served REGISTER NOW after that fix deployed.
+  // KYS 4th has allowRegistration:false AND pricing-tier windows that are open
+  // today ($15 self funded to 5 Mar 2027, $10 fully funded to 20 Nov 2026), so
+  // a window DOES win and reports 'open'. Treating the programme gate as a
+  // fallback meant the kill switch was never reached.
+  it('lets the kill switch beat an open tier window, not the other way round', () => {
+    expect(resolveChromePhase('open', 'closed')).toBe('closed');
+  });
+
+  it('keeps a closed programme closed even when a window says upcoming', () => {
+    expect(resolveChromePhase('upcoming', 'closed')).toBe('closed');
   });
 });
