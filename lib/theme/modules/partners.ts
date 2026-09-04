@@ -69,18 +69,9 @@ export const partnersTheme = {
     container: 'mx-auto max-w-7xl',
     subtitle:
       'mx-auto -mt-6 mb-2 max-w-2xl text-center text-sm text-slate-600 sm:mb-0 sm:text-base',
-    layout: 'mt-10 grid items-center gap-10 md:grid-cols-[minmax(0,0.35fr)_minmax(0,1fr)]',
     impactCol: 'space-y-3 text-slate-900',
     impactValue: 'text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900',
     impactLabel: 'text-sm md:text-base text-slate-700 max-w-xs',
-    card: 'rounded-2xl bg-white/90 p-6 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
-    cardHeader: 'mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between',
-    cardTitle: 'text-lg font-extrabold text-slate-900',
-    cardSubtitle: 'text-sm text-slate-600',
-    logosGrid: 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
-    logoCard:
-      'flex items-center justify-center rounded-xl bg-white p-4 transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(15,23,42,0.18)] focus:outline-none focus:ring-2 focus:ring-primary/40',
-    logoImg: 'h-12 w-auto object-contain',
   },
   partnersRequire: {
     sectionWrapper: 'px-6 py-16 sm:py-20 lg:py-24 lg:px-8 bg-white',

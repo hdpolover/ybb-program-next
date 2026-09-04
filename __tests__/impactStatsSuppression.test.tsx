@@ -68,12 +68,30 @@ describe('ProvenResults', () => {
     expect(screen.getByText('participants across our programs')).toBeInTheDocument();
   });
 
-  it('keeps the sponsor logos but drops the impact column when no figure exists', () => {
-    const { container } = render(<ProvenResultsSection />);
+  it('renders nothing at all when no figure exists', () => {
+    // The impact figure is now the only content in this section. It used to also
+    // carry a card of ten sponsor logos, every one of them an invented
+    // organisation linking to a /partners/<slug> page that returns 200, so
+    // "keep the logos, drop the figure" is no longer a state worth having.
+    expect(render(<ProvenResultsSection />).container).toBeEmptyDOMElement();
+  });
 
-    expect(screen.getByText('Proven Results')).toBeInTheDocument();
-    expect(screen.getByText('and Our Other Sponsors')).toBeInTheDocument();
-    expect(screen.queryByText(/people directly impacted/i)).not.toBeInTheDocument();
+  it('never renders a fabricated sponsor, and does not link to one', () => {
+    const { container } = render(<ProvenResultsSection impactValue="1700+" />);
+
+    expect(screen.queryByText(/and Our Other Sponsors/i)).not.toBeInTheDocument();
+    for (const slug of [
+      'iys-global',
+      'kys-education',
+      'meys-media-group',
+      'wys-technology',
+      'yaf-foundation',
+      'kys-learning-hub',
+      'meys-broadcasting',
+      'wys-digital-studio',
+    ]) {
+      expect(container.innerHTML).not.toContain(slug);
+    }
     expectNoInventedNumbers(container.innerHTML);
   });
 });
