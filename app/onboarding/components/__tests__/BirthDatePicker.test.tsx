@@ -59,8 +59,73 @@ describe('BirthDatePicker', () => {
       <BirthDatePicker value="1990-03-10" onChange={vi.fn()} minDate={MIN_DATE} maxDate={MAX_DATE} />,
     );
     fireEvent.click(screen.getByRole('button', { name: /date of birth/i }));
-    expect(screen.getByRole('button', { name: 'March' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '1990' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /currently March/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /currently 1990/i })).toBeInTheDocument();
+  });
+
+  describe('reaching a birth year without stepping month by month', () => {
+    // Reported from the MEYS 7th signup: "ngga bisa klik tahun juga untuk
+    // milih" — the year could not be clicked to choose. It always could; it
+    // was styled as bare text, so nobody found it and people stepped Prev a
+    // month at a time to reach 2004. These pin the two things that made it
+    // discoverable, so a restyle cannot quietly take them away again.
+
+    it('names the month and year controls as controls, not as headings', () => {
+      render(
+        <BirthDatePicker value="1990-03-10" onChange={vi.fn()} minDate={MIN_DATE} maxDate={MAX_DATE} />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /date of birth/i }));
+
+      // The accessible name has to say it CHANGES something. A button named
+      // bare "1990" reads to a screen reader exactly like the caption it was
+      // mistaken for by sighted users.
+      const year = screen.getByRole('button', { name: /change year/i });
+      const month = screen.getByRole('button', { name: /change month/i });
+      expect(year).toBeInTheDocument();
+      expect(month).toBeInTheDocument();
+      expect(year).toHaveAttribute('aria-expanded', 'false');
+      expect(month).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('opens a year grid that jumps straight to a birth year, and reports itself expanded', () => {
+      const onChange = vi.fn();
+      // 2004 is the year in the reported screenshot. The year grid opens on
+      // the page containing the current year (1992-2015 here), so a
+      // 2004-born applicant reaches their year in one click rather than
+      // stepping Prev through months.
+      render(
+        <BirthDatePicker value="2004-01-01" onChange={onChange} minDate={MIN_DATE} maxDate={MAX_DATE} />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /date of birth/i }));
+      fireEvent.click(screen.getByRole('button', { name: /change year/i }));
+
+      expect(screen.getByRole('button', { name: /change year/i })).toHaveAttribute(
+        'aria-expanded',
+        'true',
+      );
+
+      // Pick a DIFFERENT year than the current one, so a passing assertion
+      // cannot be satisfied by the label that was already on screen.
+      fireEvent.click(screen.getByRole('button', { name: '1998' }));
+      expect(screen.getByRole('button', { name: /currently 1998/i })).toBeInTheDocument();
+
+      // Choosing a year returns to the day grid rather than committing a
+      // date, so the value is untouched until a day is actually picked.
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('gives the calendar its own width instead of inheriting the narrow trigger', () => {
+      // The trigger is a narrow field in a two-column form. Sizing the dialog
+      // to it crushed seven day columns into ~160px, which is what made the
+      // year "hard to reach" even once you knew it was clickable.
+      render(
+        <BirthDatePicker value="1990-03-10" onChange={vi.fn()} minDate={MIN_DATE} maxDate={MAX_DATE} />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /date of birth/i }));
+
+      const dialog = screen.getByRole('dialog', { name: /choose date of birth/i });
+      expect(parseFloat(dialog.style.width)).toBeGreaterThanOrEqual(304);
+    });
   });
 
   it('calls onChange with an ISO date and closes when a day is picked', () => {

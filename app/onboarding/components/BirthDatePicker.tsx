@@ -206,8 +206,23 @@ export function BirthDatePicker({
       const desired = 420;
       const minHeight = 260;
 
-      const left = Math.min(Math.max(rect.left, padding), viewportWidth - padding - rect.width);
-      const width = Math.min(rect.width, viewportWidth - padding * 2);
+      // The calendar is NOT sized to the trigger. It used to be
+      // `min(rect.width, ...)`, and the trigger is a narrow field in a
+      // two-column form, so seven day columns plus their gaps were squeezed
+      // into ~160px: the numbers ran together ("18 19 2021 222324"), the tap
+      // targets fell under a finger's width, and reaching the year control
+      // meant fighting the layout. Reported from the MEYS 7th signup.
+      //
+      // 304 = 7 columns x 40px + the dialog's own 12px padding either side.
+      // It is a FLOOR, not a fixed width: a trigger wider than that keeps its
+      // own width, and the viewport clamp still wins on a small screen.
+      const width = Math.min(Math.max(rect.width, 304), viewportWidth - padding * 2);
+
+      // Clamp against the FINAL width, not rect.width. Computing this from
+      // the trigger's width was harmless only while the calendar could never
+      // be wider than the trigger; now that it can, using rect.width here
+      // would let the dialog hang off the right edge of the viewport.
+      const left = Math.min(Math.max(rect.left, padding), viewportWidth - padding - width);
 
       if (spaceBelow < minHeight && spaceAbove > spaceBelow) {
         setCalPlacement('top');
@@ -443,23 +458,38 @@ export function BirthDatePicker({
               Prev
             </button>
 
-            <div className="flex items-center gap-2">
+            {/*
+              These two open the month and year panels, and they always did —
+              but styled as bare text they read as a heading, so the reported
+              complaint was that the year "cannot be clicked" and the only way
+              anyone found to reach 2004 was stepping Prev a month at a time.
+              A control that is discoverable only on hover is not discoverable
+              on a phone at all, which is where this form is mostly filled in.
+              Give them a border, a chevron and a name that says what they do.
+            */}
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+                aria-label={`Change month, currently ${birthPickerMeta.monthName}`}
+                aria-expanded={birthPickerMode === 'month'}
+                className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-50"
                 onClick={() => setBirthPickerMode(m => (m === 'month' ? 'day' : 'month'))}
               >
                 {birthPickerMeta.monthName}
+                <span className="text-[10px] leading-none text-slate-400" aria-hidden="true">▾</span>
               </button>
               <button
                 type="button"
-                className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+                aria-label={`Change year, currently ${birthPickerMeta.yearLabel}`}
+                aria-expanded={birthPickerMode === 'year'}
+                className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-50"
                 onClick={() => {
                   setBirthPickerMode(m => (m === 'year' ? 'day' : 'year'));
                   setBirthPickerYearPageStart(birthPickerYear - 12);
                 }}
               >
                 {birthPickerMeta.yearLabel}
+                <span className="text-[10px] leading-none text-slate-400" aria-hidden="true">▾</span>
               </button>
             </div>
 
