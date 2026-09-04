@@ -17,6 +17,12 @@ import { toast } from 'sonner';
 import { Alert } from '@/components/ui';
 import { friendlyOnboardingError } from '@/lib/onboarding/friendlyOnboardingError';
 import { extractBirthDate } from '@/lib/onboarding/extractBirthDate';
+import {
+  EMPTY_FORM,
+  clearOnboardingDraft,
+  readOnboardingDraft,
+  writeOnboardingDraft,
+} from '@/lib/onboarding/draft';
 import { isRecord } from '@/lib/api/response';
 import { nameRuleError, textRuleError } from '@/lib/onboarding/fieldRules';
 import { asciiFold, hasDisallowed, toSubmittableAscii } from '@/lib/text/restricted-input';
@@ -67,6 +73,12 @@ export default function OnboardingPage() {
   const citiesCacheRef = useRef<Map<string, CityMetadata[]>>(new Map());
 
   const [activeStep, setActiveStep] = useState<StepKey>('Basic Info');
+
+  // Gates the persist effect. Effects run in declaration order after the same
+  // commit, so without this the persist effect would fire on mount with the
+  // still-empty initial form and overwrite the very draft the restore effect
+  // is about to read.
+  const draftRestored = useRef(false);
   const [bioShowErrors, setBioShowErrors] = useState(false);
   const [domShowErrors, setDomShowErrors] = useState(false);
   const [ageShowErrors, setAgeShowErrors] = useState(false);
@@ -76,16 +88,12 @@ export default function OnboardingPage() {
   const [submitError, setSubmitError] = useState('');
   const [referralStatus, setReferralStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid' | 'unknown'>('idle');
 
-  const [form, setForm] = useState<OnboardingForm>({
-    fullName: '',
-    country: '',
-    state: '',
-    city: '',
-    birthDate: '',
-    programSource: '',
-    gender: '',
-    referralCode: '',
-  });
+  // NOT restored in the initialiser. This component renders on the server,
+  // where sessionStorage does not exist, so a useState initialiser reading it
+  // returns nothing — and React hydrates the client with that server value
+  // rather than re-running the initialiser. The restore has to happen in a
+  // mount effect; see below.
+  const [form, setForm] = useState<OnboardingForm>(EMPTY_FORM);
 
   // Prefill from an existing participant profile, if the user already has
   // one (e.g. a prior incomplete onboarding, or resuming on a new device).
@@ -141,28 +149,29 @@ export default function OnboardingPage() {
         };
 
         setForm(prev => {
-          const isUntouched =
-            prev.fullName === '' &&
-            prev.country === '' &&
-            prev.state === '' &&
-            prev.city === '' &&
-            prev.birthDate === '' &&
-            prev.programSource === '' &&
-            prev.gender === '' &&
-            prev.referralCode === '';
-          if (!isUntouched) return prev;
+          // Fill PER FIELD, and only where the field is still empty.
+          //
+          // This used to be all-or-nothing: if any field was non-empty the
+          // whole prefill was skipped, which was the right instinct (never
+          // clobber something the user is typing) but the wrong granularity
+          // now that a restored draft can populate some fields. Per-field
+          // keeps the same guarantee — anything the user or their draft has
+          // already put there wins — while still filling the rest from the
+          // profile instead of abandoning the prefill entirely.
+          const fill = (current: string, incoming: string | undefined) =>
+            current.trim().length > 0 ? current : incoming ?? current;
 
           return {
-            fullName: nameStr(prefillData.fullName) ?? prev.fullName,
-            gender: str(prefillData.gender) ?? prev.gender,
-            programSource: str(prefillData.knowledgeSource) ?? prev.programSource,
-            country: str(prefillData.originCountry) ?? prev.country,
-            city: textStr(prefillData.originCity) ?? prev.city,
+            fullName: fill(prev.fullName, nameStr(prefillData.fullName)),
+            gender: fill(prev.gender, str(prefillData.gender)),
+            programSource: fill(prev.programSource, str(prefillData.knowledgeSource)),
+            country: fill(prev.country, str(prefillData.originCountry)),
+            city: fill(prev.city, textStr(prefillData.originCity)),
             // No state/region column exists on the Participant model — leave
             // it untouched rather than inventing a source for it.
             state: prev.state,
-            birthDate: extractBirthDate(prefillData.birthdate) ?? prev.birthDate,
-            referralCode: str(prefillData.referralCode) ?? prev.referralCode,
+            birthDate: fill(prev.birthDate, extractBirthDate(prefillData.birthdate)),
+            referralCode: fill(prev.referralCode, str(prefillData.referralCode)),
           };
         });
       } catch {
@@ -421,6 +430,50 @@ export default function OnboardingPage() {
     }));
   }, [originCities]);
 
+  // Restore a draft from this tab, client-side only, once.
+  useEffect(() => {
+    const draft = readOnboardingDraft();
+    if (draft.form) {
+      setForm(prev => {
+        const merged = { ...prev };
+        for (const key of Object.keys(EMPTY_FORM) as Array<keyof OnboardingForm>) {
+          const saved = draft.form?.[key];
+          // Only non-empty saved values win. An empty string in the draft is
+          // "the user had not filled this in", not an instruction to blank a
+          // field the profile prefill may be about to populate.
+          if (typeof saved === 'string' && saved.trim().length > 0) merged[key] = saved;
+        }
+        return merged;
+      });
+    }
+    if (draft.step) setActiveStep(draft.step);
+    draftRestored.current = true;
+  }, []);
+
+  // Persist the in-progress form so a reload, a back-navigation or an
+  // accidental tab refresh does not send the user back to an empty Step 1.
+  // Cleared once the server accepts the submission; see onContinue.
+  useEffect(() => {
+    if (!draftRestored.current) return;
+    writeOnboardingDraft({ form, step: activeStep });
+  }, [form, activeStep]);
+
+  // Which control each location field is showing. Hoisted because the same
+  // predicate decides both the control inside FormField and the secondary
+  // "type it manually" / "choose from the list" action rendered under it.
+  const showStateSelect =
+    Boolean(selectedCountry?.isoCode) &&
+    !statesFailed &&
+    !stateManual &&
+    (statesLoading || stateSelectOptions.length > 0);
+
+  const showCitySelect =
+    Boolean(selectedCountry?.isoCode) &&
+    Boolean(form.state) &&
+    !citiesFailed &&
+    !cityManual &&
+    (citiesLoading || citySelectOptions.length > 0);
+
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -627,6 +680,10 @@ export default function OnboardingPage() {
         throw new Error(json?.message || `Onboarding failed: ${res.status} ${res.statusText}`);
       }
 
+      // Only here, once the server has actually accepted it. Clearing on
+      // submit-attempt would lose the user's work on the 4xx path, which is
+      // exactly when they most need it still typed in.
+      clearOnboardingDraft();
       router.push('/dashboard');
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : 'Onboarding failed';
@@ -778,7 +835,14 @@ export default function OnboardingPage() {
       <div className={onboardingTheme.layoutGrid}>
         <div className={onboardingTheme.leftCol}>
           <div className={onboardingTheme.leftCenter}>
-            <div className="w-full max-w-lg lg:my-auto flex flex-col">
+            {/*
+              flex-1 makes this column fill the scrollable area rather than
+              only as tall as its content, so the copyright's mt-auto below has
+              free space to push against. Without it the footer just trailed
+              whatever the tallest step happened to be and floated mid-page on
+              the short ones.
+            */}
+            <div className="w-full max-w-lg flex flex-1 flex-col">
               <div className={onboardingTheme.mobileImagePanel}>
                 <Image
                   src={loginImageSrc}
@@ -927,10 +991,39 @@ export default function OnboardingPage() {
                         required={true}
                         error={domShowErrors && form.state.trim().length === 0 ? "Required" : (selectedCountry?.isoCode && statesFailed ? "Could not load states. You can type manually." : "")}
                         hint={selectedCountry?.isoCode && !statesLoading && !statesFailed && stateSelectOptions.length === 0 ? "No states/regions listed for this country. Please type yours." : null}
+                        footer={
+                          stateSelectOptions.length > 0 && !statesLoading ? (
+                            showStateSelect ? (
+                              <button
+                                type="button"
+                                className={onboardingTheme.seeAllButton}
+                                onClick={() => {
+                                  setStateManual(true);
+                                  setCityManual(false);
+                                  setForm(prev => ({ ...prev, state: '', city: '' }));
+                                }}
+                              >
+                                Can&apos;t find your state/region? Type it manually
+                              </button>
+                            ) : stateManual ? (
+                              <button
+                                type="button"
+                                className={onboardingTheme.seeAllButton}
+                                onClick={() => {
+                                  setStateManual(false);
+                                  setCityManual(false);
+                                  setForm(prev => ({ ...prev, state: '', city: '' }));
+                                }}
+                              >
+                                Choose from the list instead
+                              </button>
+                            ) : null
+                          ) : null
+                        }
                       >
                        {(errorClass) => (
                           <>
-                            {selectedCountry?.isoCode && !statesFailed && !stateManual && (statesLoading || stateSelectOptions.length > 0) ? (
+                            {showStateSelect ? (
                               <>
                                 <StyledSelect
                                   value={form.state}
@@ -944,19 +1037,6 @@ export default function OnboardingPage() {
                                   searchable
                                   disabled={!selectedCountry?.isoCode || statesLoading}
                                 />
-                                {!statesLoading && stateSelectOptions.length > 0 && (
-                                  <button
-                                    type="button"
-                                    className={onboardingTheme.seeAllButton}
-                                    onClick={() => {
-                                      setStateManual(true);
-                                      setCityManual(false);
-                                      setForm(prev => ({ ...prev, state: '', city: '' }));
-                                    }}
-                                  >
-                                    Can&apos;t find your state/region? Type it manually
-                                  </button>
-                                )}
                               </>
                             ) : (
                               <>
@@ -970,19 +1050,6 @@ export default function OnboardingPage() {
                                   className={`${componentsTheme.login.input} ${errorClass}`}
                                   placeholder="Type your state/region"
                                 />
-                                {stateManual && stateSelectOptions.length > 0 && (
-                                  <button
-                                    type="button"
-                                    className={onboardingTheme.seeAllButton}
-                                    onClick={() => {
-                                      setStateManual(false);
-                                      setCityManual(false);
-                                      setForm(prev => ({ ...prev, state: '', city: '' }));
-                                    }}
-                                  >
-                                    Choose from the list instead
-                                  </button>
-                                )}
                               </>
                             )}
                           </>
@@ -1001,10 +1068,37 @@ export default function OnboardingPage() {
                               : (selectedCountry?.isoCode && citiesFailed ? "Could not load cities. You can type manually." : "")
                         }
                         hint={selectedCountry?.isoCode && form.state && !citiesLoading && !citiesFailed && citySelectOptions.length === 0 ? "No cities listed for this state/region. Please type your city." : null}
+                        footer={
+                          citySelectOptions.length > 0 && !citiesLoading ? (
+                            showCitySelect ? (
+                              <button
+                                type="button"
+                                className={onboardingTheme.seeAllButton}
+                                onClick={() => {
+                                  setCityManual(true);
+                                  setForm(prev => ({ ...prev, city: '' }));
+                                }}
+                              >
+                                Can&apos;t find your city? Type it manually
+                              </button>
+                            ) : cityManual ? (
+                              <button
+                                type="button"
+                                className={onboardingTheme.seeAllButton}
+                                onClick={() => {
+                                  setCityManual(false);
+                                  setForm(prev => ({ ...prev, city: '' }));
+                                }}
+                              >
+                                Choose from the list instead
+                              </button>
+                            ) : null
+                          ) : null
+                        }
                       >
                        {(errorClass) => (
                           <>
-                            {selectedCountry?.isoCode && form.state && !citiesFailed && !cityManual && (citiesLoading || citySelectOptions.length > 0) ? (
+                            {showCitySelect ? (
                               <>
                                 <StyledSelect
                                   value={form.city}
@@ -1015,18 +1109,6 @@ export default function OnboardingPage() {
                                   searchable
                                   disabled={!form.state || citiesLoading}
                                 />
-                                {!citiesLoading && citySelectOptions.length > 0 && (
-                                  <button
-                                    type="button"
-                                    className={onboardingTheme.seeAllButton}
-                                    onClick={() => {
-                                      setCityManual(true);
-                                      setForm(prev => ({ ...prev, city: '' }));
-                                    }}
-                                  >
-                                    Can&apos;t find your city? Type it manually
-                                  </button>
-                                )}
                               </>
                             ) : (
                               <>
@@ -1040,18 +1122,6 @@ export default function OnboardingPage() {
                                   className={`${componentsTheme.login.input} ${errorClass}`}
                                   placeholder="Type your city"
                                 />
-                                {cityManual && citySelectOptions.length > 0 && (
-                                  <button
-                                    type="button"
-                                    className={onboardingTheme.seeAllButton}
-                                    onClick={() => {
-                                      setCityManual(false);
-                                      setForm(prev => ({ ...prev, city: '' }));
-                                    }}
-                                  >
-                                    Choose from the list instead
-                                  </button>
-                                )}
                               </>
                             )}
                           </>
@@ -1262,7 +1332,9 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <p className="mt-8 text-center text-xs text-slate-400">
+              {/* mt-auto pins this to the bottom of the column; pt-8 keeps a
+                  floor of space when the step IS tall enough to fill it. */}
+              <p className="mt-auto pt-8 text-center text-xs text-slate-400">
                 Copyright &copy; {new Date().getFullYear()} {brandName}
               </p>
             </div>

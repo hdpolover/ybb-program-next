@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 
 const MONTH_NAMES = [
@@ -401,20 +402,28 @@ export function BirthDatePicker({
   }
 
   return (
-    <div className="relative" ref={wrapperRef}>
+    // w-full is load-bearing. FormField renders its children inside
+    // `relative flex items-center` so it can hang the leading icon off the
+    // row; a bare `relative` here made the trigger a flex item that shrank to
+    // its own text, so the control sat as a stub about a third of the field's
+    // width while every other input on the form was full width.
+    <div className="relative w-full" ref={wrapperRef}>
       <button
         type="button"
         ref={triggerRef}
         aria-haspopup="dialog"
         aria-expanded={birthPickerOpen}
         aria-label="Date of birth"
-        className={`${componentsTheme.login.input} ${errorClassName} flex items-center justify-between`}
+        className={`${componentsTheme.login.input} ${errorClassName} flex w-full items-center justify-between gap-2 text-left`}
         onClick={() => setBirthPickerOpen(v => !v)}
       >
         <span className={birthDateDisplay ? 'text-slate-900' : 'text-slate-400'}>
           {birthDateDisplay || 'Select date'}
         </span>
-        <span className="text-slate-400" aria-hidden="true">▾</span>
+        <ChevronDown
+          className={`h-4 w-4 flex-shrink-0 text-slate-400 transition-transform ${birthPickerOpen ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
       </button>
 
       {birthPickerOpen ? (
@@ -446,7 +455,7 @@ export function BirthDatePicker({
                   : 'Previous year'
               }
               disabled={birthPickerMode === 'day' ? atMinMonth : birthPickerMode === 'year' ? atMinYearPage : birthPickerYear <= bounds.minYear}
-              className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+              className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
               onClick={
                 birthPickerMode === 'day'
                   ? goBirthPickerPrev
@@ -455,7 +464,7 @@ export function BirthDatePicker({
                   : () => setBirthPickerYear(y => y - 1)
               }
             >
-              Prev
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </button>
 
             {/*
@@ -503,7 +512,7 @@ export function BirthDatePicker({
                   : 'Next year'
               }
               disabled={birthPickerMode === 'day' ? atMaxMonth : birthPickerMode === 'year' ? atMaxYearPage : birthPickerYear >= bounds.maxYear}
-              className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+              className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
               onClick={
                 birthPickerMode === 'day'
                   ? goBirthPickerNext
@@ -512,7 +521,7 @@ export function BirthDatePicker({
                   : () => setBirthPickerYear(y => y + 1)
               }
             >
-              Next
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
 
