@@ -19,6 +19,7 @@ import UserMenuPopover from '@/components/dashboard/layout/UserMenuPopover';
 import { getEnvelopeData, isRecord } from '@/lib/api/response';
 import { toAmbassadorData } from '@/lib/dashboard/ambassador';
 import { shouldRedirectToOnboarding } from '@/lib/dashboard/shouldRedirectToOnboarding';
+import { appendProgramId, readActiveProgramId, resolveActiveProgramId } from '@/lib/dashboard/activeProgram';
 import { componentsTheme } from '@/lib/theme/components';
 
 type DashboardSearchItem = {
@@ -262,7 +263,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         // on every dashboard mount. Start them together and handle each result
         // exactly as before. A rejected fetch resolves to null here, which the
         // blocks below treat the same way the old catch blocks did.
-        const dashPromise = fetch('/api/portal/dashboard', {
+        // Same resolution ProgramSelector uses (registeredPrograms +
+        // ybb_active_program_id), so the overview card and the top-bar
+        // selector can never disagree on which program is "active" (MEYS
+        // 6th/7th bug: this fetch used to carry no programId at all).
+        const dashProgramId = resolveActiveProgramId(data?.registeredPrograms ?? [], readActiveProgramId());
+        const dashPromise = fetch(appendProgramId('/api/portal/dashboard', dashProgramId), {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           cache: 'no-store',

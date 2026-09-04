@@ -86,3 +86,21 @@ export function notifyIfRegistrationClosed(value: unknown): void {
   toast.warning(buildRegistrationClosedMessage(info));
   persistRegistrationClosedInfo(info);
 }
+
+/**
+ * Narrows the same `programRegistration` field down to just the programId,
+ * regardless of status ('created' | 'existing' | 'closed') — unlike
+ * parseProgramRegistrationClosed above, which only matches 'closed'. Used to
+ * pin the dashboard's active-program selector (ybb_active_program_id, see
+ * lib/dashboard/activeProgram.ts) to whatever program the auth response
+ * actually attached the participant to, in the two normal (non-closed) cases
+ * this field is populated for.
+ */
+export function extractProgramRegistrationId(value: unknown): string | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const candidate = value as { programId?: unknown };
+  return typeof candidate.programId === 'string' && candidate.programId.trim().length > 0
+    ? candidate.programId
+    : null;
+}

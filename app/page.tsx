@@ -94,9 +94,14 @@ export default async function Home() {
     new Date(),
   );
   const activeCategory: RegistrationCategory | null = runningWindow?.category ?? null;
-  const registerUrl = activeCategory
-    ? `/login?mode=signup&applicationCategory=${activeCategory}`
-    : '/login?mode=signup';
+  // Without a programSlug, a returning user's signup CTA created no
+  // application at all — the backend only falls back to "latest open
+  // program" when neither is given, which can silently pick the wrong
+  // edition for a multi-program brand.
+  const registerUrl =
+    (activeCategory
+      ? `/login?mode=signup&applicationCategory=${activeCategory}`
+      : '/login?mode=signup') + (homeData.slug ? `&programSlug=${encodeURIComponent(homeData.slug)}` : '');
 
   const programOverviewSection = homeData.sections.find(
     (section): section is ProgramOverviewSection => section.type === 'program_overview'
