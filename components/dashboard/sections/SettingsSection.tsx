@@ -20,6 +20,7 @@ import { parseApiDate } from "@/lib/utils";
 import { auth, googleProvider } from "@/lib/firebase";
 import { useHydrated } from "@/hooks/useHydrated";
 import { BUSINESS_TIMEZONE } from "@/lib/format/deadline";
+import DeleteAccountSection from "@/components/dashboard/sections/settings/DeleteAccountSection";
 
 /**
  * Formats without an explicit timeZone, so before hydration (server render and
@@ -563,6 +564,9 @@ export default function SettingsSection() {
             </div>
           </div>
         </section>
+
+        {/* Danger zone */}
+        <DeleteAccountSection />
       </div>
     </div>
   );
