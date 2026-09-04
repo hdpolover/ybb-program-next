@@ -1,17 +1,36 @@
-import Image from 'next/image';
-import Link from 'next/link';
+// components/partners/ProvenResults.tsx
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
-// Section: Proven Results — impact angka + logo sponsor.
+// Section: Proven Results — impact angka.
 //
 // The figure comes from the platform `impact_stats` row (total_participants),
 // carried on the /partners payload. It used to be a hardcoded "630,000+ people
 // directly impacted by funded initiatives" — two orders of magnitude above the
 // entire users table, describing an outcome the schema does not model at all.
-// No fallback: with no curated figure the impact column is dropped and only the
-// sponsor logos remain.
+//
+// This section also used to carry a card of ten sponsor logos, and every one of
+// them was invented: iys-global, kys-education, meys-media-group,
+// wys-technology, yaf-foundation, kys-learning-hub, meys-broadcasting,
+// wys-digital-studio and friends, each reusing a YBB brand logo and each linking
+// to /partners/<slug>, which returns 200 and renders a generic partnership page.
+// So a visitor could click a fabricated organisation and land somewhere that
+// looked like its profile. Its own comment said "using existing assets to
+// simulate real sponsors".
+//
+// Real sponsor and partner data already renders on this page through
+// SponsorTiersSection and CommunityPartnersSection (app/partners/page.tsx), fed
+// by the sponsors_grid / partners_grid payload sections. Those are the honest
+// surface. Production currently has 0 rows in `sponsors` and 0 in
+// `program_partners`, so there is nothing to show — which is exactly why the
+// placeholder existed, and exactly why it had to go rather than be wired up.
+//
+// With the logos gone the impact figure is the only content here, so the whole
+// section is suppressed when no curated figure exists rather than rendering a
+// heading over nothing.
 export default function ProvenResultsSection({ impactValue }: { impactValue?: string }) {
+  if (!impactValue) return null;
+
   return (
     <section className={componentsTheme.partnersProven.sectionWrapper}>
       <div className={componentsTheme.partnersProven.container}>
@@ -20,133 +39,10 @@ export default function ProvenResultsSection({ impactValue }: { impactValue?: st
           Tangible outcomes powered by our partners and sponsors across programs and regions.
         </p>
 
-        {/* Without the impact column the two-column split would squeeze the
-            logo card into the narrow 0.35fr track, so drop the grid with it. */}
-        <div className={impactValue ? componentsTheme.partnersProven.layout : 'mt-10'}>
-          {impactValue ? (
-            <div className={componentsTheme.partnersProven.impactCol}>
-              <p className={componentsTheme.partnersProven.impactValue}>{impactValue}</p>
-              <p className={componentsTheme.partnersProven.impactLabel}>
-                participants across our programs
-              </p>
-            </div>
-          ) : null}
-
-          {/* Right: card with logos */}
-          <div className={componentsTheme.partnersProven.card}>
-            <div className={componentsTheme.partnersProven.cardHeader}>
-              <h3 className={componentsTheme.partnersProven.cardTitle}>and Our Other Sponsors</h3>
-              <p className={componentsTheme.partnersProven.cardSubtitle}>
-                Brands and institutions that help make this program possible
-              </p>
-            </div>
-
-            <div className={componentsTheme.partnersProven.logosGrid}>
-              {/* Logo items - using existing assets to simulate real sponsors */}
-              <Link href="/partners/iys-global" className={componentsTheme.partnersProven.logoCard}>
-                <Image
-                  src="/img/IYSlogo.png"
-                  alt="IYS Global"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-              <Link href="/partners/kys-education" className={componentsTheme.partnersProven.logoCard}>
-                <Image
-                  src="/img/KYSlogo.png"
-                  alt="KYS Education"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-              <Link href="/partners/meys-media-group" className={componentsTheme.partnersProven.logoCard}>
-                <Image
-                  src="/img/MEYSlogo.png"
-                  alt="MEYS Media Group"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-              <Link href="/partners/wys-technology" className={componentsTheme.partnersProven.logoCard}>
-                <Image
-                  src="/img/WYSlogo.png"
-                  alt="WYS Technology"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-              <Link href="/partners/yaf-foundation" className={componentsTheme.partnersProven.logoCard}>
-                <Image
-                  src="/img/YAFlogo.png"
-                  alt="YAF Foundation"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-              <Link
-                href="/partners/youth-beyond-borders-network"
-                className={componentsTheme.partnersProven.logoCard}
-              >
-                <Image
-                  src="/img/ybb-logo.png"
-                  alt="Youth Break the Boundaries"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-              <Link href="/partners/iys-global-partners" className={componentsTheme.partnersProven.logoCard}>
-                <Image
-                  src="/img/IYSlogo.png"
-                  alt="IYS Global Partners"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-              <Link href="/partners/kys-learning-hub" className={componentsTheme.partnersProven.logoCard}>
-                <Image
-                  src="/img/KYSlogo.png"
-                  alt="KYS Learning Hub"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-              <Link href="/partners/meys-broadcasting" className={componentsTheme.partnersProven.logoCard}>
-                <Image
-                  src="/img/MEYSlogo.png"
-                  alt="MEYS Broadcasting"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-              <Link href="/partners/wys-digital-studio" className={componentsTheme.partnersProven.logoCard}>
-                <Image
-                  src="/img/WYSlogo.png"
-                  alt="WYS Digital Studio"
-                  width={96}
-                  height={48}
-                  sizes="96px"
-                  className={componentsTheme.partnersProven.logoImg}
-                />
-              </Link>
-            </div>
+        <div className="mt-10">
+          <div className={componentsTheme.partnersProven.impactCol}>
+            <p className={componentsTheme.partnersProven.impactValue}>{impactValue}</p>
+            <p className={componentsTheme.partnersProven.impactLabel}>participants across our programs</p>
           </div>
         </div>
       </div>
