@@ -79,3 +79,27 @@ export function isProgramRegistrationOpen(
 ): boolean {
   return getRegistrationPhase(program, now) === 'open';
 }
+
+/**
+ * The phase the site-wide chrome (navbar CTA, countdown banner, sticky Register
+ * bar) should present, given the window that won the countdown and the
+ * programme's own gate.
+ *
+ * Extracted from app/layout.tsx because the bug lived in this one expression and
+ * a server layout cannot be unit tested. It read `winnerPhase ?? 'open'`, so a
+ * programme with `allowRegistration: false` produced no winning window, fell
+ * through the ??, and the navbar advertised REGISTER NOW for a programme the
+ * backend refuses. Korea Youth Summit 4th did exactly that on 2026-09-04, with
+ * zero applications across every KYS programme ever recorded.
+ *
+ * The programme phase is consulted BEFORE defaulting, because that is where the
+ * isPublished/isActive/allowRegistration kill switch lives. Defaulting to
+ * 'open' survives only for the case it was written for: no programme could be
+ * loaded at all, where a transient fetch failure must not blank the CTA.
+ */
+export function resolveChromePhase(
+  winnerPhase: RegistrationPhase | null | undefined,
+  programPhase: RegistrationPhase | null | undefined,
+): RegistrationPhase {
+  return winnerPhase ?? programPhase ?? 'open';
+}
