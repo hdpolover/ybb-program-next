@@ -27,7 +27,23 @@ const FALLBACK_IMAGES = [
  * with different hand-written copy. Classify on that copy rather than
  * duplicating it, so this only needs updating if that wording changes.
  */
-function classifySuccess(message: string): 'restored' | 'already-cancelled' {
+// Outcome codes from the API (CancelDeletionRequestHandler.DELETION_CANCEL_CODES).
+// Classifying on these rather than on the wording is the whole point: a reworded
+// message would otherwise send a genuinely-restored account down the "invalid
+// link" branch, and nothing would fail to say so.
+const CODES = {
+  restored: 'deletion_cancelled',
+  alreadyCancelled: 'deletion_already_cancelled',
+  alreadyDeleted: 'account_already_deleted',
+} as const;
+
+// The prose checks below are a FALLBACK for one situation only: this app and the
+// API deploy independently, so a build of this page can briefly run against an
+// API that predates the codes. Once both are out, `code` always wins. Do not
+// rely on the prose, and do not delete the code branch in favour of it.
+function classifySuccess(message: string, code?: string): 'restored' | 'already-cancelled' {
+  if (code === CODES.alreadyCancelled) return 'already-cancelled';
+  if (code === CODES.restored) return 'restored';
   return /already cancelled/i.test(message) ? 'already-cancelled' : 'restored';
 }
 
@@ -36,7 +52,9 @@ function classifySuccess(message: string): 'restored' | 'already-cancelled' {
  * purge having already run. Only the second is terminal, so it gets its own
  * plain, final copy instead of the generic "try again" framing.
  */
-function classifyError(message: string): 'invalid' | 'deleted' {
+function classifyError(message: string, code?: string): 'invalid' | 'deleted' {
+  if (code === CODES.alreadyDeleted) return 'deleted';
+  if (code) return 'invalid';
   return /permanently deleted/i.test(message) ? 'deleted' : 'invalid';
 }
 
@@ -68,16 +86,17 @@ export default function CancelDeletionPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ requestId, token }),
         });
-        const json = (await res.json().catch(() => ({}))) as { message?: string };
+        const json = (await res.json().catch(() => ({}))) as { message?: string; errorCode?: string };
         const text = json?.message ?? '';
+        const code = json?.errorCode;
 
         if (cancelled) return;
 
         if (res.ok) {
-          setStatus(classifySuccess(text));
+          setStatus(classifySuccess(text, code));
           setMessage(text || 'Your account has been reactivated.');
         } else {
-          setStatus(classifyError(text));
+          setStatus(classifyError(text, code));
           setMessage(text || 'This cancellation link is invalid or has expired.');
         }
       } catch {

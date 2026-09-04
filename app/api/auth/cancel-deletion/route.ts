@@ -55,6 +55,10 @@ export async function POST(request: Request) {
             typeof jsonRecord.message === 'string'
               ? jsonRecord.message
               : 'This cancellation link is invalid or has expired.',
+          // The API's HttpExceptionFilter always emits the machine-readable
+          // outcome code as `errorCode`, whichever spelling the handler threw.
+          // The cancel page classifies on this and never on the wording.
+          errorCode: typeof jsonRecord.errorCode === 'string' ? jsonRecord.errorCode : undefined,
           data: null,
         },
         { status: res.status },
@@ -70,9 +74,14 @@ export async function POST(request: Request) {
       ? jsonRecord.data.message
       : null;
 
+    const nestedCode = isRecord(jsonRecord.data) && typeof jsonRecord.data.code === 'string'
+      ? jsonRecord.data.code
+      : undefined;
+
     return NextResponse.json({
       statusCode: 200,
       message: nestedMessage ?? 'Success',
+      errorCode: nestedCode,
       data: jsonRecord.data ?? json,
     });
   } catch {

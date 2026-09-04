@@ -35,7 +35,7 @@ type FetchCall = { url: string; body: Record<string, unknown> | null };
 
 /** Stubs /api/home (gallery, always fails so fallback images are used) and
  * /api/auth/cancel-deletion with the given response, recording every call. */
-function stubFetch(cancelResponse: { ok: boolean; message: string }) {
+function stubFetch(cancelResponse: { ok: boolean; message: string; errorCode?: string }) {
   const calls: FetchCall[] = [];
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -49,7 +49,12 @@ function stubFetch(cancelResponse: { ok: boolean; message: string }) {
       return {
         ok: cancelResponse.ok,
         status: cancelResponse.ok ? 200 : 400,
-        json: async () => ({ statusCode: cancelResponse.ok ? 200 : 400, message: cancelResponse.message, data: null }),
+        json: async () => ({
+            statusCode: cancelResponse.ok ? 200 : 400,
+            message: cancelResponse.message,
+            errorCode: cancelResponse.errorCode,
+            data: null,
+          }),
       } as Response;
     }
 
@@ -129,5 +134,27 @@ describe('cancel-deletion page', () => {
 
     expect(await screen.findByText('Link Invalid or Expired')).toBeInTheDocument();
     expect(calls.some((c) => c.url === '/api/auth/cancel-deletion')).toBe(false);
+  });
+
+  // The reason this page classifies on `errorCode` at all: the copy is the
+  // backend's to change. These use messages that match NO prose branch, so they
+  // pass only if the code is genuinely read and genuinely forwarded by the BFF
+  // route. An earlier version of this change edited the page but silently failed
+  // to edit the route, leaving the whole thing inert while looking correct.
+  it('classifies on the outcome code even when the wording matches no prose branch', async () => {
+    searchParams = new URLSearchParams('requestId=req-123&token=tok-abc');
+    stubFetch({ ok: false, message: 'Some entirely reworded copy.', errorCode: 'account_already_deleted' });
+    render(<CancelDeletionPage />);
+
+    expect(await screen.findByText('Account Already Deleted')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /go to login/i })).not.toBeInTheDocument();
+  });
+
+  it('classifies an already-cancelled result on its code, not on the phrase "already cancelled"', async () => {
+    searchParams = new URLSearchParams('requestId=req-123&token=tok-abc');
+    stubFetch({ ok: true, message: 'Nothing to do here.', errorCode: 'deletion_already_cancelled' });
+    render(<CancelDeletionPage />);
+
+    expect(await screen.findByText('Already Cancelled')).toBeInTheDocument();
   });
 });
