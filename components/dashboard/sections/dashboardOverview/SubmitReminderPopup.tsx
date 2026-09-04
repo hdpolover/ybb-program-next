@@ -14,8 +14,10 @@ const SEEN_KEY_PREFIX = "submit_reminder_seen_";
  * Post-login reminder telling participants to submit their application form
  * before the deadline. Shown once per browser session, and only while the
  * application is still a draft. The deadline itself comes from the API
- * (`submissionDeadline`): the Fully Funded registration window while it is
- * open, then the Self Funded one.
+ * (`submissionDeadline`): the validity window CURRENTLY ACTIVE for the
+ * application's own category (staged main + extension windows), falling
+ * back to the program's default applicationDeadline once every window for
+ * that category has expired or while none has started yet.
  */
 export default function SubmitReminderPopup() {
   const { dashboardSummary } = useDashboardData();
