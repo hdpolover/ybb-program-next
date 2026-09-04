@@ -24,7 +24,7 @@ import {
   type CountdownProgramFallback,
   type RegistrationCategory,
 } from '@/lib/registration/deadline';
-import { getRegistrationPhase } from '@/lib/registration/status';
+import { getRegistrationPhase, resolveChromePhase, type RegistrationPhase } from '@/lib/registration/status';
 import type { RegistrationOverviewSection } from '@/types/home';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -160,7 +160,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let countdownProgramName: string | null = null;
   // What registrationCloseDate MEANS. 'upcoming' = it is an OPEN date, so the
   // prompts must count down to an opening and must not offer a register CTA.
-  let countdownPhase: 'open' | 'upcoming' = 'open';
+  // Tri-state, deliberately: 'closed' has to be representable or the
+  // allowRegistration kill switch cannot reach the navbar. This was
+  // 'open' | 'upcoming', so a programme with allowRegistration:false fell
+  // through the `?? 'open'` below and the navbar advertised REGISTER NOW for a
+  // programme the backend refuses - which is what Korea Youth Summit 4th did on
+  // 2026-09-04, with zero applications across every KYS programme ever.
+  let countdownPhase: RegistrationPhase = 'open';
   let activeProgramSlug = process.env.YBB_PROGRAM_SLUG?.trim() || null;
   let registerUrl = '/login?mode=signup';
   let activeCategory: RegistrationCategory | null = null;
@@ -242,7 +248,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       // edition list is exactly when the programme fallback has to run.
       const winner = resolveRegistrationCountdown(editions, new Date(), programFallback);
       registrationCloseDate = winner?.deadline ?? null;
-      countdownPhase = winner?.phase ?? 'open';
+        // No window won. Fall back to the PROGRAMME's own phase before
+        // defaulting: getRegistrationPhase already applies the
+        // isPublished/isActive/allowRegistration kill switch, and dropping it
+        // here is what let a killed programme read as open. Only a programme we
+        // could not load at all defaults to 'open', preserving the never-blank
+        // behaviour for a transient fetch failure.
+        countdownPhase = resolveChromePhase(winner?.phase, programFallback?.phase);
       countdownProgramName = winner
         ? winner.categoryLabel
           ? `${winner.programName} ${winner.categoryLabel}`
