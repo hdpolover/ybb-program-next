@@ -44,18 +44,48 @@ function pickCurrentWindow<T extends { start: number; end: number }>(parsed: T[]
 }
 
 /**
+ * The MAIN window of a tier: the longest one, ties broken by the earliest
+ * start so the choice is deterministic.
+ *
+ * Staged registration ("bertahap") is run on purpose: a long main window
+ * followed by short extension windows, often a ladder of one-day ones. CYS
+ * 2026's self-funded tier has a 15 Apr - 10 Oct main window and seventeen
+ * extensions after it, the last being 25 Oct - 2 Nov.
+ *
+ * "Longest" rather than "first" because an early-bird window placed BEFORE the
+ * main one would otherwise be mistaken for it, and length is what actually
+ * distinguishes the advertised period from an operational extension.
+ */
+function pickMainWindow(parsed: ParsedPeriod[]): ParsedPeriod | undefined {
+  return [...parsed].sort((a, b) => {
+    const byLength = (b.end - b.start) - (a.end - a.start);
+    return byLength !== 0 ? byLength : a.start - b.start;
+  })[0];
+}
+
+/**
  * Pick the window a participant should be shown "right now": the one
- * covering `now`, falling back to the next upcoming one, then the last one
- * that ran, so a label never goes blank. Shared by the period label and the
- * per-card countdown so both describe the same window.
+ * covering `now`, falling back to the next upcoming one, then - once every
+ * window has lapsed - the MAIN one, so a label never goes blank. Shared by the
+ * period label and the per-card countdown so both describe the same window.
+ *
+ * The lapsed branch used to show the window that ran LAST, which on a finished
+ * programme meant the tail of the extension ladder: CYS self-funded would have
+ * read "25 Oct - 2 Nov" for a registration that opened in April. That both
+ * contradicts the published guideline and advertises to next year's applicants
+ * that extensions are routine, which is the opposite of what the ladder is for.
+ *
+ * It deliberately does NOT fall back to the programme's own registration dates.
+ * A tier that genuinely ran for two days - CYS fully-funded, 20-21 Aug - would
+ * then print the programme's 15 Apr - 2 Nov and state something untrue. The
+ * tier's own longest window is the honest answer for both shapes.
  */
 function pickDisplayWindow(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
   if (parsed.length === 0) return undefined;
 
   const upcoming = parsed.filter((entry) => entry.start > nowTime).sort((a, b) => a.start - b.start)[0];
-  const lapsed = [...parsed].sort(byEarliestEnd)[parsed.length - 1];
 
-  return pickCurrentWindow(parsed, nowTime) ?? upcoming ?? lapsed;
+  return pickCurrentWindow(parsed, nowTime) ?? upcoming ?? pickMainWindow(parsed);
 }
 
 /** A registration period boundary is a CALENDAR DAY the admin picked, not an
