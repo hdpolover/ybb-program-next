@@ -44,18 +44,48 @@ function pickCurrentWindow<T extends { start: number; end: number }>(parsed: T[]
 }
 
 /**
+ * The MAIN window of a tier: the longest one, ties broken by the earliest
+ * start so the choice is deterministic.
+ *
+ * Staged registration ("bertahap") is run on purpose: a long main window
+ * followed by short extension windows, often a ladder of one-day ones. CYS
+ * 2026's self-funded tier has a 15 Apr - 10 Oct main window and seventeen
+ * extensions after it, the last being 25 Oct - 2 Nov.
+ *
+ * "Longest" rather than "first" because an early-bird window placed BEFORE the
+ * main one would otherwise be mistaken for it, and length is what actually
+ * distinguishes the advertised period from an operational extension.
+ */
+function pickMainWindow(parsed: ParsedPeriod[]): ParsedPeriod | undefined {
+  return [...parsed].sort((a, b) => {
+    const byLength = (b.end - b.start) - (a.end - a.start);
+    return byLength !== 0 ? byLength : a.start - b.start;
+  })[0];
+}
+
+/**
  * Pick the window a participant should be shown "right now": the one
- * covering `now`, falling back to the next upcoming one, then the last one
- * that ran, so a label never goes blank. Shared by the period label and the
- * per-card countdown so both describe the same window.
+ * covering `now`, falling back to the next upcoming one, then - once every
+ * window has lapsed - the MAIN one, so a label never goes blank. Shared by the
+ * period label and the per-card countdown so both describe the same window.
+ *
+ * The lapsed branch used to show the window that ran LAST, which on a finished
+ * programme meant the tail of the extension ladder: CYS self-funded would have
+ * read "25 Oct - 2 Nov" for a registration that opened in April. That both
+ * contradicts the published guideline and advertises to next year's applicants
+ * that extensions are routine, which is the opposite of what the ladder is for.
+ *
+ * It deliberately does NOT fall back to the programme's own registration dates.
+ * A tier that genuinely ran for two days - CYS fully-funded, 20-21 Aug - would
+ * then print the programme's 15 Apr - 2 Nov and state something untrue. The
+ * tier's own longest window is the honest answer for both shapes.
  */
 function pickDisplayWindow(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
   if (parsed.length === 0) return undefined;
 
   const upcoming = parsed.filter((entry) => entry.start > nowTime).sort((a, b) => a.start - b.start)[0];
-  const lapsed = [...parsed].sort(byEarliestEnd)[parsed.length - 1];
 
-  return pickCurrentWindow(parsed, nowTime) ?? upcoming ?? lapsed;
+  return pickCurrentWindow(parsed, nowTime) ?? upcoming ?? pickMainWindow(parsed);
 }
 
 /** A registration period boundary is a CALENDAR DAY the admin picked, not an
@@ -67,15 +97,78 @@ function formatPeriodDay(value: string): string {
   return formatDayMonthWib(value, { withYear: true }) ?? "TBD";
 }
 
+/**
+ * The start of the CONTINUOUS run of windows that reaches today: the day
+ * registration opened and has been open ever since, without closing.
+ *
+ * Walking the already-started windows in order and restarting on a gap is what
+ * keeps this honest. A tier open Apr-Jul, shut for a month, then reopened in
+ * August has NOT been open since April, and saying so would invent a period it
+ * never had. In that case the run containing today begins in August, which is
+ * exactly the single-window behaviour this label had before.
+ *
+ * Extension chains hand over exactly (one window ends 23:59:59.999 WIB, the
+ * next starts 00:00 the following day), so contiguity is `start <= coveredTo + 1`
+ * rather than a strict overlap.
+ */
+function openedOnContinuous(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
+  const started = parsed
+    .filter((entry) => entry.start <= nowTime)
+    .sort((a, b) => a.start - b.start);
+  if (started.length === 0) return undefined;
+
+  let runStart = started[0];
+  let coveredTo = started[0].end;
+
+  for (const window of started.slice(1)) {
+    if (window.start > coveredTo + 1) {
+      // A real gap: registration closed and later reopened. The run restarts.
+      runStart = window;
+      coveredTo = window.end;
+    } else {
+      coveredTo = Math.max(coveredTo, window.end);
+    }
+  }
+
+  return runStart;
+}
+
+/**
+ * The period a card shows, as a from/to pair.
+ *
+ * This label has been reversed twice, because each fix corrected one end and
+ * broke the other. Both ends now have a reason, and both are pinned by tests:
+ *
+ *   START - the day registration OPENED AND STAYED OPEN, not the start of
+ *   whichever one-day extension happens to cover today. Showing the
+ *   extension's start made a registration open since May read as
+ *   "4 Sept - 5 Sept" (b16f74f's complaint, on MEYS). A tier that genuinely
+ *   closed and reopened restarts the run, so this never claims a period the
+ *   tier was not open.
+ *
+ *   END - the deadline that ACTUALLY APPLIES, i.e. the current window's end,
+ *   never MAX(end) across the chain. Spanning to the latest end told a
+ *   participant they had until November when the window closed that night
+ *   (e99d01a's complaint, and the reason b16f74f was reverted).
+ *
+ * So: open since X, closes Y. Neither half may be "simplified" into the other.
+ */
 export function getRegistrationPeriodLabel(
   periods: ValidityPeriod[] | undefined,
   now: Date = new Date(),
 ): string {
   const parsed = parseRegistrationWindows(periods);
-  const chosen = pickDisplayWindow(parsed, now.getTime());
+  const nowTime = now.getTime();
+  const chosen = pickDisplayWindow(parsed, nowTime);
   if (!chosen) return "TBD";
 
-  const from = formatPeriodDay(chosen.period.start_date);
+  // Only while a window is genuinely open does "opened on" mean anything. An
+  // upcoming window has not started, and a lapsed tier already shows its main
+  // window whole.
+  const isOpen = pickCurrentWindow(parsed, nowTime) !== undefined;
+  const startPeriod = (isOpen ? openedOnContinuous(parsed, nowTime) : undefined) ?? chosen;
+
+  const from = formatPeriodDay(startPeriod.period.start_date);
   const to = formatPeriodDay(chosen.period.end_date);
   // A single-day window reads better unrepeated.
   return from === to ? from : `${from} - ${to}`;

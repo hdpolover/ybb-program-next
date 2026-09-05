@@ -5,7 +5,7 @@
  * a page whose fee cards all read Closed. Clicking it created a real account
  * and then told the user registration "has closed".
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import StickyBottomBar from '@/components/ui/StickyBottomBar';
 
@@ -20,6 +20,10 @@ function scrollIntoView() {
 describe('StickyBottomBar', () => {
   beforeEach(() => {
     Object.defineProperty(window, 'scrollY', { value: 0, writable: true, configurable: true });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders an active register link while registration is open', () => {
@@ -44,6 +48,16 @@ describe('StickyBottomBar', () => {
   it('labels the opening day in WIB, not in the viewer timezone', () => {
     // 2026-09-04T17:00Z is 5 Sept in Jakarta and 4 Sept in UTC. The bar must
     // say the Jakarta day whoever is looking.
+    //
+    // The clock is pinned because the assertion needs that exact instant to
+    // still be in the FUTURE. Written against a real clock it passed until the
+    // real 4 Sept 2026 went by, after which the upcoming countdown hit zero and
+    // the bar correctly swapped to "Register Now" - so the test started failing
+    // on a date rather than on a regression. An absolute deadline compared
+    // against a live clock is a test with an expiry date on it.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-01T00:00:00.000Z'));
+
     render(<StickyBottomBar deadline="2026-09-04T17:00:00.000Z" registerUrl="/login?mode=signup" phase="upcoming" />);
     scrollIntoView();
 

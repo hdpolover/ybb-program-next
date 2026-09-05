@@ -24,13 +24,48 @@ const CHINA_FF_PERIODS = [
 describe('getRegistrationPeriodLabel', () => {
   const at = (iso: string) => new Date(iso);
 
-  it('shows only the window covering today, not the whole chain', () => {
+  // Both ends carry a decision, and this label has already been reversed twice
+  // because each fix corrected one and broke the other. Assert them together.
+  it('reads "open since" the run start, and closes on the CURRENT window end', () => {
     const label = getRegistrationPeriodLabel(CHINA_FF_PERIODS, at('2026-07-16T09:00:00+07:00'));
-    // The 16 Jul - 17 Jul window, not "14 Apr - 21 Aug".
-    expect(label).toContain('16');
-    expect(label).toContain('17');
+
+    // Start: the chain is contiguous back to 14 Apr, so registration really has
+    // been open since April - not "16 Jul", the start of today's one-day
+    // extension.
+    expect(label).toBe('14 Apr 2026 - 17 Jul 2026');
+
+    // End: the deadline that ACTUALLY applies. Never 21 Aug, the chain's last
+    // end - that told participants they had weeks longer than they did, and is
+    // why the earlier MIN(start)-MAX(end) span was reverted.
+    expect(label).not.toContain('21 Aug');
+  });
+
+  it('does not claim a period the tier was closed for', () => {
+    // Open Apr - Jul, shut for a month, reopened in August. It has NOT been
+    // open since April, so the run containing today starts in August - the
+    // single-window behaviour this label had before.
+    const withGap = [
+      { start_date: '2026-04-14', end_date: '2026-07-15' },
+      { start_date: '2026-08-20', end_date: '2026-08-25' },
+    ];
+
+    const label = getRegistrationPeriodLabel(withGap, at('2026-08-21T09:00:00+07:00'));
+
+    expect(label).toBe('20 Aug 2026 - 25 Aug 2026');
     expect(label).not.toContain('Apr');
-    expect(label).not.toContain('21');
+  });
+
+  it('treats an exact hand-over as continuous, not as a gap', () => {
+    // Extensions hand over at the day boundary: one window ends 23:59:59.999
+    // WIB and the next starts 00:00 the next day. That is not a gap.
+    const handover = [
+      { start_date: '2026-04-14', end_date: '2026-07-15' },
+      { start_date: '2026-07-16', end_date: '2026-07-20' },
+    ];
+
+    const label = getRegistrationPeriodLabel(handover, at('2026-07-17T09:00:00+07:00'));
+
+    expect(label).toBe('14 Apr 2026 - 20 Jul 2026');
   });
 
   it('uses the current window even when a later window exists', () => {
@@ -70,11 +105,44 @@ describe('getRegistrationPeriodLabel', () => {
     expect(label).not.toContain('1 ');
   });
 
-  it('falls back to the final window once every window has lapsed', () => {
+  // Once a programme is finished the card should describe the period that was
+  // ADVERTISED, not the tail of the extension ladder. Showing the last window
+  // made a registration that opened in April read as a few days in August,
+  // which contradicts the published guideline and tells next year's applicants
+  // that extensions are routine.
+  it('falls back to the MAIN window once every window has lapsed, not the final one', () => {
     const label = getRegistrationPeriodLabel(CHINA_FF_PERIODS, at('2026-12-01T09:00:00+07:00'));
-    expect(label).toContain('20');
-    expect(label).toContain('21');
+
+    // The 14 Apr - 15 Jul main window.
+    expect(label).toBe('14 Apr 2026 - 15 Jul 2026');
     expect(label).not.toBe('TBD');
+  });
+
+  it('leaves a tier that genuinely ran once alone, rather than inventing a longer period', () => {
+    // CYS fully-funded really did run for two days. The honest label for it is
+    // those two days - not the programme's own registration window, which it
+    // never had.
+    const label = getRegistrationPeriodLabel(
+      [{ start_date: '2026-08-20', end_date: '2026-08-21' }],
+      at('2026-12-01T09:00:00+07:00'),
+    );
+
+    expect(label).toBe('20 Aug 2026 - 21 Aug 2026');
+  });
+
+  it('picks the longest window as main, even when an earlier short one precedes it', () => {
+    // "First" would mistake an early-bird window for the main one; length is
+    // what distinguishes the advertised period from an operational extension.
+    const label = getRegistrationPeriodLabel(
+      [
+        { start_date: '2026-03-01', end_date: '2026-03-02' },
+        { start_date: '2026-04-14', end_date: '2026-10-10' },
+        { start_date: '2026-10-10', end_date: '2026-10-11' },
+      ],
+      at('2026-12-01T09:00:00+07:00'),
+    );
+
+    expect(label).toBe('14 Apr 2026 - 10 Oct 2026');
   });
 
   it('does not move the label when an admin appends a window ahead of today', () => {
