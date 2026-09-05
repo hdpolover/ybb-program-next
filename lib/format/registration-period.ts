@@ -97,15 +97,78 @@ function formatPeriodDay(value: string): string {
   return formatDayMonthWib(value, { withYear: true }) ?? "TBD";
 }
 
+/**
+ * The start of the CONTINUOUS run of windows that reaches today: the day
+ * registration opened and has been open ever since, without closing.
+ *
+ * Walking the already-started windows in order and restarting on a gap is what
+ * keeps this honest. A tier open Apr-Jul, shut for a month, then reopened in
+ * August has NOT been open since April, and saying so would invent a period it
+ * never had. In that case the run containing today begins in August, which is
+ * exactly the single-window behaviour this label had before.
+ *
+ * Extension chains hand over exactly (one window ends 23:59:59.999 WIB, the
+ * next starts 00:00 the following day), so contiguity is `start <= coveredTo + 1`
+ * rather than a strict overlap.
+ */
+function openedOnContinuous(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
+  const started = parsed
+    .filter((entry) => entry.start <= nowTime)
+    .sort((a, b) => a.start - b.start);
+  if (started.length === 0) return undefined;
+
+  let runStart = started[0];
+  let coveredTo = started[0].end;
+
+  for (const window of started.slice(1)) {
+    if (window.start > coveredTo + 1) {
+      // A real gap: registration closed and later reopened. The run restarts.
+      runStart = window;
+      coveredTo = window.end;
+    } else {
+      coveredTo = Math.max(coveredTo, window.end);
+    }
+  }
+
+  return runStart;
+}
+
+/**
+ * The period a card shows, as a from/to pair.
+ *
+ * This label has been reversed twice, because each fix corrected one end and
+ * broke the other. Both ends now have a reason, and both are pinned by tests:
+ *
+ *   START - the day registration OPENED AND STAYED OPEN, not the start of
+ *   whichever one-day extension happens to cover today. Showing the
+ *   extension's start made a registration open since May read as
+ *   "4 Sept - 5 Sept" (b16f74f's complaint, on MEYS). A tier that genuinely
+ *   closed and reopened restarts the run, so this never claims a period the
+ *   tier was not open.
+ *
+ *   END - the deadline that ACTUALLY APPLIES, i.e. the current window's end,
+ *   never MAX(end) across the chain. Spanning to the latest end told a
+ *   participant they had until November when the window closed that night
+ *   (e99d01a's complaint, and the reason b16f74f was reverted).
+ *
+ * So: open since X, closes Y. Neither half may be "simplified" into the other.
+ */
 export function getRegistrationPeriodLabel(
   periods: ValidityPeriod[] | undefined,
   now: Date = new Date(),
 ): string {
   const parsed = parseRegistrationWindows(periods);
-  const chosen = pickDisplayWindow(parsed, now.getTime());
+  const nowTime = now.getTime();
+  const chosen = pickDisplayWindow(parsed, nowTime);
   if (!chosen) return "TBD";
 
-  const from = formatPeriodDay(chosen.period.start_date);
+  // Only while a window is genuinely open does "opened on" mean anything. An
+  // upcoming window has not started, and a lapsed tier already shows its main
+  // window whole.
+  const isOpen = pickCurrentWindow(parsed, nowTime) !== undefined;
+  const startPeriod = (isOpen ? openedOnContinuous(parsed, nowTime) : undefined) ?? chosen;
+
+  const from = formatPeriodDay(startPeriod.period.start_date);
   const to = formatPeriodDay(chosen.period.end_date);
   // A single-day window reads better unrepeated.
   return from === to ? from : `${from} - ${to}`;

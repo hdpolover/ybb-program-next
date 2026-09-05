@@ -24,13 +24,48 @@ const CHINA_FF_PERIODS = [
 describe('getRegistrationPeriodLabel', () => {
   const at = (iso: string) => new Date(iso);
 
-  it('shows only the window covering today, not the whole chain', () => {
+  // Both ends carry a decision, and this label has already been reversed twice
+  // because each fix corrected one and broke the other. Assert them together.
+  it('reads "open since" the run start, and closes on the CURRENT window end', () => {
     const label = getRegistrationPeriodLabel(CHINA_FF_PERIODS, at('2026-07-16T09:00:00+07:00'));
-    // The 16 Jul - 17 Jul window, not "14 Apr - 21 Aug".
-    expect(label).toContain('16');
-    expect(label).toContain('17');
+
+    // Start: the chain is contiguous back to 14 Apr, so registration really has
+    // been open since April - not "16 Jul", the start of today's one-day
+    // extension.
+    expect(label).toBe('14 Apr 2026 - 17 Jul 2026');
+
+    // End: the deadline that ACTUALLY applies. Never 21 Aug, the chain's last
+    // end - that told participants they had weeks longer than they did, and is
+    // why the earlier MIN(start)-MAX(end) span was reverted.
+    expect(label).not.toContain('21 Aug');
+  });
+
+  it('does not claim a period the tier was closed for', () => {
+    // Open Apr - Jul, shut for a month, reopened in August. It has NOT been
+    // open since April, so the run containing today starts in August - the
+    // single-window behaviour this label had before.
+    const withGap = [
+      { start_date: '2026-04-14', end_date: '2026-07-15' },
+      { start_date: '2026-08-20', end_date: '2026-08-25' },
+    ];
+
+    const label = getRegistrationPeriodLabel(withGap, at('2026-08-21T09:00:00+07:00'));
+
+    expect(label).toBe('20 Aug 2026 - 25 Aug 2026');
     expect(label).not.toContain('Apr');
-    expect(label).not.toContain('21');
+  });
+
+  it('treats an exact hand-over as continuous, not as a gap', () => {
+    // Extensions hand over at the day boundary: one window ends 23:59:59.999
+    // WIB and the next starts 00:00 the next day. That is not a gap.
+    const handover = [
+      { start_date: '2026-04-14', end_date: '2026-07-15' },
+      { start_date: '2026-07-16', end_date: '2026-07-20' },
+    ];
+
+    const label = getRegistrationPeriodLabel(handover, at('2026-07-17T09:00:00+07:00'));
+
+    expect(label).toBe('14 Apr 2026 - 20 Jul 2026');
   });
 
   it('uses the current window even when a later window exists', () => {
