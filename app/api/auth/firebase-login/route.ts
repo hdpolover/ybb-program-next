@@ -11,6 +11,10 @@ type FirebaseLoginBody = {
   referralCode?: string;
   /** The edition the person picked on the signup form, when the brand has more than one. */
   programSlug?: string;
+  /** Self-funded vs fully-funded, as picked on the edition-choice screen. */
+  applicationCategory?: string;
+  /** Ad click ids (_fbp/_fbc/_ttp/ttclid) captured in the browser at signup. */
+  adAttribution?: Record<string, string>;
 };
 
 type ProgramRegistrationClosed = {
@@ -100,6 +104,12 @@ export async function POST(request: Request) {
         ...(programId ? { programId } : {}),
         ...(programSlug ? { programSlug } : {}),
         ...(resolvedReferralCode ? { referralCode: resolvedReferralCode } : {}),
+        // The login page has always sent applicationCategory on the Google
+        // signup path and the API's DTO has always accepted it, but this route
+        // dropped it in between — so every Google signup silently fell through
+        // to ensureProgramApplication's default category.
+        ...(body.applicationCategory ? { applicationCategory: body.applicationCategory } : {}),
+        ...(body.adAttribution ? { adAttribution: body.adAttribution } : {}),
       }),
     });
 

@@ -31,7 +31,8 @@ import {
 } from '@/lib/dashboard/payments-cache';
 import { parseApiDate } from '@/lib/utils';
 import { formatDeadlineLocal } from '@/lib/format/deadline';
-import { trackPurchase } from '@/lib/analytics/metaPixel';
+import { toRegistrationCategory, trackProgramFeePaid, trackPurchase } from '@/lib/analytics/pixels';
+import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -479,10 +480,22 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
 
   const methodCatalog = buildMethodCatalog(paymentMethods);
 
-  // Purchase tracking: fires once per invoice when the payment settles to
+  // Self-funded vs fully-funded, the breakdown every ROAS layer is sliced by.
+  // The payment payload has no funding category of its own, so it comes off
+  // the dashboard summary's active application.
+  const { dashboardSummary } = useDashboardData();
+  const fundingCategory = toRegistrationCategory(dashboardSummary?.activeApplication?.category);
+
+  // Conversion tracking: fires once per invoice when the payment settles to
   // 'paid'. Must live before the loading/error/not-found early returns below
   // so this hook always runs (Rules of Hooks) — it self-guards via the
   // status check and a localStorage dedup key since this page is revisitable.
+  //
+  // Only the registration fee is the ROAS conversion (Purchase); every other
+  // fee type fires ProgramFeePaid so the revenue is still visible without
+  // double-counting one participant as several conversions. The API fires the
+  // same events off payment.succeeded with the same eventId, which is what
+  // covers a manual transfer approved long after the payer left the page.
   useEffect(() => {
     const status = invoice?.status ?? paymentPreview?.status ?? 'unpaid';
     if (status !== 'paid' || !invoice?.id) return;
@@ -495,24 +508,31 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
       // localStorage unavailable (private mode) — fire anyway rather than block
     }
 
-    const catalog = buildMethodCatalog(paymentMethods);
-    const methodType = invoice.paymentMethod
-      ? catalog.get(invoice.paymentMethod.toLowerCase())?.type ?? null
-      : null;
-    const useIdr = methodType === 'manual' && typeof invoice.idrPrice === 'number' && invoice.idrPrice > 0;
-    const currency = useIdr ? 'IDR' : (invoice.currency || 'USD').toUpperCase();
-    const amount = useIdr ? (invoice.idrPrice ?? invoice.amount ?? 0) : (invoice.amount ?? 0);
+    // Always the invoice's own amount/currency, never the IDR display price
+    // even when the method is a manual transfer. The API fires the same event
+    // server-side off payment.succeeded with the canonical figure, and a ROAS
+    // column that mixes IDR and USD values cannot be summed into anything
+    // meaningful.
+    const currency = (invoice.currency || 'USD').toUpperCase();
+    const amount = invoice.amount ?? 0;
 
-    trackPurchase(
+    // invoice.category is the raw PricingFeeType enum: registration_fee,
+    // program_fee_1, program_fee_2, full_fee, custom_fee. Exact match only —
+    // every other value is a later instalment, not a new conversion.
+    const isRegistrationFee = invoice.category === 'registration_fee';
+    const emit = isRegistrationFee ? trackPurchase : trackProgramFeePaid;
+
+    emit(
       {
         value: amount,
         currency,
         content_name: invoice.label?.trim() || undefined,
       },
       undefined,
-      `purchase_${invoice.id}`,
+      `${isRegistrationFee ? 'purchase' : 'programfee'}_${invoice.id}`,
+      fundingCategory,
     );
-  }, [invoice, paymentPreview?.status, paymentMethods]);
+  }, [invoice, paymentPreview?.status, fundingCategory]);
 
   if (loading) {
     return <PaymentPageSkeleton variant="payment-detail" />;

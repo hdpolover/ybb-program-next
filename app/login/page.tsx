@@ -15,7 +15,7 @@ import { normalizeEmailInput } from '@/lib/utils';
 import { Alert } from '@/components/ui';
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
 import { resolveLoginMode } from '@/lib/auth/loginMode';
-import { trackLead } from '@/lib/analytics/metaPixel';
+import { readAdAttribution, toRegistrationCategory, trackLead } from '@/lib/analytics/pixels';
 import { notifyIfRegistrationClosed, extractProgramRegistrationId } from '@/lib/auth/programRegistrationClosed';
 import { syncActiveProgramId } from '@/lib/dashboard/activeProgram';
 import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
@@ -291,6 +291,10 @@ export default function LoginPage() {
           password: signupForm.password,
           ...(applicationCategory ? { applicationCategory } : {}),
           ...(programSlug ? { programSlug } : {}),
+          // See the Google signup path below: these click ids only exist in the
+          // browser, and every later conversion for this person may be reported
+          // by the API with no browser involved.
+          adAttribution: readAdAttribution(),
         }),
       });
 
@@ -320,7 +324,11 @@ export default function LoginPage() {
       }
 
       const needsEmailVerification = json?.data?.needsEmailVerification ?? true;
-      trackLead({ content_name: 'account_signup' }, { email: signupForm.email });
+      trackLead(
+        { content_name: 'account_signup' },
+        { email: signupForm.email },
+        toRegistrationCategory(applicationCategory),
+      );
       notifyIfRegistrationClosed(json?.data?.programRegistration);
       const registerProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
       if (registerProgramId) syncActiveProgramId(registerProgramId);
@@ -414,6 +422,10 @@ export default function LoginPage() {
           // self_funded default even for a participant who picked Fully
           // Funded on the edition-choice screen.
           ...(mode === 'signup' && applicationCategory ? { applicationCategory } : {}),
+          // Ad click ids, captured here because this is the last moment they
+          // exist in a context we control — every later conversion for this
+          // person may be reported by the API with no browser involved.
+          ...(mode === 'signup' ? { adAttribution: readAdAttribution() } : {}),
         }),
       });
 
@@ -447,6 +459,7 @@ export default function LoginPage() {
         trackLead(
           { content_name: 'account_signup_google' },
           fbUser.email ? { email: fbUser.email } : undefined,
+          toRegistrationCategory(applicationCategory),
         );
         router.push('/onboarding');
         return;

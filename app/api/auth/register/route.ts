@@ -12,6 +12,10 @@ type RegisterBody = {
   referralCode?: string;
   applicationCategory?: string;
   programSlug?: string;
+  /** Ad click ids (_fbp/_fbc/_ttp/ttclid) captured in the browser at signup so
+   *  server-reported conversions can still be attributed. Passed straight
+   *  through; the API validates and stores it. */
+  adAttribution?: Record<string, string>;
 };
 
 type ProgramRegistrationClosed = {
@@ -164,6 +168,7 @@ export async function POST(request: Request) {
         programSlug,
         ...(resolvedReferralCode ? { referralCode: resolvedReferralCode } : {}),
         ...(body.applicationCategory ? { applicationCategory: body.applicationCategory } : {}),
+        ...(body.adAttribution ? { adAttribution: body.adAttribution } : {}),
       }),
     });
 

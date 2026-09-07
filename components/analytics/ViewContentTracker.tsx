@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { trackViewContent } from '@/lib/analytics/metaPixel';
+import { trackViewContent } from '@/lib/analytics/pixels';
 
 interface ViewContentTrackerProps {
   contentId?: string | number | null;

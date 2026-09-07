@@ -23,6 +23,7 @@ export type SettingsBrand = {
   social_media: SettingsSocialMedia;
   google_analytics_id?: string | null;
   pixel_id?: string | null;
+  tiktok_pixel_id?: string | null;
 };
 
 export type SettingsFooterNavItem = {
