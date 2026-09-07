@@ -23,6 +23,8 @@ import { getHomePageData } from '@/lib/api/home';
 import { resolveBrandDomain } from '@/lib/server/envContext';
 import PromoCTA from '@/components/sections/PromoCTA';
 import { resolveRegistrationCountdown, type RegistrationCategory } from '@/lib/registration/deadline';
+import { buildRegistrationCalendarEvents } from '@/lib/registration/calendarEvents';
+import EventsCalendarButton from '@/components/home/EventsCalendarButton';
 import { getActivityData } from '@/lib/api/activity';
 import { ActivityToast } from '@/components/marketing/ActivityToast';
 import type {
@@ -201,6 +203,17 @@ export default async function Home() {
   );
   const defaultEditionIndex = pickDefaultEditionIndex(programEditions);
 
+  // The events calendar covers whichever edition the countdown/CTA already
+  // point at (same default-edition rule as the rest of the page), so the
+  // calendar can never disagree with the banner sitting right above it. The
+  // disclosure filter runs HERE, server-side, so an unstarted validity
+  // window never leaves the server in the first place -- the client only
+  // ever receives the already-merged, already-visible spans.
+  const calendarEdition = programEditions[defaultEditionIndex];
+  const calendarRegistrationEvents = calendarEdition
+    ? buildRegistrationCalendarEvents(calendarEdition.registration_types, calendarEdition.registration_dates, new Date())
+    : [];
+
   const galleryTitle = programGallerySection?.content.title;
   const galleryDescription = programGallerySection?.content.description;
   const galleryImages = (programGallerySection?.content.gallery ?? programGallerySection?.content.images ?? []).map(img => ({
@@ -233,6 +246,14 @@ export default async function Home() {
         link={mainBannerSection?.content.link}
         registerUrl={registerUrl}
       />
+      {calendarEdition && (
+        <EventsCalendarButton
+          programId={calendarEdition.program_id}
+          programName={calendarEdition.program_name}
+          programDates={calendarEdition.program_dates}
+          registrationEvents={calendarRegistrationEvents}
+        />
+      )}
       <SelectedEditionProvider defaultIndex={defaultEditionIndex}>
       <HomeRegistrationStrip
         igFeed={registrationOverviewSection?.content.ig_feed}
