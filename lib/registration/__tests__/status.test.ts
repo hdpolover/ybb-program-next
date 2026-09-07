@@ -106,10 +106,33 @@ describe('degenerate date configurations', () => {
   });
 
   it('handles an instantaneous window (open === close)', () => {
-    const instant = '2026-09-03T00:00:00.000Z';
+    // Picked already at the WIB end-of-day boundary (2026-09-03T16:59:59.999Z
+    // is 2026-09-03T23:59:59.999 in Jakarta) so the close-side widening added
+    // below is a no-op here and the window really is instantaneous.
+    const instant = '2026-09-03T16:59:59.999Z';
     const program = { ...base, registrationOpenDate: instant, registrationCloseDate: instant };
-    expect(getRegistrationPhase(program, at('2026-09-02T23:59:59.000Z'))).toBe('upcoming');
+    expect(getRegistrationPhase(program, at('2026-09-03T16:59:58.999Z'))).toBe('upcoming');
     expect(getRegistrationPhase(program, at(instant))).toBe('open');
-    expect(getRegistrationPhase(program, at('2026-09-03T00:00:01.000Z'))).toBe('closed');
+    expect(getRegistrationPhase(program, at('2026-09-03T17:00:00.000Z'))).toBe('closed');
+  });
+});
+
+describe('WIB widening of the program-level close date', () => {
+  it('keeps registration open until 23:59 Jakarta on the final day, not 07:00', () => {
+    // Admin picks 2026-09-03 as the last day; stored as UTC midnight, which is
+    // 07:00 WIB. Without widening this reads closed at 07:01 WIB even though
+    // the calendar day the admin chose still has 17 hours left.
+    const program = { ...base, registrationCloseDate: '2026-09-03T00:00:00.000Z' };
+    expect(getRegistrationPhase(program, at('2026-09-03T10:00:00.000Z'))).toBe('open'); // 17:00 WIB
+    expect(getRegistrationPhase(program, at('2026-09-03T16:59:59.000Z'))).toBe('open'); // 23:59:59 WIB
+    expect(getRegistrationPhase(program, at('2026-09-03T17:00:00.000Z'))).toBe('closed'); // 00:00 WIB next day
+  });
+
+  it('does not widen the open date, so an open date entered as a bare day still gates from that raw instant', () => {
+    // Widening the open side earlier would let the portal say "open" before
+    // the backend's raw comparison agrees, which this file exists to prevent.
+    const program = { ...base, registrationOpenDate: '2026-09-05T00:00:00.000Z' };
+    expect(getRegistrationPhase(program, at('2026-09-04T23:59:00.000Z'))).toBe('upcoming');
+    expect(getRegistrationPhase(program, at('2026-09-05T00:00:00.000Z'))).toBe('open');
   });
 });
