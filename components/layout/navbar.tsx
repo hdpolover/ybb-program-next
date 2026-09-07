@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import type { SettingsAvailableBrand } from '@/types/settings';
-import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
+import { trackInitiateCheckout } from '@/lib/analytics/pixels';
 
 const navItems: string[] = ['Home', 'Programs', 'Partners & Sponsors', 'Announcements', 'FAQ'];
 

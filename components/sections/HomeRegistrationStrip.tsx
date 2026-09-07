@@ -12,7 +12,7 @@ import {
   type RegistrationValidityPeriod,
 } from '@/lib/registration/isRegistrationOpen';
 import { componentsTheme } from '@/lib/theme/components';
-import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
+import { trackInitiateCheckout } from '@/lib/analytics/pixels';
 import {
   formatEventDateRange,
   getRegistrationCountdownLabel,

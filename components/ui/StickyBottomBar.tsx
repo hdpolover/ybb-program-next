@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import { formatDayMonthWib } from '@/lib/format/deadline';
-import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
+import { trackInitiateCheckout } from '@/lib/analytics/pixels';
 
 interface StickyBottomBarProps {
   deadline?: string | null;

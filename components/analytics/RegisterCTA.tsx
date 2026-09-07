@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
+import { trackInitiateCheckout } from '@/lib/analytics/pixels';
 
 interface RegisterCTAProps {
   href: string;
