@@ -1,11 +1,22 @@
 import { parseApiDate } from '@/lib/utils';
 import { DATA_NOT_ADDED } from '@/lib/constants/ui';
+import { BUSINESS_TIMEZONE } from '@/lib/format/deadline';
 
-/** Default `toLocaleDateString` options for compact meta rows (e.g. "01 Dec 2025"). */
+/**
+ * Default `toLocaleDateString` options for compact meta rows (e.g. "01 Dec 2025").
+ *
+ * Pinned to BUSINESS_TIMEZONE (WIB) like every other date formatter in this repo
+ * (see lib/format/deadline.ts, lib/format/timeline.ts). Without a fixed zone,
+ * `toLocaleDateString` renders in whatever timezone the calling process happens
+ * to run in, which put an event a calendar day early for any viewer/server west
+ * of UTC. Callers that genuinely need a different zone (e.g. calendar-day event
+ * fields meant to read the same everywhere) still override it explicitly.
+ */
 export const SCHEDULE_DATE_META_OPTIONS: Intl.DateTimeFormatOptions = {
   day: '2-digit',
   month: 'short',
   year: 'numeric',
+  timeZone: BUSINESS_TIMEZONE,
 };
 
 /** `toLocaleDateString` options for group headings with weekday (e.g. "Wed, 01 Dec 2025"). */
@@ -14,6 +25,7 @@ export const SCHEDULE_DATE_GROUP_OPTIONS: Intl.DateTimeFormatOptions = {
   day: '2-digit',
   month: 'short',
   year: 'numeric',
+  timeZone: BUSINESS_TIMEZONE,
 };
 
 const CLOCK_TOKEN = /^(\d{1,2}):(\d{2})(?::\d{2})?$/;
