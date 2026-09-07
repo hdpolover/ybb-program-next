@@ -474,7 +474,26 @@ export default function DocumentsSection() {
                     />
                   }
                   title="No documents available yet"
-                  description="Program documents will be available here when published."
+                  /* Two very different empty states share this branch. An empty tab
+                     filter is not a reason to tell someone to submit, so the submission
+                     guidance is shown only when the participant genuinely has no
+                     documents at all — which is exactly the state someone lands in when
+                     they have paid but not yet submitted. */
+                  description={
+                    programDocuments.length === 0
+                      ? 'Documents appear here once your application is submitted and your program publishes them.'
+                      : 'No documents in this category.'
+                  }
+                  action={
+                    programDocuments.length === 0 ? (
+                      <Link
+                        href="/dashboard/submission"
+                        className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                      >
+                        Go to my application
+                      </Link>
+                    ) : undefined
+                  }
                 />
               ) : (
                 <>
@@ -811,9 +830,26 @@ export default function DocumentsSection() {
                   )}
 
                   {item.documentType === 'letter_of_acceptance' && item.downloadable === false && (
-                    <div className="mt-2 rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-2 opacity-60">
+                    /* Reduced emphasis via the dashed border and muted fill rather than
+                       opacity-60, which would drag the link below readable contrast.
+                       The guidance is unconditional on purpose: the two reasons a letter
+                       is unavailable (not submitted, or no release batch covering the
+                       submission date) are indistinguishable from here, and telling
+                       someone to submit is correct advice in both cases. */
+                    <div className="mt-2 rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-2">
                       <p className="text-[11px] text-slate-500">
                         Your Invitation Letter will be available once released.
+                      </p>
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        Letters are only issued for submitted applications. If you have not
+                        finished yours,{' '}
+                        <Link
+                          href="/dashboard/submission"
+                          className="font-medium text-blue-600 hover:underline"
+                        >
+                          submit it first
+                        </Link>
+                        .
                       </p>
                     </div>
                   )}
