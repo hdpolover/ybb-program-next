@@ -25,8 +25,7 @@ import { headers } from 'next/headers';
 import { getActivityData } from '@/lib/api/activity';
 import { ActivityToast } from '@/components/marketing/ActivityToast';
 import { resolveBrandDomain } from '@/lib/server/envContext';
-import { getRegistrationPhase } from '@/lib/registration/status';
-import { getEditionRegistrationPhase, narrowestPhase } from '@/lib/registration/isRegistrationOpen';
+import { resolveDetailRegistrationPhase } from '@/lib/registration/isRegistrationOpen';
 
 function parseValidDate(value: unknown): Date | null {
   if (!value) return null;
@@ -107,13 +106,14 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   // Tri-state: a program whose registrationOpenDate has not arrived is
   // 'upcoming', and must not be labelled "Registration Closed".
   //
-  // BOTH gates, narrowed: the program gate answers "would the backend accept a
-  // registration at all", the window gate answers "is there a fee tier a
-  // visitor can pick and pay for today". This hero's CTA lands on /apply, so a
-  // programme open until December whose only fee window lapsed in August used
-  // to send visitors to a page where every card read Closed and nothing was
-  // purchasable. lib/registration/isRegistrationOpen documents that these two
-  // must never contradict each other on one screen; narrowing is how.
+  // Tier windows are AUTHORITATIVE over the program-level dates when the
+  // program has any registration-fee tier, matching the precedence the home
+  // page already uses (see resolveDetailRegistrationPhase). The program-level
+  // gate is a FALLBACK for a program with no tier windows, not an override of
+  // one that is still running: Korea Youth Summit 4th's registration_close_date
+  // (2027-03-05) is earlier than its tier windows (to 2027-03-20), and the old
+  // narrowestPhase combination read the page 'closed' for those two weeks while
+  // the home page kept advertising it open.
   //
   // A failed tiers call yields no tiers, and an edition with no fee tiers at
   // all falls back to the programme's own dates, so the hero degrades to the
@@ -126,13 +126,11 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
       });
   const registrationPhase = isArchiveProgram
     ? 'closed'
-    : narrowestPhase(
-        getRegistrationPhase(program, new Date(now)),
-        getEditionRegistrationPhase(
-          pricingTiers,
-          { open: program.registrationOpenDate ?? null, close: program.registrationCloseDate ?? null },
-          new Date(now),
-        ),
+    : resolveDetailRegistrationPhase(
+        program,
+        pricingTiers,
+        { open: program.registrationOpenDate ?? null, close: program.registrationCloseDate ?? null },
+        new Date(now),
       );
   const isOpen = registrationPhase === 'open';
   const isUpcoming = registrationPhase === 'upcoming';

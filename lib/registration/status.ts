@@ -21,6 +21,8 @@
  * while every surface read "Closed" next to a live 183-day countdown).
  */
 
+import { endOfWibDay } from '@/lib/registration/isRegistrationOpen';
+
 export type RegistrationGateProgram = {
   isPublished: boolean;
   isActive: boolean;
@@ -54,7 +56,23 @@ export function getRegistrationPhase(
 
   const nowMs = now.getTime();
   const openMs = parseDate(program.registrationOpenDate);
-  const closeMs = parseDate(program.registrationCloseDate);
+
+  // Widened to WIB end-of-day, same rule as isRegistrationOpen.ts applies to
+  // every tier window (see endOfWibDay there): admins pick a whole calendar
+  // day, so a close date stored at UTC midnight is 07:00 WIB, and comparing
+  // it raw would cut registration off 17 hours before the day it names is
+  // over. All four programmes live today already store this field
+  // pre-adjusted to 23:59 WIB, so nothing changes for them; this is hardening
+  // against the same defect recurring the moment someone enters a bare
+  // calendar day here, not a fix for an active bug.
+  //
+  // The OPEN side is deliberately left unwidened. This function's docblock
+  // says it mirrors the backend's raw comparison exactly, and widening open
+  // EARLIER would have the portal advertise registration as open before the
+  // backend's own check agrees, the exact failure this file exists to
+  // prevent.
+  const rawCloseMs = parseDate(program.registrationCloseDate);
+  const closeMs = rawCloseMs === null ? null : endOfWibDay(rawCloseMs);
 
   // Degenerate configurations, decided here rather than left emergent:
   //  - close BEFORE open: a window no visitor can ever be inside. It is a

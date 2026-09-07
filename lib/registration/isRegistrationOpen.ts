@@ -12,7 +12,7 @@
 // A second implementation anywhere is how the fee card said Open while the
 // bar said "Opens 31 Aug" for the same 23 hours.
 
-import type { RegistrationPhase } from '@/lib/registration/status';
+import { getRegistrationPhase, type RegistrationGateProgram, type RegistrationPhase } from '@/lib/registration/status';
 
 const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -35,8 +35,11 @@ function startOfWibDay(ms: number): number {
  *
  * Fourth instance of this codebase's WIB defect class (audit M66, the admin
  * analytics day buckets, the "Opens 5 Sept" sticky-bar label).
+ *
+ * Exported so lib/registration/status.ts can apply the identical widening to
+ * the program-level close date rather than restating the timezone math.
  */
-function endOfWibDay(ms: number): number {
+export function endOfWibDay(ms: number): number {
   return startOfWibDay(ms) + MS_PER_DAY - 1;
 }
 
@@ -330,4 +333,41 @@ const PHASE_RANK: Record<RegistrationPhase, number> = { closed: 0, upcoming: 1, 
  */
 export function narrowestPhase(a: RegistrationPhase, b: RegistrationPhase): RegistrationPhase {
   return PHASE_RANK[a] <= PHASE_RANK[b] ? a : b;
+}
+
+/**
+ * The registration phase for the program DETAIL page. Tier windows are
+ * AUTHORITATIVE when the program offers any registration-fee tier; the
+ * program-level registrationOpenDate/registrationCloseDate gate is consulted
+ * only as a FALLBACK, for a program with no tier windows to answer for it.
+ *
+ * This matches the precedence the home page already uses (see
+ * resolveRegistrationCountdown in ./deadline.ts): a tier's own validity
+ * window is what actually governs whether a visitor can pick and pay for a
+ * category, and the program-level close date is a coarser field an admin can
+ * leave stale without touching it. Korea Youth Summit 4th sets
+ * registration_close_date to 2027-03-05 while its registration-fee tier
+ * windows run to 2027-03-20; the detail page used to combine the two with
+ * narrowestPhase (the more restrictive wins), which read 'closed' for those
+ * two weeks while the home page, already tier-first, kept advertising it as
+ * open.
+ *
+ * The isPublished/isActive/allowRegistration kill switch is still checked
+ * FIRST and absolutely, exactly as getRegistrationPhase's own docblock
+ * describes it: no tier window can reopen a programme the backend has turned
+ * off, because the backend will refuse the registration regardless of what
+ * the tiers say.
+ */
+export function resolveDetailRegistrationPhase(
+  program: RegistrationGateProgram,
+  tiers: RegistrationTierLike[] | null | undefined,
+  registrationDates: RegistrationDates,
+  now: Date,
+): RegistrationPhase {
+  if (!program.isPublished || !program.isActive || !program.allowRegistration) return 'closed';
+
+  const hasFeeTiers = (tiers ?? []).some(isRegistrationFeeTier);
+  if (hasFeeTiers) return getEditionRegistrationPhase(tiers, registrationDates, now);
+
+  return getRegistrationPhase(program, now);
 }

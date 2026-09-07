@@ -14,7 +14,9 @@ import {
   narrowestPhase,
   normalizeValidityPeriods,
   parseRegistrationWindows,
+  resolveDetailRegistrationPhase,
 } from '../isRegistrationOpen';
+import type { RegistrationGateProgram } from '../status';
 
 const at = (iso: string) => new Date(iso);
 const tier = (periods: Array<{ start_date: string; end_date: string }>) => ({
@@ -257,5 +259,43 @@ describe('narrowestPhase', () => {
     // The programme gate would say 'open' here; narrowed, the hero does not
     // advertise a Register CTA into an /apply page with nothing on it.
     expect(narrowestPhase('open', getEditionRegistrationPhase(lapsed, programmeDates, now))).toBe('closed');
+  });
+});
+
+describe('resolveDetailRegistrationPhase', () => {
+  const program: RegistrationGateProgram = {
+    isPublished: true,
+    isActive: true,
+    allowRegistration: true,
+    registrationOpenDate: null,
+    registrationCloseDate: null,
+  };
+
+  it('is OPEN on the Korea Youth Summit 4th shape: tier window outlives the program-level close', () => {
+    // registration_close_date is 2027-03-05 but the registration-fee tier's
+    // own validity period runs to 2027-03-20. The tier window must win.
+    const kys4 = {
+      ...program,
+      registrationOpenDate: '2026-09-05T00:00:00.000Z',
+      registrationCloseDate: '2027-03-05T00:00:00.000Z',
+    };
+    const tiers = [tier([{ start_date: '2026-09-05T00:00:00.000Z', end_date: '2027-03-20T00:00:00.000Z' }])];
+    const now = at('2027-03-10T00:00:00.000Z');
+
+    expect(resolveDetailRegistrationPhase(kys4, tiers, null, now)).toBe('open');
+  });
+
+  it('falls back to the program-level gate when there are no registration-fee tiers', () => {
+    const closed = { ...program, registrationCloseDate: '2026-08-31T00:00:00.000Z' };
+    expect(resolveDetailRegistrationPhase(closed, [], null, at('2026-09-03T00:00:00.000Z'))).toBe('closed');
+
+    const open = { ...program, registrationCloseDate: '2027-01-01T00:00:00.000Z' };
+    expect(resolveDetailRegistrationPhase(open, undefined, null, at('2026-09-03T00:00:00.000Z'))).toBe('open');
+  });
+
+  it('never lets a tier window reopen a program the kill switch has turned off', () => {
+    const killed = { ...program, allowRegistration: false };
+    const tiers = [tier([{ start_date: '2026-01-01T00:00:00.000Z', end_date: '2027-12-31T00:00:00.000Z' }])];
+    expect(resolveDetailRegistrationPhase(killed, tiers, null, at('2026-09-03T00:00:00.000Z'))).toBe('closed');
   });
 });
