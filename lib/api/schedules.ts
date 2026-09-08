@@ -12,6 +12,8 @@
 // a caller-supplied `/v1/...` path and then prefixes `/v1/` again inside the
 // proxy route, which would double it up. Every existing apiGet call in this
 // repo runs server-side only, so that double-prefix bug has never fired.
+import { getEnvelopeData } from './response';
+
 export type ProgramScheduleItem = {
   id: string;
   day: string;
@@ -30,5 +32,18 @@ export async function fetchProgramSchedules(programId: string): Promise<ProgramS
   if (!res.ok) {
     throw new Error(`Failed to load program schedule (${res.status})`);
   }
-  return (await res.json()) as ProgramScheduleItem[];
+
+  // The API's global transform interceptor wraps every response in
+  // {statusCode, message, data}, so the controller's declared return type is
+  // NOT the shape that arrives here. This used to cast the whole envelope
+  // straight to ProgramScheduleItem[] -- an `as`, which asserts rather than
+  // checks, so nothing failed until buildCalendarEntries called .forEach on an
+  // object and took the calendar panel down on open.
+  //
+  // getEnvelopeData is the repo's existing unwrapper and passes a bare array
+  // through untouched, so this keeps working if the envelope ever goes away.
+  // The Array.isArray guard is the part that matters: every other shape has to
+  // degrade to "no schedule", never to a value the caller will iterate.
+  const payload = getEnvelopeData(await res.json());
+  return Array.isArray(payload) ? (payload as ProgramScheduleItem[]) : [];
 }
