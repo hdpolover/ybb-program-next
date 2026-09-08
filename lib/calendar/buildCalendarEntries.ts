@@ -87,6 +87,23 @@ export function buildCalendarEntries(
   return entries;
 }
 
+/**
+ * The registration windows that COVER a given day key, edges included.
+ *
+ * A span is a range, not two events. The calendar grid originally marked only
+ * startKey and endKey, so a month lying entirely inside a window rendered with
+ * nothing on it at all — Korea Youth Summit's self-funded window runs
+ * 2026-09-05 to 2027-03-05, and November 2026 showed no trace of a period that
+ * was open on every day of it. Keys are "YYYY-MM-DD", so lexicographic
+ * comparison is chronological and no Date objects are needed.
+ */
+export function spansCoveringDay(
+  spans: Array<{ startKey: string; endKey: string }>,
+  dayKey: string,
+): Array<{ startKey: string; endKey: string }> {
+  return spans.filter((span) => dayKey >= span.startKey && dayKey <= span.endKey);
+}
+
 export type MonthGridCell = { key: string; day: number; inMonth: boolean };
 
 /**

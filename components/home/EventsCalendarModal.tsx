@@ -16,6 +16,7 @@ import {
   buildCalendarEntries,
   buildMonthGrid,
   pickDefaultMonth,
+  spansCoveringDay,
   type CalendarEntry,
 } from '@/lib/calendar/buildCalendarEntries';
 
@@ -39,6 +40,14 @@ function formatDayLabel(key: string): string {
   return formatScheduleDate(`${key}T00:00:00Z`, UTC_DAY_OPTIONS, key);
 }
 
+/** Screen-reader summary of what a day carries, so the button is not just a number. */
+function describeDay(dayEntryCount: number, spanCount: number): string {
+  const parts: string[] = [];
+  if (spanCount > 0) parts.push(`${spanCount} registration period${spanCount === 1 ? '' : 's'}`);
+  if (dayEntryCount > 0) parts.push(`${dayEntryCount} scheduled item${dayEntryCount === 1 ? '' : 's'}`);
+  return parts.length > 0 ? `${parts.join(', ')}. Select to filter.` : 'nothing scheduled';
+}
+
 function formatDayRange(startKey: string, endKey: string): string {
   const startLabel = formatDayLabel(startKey);
   if (startKey === endKey) return startLabel;
@@ -59,6 +68,8 @@ export default function EventsCalendarModal({
   // Only what the VISITOR chose. The default is derived below, never stored,
   // so there is no setState-inside-an-effect to cascade a re-render.
   const [monthOverride, setMonthOverride] = useState<{ year: number; month0: number } | null>(null);
+  // The day a visitor clicked, or null for "show the whole month".
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   // Schedules are not in the home payload (a multi-week programme can run to
   // hundreds of rows), so they are pulled from the existing public route only
@@ -169,18 +180,39 @@ export default function EventsCalendarModal({
     entriesByDay.set(entry.dayKey, [...(entriesByDay.get(entry.dayKey) ?? []), entry]);
   });
 
+  // A span COVERS every day between its edges. Marking only startKey/endKey
+  // (what shipped) meant a month sitting entirely inside a window rendered
+  // completely blank -- Korea Youth Summit's self-funded window runs
+  // 2026-09-05 to 2027-03-05, so November showed no trace of a registration
+  // period that was open every single day of it.
+  const spansCovering = (key: string) => spansCoveringDay(rangeEntries, key) as typeof rangeEntries;
+
   const firstOfMonthKey = grid.find((c) => c.inMonth)?.key ?? '';
   const lastOfMonthKey = [...grid].reverse().find((c) => c.inMonth)?.key ?? '';
 
-  const monthEntries: CalendarEntry[] = [
-    ...dayEntries.filter((e) => e.dayKey >= firstOfMonthKey && e.dayKey <= lastOfMonthKey),
-    ...rangeEntries.filter((e) => e.endKey >= firstOfMonthKey && e.startKey <= lastOfMonthKey),
-  ].sort((a, b) => {
+  // With a day selected the list narrows to that day -- the scheduled items on
+  // it, plus every registration window COVERING it (not merely starting or
+  // ending on it, which would show nothing on the vast majority of days).
+  const monthEntries: CalendarEntry[] = (
+    selectedDay
+      ? [
+          ...dayEntries.filter((e) => e.dayKey === selectedDay),
+          ...rangeEntries.filter((e) => selectedDay >= e.startKey && selectedDay <= e.endKey),
+        ]
+      : [
+          ...dayEntries.filter((e) => e.dayKey >= firstOfMonthKey && e.dayKey <= lastOfMonthKey),
+          ...rangeEntries.filter((e) => e.endKey >= firstOfMonthKey && e.startKey <= lastOfMonthKey),
+        ]
+  ).sort((a, b) => {
     const keyOf = (e: CalendarEntry) => (e.kind === 'registration' ? e.startKey : e.dayKey);
     return keyOf(a).localeCompare(keyOf(b));
   });
 
   const changeMonth = (delta: number) => {
+    // A day selection belongs to the month it was made in; carrying it across
+    // would filter the new month by a date that is not in it, i.e. an empty
+    // panel with no visible reason.
+    setSelectedDay(null);
     setMonthOverride((current) => {
       const base = current ?? visibleMonth;
       const next = new Date(Date.UTC(base.year, base.month0 + delta, 1));
@@ -244,23 +276,70 @@ export default function EventsCalendarModal({
           ))}
         </div>
 
-        {/* Static grid: day cells are not interactive, so no hover elevation
-            (if it hovers, it clicks). A dot marks a day with something on it. */}
-        <div className="grid grid-cols-7 gap-1 px-5 pb-4 pt-1">
-          {grid.map((cell) => {
-            const hasDayEntry = entriesByDay.has(cell.key);
-            const isRegistrationEdge = rangeEntries.some((e) => e.startKey === cell.key || e.endKey === cell.key);
+        {/* A registration window renders as a continuous BAND across every day
+            it covers, not two lone dots at its edges. The band is drawn as a
+            full-bleed layer behind the number (gap-0 on the grid, padding on
+            the cell) so consecutive days join with no seam. A dot still marks
+            a discrete day entry -- a schedule day or a programme date.
+
+            Days carrying something are buttons: clicking one filters the list
+            below to that day. Per the design rules they get real hover and
+            focus states; a day with nothing on it stays an inert div rather
+            than a button that looks live and does nothing. */}
+        <div className="grid grid-cols-7 gap-y-1 px-5 pb-4 pt-1">
+          {grid.map((cell, index) => {
+            const dayEntryCount = entriesByDay.get(cell.key)?.length ?? 0;
+            const covering = spansCovering(cell.key);
             const isToday = cell.key === todayKey;
-            return (
-              <div
-                key={cell.key}
-                className={`flex h-11 flex-col items-center justify-center rounded-lg text-xs ${
-                  cell.inMonth ? 'text-slate-700' : 'text-slate-300'
-                } ${isToday ? 'ring-1 ring-primary/60' : ''}`}
-              >
+            const isSelected = selectedDay === cell.key;
+            const hasAnything = dayEntryCount > 0 || covering.length > 0;
+
+            // Round only where the band actually terminates: the first or last
+            // day of a window, or the edge of a week row where it wraps.
+            const opensHere = covering.some((e) => e.startKey === cell.key);
+            const closesHere = covering.some((e) => e.endKey === cell.key);
+            const bandClass =
+              covering.length > 0
+                ? `bg-primary/10 ${opensHere || index % 7 === 0 ? 'rounded-l-lg' : ''} ${
+                    closesHere || index % 7 === 6 ? 'rounded-r-lg' : ''
+                  }`
+                : '';
+
+            const inner = (
+              <span className={`relative flex h-11 flex-col items-center justify-center ${bandClass}`}>
                 <span className={isToday ? 'font-bold text-primary' : ''}>{cell.day}</span>
-                {(hasDayEntry || isRegistrationEdge) && <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary" />}
-              </div>
+                {dayEntryCount > 0 && <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary" />}
+              </span>
+            );
+
+            if (!hasAnything) {
+              return (
+                <div
+                  key={cell.key}
+                  className={`text-xs ${cell.inMonth ? 'text-slate-700' : 'text-slate-300'} ${
+                    isToday ? 'rounded-lg ring-1 ring-primary/60' : ''
+                  }`}
+                >
+                  {inner}
+                </div>
+              );
+            }
+
+            return (
+              <button
+                key={cell.key}
+                type="button"
+                aria-pressed={isSelected}
+                aria-label={`${formatDayLabel(cell.key)}, ${describeDay(dayEntryCount, covering.length)}`}
+                onClick={() => setSelectedDay(isSelected ? null : cell.key)}
+                className={`cursor-pointer text-xs transition ${
+                  cell.inMonth ? 'text-slate-700' : 'text-slate-300'
+                } ${isToday ? 'rounded-lg ring-1 ring-primary/60' : ''} ${
+                  isSelected ? 'rounded-lg ring-2 ring-primary' : ''
+                } hover:brightness-95 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-primary/60`}
+              >
+                {inner}
+              </button>
             );
           })}
         </div>
@@ -271,8 +350,22 @@ export default function EventsCalendarModal({
               The day-by-day schedule could not be loaded right now. Registration dates below are still accurate.
             </p>
           )}
+          {selectedDay && (
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold text-slate-900">{formatDayLabel(selectedDay)}</p>
+              <button
+                type="button"
+                onClick={() => setSelectedDay(null)}
+                className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              >
+                Show whole month
+              </button>
+            </div>
+          )}
           {monthEntries.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-500">Nothing on the calendar this month yet.</p>
+            <p className="py-6 text-center text-sm text-slate-500">
+              {selectedDay ? 'Nothing on this day.' : 'Nothing on the calendar this month yet.'}
+            </p>
           ) : (
             <ul className="space-y-3">
               {monthEntries.map((entry) => {
