@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { forwardedForHeader } from '@/lib/server/forwardedFor';
 
 type SupportedType = 'terms' | 'privacy';
 
@@ -67,6 +68,7 @@ export async function GET(request: Request) {
     const brandsRes = await fetch(new URL('/v1/brands', apiBaseUrl).toString(), {
       method: 'GET',
       headers: {
+        ...forwardedForHeader(request),
         'Content-Type': 'application/json',
         'x-brand-domain': brandDomain,
       },
@@ -106,6 +108,7 @@ export async function GET(request: Request) {
         {
           method: 'GET',
           headers: {
+            ...forwardedForHeader(request),
             'Content-Type': 'application/json',
             'x-brand-domain': brandDomain,
           },
@@ -137,6 +140,7 @@ export async function GET(request: Request) {
       {
         method: 'GET',
         headers: {
+          ...forwardedForHeader(request),
           'Content-Type': 'application/json',
           'x-brand-domain': brandDomain,
         },

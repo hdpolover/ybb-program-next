@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { forwardedForHeader } from '@/lib/server/forwardedFor';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
 
     const meRes = await fetch(new URL('/v1/auth/me', base).toString(), {
       headers: {
+        ...forwardedForHeader(request),
         Authorization: `Bearer ${accessToken}`,
         'x-brand-domain': brandDomain,
       },
@@ -82,6 +84,7 @@ export async function POST(request: Request) {
     const uploadRes = await fetch(new URL('/v1/files/upload', base).toString(), {
       method: 'POST',
       headers: {
+        ...forwardedForHeader(request),
         Authorization: `Bearer ${accessToken}`,
         'x-brand-domain': brandDomain,
       },
