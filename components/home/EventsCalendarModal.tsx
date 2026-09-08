@@ -56,7 +56,9 @@ export default function EventsCalendarModal({
   const dialogRef = useRef<HTMLDivElement>(null);
   const [schedules, setSchedules] = useState<ProgramScheduleItem[] | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [visibleMonth, setVisibleMonth] = useState<{ year: number; month0: number } | null>(null);
+  // Only what the VISITOR chose. The default is derived below, never stored,
+  // so there is no setState-inside-an-effect to cascade a re-render.
+  const [monthOverride, setMonthOverride] = useState<{ year: number; month0: number } | null>(null);
 
   // Schedules are not in the home payload (a multi-week programme can run to
   // hundreds of rows), so they are pulled from the existing public route only
@@ -83,13 +85,16 @@ export default function EventsCalendarModal({
     [registrationEvents, programDates, schedules],
   );
 
-  // Pick the default month once, the first time the full entry set is known
-  // (i.e. once the schedule fetch settles). Guarded so a visitor who has
-  // already started navigating is never yanked back by a slow response.
-  useEffect(() => {
-    if (visibleMonth !== null || schedules === null) return;
-    setVisibleMonth(pickDefaultMonth(entries, new Date()));
-  }, [entries, schedules, visibleMonth]);
+  // The month to show: whatever the visitor navigated to, else the default
+  // picked from the full entry set once the schedule fetch settles. Derived
+  // rather than assigned from an effect — the override takes precedence the
+  // moment it exists, so a slow response can still never yank a visitor who
+  // has already started navigating back to the default.
+  const defaultMonth = useMemo(
+    () => (schedules === null ? null : pickDefaultMonth(entries, new Date())),
+    [entries, schedules],
+  );
+  const visibleMonth = monthOverride ?? defaultMonth;
 
   // Focus trap, Escape-to-close, and focus restore to the trigger on unmount.
   useEffect(() => {
@@ -176,7 +181,7 @@ export default function EventsCalendarModal({
   });
 
   const changeMonth = (delta: number) => {
-    setVisibleMonth((current) => {
+    setMonthOverride((current) => {
       const base = current ?? visibleMonth;
       const next = new Date(Date.UTC(base.year, base.month0 + delta, 1));
       return { year: next.getUTCFullYear(), month0: next.getUTCMonth() };
