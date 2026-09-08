@@ -29,6 +29,22 @@ type Props = {
   triggerRef: RefObject<HTMLButtonElement | null>;
 };
 
+/**
+ * One distinct hue per registration window, in assignment order.
+ *
+ * Deliberately NOT derived from the brand variable: the whole point is telling
+ * two windows apart, and shades of one themeable hue cannot guarantee that.
+ * Chosen to stay distinguishable for the common forms of colour blindness
+ * (blue/amber/violet separate on lightness as well as hue) and to hold a
+ * readable contrast against the white panel. Colour is never the only cue —
+ * every window is also named, dated and reachable in the list below.
+ */
+const EVENT_COLORS = ['#2563eb', '#f59e0b', '#7c3aed', '#059669', '#db2777'];
+/** Discrete day markers: a schedule day or a programme date. */
+const SCHEDULE_COLOR = '#0f172a';
+/** Today's outline, and the selected-day outline. */
+const TODAY_COLOR = '#2563eb';
+
 const MONTH_LABEL = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 // Calendar-day fields (program dates, schedule days) read in UTC, same rule
@@ -187,6 +203,18 @@ export default function EventsCalendarModal({
   // period that was open every single day of it.
   const spansCovering = (key: string) => spansCoveringDay(rangeEntries, key) as typeof rangeEntries;
 
+  // Lane order is the order the windows arrive in, which is stable for a given
+  // payload, so a window keeps the same colour and the same row every time the
+  // panel is opened and on every day it covers.
+  const lanes = rangeEntries.map((entry, i) => ({
+    id: entry.id,
+    label: entry.label,
+    startKey: entry.startKey,
+    endKey: entry.endKey,
+    color: EVENT_COLORS[i % EVENT_COLORS.length],
+  }));
+  const colorFor = (id: string) => lanes.find((l) => l.id === id)?.color ?? SCHEDULE_COLOR;
+
   const firstOfMonthKey = grid.find((c) => c.inMonth)?.key ?? '';
   const lastOfMonthKey = [...grid].reverse().find((c) => c.inMonth)?.key ?? '';
 
@@ -276,16 +304,21 @@ export default function EventsCalendarModal({
           ))}
         </div>
 
-        {/* A registration window renders as a continuous BAND across every day
-            it covers, not two lone dots at its edges. The band is drawn as a
-            full-bleed layer behind the number (gap-0 on the grid, padding on
-            the cell) so consecutive days join with no seam. A dot still marks
-            a discrete day entry -- a schedule day or a programme date.
+        {/* Each registration window gets its OWN COLOUR and its OWN LANE, and
+            the lane sits at the same height on every day, so a window reads as
+            one continuous stripe running across the month. Tinting a single
+            brand hue by overlap count was the previous attempt and it failed
+            for the obvious reason: two different events still looked the same.
 
-            Days carrying something are buttons: clicking one filters the list
-            below to that day. Per the design rules they get real hover and
-            focus states; a day with nothing on it stays an inert div rather
-            than a button that looks live and does nothing. */}
+            Colours come from a fixed palette rather than the brand variable.
+            They have to stay distinguishable from each other, which a single
+            themeable hue cannot promise. Applied as inline styles because
+            Tailwind only generates classes it can read literally in the source
+            -- a class name built from a runtime value is never emitted.
+
+            Days carrying something are buttons that filter the list below.
+            Days with nothing stay inert divs, so everything that hovers really
+            does click. */}
         <div className="grid grid-cols-7 gap-y-1 px-5 pb-4 pt-1">
           {grid.map((cell, index) => {
             const dayEntryCount = entriesByDay.get(cell.key)?.length ?? 0;
@@ -293,39 +326,58 @@ export default function EventsCalendarModal({
             const isToday = cell.key === todayKey;
             const isSelected = selectedDay === cell.key;
             const hasAnything = dayEntryCount > 0 || covering.length > 0;
-
-            // Round only where the band actually terminates: the first or last
-            // day of a window, or the edge of a week row where it wraps.
-            const opensHere = covering.some((e) => e.startKey === cell.key);
-            const closesHere = covering.some((e) => e.endKey === cell.key);
-            // color-mix, not `bg-primary/10`: `primary` is defined in
-            // tailwind.config.ts as a bare `var(--color-primary)` holding a hex,
-            // so Tailwind's slash modifier compiles to
-            // `rgb(var(--color-primary) / 0.1)` — invalid, dropped by the
-            // browser, drawn as nothing. Every `primary/<n>` in the repo is
-            // silently transparent for the same reason.
-            const bandClass =
-              covering.length > 0
-                ? `bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] ${opensHere || index % 7 === 0 ? 'rounded-l-lg' : ''} ${
-                    closesHere || index % 7 === 6 ? 'rounded-r-lg' : ''
-                  }`
-                : '';
+            const isWeekStart = index % 7 === 0;
+            const isWeekEnd = index % 7 === 6;
 
             const inner = (
-              <span className={`relative flex h-11 flex-col items-center justify-center ${bandClass}`}>
-                <span className={isToday ? 'font-bold text-primary' : ''}>{cell.day}</span>
-                {dayEntryCount > 0 && <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary" />}
+              <span className="relative flex h-12 flex-col items-center justify-center gap-1">
+                <span className={`text-xs ${isToday ? 'font-bold' : ''}`} style={isToday ? { color: TODAY_COLOR } : undefined}>
+                  {cell.day}
+                </span>
+                <span className="flex w-full flex-col gap-[2px]">
+                  {lanes.map((lane) => {
+                    const covers = cell.key >= lane.startKey && cell.key <= lane.endKey;
+                    // A lane keeps its row even on days it does not cover, so
+                    // the stripes above and below never shift position.
+                    if (!covers) return <span key={lane.id} className="h-[3px]" />;
+                    return (
+                      <span
+                        key={lane.id}
+                        className="h-[3px]"
+                        style={{
+                          backgroundColor: lane.color,
+                          borderTopLeftRadius: lane.startKey === cell.key || isWeekStart ? 999 : 0,
+                          borderBottomLeftRadius: lane.startKey === cell.key || isWeekStart ? 999 : 0,
+                          borderTopRightRadius: lane.endKey === cell.key || isWeekEnd ? 999 : 0,
+                          borderBottomRightRadius: lane.endKey === cell.key || isWeekEnd ? 999 : 0,
+                        }}
+                      />
+                    );
+                  })}
+                </span>
+                {dayEntryCount > 0 && (
+                  <span
+                    className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: SCHEDULE_COLOR }}
+                  />
+                )}
               </span>
             );
 
+            // Outlines drawn as an explicit box-shadow rather than Tailwind's
+            // ring utilities, for the same reason as the lane colours: the
+            // ring-primary/<n> classes this file used to carry compiled to an
+            // invalid colour and painted nothing at all.
+            const base = `rounded-lg text-xs ${cell.inMonth ? 'text-slate-700' : 'text-slate-300'}`;
+            const outline = isSelected
+              ? { boxShadow: `0 0 0 2px ${TODAY_COLOR}` }
+              : isToday
+                ? { boxShadow: `0 0 0 1px ${TODAY_COLOR}80` }
+                : undefined;
+
             if (!hasAnything) {
               return (
-                <div
-                  key={cell.key}
-                  className={`text-xs ${cell.inMonth ? 'text-slate-700' : 'text-slate-300'} ${
-                    isToday ? 'rounded-lg ring-1 ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]' : ''
-                  }`}
-                >
+                <div key={cell.key} className={base} style={outline}>
                   {inner}
                 </div>
               );
@@ -338,11 +390,8 @@ export default function EventsCalendarModal({
                 aria-pressed={isSelected}
                 aria-label={`${formatDayLabel(cell.key)}, ${describeDay(dayEntryCount, covering.length)}`}
                 onClick={() => setSelectedDay(isSelected ? null : cell.key)}
-                className={`cursor-pointer text-xs transition ${
-                  cell.inMonth ? 'text-slate-700' : 'text-slate-300'
-                } ${isToday ? 'rounded-lg ring-1 ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]' : ''} ${
-                  isSelected ? 'rounded-lg ring-2 ring-primary' : ''
-                } hover:brightness-95 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]`}
+                className={`${base} cursor-pointer transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2`}
+                style={{ ...outline, outlineColor: TODAY_COLOR }}
               >
                 {inner}
               </button>
@@ -376,18 +425,34 @@ export default function EventsCalendarModal({
             <ul className="space-y-3">
               {monthEntries.map((entry) => {
                 if (entry.kind === 'registration') {
+                  // The swatch is what ties a row to its stripe in the grid.
+                  const color = colorFor(entry.id);
                   return (
-                    <li key={entry.id} className="rounded-xl bg-[color-mix(in_srgb,var(--color-primary)_5%,transparent)] px-4 py-3">
-                      <p className="text-sm font-semibold text-slate-900">{entry.label}</p>
-                      <p className="text-xs text-slate-500">{formatDayRange(entry.startKey, entry.endKey)}</p>
+                    <li
+                      key={entry.id}
+                      className="flex items-start gap-3 rounded-xl px-4 py-3"
+                      style={{ backgroundColor: `${color}14`, borderLeft: `3px solid ${color}` }}
+                    >
+                      <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                      <span>
+                        <p className="text-sm font-semibold text-slate-900">{entry.label}</p>
+                        <p className="text-xs text-slate-500">{formatDayRange(entry.startKey, entry.endKey)}</p>
+                      </span>
                     </li>
                   );
                 }
                 if (entry.kind === 'program') {
                   return (
-                    <li key={entry.id} className="rounded-xl bg-slate-50 px-4 py-3">
-                      <p className="text-sm font-semibold text-slate-900">{entry.label}</p>
-                      <p className="text-xs text-slate-500">{formatDayLabel(entry.dayKey)}</p>
+                    <li
+                      key={entry.id}
+                      className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3"
+                      style={{ borderLeft: `3px solid ${SCHEDULE_COLOR}` }}
+                    >
+                      <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: SCHEDULE_COLOR }} />
+                      <span>
+                        <p className="text-sm font-semibold text-slate-900">{entry.label}</p>
+                        <p className="text-xs text-slate-500">{formatDayLabel(entry.dayKey)}</p>
+                      </span>
                     </li>
                   );
                 }
