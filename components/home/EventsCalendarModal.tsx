@@ -244,7 +244,7 @@ export default function EventsCalendarModal({
             type="button"
             onClick={onClose}
             aria-label="Close events calendar"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -255,7 +255,7 @@ export default function EventsCalendarModal({
             type="button"
             onClick={() => changeMonth(-1)}
             aria-label="Previous month"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -264,7 +264,7 @@ export default function EventsCalendarModal({
             type="button"
             onClick={() => changeMonth(1)}
             aria-label="Next month"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -298,9 +298,15 @@ export default function EventsCalendarModal({
             // day of a window, or the edge of a week row where it wraps.
             const opensHere = covering.some((e) => e.startKey === cell.key);
             const closesHere = covering.some((e) => e.endKey === cell.key);
+            // color-mix, not `bg-primary/10`: `primary` is defined in
+            // tailwind.config.ts as a bare `var(--color-primary)` holding a hex,
+            // so Tailwind's slash modifier compiles to
+            // `rgb(var(--color-primary) / 0.1)` — invalid, dropped by the
+            // browser, drawn as nothing. Every `primary/<n>` in the repo is
+            // silently transparent for the same reason.
             const bandClass =
               covering.length > 0
-                ? `bg-primary/10 ${opensHere || index % 7 === 0 ? 'rounded-l-lg' : ''} ${
+                ? `bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] ${opensHere || index % 7 === 0 ? 'rounded-l-lg' : ''} ${
                     closesHere || index % 7 === 6 ? 'rounded-r-lg' : ''
                   }`
                 : '';
@@ -317,7 +323,7 @@ export default function EventsCalendarModal({
                 <div
                   key={cell.key}
                   className={`text-xs ${cell.inMonth ? 'text-slate-700' : 'text-slate-300'} ${
-                    isToday ? 'rounded-lg ring-1 ring-primary/60' : ''
+                    isToday ? 'rounded-lg ring-1 ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]' : ''
                   }`}
                 >
                   {inner}
@@ -334,9 +340,9 @@ export default function EventsCalendarModal({
                 onClick={() => setSelectedDay(isSelected ? null : cell.key)}
                 className={`cursor-pointer text-xs transition ${
                   cell.inMonth ? 'text-slate-700' : 'text-slate-300'
-                } ${isToday ? 'rounded-lg ring-1 ring-primary/60' : ''} ${
+                } ${isToday ? 'rounded-lg ring-1 ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]' : ''} ${
                   isSelected ? 'rounded-lg ring-2 ring-primary' : ''
-                } hover:brightness-95 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-primary/60`}
+                } hover:brightness-95 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]`}
               >
                 {inner}
               </button>
@@ -356,7 +362,7 @@ export default function EventsCalendarModal({
               <button
                 type="button"
                 onClick={() => setSelectedDay(null)}
-                className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold text-primary transition hover:bg-[color-mix(in_srgb,var(--color-primary)_5%,transparent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_60%,transparent)]"
               >
                 Show whole month
               </button>
@@ -371,7 +377,7 @@ export default function EventsCalendarModal({
               {monthEntries.map((entry) => {
                 if (entry.kind === 'registration') {
                   return (
-                    <li key={entry.id} className="rounded-xl bg-primary/5 px-4 py-3">
+                    <li key={entry.id} className="rounded-xl bg-[color-mix(in_srgb,var(--color-primary)_5%,transparent)] px-4 py-3">
                       <p className="text-sm font-semibold text-slate-900">{entry.label}</p>
                       <p className="text-xs text-slate-500">{formatDayRange(entry.startKey, entry.endKey)}</p>
                     </li>
