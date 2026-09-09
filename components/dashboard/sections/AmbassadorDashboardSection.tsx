@@ -74,7 +74,7 @@ export default function AmbassadorDashboardSection() {
   return (
     <section className="space-y-6">
       {data.programName ? (
-        <p className="text-sm text-muted-foreground">{data.programName}</p>
+        <p className="text-sm text-muted-foreground">Home programme: {data.programName}</p>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">

@@ -71,6 +71,22 @@ export default function AmbassadorReferralFunnelSection() {
   const { data, loading, error } = useAmbassadorSectionData();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | AmbassadorReferralStatus>("all");
+  const [programFilter, setProgramFilter] = useState<string>("all");
+
+  const programOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+
+    data?.referrals.forEach((referral) => {
+      if (referral.programId) {
+        seen.set(referral.programId, referral.programName || referral.programId);
+      }
+    });
+
+    return [
+      { value: "all", label: "All programmes" },
+      ...Array.from(seen, ([value, label]) => ({ value, label })),
+    ];
+  }, [data]);
 
   const statusCounts = useMemo(() => {
     const counts: Record<AmbassadorReferralStatus, number> = {
@@ -98,6 +114,10 @@ export default function AmbassadorReferralFunnelSection() {
         return false;
       }
 
+      if (programFilter !== "all" && referral.programId !== programFilter) {
+        return false;
+      }
+
       if (!keyword) return true;
 
       return (
@@ -105,7 +125,7 @@ export default function AmbassadorReferralFunnelSection() {
         referral.status.toLowerCase().includes(keyword)
       );
     });
-  }, [data, searchQuery, statusFilter]);
+  }, [data, searchQuery, statusFilter, programFilter]);
 
   if (loading) {
     return <DashboardPageSkeleton variant="ambassador-referrals" className="space-y-6" />;
@@ -167,6 +187,18 @@ export default function AmbassadorReferralFunnelSection() {
               </option>
             ))}
           </select>
+
+          <select
+            value={programFilter}
+            onChange={(event) => setProgramFilter(event.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-300 focus:ring-2 focus:ring-slate-100 md:w-52"
+          >
+            {programOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         {filteredReferrals.length === 0 ? (
@@ -189,6 +221,7 @@ export default function AmbassadorReferralFunnelSection() {
               <thead className="bg-slate-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-slate-600">Participant</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-600">Programme</th>
                   <th className="px-4 py-3 text-left font-semibold text-slate-600">Status</th>
                   <th className="px-4 py-3 text-left font-semibold text-slate-600">Referred</th>
                   <th className="px-4 py-3 text-left font-semibold text-slate-600">Latest Milestone</th>
@@ -202,6 +235,7 @@ export default function AmbassadorReferralFunnelSection() {
                       <div className="font-medium text-slate-900">{referral.participantName}</div>
                       <div className="mt-1 text-xs text-slate-500">ID: {referral.participantId}</div>
                     </td>
+                    <td className="px-4 py-4 text-slate-700">{referral.programName || "-"}</td>
                     <td className="px-4 py-4">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_COLORS[referral.status]}`}

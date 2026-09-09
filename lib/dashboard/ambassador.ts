@@ -11,6 +11,8 @@ export type AmbassadorReferral = {
   id: string;
   participantId: string;
   participantName: string;
+  programId?: string;
+  programName?: string;
   status: AmbassadorReferralStatus;
   referredAt: string;
   registeredAt?: string;
@@ -35,9 +37,13 @@ export type AmbassadorData = {
   referrals: AmbassadorReferral[];
 };
 
-function toOptionalDate(value: unknown): string | undefined {
+function toOptionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
 }
+
+// Dates are stored as-is (not date-parsed), so this is just toOptionalString
+// under a name that matches what the field holds.
+const toOptionalDate = toOptionalString;
 
 function toOptionalNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
@@ -69,10 +75,17 @@ function toAmbassadorReferral(value: unknown): AmbassadorReferral | null {
     return null;
   }
 
+  // programId/programName were added after older referral rows were recorded,
+  // so they're parsed defensively and never gate the row on being present.
+  const programId = toOptionalString(value.programId);
+  const programName = toOptionalString(value.programName);
+
   return {
     id,
     participantId,
     participantName,
+    programId,
+    programName,
     status,
     referredAt,
     registeredAt: toOptionalDate(value.registeredAt),
