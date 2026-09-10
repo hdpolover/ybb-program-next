@@ -65,17 +65,21 @@ export default function CancelDeletionPage() {
   const requestId = searchParams?.get('requestId') ?? '';
   const token = searchParams?.get('token') ?? '';
 
-  const [status, setStatus] = useState<CancelStatus>('loading');
-  const [message, setMessage] = useState('');
+  // Whether the link carries what it needs is knowable at render time -- both
+  // values come straight off the query string. Deciding it in the effect meant
+  // painting a spinner for one frame before flipping to the error, and made
+  // the effect set state synchronously on mount for a case that never needed
+  // an effect at all (react-hooks/set-state-in-effect).
+  const hasRequiredParams = Boolean(requestId && token);
+
+  const [status, setStatus] = useState<CancelStatus>(hasRequiredParams ? 'loading' : 'invalid');
+  const [message, setMessage] = useState(hasRequiredParams ? '' : MISSING_PARAMS_MESSAGE);
   const [imageIndex, setImageIndex] = useState(0);
   const [loginImages, setLoginImages] = useState<string[]>(FALLBACK_IMAGES);
 
   useEffect(() => {
-    if (!requestId || !token) {
-      setStatus('invalid');
-      setMessage(MISSING_PARAMS_MESSAGE);
-      return;
-    }
+    // Already reflected in the initial state above -- nothing to do but stay put.
+    if (!hasRequiredParams) return;
 
     let cancelled = false;
 
@@ -110,7 +114,7 @@ export default function CancelDeletionPage() {
     return () => {
       cancelled = true;
     };
-  }, [requestId, token]);
+  }, [requestId, token, hasRequiredParams]);
 
   useEffect(() => {
     async function fetchGalleryImages() {

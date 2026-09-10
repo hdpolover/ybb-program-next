@@ -36,6 +36,15 @@ export default function SubmitReminderPopup() {
     } catch {
       // sessionStorage unavailable (private mode) — still show the reminder.
     }
+    // react-hooks/set-state-in-effect disabled deliberately, not worked around.
+    // The rule is right that most setState-on-mount is a derived value that
+    // belongs in render; this one is not. Whether the reminder has been seen
+    // lives in sessionStorage, which does not exist on the server, so reading
+    // it during render (or in a useState initializer) makes the server and
+    // client disagree on the first paint — trading a lint error for a
+    // hydration mismatch. The write above is also a side effect and cannot
+    // run during render at all. Effect is the correct place for both.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen(true);
   }, [shouldRemind, seenKey]);
 

@@ -431,9 +431,17 @@ export default function OnboardingPage() {
   }, [originCities]);
 
   // Restore a draft from this tab, client-side only, once.
+  //
+  // react-hooks/set-state-in-effect is disabled inside this effect deliberately.
+  // readOnboardingDraft reads browser storage, which does not exist on the
+  // server: hoisting it into render or a useState initializer — the rule's
+  // usual remedy — would make the server and client render different form
+  // state and produce a hydration mismatch. There is no render-time value to
+  // derive here; the draft is external state that only exists after mount.
   useEffect(() => {
     const draft = readOnboardingDraft();
     if (draft.form) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm(prev => {
         const merged = { ...prev };
         for (const key of Object.keys(EMPTY_FORM) as Array<keyof OnboardingForm>) {
