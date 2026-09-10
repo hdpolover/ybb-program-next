@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { refreshSessionForRequest } from '@/lib/auth/sessionRefresh';
 
 const API_BASE_URL = getServerApiBaseUrl();
 const BRAND_STATUS_CACHE_TTL_MS = 30_000;
@@ -208,6 +209,34 @@ const attachReferralCookie = async (
 
 export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
+  const { pathname } = nextUrl;
+
+  // /api was excluded from this file's matcher for as long as it existed,
+  // which is also why the refreshToken cookie every login route sets has
+  // gone completely unread since it was introduced: with a 1h access token
+  // and nothing reading the refresh cookie, ~13k applicants were getting
+  // hard-logged-out mid draft-save every hour (N-2026-09-10-F). Fixing that
+  // meant adding /api to the matcher below, which makes this branch load
+  // bearing: everything past this point -- brand-status lookups, referral
+  // capture, the ambassador share-token redirect, maintenance/unavailable
+  // rewrites -- is page-navigation logic that assumes a browser document
+  // request. Running it against an XHR/fetch call would mean an in-flight
+  // save gets silently redirected to /login instead of getting back the JSON
+  // 401 the client code expects, or gets rewritten into the maintenance page
+  // mid-request. So /api/* gets ONLY the session-refresh check and nothing
+  // else. /api/auth/* is excluded from even that: those routes ARE
+  // login/logout/refresh, and redeeming a refresh token on the way to
+  // exchanging or invalidating one is either pointless or (for
+  // /api/auth/refresh itself) recursive.
+  // `/api` with no trailing segment is matched too: the exemption this
+  // replaced used startsWith('/api'), and leaving the bare path to fall
+  // through would newly subject it to the page-navigation logic below.
+  if (pathname === '/api' || pathname.startsWith('/api/')) {
+    if (pathname.startsWith('/api/auth/')) {
+      return NextResponse.next();
+    }
+    return refreshSessionForRequest(request);
+  }
 
   // Referral params used to be stripped from the URL and redirected away here,
   // purely so the code would not linger in the address bar. That cosmetic strip
@@ -253,12 +282,12 @@ export async function middleware(request: NextRequest) {
   // You can also add logic here to rewrite paths based on hostname if needed
   // For example, if you wanted to map domains to specific paths internally
 
-  const { pathname } = request.nextUrl;
-
+  // pathname is already scoped to a non-/api page request at this point --
+  // /api/* returned above -- so the exemption list below only needs to
+  // account for non-API paths this middleware still shouldn't gate.
   const isExemptRoute =
     pathname === '/maintenance' ||
     pathname === '/unavailable' ||
-    pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico';
 
@@ -291,11 +320,20 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     *
+     * `api` USED to be excluded here too, which is why the refreshToken
+     * cookie every login route sets went completely unread for as long as it
+     * existed (N-2026-09-10-F) -- middleware, the only place positioned to
+     * refresh a session centrally for all 38 API proxy routes, never ran on
+     * them. It is included now specifically so refreshSessionForRequest gets
+     * a chance to run before every /api/* request; see the branch at the top
+     * of middleware() for why that does NOT mean the rest of this file's
+     * logic (referral capture, maintenance rewrites, etc.) runs against API
+     * calls too.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|img/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|img/).*)',
   ],
 };
