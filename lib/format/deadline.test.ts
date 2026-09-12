@@ -10,7 +10,12 @@
  * regardless of what timezone actually runs this suite.
  */
 import { describe, it, expect, vi } from "vitest";
-import { formatDayMonthWib, formatDeadlineLocal, formatDeadlineWib } from "./deadline";
+import {
+  formatDayMonthWib,
+  formatDeadlineForViewer,
+  formatDeadlineLocal,
+  formatDeadlineWib,
+} from "./deadline";
 
 const UTC_INSTANT = "2026-07-15T16:59:00.000Z";
 // In WIB (UTC+7): 2026-07-15 23:59
@@ -88,5 +93,43 @@ describe("formatDayMonthWib", () => {
     expect(formatDayMonthWib(null)).toBeNull();
     expect(formatDayMonthWib("")).toBeNull();
     expect(formatDayMonthWib("not-a-date")).toBeNull();
+  });
+});
+
+// Added with formatDeadlineForViewer (2026-09-12). Three components had each
+// open-coded this hydrated ternary, and one of them drifted into rendering a
+// timezone label with no time beside it, which says nothing: a bare date has
+// no timezone. These pin the two states and the delegation.
+describe("formatDeadlineForViewer", () => {
+  it("renders the business timezone before hydration, so SSR and crawlers get a labelled Jakarta time", () => {
+    const result = formatDeadlineForViewer(UTC_INSTANT, { hydrated: false });
+    expect(result).toContain("15 Jul 2026");
+    expect(result).toContain("23:59");
+    expect(result).toContain("WIB");
+  });
+
+  it("renders the viewer's own zone once hydrated", () => {
+    vi.stubEnv("TZ", "Asia/Shanghai");
+    const result = formatDeadlineForViewer(UTC_INSTANT, { hydrated: true });
+    vi.unstubAllEnvs();
+
+    // Same instant, the reader's own clock and their own label.
+    expect(result).toContain("16 Jul 2026");
+    expect(result).toContain("00:59");
+    expect(result).not.toContain("WIB");
+  });
+
+  it("includes the time by default, which is the whole point of naming a timezone", () => {
+    expect(formatDeadlineForViewer(UTC_INSTANT, { hydrated: false })).toMatch(/\d{2}:\d{2}/);
+  });
+
+  it("still honours withTime: false for callers that only want the day", () => {
+    const result = formatDeadlineForViewer(UTC_INSTANT, { hydrated: false, withTime: false });
+    expect(result).not.toContain("23:59");
+  });
+
+  it("passes missing values straight through as the em dash", () => {
+    expect(formatDeadlineForViewer(null, { hydrated: false })).toBe("—");
+    expect(formatDeadlineForViewer(undefined, { hydrated: true })).toBe("—");
   });
 });

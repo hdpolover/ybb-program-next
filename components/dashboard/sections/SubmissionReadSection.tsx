@@ -495,7 +495,7 @@ function ProgressDrawer({
         <div className="border-t border-slate-200 px-5 py-4">
           <a
             href="/dashboard/submission/edit"
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90"
             onClick={onClose}
           >
             <Pencil className="h-4 w-4" />
@@ -713,7 +713,7 @@ export default function SubmissionReadSection() {
           {detail && detail.status !== 'draft' ? (
             <Link
               href="/dashboard/submission/edit"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 sm:px-4 sm:py-2"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 sm:px-4 sm:py-2"
             >
               <Eye className="h-4 w-4" />
               View Submission
@@ -721,7 +721,7 @@ export default function SubmissionReadSection() {
           ) : (
             <Link
               href="/dashboard/submission/edit"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 sm:px-4 sm:py-2"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 sm:px-4 sm:py-2"
             >
               <Pencil className="h-4 w-4" />
               Fill Form
@@ -768,7 +768,7 @@ export default function SubmissionReadSection() {
                 onClick={() => setActiveSectionId(section.id)}
                 className={`snap-start shrink-0 whitespace-nowrap rounded-full border-2 px-4 py-1.5 text-sm font-semibold leading-none transition-colors sm:px-8 sm:py-2 sm:text-base ${
                   activeSection?.id === section.id
-                    ? 'border-primary bg-primary text-white'
+                    ? 'border-primary bg-primary text-primary-foreground'
                     : 'hover:bg-primary/10 border-primary bg-transparent text-primary'
                 }`}
               >

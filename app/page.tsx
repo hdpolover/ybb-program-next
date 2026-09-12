@@ -183,11 +183,9 @@ export default async function Home() {
 
   const furtherGuidebooks = registrationOverviewSection?.content.guidelines
     .slice(0, 2)
-    .map((g, index) => ({
+    .map((g) => ({
       href: g.url,
       label: g.title,
-      // guideline pertama dibikin gaya primary, sisanya tampil sebagai secondary
-      locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
     }));
 
   // Per-edition guidebooks, same order as HomeRegistrationStrip's tabs, so
@@ -195,10 +193,9 @@ export default async function Home() {
   // selected instead of always showing the section-level (newest) fallback.
   const programEditions = registrationOverviewSection?.content.programs ?? [];
   const guidebookEditions = programEditions.map((edition) =>
-    (edition.guidelines ?? []).slice(0, 2).map((g, index) => ({
+    (edition.guidelines ?? []).slice(0, 2).map((g) => ({
       href: g.url,
       label: g.title,
-      locale: (index === 0 ? 'eng' : 'ind') as 'eng' | 'ind',
     }))
   );
   const defaultEditionIndex = pickDefaultEditionIndex(programEditions);

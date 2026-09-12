@@ -86,6 +86,37 @@ export function formatDeadlineWib(
 }
 
 /**
+ * The viewer's own timezone once hydrated, the business timezone before that.
+ *
+ * Three components had already open-coded this exact ternary
+ * (RegistrationDeadlineCTA, LocalDateTime, the support-tickets page), which is
+ * how one of them ended up rendering a zone label with no time next to it. The
+ * rule is one line and easy to get subtly wrong, so it lives here once.
+ *
+ * `hydrated` is passed in rather than read from a hook so this stays a pure
+ * function: callers that format a LIST call useHydrated once and map, which a
+ * hook could not do without breaking the rules of hooks.
+ *
+ * Whatever renders the result MUST carry `suppressHydrationWarning`: the two
+ * renders differ by design, and the difference has to stay confined to that
+ * element. See hooks/useHydrated.ts.
+ *
+ * Only for true INSTANTS. A business calendar day (an event date, a validity
+ * period boundary) must keep using formatDayMonthWib, because rendering the
+ * day itself in the viewer's zone shows the wrong date either side of
+ * midnight. That defect class has been fixed here three times already.
+ */
+export function formatDeadlineForViewer(
+  value: string | Date | null | undefined,
+  opts: { withTime?: boolean; hydrated: boolean },
+): string {
+  const { withTime = true, hydrated } = opts;
+  return hydrated
+    ? formatDeadlineLocal(value, { withTime })
+    : formatDeadlineWib(value, { withTime });
+}
+
+/**
  * "5 Sept" in WIB, for the opening DAY shown next to a countdown that ticks to
  * the exact opening instant.
  *

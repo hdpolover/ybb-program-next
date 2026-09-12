@@ -422,7 +422,7 @@ export default function CurrentProgram({ overview, coverImage, guidebooks: backe
                     <a
                       key={`${guide.url}-${index}`}
                       href={guide.url}
-                      className={`${componentsTheme.homeRegistration.guideSecondary} flex w-full items-center justify-center gap-2 text-sm`}
+                      className={`${componentsTheme.homeRegistration.guidePrimary} flex w-full items-center justify-center gap-2 text-sm`}
                       target="_blank"
                       rel="noreferrer"
                       title={guide.label}

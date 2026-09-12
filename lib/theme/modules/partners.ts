@@ -13,7 +13,7 @@ export const partnersTheme = {
     featureDescription: 'text-sm leading-relaxed text-slate-700',
     ctaWrapper: 'mt-10 flex justify-center',
     ctaButton:
-      'inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   partnersJourney: {
     sectionWrapper: 'px-6 py-14 sm:py-16 md:py-20 lg:px-8',
@@ -32,7 +32,7 @@ export const partnersTheme = {
       'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pl-1 pr-6 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:pb-0 lg:pr-0 lg:pt-0',
     diamondCard:
       'min-w-[85%] snap-start rounded-2xl bg-white p-6 shadow-[0_10px_40px_rgba(2,6,23,0.08)] ring-2 ring-primary/30 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] focus:outline-none focus:ring-2 focus:ring-primary/40 lg:min-w-0',
-    diamondIconCircle: 'inline-grid h-9 w-9 place-items-center rounded-full bg-primary text-white',
+    diamondIconCircle: 'inline-grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground',
     diamondLabel: 'text-xs font-semibold uppercase tracking-wide text-primary',
     diamondLogoImg: 'h-9 w-9 rounded bg-white object-contain p-1 ring-1 ring-slate-200',
     diamondTitle: 'text-lg font-extrabold text-slate-900',
@@ -124,7 +124,7 @@ export const partnersTheme = {
     benefitItemBase:
       'flex items-center gap-3 py-3 transition-colors duration-200 hover:bg-slate-50',
     benefitItemBordered: 'border-b border-slate-200',
-    checkCircle: 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-white',
+    checkCircle: 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground',
     checkIcon: 'h-4 w-4',
     benefitLabel: 'text-sm font-medium text-slate-900',
     affiliateSubheading: 'pb-1 text-sm font-extrabold text-slate-900',
@@ -139,7 +139,7 @@ export const partnersTheme = {
     goldCta:
       'inline-flex w-full items-center justify-center rounded-md bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2',
     diamondCta:
-      'inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   partnersCommunity: {
     sectionWrapper:

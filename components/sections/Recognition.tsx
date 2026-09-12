@@ -50,6 +50,11 @@ export default function Recognition({ section }: Props) {
   if (!section) return null;
 
   const { title, subtitle, proofs, trademark } = section.content;
+
+  // A heading is not content. With no proofs and no trademark this rendered as
+  // an empty titled band promising "proof that our program is credible" and
+  // then showing none, which reads worse than the section being absent.
+  if (!proofs?.length && !trademark) return null;
   return (
     <section className={componentsTheme.recognition.sectionWrapper}>
       <div className={componentsTheme.recognition.container}>

@@ -75,7 +75,7 @@ export const authTheme = {
     programSourceGrid: 'mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3',
     optionButtonBase:
       'inline-flex cursor-pointer active:scale-[0.98] items-center justify-center rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/100 focus:ring-offset-2',
-    optionButtonSelected: 'border-primary bg-primary text-white',
+    optionButtonSelected: 'border-primary bg-primary text-primary-foreground',
     optionButtonUnselected: 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
     seeAllButton:
       'mt-3 inline-flex items-center justify-center text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary',

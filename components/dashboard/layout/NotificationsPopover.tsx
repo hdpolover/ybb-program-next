@@ -73,7 +73,7 @@ export default function NotificationsPopover() {
       >
         <Bell className="h-4 w-4" />
         {badgeCount > 0 ? (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
             {badgeCount > 99 ? "99+" : badgeCount}
           </span>
         ) : null}
@@ -97,7 +97,7 @@ export default function NotificationsPopover() {
               type="button"
               onClick={() => setTab("alerts")}
               className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition ${
-                tab === "alerts" ? "bg-primary text-white" : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+                tab === "alerts" ? "bg-primary text-primary-foreground" : "bg-slate-50 text-slate-700 hover:bg-slate-100"
               }`}
             >
               <AlertTriangle className="h-3.5 w-3.5" />
@@ -111,7 +111,7 @@ export default function NotificationsPopover() {
               type="button"
               onClick={() => setTab("announcements")}
               className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition ${
-                tab === "announcements" ? "bg-primary text-white" : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+                tab === "announcements" ? "bg-primary text-primary-foreground" : "bg-slate-50 text-slate-700 hover:bg-slate-100"
               }`}
             >
               <Megaphone className="h-3.5 w-3.5" />

@@ -2,7 +2,7 @@
 "use client";
 
 import { useHydrated } from "@/hooks/useHydrated";
-import { formatDeadlineLocal, formatDeadlineWib } from "@/lib/format/deadline";
+import { formatDeadlineForViewer } from "@/lib/format/deadline";
 
 type Props = {
   /** ISO string or Date from the API. All backend datetimes are stored UTC (timestamptz). */
@@ -27,9 +27,7 @@ type Props = {
  */
 export function LocalDateTime({ value, withTime = true, className }: Props) {
   const hydrated = useHydrated();
-  const text = hydrated
-    ? formatDeadlineLocal(value, { withTime })
-    : formatDeadlineWib(value, { withTime });
+  const text = formatDeadlineForViewer(value, { withTime, hydrated });
 
   return (
     <time

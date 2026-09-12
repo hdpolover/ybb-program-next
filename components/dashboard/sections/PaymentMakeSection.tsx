@@ -850,7 +850,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                   <div className="flex items-start gap-3">
                     <span
                       className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
-                        paymentType === "gateway" ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
+                        paymentType === "gateway" ? "bg-primary text-primary-foreground" : "bg-slate-100 text-slate-500"
                       }`}
                     >
                       <Globe2 className="h-4.5 w-4.5" />
@@ -893,7 +893,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                   <div className="flex items-start gap-3">
                     <span
                       className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
-                        paymentType === "manual" ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
+                        paymentType === "manual" ? "bg-primary text-primary-foreground" : "bg-slate-100 text-slate-500"
                       }`}
                     >
                       <Building2 className="h-4.5 w-4.5" />
