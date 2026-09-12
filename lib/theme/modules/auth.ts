@@ -8,7 +8,7 @@ export const authTheme = {
     inputPassword: 'pr-10 sm:pr-12',
     checkbox: 'h-4 w-4 rounded border-white/30 bg-white/20 text-primary focus:ring-primary/40',
     primaryButton:
-      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-primary/90 active:scale-[0.98]',
+      'inline-flex w-full cursor-pointer items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]',
     forgotPasswordLink: 'font-semibold cursor-pointer text-primary hover:text-primary/80 transition-colors',
     switchModeLink: 'font-semibold cursor-pointer text-primary hover:text-primary/80 transition-colors',
     slideIndicatorWrapper:
