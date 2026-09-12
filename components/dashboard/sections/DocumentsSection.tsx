@@ -663,7 +663,7 @@ export default function DocumentsSection() {
                             rel="noopener noreferrer"
                             aria-label={`Download ${item.title}`}
                             title="Download"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-sm transition hover:bg-primary"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:bg-primary"
                             onClick={event => event.stopPropagation()}
                             download
                           >
@@ -736,7 +736,7 @@ export default function DocumentsSection() {
                                 rel="noopener noreferrer"
                                 aria-label={`Download ${item.title}`}
                                 title="Download"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-sm transition hover:bg-primary"
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:bg-primary"
                                 onClick={event => event.stopPropagation()}
                                 download
                               >

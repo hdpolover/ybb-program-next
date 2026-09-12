@@ -156,11 +156,12 @@ export default function ApplyOverviewSection({ data }: ApplyOverviewSectionProps
                       href={guidebook.url}
                       target="_blank"
                       rel="noreferrer"
-                      className={`${
-                        idx === 0
-                          ? componentsTheme.homeRegistration.guideSecondary
-                          : componentsTheme.homeRegistration.guidePrimary
-                      } flex w-full items-center justify-center gap-2 text-sm`}
+                      /* One style for every guidebook: they are peers (IDN and
+                         ENG of the same document), and the old filled-vs-outline
+                         split was keyed on array position. This file also had the
+                         mapping REVERSED relative to the other call sites, so the
+                         same two buttons looked inverted from page to page. */
+                      className={`${componentsTheme.homeRegistration.guidePrimary} flex w-full items-center justify-center gap-2 text-sm`}
                     >
                       <span>{guidebook.label}</span>
                     </a>

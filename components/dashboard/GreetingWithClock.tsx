@@ -70,7 +70,7 @@ export default function GreetingWithClock({ name }: { name: string }) {
         <h1 className="text-2xl font-extrabold text-[var(--brand-primary)] sm:text-3xl">
           {getGreeting()}, {name.toUpperCase()}!
         </h1>
-        <span className="w-fit rounded-full bg-primary px-3 py-1 text-sm font-medium text-white sm:ml-auto">
+        <span className="w-fit rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground sm:ml-auto">
           {formatTime(currentTime)}
         </span>
       </div>

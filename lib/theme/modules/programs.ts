@@ -33,7 +33,7 @@ export const programsTheme = {
     statusBadge:
       'inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary',
     primaryCta:
-      'inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary',
+      'inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary',
     secondaryCta:
       'inline-flex items-center justify-center rounded-lg border border-primary/30 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary/10',
     tertiaryCta:
@@ -99,16 +99,16 @@ export const programsTheme = {
     arrowIcon: 'h-4 w-4',
   },
   programsMissionVision: {
-    missionIconMain: 'grid h-9 w-9 place-items-center rounded-full bg-primary text-white',
+    missionIconMain: 'grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground',
     missionBulletIcon:
       'mt-1 grid h-6 w-6 place-items-center rounded-full bg-primary/20 text-primary ring-1 ring-primary/30',
   },
   programsObjectives: {
     numberCircle:
-      'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-white',
+      'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground',
   },
   programsBenefits: {
-    iconCircle: 'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-white',
+    iconCircle: 'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground',
   },
   programsActivities: {
     sectionWrapper:
@@ -148,7 +148,7 @@ export const programsTheme = {
     stepRow: 'grid grid-cols-[auto,1fr] gap-x-4 gap-y-1',
     stepIconCol: 'relative col-span-1 flex flex-col items-center',
     stepIconCircle:
-      'grid h-9 w-9 place-items-center rounded-full bg-primary text-white shadow-[0_10px_25px_rgba(219,39,119,0.6)]',
+      'grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_25px_rgba(219,39,119,0.6)]',
     stepIcon: 'h-5 w-5',
     stepLabel: 'mt-1 text-[11px] font-semibold uppercase tracking-wide text-primary',
     stepCard:
@@ -203,7 +203,7 @@ export const programsTheme = {
     emptyStateText: 'mt-1.5 max-w-xs text-sm leading-relaxed text-slate-600',
   },
   insightsStats: {
-    iconCircle: 'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-white',
+    iconCircle: 'grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground',
     label: 'text-xs font-semibold uppercase tracking-wide text-primary',
     value: 'mt-1 text-2xl font-extrabold text-slate-900',
   },
@@ -215,11 +215,11 @@ export const programsTheme = {
     iconCircle:
       'grid h-8 w-8 place-items-center rounded-full bg-white text-primary ring-1 ring-primary/30',
     sdgCircle:
-      'inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white',
+      'inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground',
   },
   insightsParticipants: {
     rankCircle:
-      'inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white',
+      'inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground',
     flagCircle:
       'grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/30',
     barTrack: 'mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100',
@@ -229,7 +229,7 @@ export const programsTheme = {
     subtitle: '-mt-6 mb-8 text-center text-sm text-primary',
     card: 'group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30',
     loadMoreButton:
-      'inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   programDetail: {
     // Hero section
@@ -246,11 +246,11 @@ export const programsTheme = {
     heroBlurSecondary:
       'pointer-events-none absolute -right-40 top-24 h-[16rem] w-[16rem] rounded-full bg-white/5 blur-2xl md:h-[18rem] md:w-[18rem]',
     heroCta:
-      'inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary',
+      'inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary',
     heroCtaClosed:
       'inline-flex items-center justify-center rounded-lg border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/80',
     // Info strip section
-    infoStripSection: 'relative w-full overflow-hidden bg-primary text-white',
+    infoStripSection: 'relative w-full overflow-hidden bg-primary text-primary-foreground',
     infoStripBlurPrimary:
       'pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/15 blur-3xl',
     infoStripBlurSecondary:
@@ -275,7 +275,7 @@ export const programsTheme = {
       'mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border-2 border-primary/100/80 bg-primary/10',
     guidelinesIcon: 'h-5 w-5 text-primary',
     guidelinesButton:
-      'inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary',
+      'inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary',
     guidelinesText: 'text-base leading-7 text-gray-600',
     guidelinesCtaWrapper: 'mt-6 flex justify-center',
     guidelinesDownloadIcon: 'h-4 w-4',
@@ -291,17 +291,17 @@ export const programsTheme = {
     overviewContent: 'text-gray-700',
     overviewText: 'leading-7',
     overviewRichText:
-      "[&_p]:leading-7 [&_p:not(:first-child)]:mt-4 [&_.ql-align-justify]:text-justify [&_strong]:font-semibold [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4 [&_ul]:mt-4 [&_ul]:space-y-3 [&_ul]:pl-0 [&_ol]:mt-4 [&_ol]:space-y-3 [&_ol]:pl-0 [&_ul>li]:flex [&_ul>li]:items-start [&_ul>li]:gap-3 [&_ol>li]:flex [&_ol>li]:items-start [&_ol>li]:gap-3 [&_li>p]:m-0 [&_ul>li::before]:mt-[2px] [&_ul>li::before]:inline-grid [&_ul>li::before]:h-7 [&_ul>li::before]:w-7 [&_ul>li::before]:shrink-0 [&_ul>li::before]:place-items-center [&_ul>li::before]:rounded-full [&_ul>li::before]:bg-primary [&_ul>li::before]:text-[13px] [&_ul>li::before]:font-semibold [&_ul>li::before]:leading-none [&_ul>li::before]:text-white [&_ul>li::before]:content-['✓'] [&_ol>li::before]:mt-[2px] [&_ol>li::before]:inline-grid [&_ol>li::before]:h-7 [&_ol>li::before]:w-7 [&_ol>li::before]:shrink-0 [&_ol>li::before]:place-items-center [&_ol>li::before]:rounded-full [&_ol>li::before]:bg-primary [&_ol>li::before]:text-[13px] [&_ol>li::before]:font-semibold [&_ol>li::before]:leading-none [&_ol>li::before]:text-white [&_ol>li::before]:content-['✓']",
+      "[&_p]:leading-7 [&_p:not(:first-child)]:mt-4 [&_.ql-align-justify]:text-justify [&_strong]:font-semibold [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4 [&_ul]:mt-4 [&_ul]:space-y-3 [&_ul]:pl-0 [&_ol]:mt-4 [&_ol]:space-y-3 [&_ol]:pl-0 [&_ul>li]:flex [&_ul>li]:items-start [&_ul>li]:gap-3 [&_ol>li]:flex [&_ol>li]:items-start [&_ol>li]:gap-3 [&_li>p]:m-0 [&_ul>li::before]:mt-[2px] [&_ul>li::before]:inline-grid [&_ul>li::before]:h-7 [&_ul>li::before]:w-7 [&_ul>li::before]:shrink-0 [&_ul>li::before]:place-items-center [&_ul>li::before]:rounded-full [&_ul>li::before]:bg-primary [&_ul>li::before]:text-[13px] [&_ul>li::before]:font-semibold [&_ul>li::before]:leading-none [&_ul>li::before]:text-primary-foreground [&_ul>li::before]:content-['✓'] [&_ol>li::before]:mt-[2px] [&_ol>li::before]:inline-grid [&_ol>li::before]:h-7 [&_ol>li::before]:w-7 [&_ol>li::before]:shrink-0 [&_ol>li::before]:place-items-center [&_ol>li::before]:rounded-full [&_ol>li::before]:bg-primary [&_ol>li::before]:text-[13px] [&_ol>li::before]:font-semibold [&_ol>li::before]:leading-none [&_ol>li::before]:text-primary-foreground [&_ol>li::before]:content-['✓']",
     overviewList: 'mt-4 space-y-3',
     overviewListItem: 'flex items-start gap-3',
     overviewBulletIcon:
-      'inline-flex aspect-square h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white',
+      'inline-flex aspect-square h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground',
     overviewBulletIconAlt:
-      'inline-flex aspect-square h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white',
+      'inline-flex aspect-square h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground',
     overviewHighlightText: 'font-semibold',
     overviewCheckIcon: 'h-4 w-4',
     applicationPrimaryCta:
-      'inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary',
+      'inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary',
     applicationSecondaryCta:
       'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500',
     applicationCard: 'overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200',
@@ -391,8 +391,6 @@ export const programsTheme = {
     buttonsCol: 'mt-4 flex flex-col items-start gap-3',
     guideButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold shadow-sm transition',
-    guideButtonPrimary: 'border-primary/100/80 bg-white/95 text-primary hover:bg-white',
-    guideButtonSecondary: 'border-blue-500/70 bg-primary/5/90 text-blue-800 hover:bg-primary/10',
     flagCircle: 'inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full',
     rightCol: 'order-1 relative flex w-full justify-center lg:order-2',
     mockupWrapper:
@@ -405,7 +403,7 @@ export const programsTheme = {
     leftColumn: 'space-y-8 text-sm leading-7 text-slate-800',
     itemRow: 'flex gap-4',
     numberCircle:
-      'mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white',
+      'mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground',
     itemTitle: 'text-base font-extrabold text-slate-900',
     itemSubtitle: 'block text-[0.8rem] font-semibold text-primary',
     paragraphStrong: 'mt-2 font-semibold',
@@ -423,7 +421,7 @@ export const programsTheme = {
     asideCheckIcon: 'mt-[2px] h-4 w-4 flex-shrink-0 text-primary',
     asideButtonWrapper: 'mt-6',
     asideButton:
-      'inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-primary/20',
+      'inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-primary/20',
   },
   programsTestimonialsGrid: {
     sectionWrapper: 'px-6 py-12 sm:py-14 md:py-16 lg:px-8',
@@ -438,7 +436,7 @@ export const programsTheme = {
     countryChip:
       'inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/30',
     yearPill:
-      'inline-flex items-center rounded-full bg-primary px-2 py-1 text-[11px] font-semibold text-white',
+      'inline-flex items-center rounded-full bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground',
     flagEmoji: 'text-base leading-none',
     quote: 'mt-3 text-sm leading-6 text-slate-700',
     readMoreButton:
@@ -457,7 +455,7 @@ export const programsTheme = {
     grid: 'grid gap-5 sm:grid-cols-2 lg:grid-cols-4',
     card: 'group rounded-2xl bg-white p-5 text-center shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30',
     iconCircle:
-      'mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-primary text-white transition group-hover:bg-primary',
+      'mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground transition group-hover:bg-primary',
     icon: 'h-5 w-5',
     value: 'text-2xl font-extrabold text-slate-900',
     label: 'text-xs font-semibold uppercase tracking-wide text-primary',

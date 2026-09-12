@@ -22,8 +22,6 @@ export const homeTheme = {
     buttonsCol: 'mt-4 flex flex-col items-center gap-3 sm:items-start',
     guideButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold shadow-sm transition',
-    guideButtonPrimary: 'border-primary/100/80 bg-white/95 text-primary hover:bg-white',
-    guideButtonSecondary: 'border-blue-500/70 bg-primary/5/90 text-blue-800 hover:bg-primary/10',
     flagCircle: 'inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full',
     rightCol: 'hidden order-1 w-full justify-center lg:relative lg:flex lg:order-2',
     mockupWrapper:
@@ -54,7 +52,7 @@ export const homeTheme = {
     listText: 'text-sm leading-relaxed text-slate-700',
     actionsRow: 'mt-auto flex justify-center pb-6',
     readMoreButton:
-      'inline-flex min-w-[180px] items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'inline-flex min-w-[180px] items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-primary-foreground shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   testimonialsHome: {
     sectionWrapper: 'relative w-full overflow-x-hidden bg-primary/10 py-16 sm:py-20',
@@ -64,7 +62,7 @@ export const homeTheme = {
     tabList: 'mt-8 flex items-center justify-center gap-2',
     tabBase:
       'cursor-pointer rounded-full px-5 py-2 text-sm font-semibold tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-    tabActive: 'bg-primary text-white shadow-sm',
+    tabActive: 'bg-primary text-primary-foreground shadow-sm',
     tabInactive: 'bg-white text-primary ring-1 ring-primary/25 hover:bg-primary/5',
     rowOuter: 'relative overflow-hidden py-3',
     fadeLeft:
@@ -249,7 +247,7 @@ export const homeTheme = {
     tabButtonInactiveOnBg: 'text-white/85 hover:text-white',
     sectionOverlay: 'pointer-events-none absolute inset-0 bg-black/35',
     richText:
-      "[&_p]:text-slate-600 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4 [&_ul]:mt-4 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ol]:mt-4 [&_ol]:space-y-2.5 [&_ol]:pl-0 [&_ul>li]:flex [&_ul>li]:items-start [&_ul>li]:gap-3 [&_ul>li]:text-slate-700 [&_ol>li]:flex [&_ol>li]:items-start [&_ol>li]:gap-3 [&_ol>li]:text-slate-700 [&_li>p]:m-0 [&_ul>li::before]:mt-[2px] [&_ul>li::before]:inline-grid [&_ul>li::before]:h-7 [&_ul>li::before]:w-7 [&_ul>li::before]:shrink-0 [&_ul>li::before]:place-items-center [&_ul>li::before]:rounded-full [&_ul>li::before]:bg-primary [&_ul>li::before]:text-[13px] [&_ul>li::before]:font-semibold [&_ul>li::before]:leading-none [&_ul>li::before]:text-white [&_ul>li::before]:content-['✓'] [&_ol>li::before]:mt-[2px] [&_ol>li::before]:inline-grid [&_ol>li::before]:h-7 [&_ol>li::before]:w-7 [&_ol>li::before]:shrink-0 [&_ol>li::before]:place-items-center [&_ol>li::before]:rounded-full [&_ol>li::before]:bg-primary [&_ol>li::before]:text-[13px] [&_ol>li::before]:font-semibold [&_ol>li::before]:leading-none [&_ol>li::before]:text-white [&_ol>li::before]:content-['✓']",
+      "[&_p]:text-slate-600 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:font-semibold [&_.ql-align-justify]:text-justify [&_a]:text-[var(--brand-accent)] [&_a]:underline [&_a]:underline-offset-4 [&_ul]:mt-4 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ol]:mt-4 [&_ol]:space-y-2.5 [&_ol]:pl-0 [&_ul>li]:flex [&_ul>li]:items-start [&_ul>li]:gap-3 [&_ul>li]:text-slate-700 [&_ol>li]:flex [&_ol>li]:items-start [&_ol>li]:gap-3 [&_ol>li]:text-slate-700 [&_li>p]:m-0 [&_ul>li::before]:mt-[2px] [&_ul>li::before]:inline-grid [&_ul>li::before]:h-7 [&_ul>li::before]:w-7 [&_ul>li::before]:shrink-0 [&_ul>li::before]:place-items-center [&_ul>li::before]:rounded-full [&_ul>li::before]:bg-primary [&_ul>li::before]:text-[13px] [&_ul>li::before]:font-semibold [&_ul>li::before]:leading-none [&_ul>li::before]:text-primary-foreground [&_ul>li::before]:content-['✓'] [&_ol>li::before]:mt-[2px] [&_ol>li::before]:inline-grid [&_ol>li::before]:h-7 [&_ol>li::before]:w-7 [&_ol>li::before]:shrink-0 [&_ol>li::before]:place-items-center [&_ol>li::before]:rounded-full [&_ol>li::before]:bg-primary [&_ol>li::before]:text-[13px] [&_ol>li::before]:font-semibold [&_ol>li::before]:leading-none [&_ol>li::before]:text-primary-foreground [&_ol>li::before]:content-['✓']",
     richTextOnBg:
       "[&_*]:!text-white/90 [&_p]:leading-relaxed [&_p:not(:first-child)]:mt-4 [&_strong]:!text-white [&_em]:!text-white/90 [&_.ql-align-justify]:text-justify [&_a]:!text-white [&_a]:underline [&_a]:underline-offset-4 [&_ul]:mt-4 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ol]:mt-4 [&_ol]:space-y-2.5 [&_ol]:pl-0 [&_ul>li]:flex [&_ul>li]:items-start [&_ul>li]:gap-3 [&_ol>li]:flex [&_ol>li]:items-start [&_ol>li]:gap-3 [&_li>p]:m-0 [&_ul>li::before]:mt-[2px] [&_ul>li::before]:inline-grid [&_ul>li::before]:h-7 [&_ul>li::before]:w-7 [&_ul>li::before]:shrink-0 [&_ul>li::before]:place-items-center [&_ul>li::before]:rounded-full [&_ul>li::before]:!bg-white [&_ul>li::before]:!text-[var(--brand-accent)] [&_ul>li::before]:text-[13px] [&_ul>li::before]:font-semibold [&_ul>li::before]:leading-none [&_ul>li::before]:content-['✓'] [&_ol>li::before]:mt-[2px] [&_ol>li::before]:inline-grid [&_ol>li::before]:h-7 [&_ol>li::before]:w-7 [&_ol>li::before]:shrink-0 [&_ol>li::before]:place-items-center [&_ol>li::before]:rounded-full [&_ol>li::before]:!bg-white [&_ol>li::before]:!text-[var(--brand-accent)] [&_ol>li::before]:text-[13px] [&_ol>li::before]:font-semibold [&_ol>li::before]:leading-none [&_ol>li::before]:content-['✓']",
     visionLabel: 'font-semibold text-slate-900',
@@ -324,7 +322,7 @@ export const homeTheme = {
     tabList: 'mb-8 flex flex-wrap items-center justify-center gap-2',
     tabBase:
       'cursor-pointer rounded-full px-5 py-2 text-sm font-semibold tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-    tabActive: 'bg-primary text-white shadow-sm',
+    tabActive: 'bg-primary text-primary-foreground shadow-sm',
     tabInactive: 'bg-white text-primary ring-1 ring-primary/25 hover:bg-primary/5',
     grid: 'grid grid-cols-2 gap-3 sm:gap-5 md:gap-6 lg:grid-cols-4',
     itemWrapper: 'group overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200',

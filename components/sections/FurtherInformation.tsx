@@ -8,7 +8,6 @@ import { useSelectedEdition } from '@/components/sections/SelectedEditionContext
 interface GuidelineLink {
   href: string;
   label: string;
-  locale: 'eng' | 'ind';
 }
 
 interface FurtherInformationProps {
@@ -35,12 +34,10 @@ const DEFAULT_GUIDELINES: GuidelineLink[] = [
   {
     href: '#',
     label: 'Read Guideline (Eng)',
-    locale: 'eng',
   },
   {
     href: '#',
     label: 'Read Guideline (Ind)',
-    locale: 'ind',
   },
 ];
 
@@ -109,13 +106,9 @@ export default function FurtherInformationSection({
               {resolvedGuidebooks.map((link, index) => (
                 link.href && link.href !== '#' ? (
                   <a
-                    key={`${link.locale}-${link.href}-${index}`}
+                    key={`${link.href}-${index}`}
                     href={link.href}
-                    className={`${componentsTheme.furtherInfo.guideButtonBase} w-full max-w-xs truncate ${
-                      link.locale === 'eng'
-                        ? componentsTheme.homeRegistration.guidePrimary
-                        : componentsTheme.homeRegistration.guideSecondary
-                    }`}
+                    className={`${componentsTheme.furtherInfo.guideButtonBase} w-full max-w-xs truncate ${componentsTheme.homeRegistration.guidePrimary}`}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -123,13 +116,9 @@ export default function FurtherInformationSection({
                   </a>
                 ) : (
                   <span
-                    key={`${link.locale}-disabled-${index}`}
+                    key={`disabled-${index}`}
                     aria-disabled="true"
-                    className={`${componentsTheme.furtherInfo.guideButtonBase} w-full max-w-xs truncate ${
-                      link.locale === 'eng'
-                        ? componentsTheme.homeRegistration.guidePrimary
-                        : componentsTheme.homeRegistration.guideSecondary
-                    } pointer-events-none flex cursor-not-allowed items-center justify-center opacity-60`}
+                    className={`${componentsTheme.furtherInfo.guideButtonBase} w-full max-w-xs truncate ${componentsTheme.homeRegistration.guidePrimary} pointer-events-none flex cursor-not-allowed items-center justify-center opacity-60`}
                   >
                     {DATA_NOT_ADDED}
                   </span>

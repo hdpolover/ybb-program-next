@@ -22,15 +22,15 @@ export const commonTheme = {
     messageRow: 'flex py-1',
     messageBubbleBase: 'max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed',
     messageBubbleAssistant: 'bg-slate-100 text-slate-800',
-    messageBubbleUser: 'bg-primary text-white',
+    messageBubbleUser: 'bg-primary text-primary-foreground',
 
     inputRow: 'flex items-center gap-2 border-t border-slate-100 bg-white px-3 py-3',
     input:
       'h-10 flex-1 rounded-full border border-slate-200 bg-white px-4 text-xs text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-primary/100 focus:outline-none focus:ring-2 focus:ring-primary/30',
     sendButton:
-      'inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-sm ring-1 ring-primary/40 transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary/60',
+      'inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/40 transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary/60',
 
-    fab: 'relative inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg ring-1 ring-primary/40 transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary/60',
+    fab: 'relative inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/40 transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary/60',
     fabIcon: 'h-5 w-5',
     fabBadge: 'absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-white ring-2 ring-primary',
   },
@@ -51,7 +51,7 @@ export const commonTheme = {
   },
   videoSection: {
     badge:
-      'inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white shadow whitespace-nowrap',
+      'inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow whitespace-nowrap',
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
     card: 'mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8',
     subtitle: 'mx-auto -mt-6 mb-8 max-w-2xl text-center text-sm text-slate-600 sm:text-base',
@@ -64,7 +64,7 @@ export const commonTheme = {
       'mb-3 inline-flex max-w-full overflow-x-auto rounded-full bg-slate-100 p-1 text-xs',
     yearTab:
       'inline-flex min-w-[64px] items-center justify-center rounded-full px-3 py-1 text-[11px] font-semibold text-slate-600 transition hover:text-slate-900',
-    yearTabActive: 'bg-primary text-white shadow-sm',
+    yearTabActive: 'bg-primary text-primary-foreground shadow-sm',
     listCard:
       'flex cursor-pointer items-center gap-3 rounded-xl bg-slate-50/90 p-3 text-left transition hover:bg-slate-100 border border-transparent',
     listCardActive: 'border-primary/40 bg-primary/10 shadow-[0_12px_30px_rgba(15,23,42,0.12)]',
@@ -123,7 +123,7 @@ export const commonTheme = {
   },
   ctaCard: {
     card: "relative flex w-full max-w-md flex-col items-center justify-center overflow-hidden rounded-2xl bg-[var(--brand-accent-soft)] p-10 shadow-[0_10px_40px_rgba(2,6,23,0.06)] ring-1 ring-primary/20 transition hover:-translate-y-0.5 hover:shadow-[0_16px_60px_rgba(2,6,23,0.12)] hover:ring-primary/30",
-    iconCircle: 'mb-3 grid h-16 w-16 place-items-center rounded-full bg-primary text-white shadow',
+    iconCircle: 'mb-3 grid h-16 w-16 place-items-center rounded-full bg-primary text-primary-foreground shadow',
   },
   footer: {
     sectionWrapper: 'relative w-full bg-[var(--brand-accent)] py-12 text-[var(--brand-accent-foreground)] sm:py-16',

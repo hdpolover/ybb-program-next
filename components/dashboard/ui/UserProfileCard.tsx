@@ -28,7 +28,7 @@ export default function UserProfileCard({ user, onEdit }: UserProfileCardProps) 
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-primary text-white text-4xl font-bold">
+          <div className="flex h-full w-full items-center justify-center bg-primary text-primary-foreground text-4xl font-bold">
             {user.name.charAt(0).toUpperCase()}
           </div>
         )}

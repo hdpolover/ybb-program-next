@@ -7,7 +7,6 @@ import { DATA_NOT_ADDED } from '@/lib/constants/ui';
 interface GuidebookLink {
   href: string;
   label: string;
-  locale: 'eng' | 'ind';
 }
 
 interface ProgramsFurtherInformationProps {
@@ -28,8 +27,8 @@ export default function ProgramsFurtherInformationSection({
   const displayGuidebooks = guidebooks && guidebooks.length > 0
     ? guidebooks
     : [
-        { href: '#', label: 'Read Guidebook (Eng)', locale: 'eng' as const },
-        { href: '#', label: 'Read Guidebook (Ind)', locale: 'ind' as const },
+        { href: '#', label: 'Read Guidebook (Eng)' },
+        { href: '#', label: 'Read Guidebook (Ind)' },
       ];
 
   return (
@@ -55,11 +54,7 @@ export default function ProgramsFurtherInformationSection({
                     <a
                       key={link.label}
                       href={link.href}
-                      className={`${componentsTheme.furtherInfoPrograms.guideButtonBase} ${
-                        link.locale === 'eng'
-                          ? componentsTheme.homeRegistration.guidePrimary
-                          : componentsTheme.homeRegistration.guideSecondary
-                      }`}
+                      className={`${componentsTheme.furtherInfoPrograms.guideButtonBase} ${componentsTheme.homeRegistration.guidePrimary}`}
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -69,11 +64,7 @@ export default function ProgramsFurtherInformationSection({
                     <span
                       key={`${link.label}-disabled`}
                       aria-disabled="true"
-                      className={`${componentsTheme.furtherInfoPrograms.guideButtonBase} ${
-                        link.locale === 'eng'
-                          ? componentsTheme.homeRegistration.guidePrimary
-                          : componentsTheme.homeRegistration.guideSecondary
-                      } pointer-events-none flex cursor-not-allowed items-center justify-center opacity-60`}
+                      className={`${componentsTheme.furtherInfoPrograms.guideButtonBase} ${componentsTheme.homeRegistration.guidePrimary} pointer-events-none flex cursor-not-allowed items-center justify-center opacity-60`}
                     >
                       {DATA_NOT_ADDED}
                     </span>

@@ -71,7 +71,7 @@ export const dashboardTheme = {
     tableOuter: 'overflow-x-auto',
     tableInner: 'min-w-[820px]',
     tableHeader:
-      'items-center gap-4 whitespace-nowrap bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white',
+      'items-center gap-4 whitespace-nowrap bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wide text-primary-foreground',
     tableHeaderSortButton: 'flex items-center gap-1 text-left',
     tableHeaderSortButtonRight: 'ml-auto flex items-center gap-1 text-right',
     tableHeaderSortIcon: 'text-[10px] leading-none',
@@ -82,7 +82,7 @@ export const dashboardTheme = {
     docTypeCell: 'text-slate-700',
     actionCell: 'flex justify-end',
     downloadButton:
-      'inline-flex items-center gap-1 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-primary',
+      'inline-flex items-center gap-1 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm transition hover:bg-primary',
     emptyStateWrapper:
       'flex min-h-[260px] flex-col items-center justify-center bg-slate-50 px-6 py-10 text-center',
     emptyStateImageWrapper: 'mb-4 flex items-center justify-center',
@@ -129,7 +129,7 @@ export const dashboardTheme = {
     stepWrapper: 'space-y-3 text-sm text-slate-700',
     stepRow: 'flex gap-3',
     stepNumberCircle:
-      'mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white shadow-sm',
+      'mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-sm',
     stepTextTitle: 'font-semibold text-slate-900',
     stepTextBody: 'mt-1 text-sm text-slate-700',
     manualPaymentWrapper: 'space-y-5 text-sm text-slate-700',
@@ -150,7 +150,7 @@ export const dashboardTheme = {
     completeButtonWrapper: 'pt-2 flex justify-center',
     completeButtonBase:
       'inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-sm transition',
-    completeButtonEnabled: 'bg-primary text-white hover:bg-primary',
+    completeButtonEnabled: 'bg-primary text-primary-foreground hover:bg-primary',
     completeButtonDisabled: 'bg-slate-200 text-slate-500 cursor-not-allowed',
     detailPrimaryCard:
       'rounded-2xl bg-white p-5 shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
@@ -160,7 +160,7 @@ export const dashboardTheme = {
     detailEmptyStateTitle: 'text-sm font-extrabold text-slate-900',
     detailEmptyStateBody: 'mt-1 text-sm text-slate-600',
     detailEmptyStateButton:
-      'mt-4 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary',
+      'mt-4 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-sm transition hover:bg-primary',
     detailSideCardOuter:
       'overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgba(2,6,23,0.06)] ring-1 ring-slate-200',
     detailSideCardHeader: 'px-5 py-3',
@@ -172,7 +172,7 @@ export const dashboardTheme = {
     detailIllustrationTitle: 'mt-3 text-sm font-extrabold text-slate-900',
     detailIllustrationBody: 'mt-1 text-sm text-slate-600',
     detailMakePaymentButton:
-      'inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary',
+      'inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary',
     detailMakePaymentInner: 'inline-flex w-full items-center justify-center gap-2',
     detailQuickActionsBody: 'space-y-2 px-5 pb-5',
     detailQuickPrimaryButton:
@@ -222,7 +222,7 @@ export const dashboardTheme = {
     categoryBulletIconTertiary: 'bg-violet-50 text-violet-600 ring-violet-100',
     categoryBulletIconInner: 'h-3 w-3',
     categoryPrimaryCta:
-      'inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:px-5',
+      'inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:px-5',
     tableCard:
       'rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:p-5',
     tableHeaderRow: 'mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
@@ -238,7 +238,7 @@ export const dashboardTheme = {
       'w-full border-none bg-transparent text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:w-52',
     tableOuter: 'overflow-x-auto -mx-5 px-5 sm:mx-0 sm:px-0',
     table: 'w-full min-w-[900px] text-left text-sm',
-    tableHeadRow: 'bg-primary text-xs font-semibold uppercase tracking-wide text-white',
+    tableHeadRow: 'bg-primary text-xs font-semibold uppercase tracking-wide text-primary-foreground',
     tableHeadCell: 'px-4 py-3 whitespace-nowrap',
     tableHeadCellRight: 'px-4 py-3 text-right whitespace-nowrap',
     tableBody: 'divide-y divide-slate-100 bg-white text-slate-800',
@@ -293,7 +293,7 @@ export const dashboardTheme = {
     historyProofLinkButton:
       'rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10',
     historyProofDownloadButton:
-      'rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary',
+      'rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary',
     historyEmptyProofText: 'mt-2 text-sm text-slate-600',
   },
   dashboardOverview: {
@@ -347,7 +347,7 @@ export const dashboardTheme = {
       'mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-500',
     registrationSwitchText: 'max-w-xl text-xs leading-relaxed text-slate-700 sm:text-sm',
     registrationSwitchButton:
-      'inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
 
     // program details + progress overview
     programCard:
@@ -358,7 +358,7 @@ export const dashboardTheme = {
     programGrid: 'grid gap-4 md:grid-cols-2',
 
     progressSeeDetailsButton:
-      'inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
 
     // registration-closed state (no application exists because the window closed)
     progressClosedWrapper:
@@ -487,7 +487,7 @@ export const dashboardTheme = {
       'inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800',
     notificationBodyText: 'max-w-2xl text-xs leading-relaxed text-amber-900 sm:text-sm',
     notificationButton:
-      'inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-sm transition hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
   dashboardSubmission: {
     sectionWrapper: 'space-y-6 text-sm',
@@ -514,7 +514,7 @@ export const dashboardTheme = {
     // read-only tabs
     tabsWrapper: 'flex flex-wrap items-center gap-2',
     tabButtonBase: 'rounded-full px-4 py-1.5 text-xs font-semibold transition ring-1',
-    tabButtonActive: 'bg-primary text-white shadow-sm ring-primary/100',
+    tabButtonActive: 'bg-primary text-primary-foreground shadow-sm ring-primary/100',
     tabButtonInactive: 'bg-white/70 text-slate-700 ring-slate-200 hover:bg-white',
 
     // read-only sections
@@ -550,7 +550,7 @@ export const dashboardTheme = {
     stepperPillRow: 'flex snap-start shrink-0 items-center gap-3 md:min-w-0 md:shrink md:flex-1',
     stepperCircle:
       'flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition',
-    stepperCircleActive: 'bg-primary text-white shadow-md',
+    stepperCircleActive: 'bg-primary text-primary-foreground shadow-md',
     stepperCircleDone: 'bg-emerald-600 text-white',
     stepperCircleIdle: 'bg-slate-300 text-white',
     stepperConnectorWrapper:
@@ -636,7 +636,7 @@ export const dashboardTheme = {
     twibbonStepsList: 'mt-3 space-y-2 text-[12px] text-slate-700',
     twibbonStepItem: 'flex items-start gap-2',
     twibbonStepBadge:
-      'mt-[2px] inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-white',
+      'mt-[2px] inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground',
     twibbonStepText: 'flex-1',
 
     // edit: main essay question section
@@ -676,9 +676,9 @@ export const dashboardTheme = {
     secondaryButton:
       'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50',
     primaryButton:
-      'rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
     twibbonValidateButton:
-      'inline-flex h-11 min-w-[150px] items-center justify-center gap-1 rounded-md bg-primary px-5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'inline-flex h-11 min-w-[150px] items-center justify-center gap-1 rounded-md bg-primary px-5 text-[11px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
     shirtSizeButton:
       'inline-flex items-center justify-center rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary ring-1 ring-primary/30 shadow-sm hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2',
     shirtSizeRow: 'flex items-center gap-3',
@@ -719,6 +719,6 @@ export const dashboardTheme = {
     modalSecondaryButton:
       'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50',
     modalPrimaryLink:
-      'inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
   },
 };
