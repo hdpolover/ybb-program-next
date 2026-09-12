@@ -80,7 +80,7 @@ export default function SubmitReminderPopup() {
           </button>
           <Link
             href="/dashboard/submission/edit"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             onClick={() => setOpen(false)}
           >
             Fill Application Form

@@ -49,7 +49,7 @@ export default function UserProfileCard({ user, onEdit }: UserProfileCardProps) 
       {onEdit && (
         <button
           onClick={onEdit}
-          className="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white hover:bg-primary/90 transition-colors"
+          className="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           aria-label="Edit profile"
         >
           <Pencil className="h-5 w-5" />

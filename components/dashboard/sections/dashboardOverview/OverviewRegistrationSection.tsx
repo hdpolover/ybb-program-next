@@ -280,7 +280,7 @@ export default function OverviewRegistrationSection() {
               </button>
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 onClick={handleSwitch}
                 disabled={loading}
               >
@@ -313,7 +313,7 @@ export default function OverviewRegistrationSection() {
             <div className="flex justify-end">
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 onClick={() => setShowFfClosedPopup(false)}
               >
                 Got it

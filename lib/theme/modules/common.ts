@@ -178,7 +178,7 @@ export const commonTheme = {
     timeCard: 'flex flex-col items-center rounded-lg bg-slate-100 px-2 py-1 min-w-[45px]',
     timeValue: 'text-sm font-bold text-slate-900',
     timeLabel: 'text-[10px] font-medium uppercase tracking-wider text-slate-600',
-    registerButton: 'flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-primary/90 transition-colors whitespace-nowrap',
+    registerButton: 'flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors whitespace-nowrap',
     // Registration has not opened yet: informational, deliberately not a link
     // and deliberately without a hover affordance (if it hovers, it clicks).
     registerButtonPending: 'flex items-center justify-center rounded-full bg-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-700 whitespace-nowrap',
@@ -196,6 +196,6 @@ heroSectionBadges: {
 
 
   backToTop: {
-    button: 'fixed left-3 z-[60] inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-lg ring-1 ring-primary/30 transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/40 animate-heartbeat sm:bottom-6 sm:left-6',
+    button: 'fixed left-3 z-[60] inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/30 transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/40 animate-heartbeat sm:bottom-6 sm:left-6',
   },
 };
