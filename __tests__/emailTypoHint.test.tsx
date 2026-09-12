@@ -136,3 +136,99 @@ describe('signup email typo hint', () => {
     },
   );
 });
+
+// The follow-up ask (2026-09-12): a soft warning on non-Gmail, because our
+// verification mail sometimes lands in those providers' spam. Measured rates say
+// those domains DO deliver (outlook 85%, hotmail 89%, against gmail's own 91%),
+// so this stays a note and never a gate - the whole point is that it must not
+// turn a working address into a rejected one.
+describe('signup non-Gmail delivery notice', () => {
+  const noticeDismiss = /dismiss email delivery notice/i;
+
+  beforeEach(() => {
+    searchParams = new URLSearchParams('mode=signup');
+    push.mockClear();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('warns about spam filtering for a working non-Gmail address', async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'aldi@outlook.com');
+    expect(screen.queryByRole('button', { name: noticeDismiss })).not.toBeInTheDocument();
+
+    await user.tab();
+
+    expect(await screen.findByRole('button', { name: noticeDismiss })).toBeInTheDocument();
+    // Names the actual domain, so it reads as specific advice rather than a
+    // generic scold.
+    expect(screen.getByText('outlook.com')).toBeInTheDocument();
+  });
+
+  it('says nothing for a gmail address', async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'ada@gmail.com');
+    await user.tab();
+
+    expect(screen.queryByRole('button', { name: noticeDismiss })).not.toBeInTheDocument();
+  });
+
+  // Only one box may ever render. A misspelling is the more actionable message,
+  // and stacking both would give contradictory advice about the same address.
+  it('shows the typo suggestion instead of the notice when both would apply', async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'ada@gamil.com');
+    await user.tab();
+
+    await screen.findByRole('button', { name: 'ada@gmail.com' });
+    expect(screen.queryByRole('button', { name: noticeDismiss })).not.toBeInTheDocument();
+  });
+
+  it('never blocks submission of a non-Gmail address', async () => {
+    const calls = stubFetch();
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await fillSignup(user, 'aldi@outlook.com');
+    await user.click(screen.getByRole('button', { name: /create account/i }));
+
+    expect(registerBody(calls)).toMatchObject({ email: 'aldi@outlook.com' });
+  });
+
+  it('is dismissible by keyboard alone', async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'aldi@outlook.com');
+    await user.tab();
+
+    const dismiss = await screen.findByRole('button', { name: noticeDismiss });
+    dismiss.focus();
+    await user.keyboard('{Enter}');
+
+    expect(screen.queryByRole('button', { name: noticeDismiss })).not.toBeInTheDocument();
+  });
+
+  it('never appears on the login form, where the account already exists', async () => {
+    searchParams = new URLSearchParams();
+    stubFetch();
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'aldi@outlook.com');
+    await user.tab();
+
+    expect(screen.queryByRole('button', { name: noticeDismiss })).not.toBeInTheDocument();
+  });
+});
