@@ -10,8 +10,9 @@
 // submit.
 'use client';
 
-import { formatDeadlineWib } from '@/lib/format/deadline';
+import { formatDeadlineForViewer } from '@/lib/format/deadline';
 import { SCHEDULE_DATE_META_OPTIONS, formatScheduleDate } from '@/lib/format/datetime';
+import { useHydrated } from '@/hooks/useHydrated';
 
 export type SignupEdition = {
   program_name: string;
@@ -59,21 +60,41 @@ function eventDates(edition: SignupEdition): string | null {
  * 7 hours before the API accepts them. Validity-WINDOW starts are widened;
  * this date is not one.
  */
-function opensOn(edition: SignupEdition): string | null {
+function opensOn(edition: SignupEdition, hydrated: boolean): string | null {
   const raw = edition.registration_dates?.open;
   if (!raw) return null;
   const openMs = new Date(raw).getTime();
   if (Number.isNaN(openMs) || openMs <= Date.now()) return null;
-  return formatDeadlineWib(raw, { withTime: false });
+  return formatDeadlineForViewer(raw, { withTime: true, hydrated });
 }
 
-/** The close date is an instant, so it keeps the app's WIB rendering. */
-function closesOn(edition: SignupEdition): string | null {
-  const formatted = formatDeadlineWib(edition.registration_dates?.close, { withTime: false });
+/**
+ * The close date, WITH the time, in the viewer's own timezone.
+ *
+ * It used to render as "5 Dec 2026 WIB": a timezone label attached to a bare
+ * date, which tells the reader nothing (a date has no timezone) while implying
+ * it does. And "WIB" is opaque to most of the people reading it, who are
+ * applying from outside Indonesia.
+ *
+ * Showing the instant fixes both at once. A reader in Karachi now sees
+ * "5 Dec 2026, 21:59 GMT+5" instead of doing arithmetic on an abbreviation
+ * they may not know. Pre-hydration it still renders WIB with its label, which
+ * is correct rather than merely a placeholder.
+ */
+function closesOn(edition: SignupEdition, hydrated: boolean): string | null {
+  const formatted = formatDeadlineForViewer(edition.registration_dates?.close, {
+    withTime: true,
+    hydrated,
+  });
   return formatted === '—' ? null : formatted;
 }
 
 export default function SignupEditionChoice({ editions, value, onChange }: Props) {
+  // Before the early return below, not after: hooks cannot be called
+  // conditionally. Read once here and passed down, because the multi-edition
+  // branch formats inside a map and could not call a hook per row.
+  const hydrated = useHydrated();
+
   // No editions loaded (the fetch failed, or the brand has none): stay out of
   // the way. Signup must never break because this could not load.
   if (editions.length === 0) return null;
@@ -81,17 +102,19 @@ export default function SignupEditionChoice({ editions, value, onChange }: Props
   if (editions.length === 1) {
     const only = editions[0];
     const event = eventDates(only);
-    const opens = opensOn(only);
+    const opens = opensOn(only, hydrated);
     // Once open, the close date is the useful one; before that, the opening is.
-    const close = opens ? null : closesOn(only);
+    const close = opens ? null : closesOn(only, hydrated);
     return (
       <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
         <p className="text-sm text-slate-700">
           You are registering for{' '}
           <span className="font-bold text-slate-900">{only.program_name}</span>.
         </p>
+        {/* suppressHydrationWarning below: the server renders WIB and the
+            client the viewer's own zone, by design. Confined to that element. */}
         {(event || opens || close) && (
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-500" suppressHydrationWarning>
             {[
               event && `Event ${event}`,
               opens && `Registration opens ${opens}`,
@@ -114,7 +137,7 @@ export default function SignupEditionChoice({ editions, value, onChange }: Props
         {editions.map((edition) => {
           const selected = edition.program_slug === value;
           const event = eventDates(edition);
-          const close = closesOn(edition);
+          const close = closesOn(edition, hydrated);
           return (
             <label
               key={edition.program_slug}
@@ -139,7 +162,7 @@ export default function SignupEditionChoice({ editions, value, onChange }: Props
                 <span className="mt-0.5 block text-xs text-slate-500">
                   {event ? `Event ${event}` : 'Event dates to be announced'}
                 </span>
-                <span className="block text-xs text-slate-500">
+                <span className="block text-xs text-slate-500" suppressHydrationWarning>
                   {close ? `Registration closes ${close}` : 'No registration close date set'}
                 </span>
               </span>

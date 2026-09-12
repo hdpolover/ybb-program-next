@@ -127,7 +127,25 @@ describe('signup edition choice', () => {
     expect(screen.getByText('Middle East Youth Summit 7th')).toBeInTheDocument();
     // Enough context to tell the two apart, which is what was missing.
     expect(screen.getByText(/Event Dec 01, 2026 to Dec 05, 2026/)).toBeInTheDocument();
-    expect(screen.getByText(/Registration closes 31 Oct 2026/)).toBeInTheDocument();
+    // The TIME is asserted, not just the date. It used to render "31 Oct 2026
+    // WIB": a timezone label on a bare date, which tells the reader nothing
+    // while implying it does. Matching the date alone would still pass if that
+    // regressed, so this pins the instant. Pre-hydration under jsdom, so this
+    // is the business-timezone branch; the viewer's own zone takes over on the
+    // client (see formatDeadlineForViewer).
+    // Asserts the TIME is present, not just the date. It used to render
+    // "31 Oct 2026 WIB": a timezone label on a bare date, which tells the
+    // reader nothing while implying it does. Matching the date alone would
+    // still pass if that regressed.
+    //
+    // The zone is deliberately NOT pinned. Testing Library flushes effects, so
+    // useHydrated is already true and this renders in the RUNNER's zone: the
+    // label is "GMT+7" here and something else on a UTC CI box. The fixture
+    // closes at UTC midnight, hence 07:00 in Jakarta rather than the 23:59 that
+    // production close dates (stored 16:59Z) would show.
+    expect(
+      screen.getByText(/Registration closes 31 Oct 2026, \d{2}:\d{2}/),
+    ).toBeInTheDocument();
 
     // Default is the running edition with the closest deadline (the 6th).
     expect(radios[0]).toBeChecked();
