@@ -19,12 +19,56 @@ describe('resolveActiveProgramId', () => {
     expect(resolveActiveProgramId(programs, null)).toBe('p-1');
   });
 
-  // registeredPrograms carries no registration-window signal, so the
-  // fallback is deliberately array order rather than a guess. Pinned here
-  // so a future heuristic has to be a conscious change.
-  it('falls back to array order when status and year are both absent', () => {
+  // Still array order when there is nothing to rank on. The heuristic below is
+  // the conscious change the previous version of this test asked for.
+  it('falls back to array order when status is absent everywhere', () => {
     const programs = [{ programId: 'p-1' }, { programId: 'p-2' }];
     expect(resolveActiveProgramId(programs, null)).toBe('p-1');
+  });
+
+  // The MEYS 6th/7th incident: every source orders registeredPrograms by
+  // createdAt DESC, so the newest application came first and a participant who
+  // had submitted and paid for the 2026 edition was landed on an untouched
+  // 2027 draft with no documents on it.
+  it('prefers a submitted application over a newer untouched draft', () => {
+    const programs = [
+      { programId: 'meys-2027', applicationStatus: 'draft' },
+      { programId: 'meys-2026', applicationStatus: 'submitted' },
+    ];
+    expect(resolveActiveProgramId(programs, null)).toBe('meys-2026');
+  });
+
+  it('respects an explicit stored choice even when it ranks lower', () => {
+    // Switching to the new edition on purpose must stick.
+    const programs = [
+      { programId: 'meys-2027', applicationStatus: 'draft' },
+      { programId: 'meys-2026', applicationStatus: 'submitted' },
+    ];
+    expect(resolveActiveProgramId(programs, 'meys-2027')).toBe('meys-2027');
+  });
+
+  it('ranks a withdrawn application below a live draft', () => {
+    const programs = [
+      { programId: 'p-withdrawn', applicationStatus: 'withdrawn' },
+      { programId: 'p-draft', applicationStatus: 'draft' },
+    ];
+    expect(resolveActiveProgramId(programs, null)).toBe('p-draft');
+  });
+
+  it('treats accepted and submitted as equally engaged, keeping array order', () => {
+    const programs = [
+      { programId: 'p-accepted', applicationStatus: 'accepted' },
+      { programId: 'p-submitted', applicationStatus: 'submitted' },
+    ];
+    expect(resolveActiveProgramId(programs, null)).toBe('p-accepted');
+  });
+
+  it('does not choke on an unrecognised status', () => {
+    const programs = [
+      { programId: 'p-1', applicationStatus: 'some_new_status' },
+      { programId: 'p-2', applicationStatus: 'submitted' },
+    ];
+    expect(resolveActiveProgramId(programs, null)).toBe('p-2');
   });
   it('ignores entries without a resolvable id', () => {
     const programs = [{ id: null, programId: null }, { programId: 'p-2' }];

@@ -15,6 +15,10 @@ type RegisteredProgram = {
   programName: string;
   programSlug: string;
   year?: number;
+  // Carried through purely so resolveActiveProgramId ranks the same way here as
+  // it does for the sibling fetches. Dropping it made the header show one
+  // edition while the data calls used another.
+  applicationStatus?: string;
 };
 
 function buildProgramLabel(programName: string, year?: number): string {
@@ -43,6 +47,7 @@ export default function ProgramSelector({
       id: p.programId,
       programName: p.programName,
       year: p.year,
+      applicationStatus: p.applicationStatus,
       label: buildProgramLabel(p.programName, p.year),
       logo: settings?.brand?.logo_url || settings?.active_program?.logo_url || "/img/ybb-logo.png",
     }));
