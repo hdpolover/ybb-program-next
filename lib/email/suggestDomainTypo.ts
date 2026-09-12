@@ -152,12 +152,48 @@ function splitEmail(raw: string): { local: string; domain: string } | null {
 
   const local = value.slice(0, at);
   const domain = value.slice(at + 1);
+  // Same reasoning applied to the LOCAL part, which this used to skip: the
+  // split takes the LAST `@`, so `ada@@outlook.com` yielded local `ada@` and a
+  // spotlessly clean domain. suggestDomainTypo hid that because every address
+  // anyone thought to test it with landed on a KNOWN_DOMAINS entry and returned
+  // null for the wrong reason; nonGmailDomain has no such list and surfaced it
+  // immediately. A malformed address is not a near-miss and is not a
+  // deliverability question either - it is simply not an address yet.
+  if (/[\s@]/.test(local)) return null;
   // A domain without a dot, with whitespace, or with a stray `@` is not a
   // near-miss of anything — it is simply incomplete. Stay silent.
   if (!domain.includes('.') || /[\s@]/.test(domain)) return null;
   if (domain.startsWith('.') || domain.endsWith('.')) return null;
 
   return { local, domain };
+}
+
+/**
+ * The only domains we consider reliable enough to say nothing about.
+ *
+ * Deliberately tiny. This is NOT a claim that other providers are broken - the
+ * measured verification rates say otherwise (outlook 85%, hotmail 89%, yahoo
+ * 86%, against gmail's own 91%). It is a claim about where our verification
+ * mail most often gets filtered, which is a different and softer statement, and
+ * the note built on it must stay advisory for exactly that reason.
+ */
+const RELIABLE_DOMAINS: ReadonlySet<string> = new Set(['gmail.com', 'googlemail.com']);
+
+/**
+ * The typed domain when it is a real address on something other than Gmail, or
+ * `null` when it is Gmail or not a usable address yet.
+ *
+ * Companion to suggestDomainTypo and deliberately separate from it: a typo is a
+ * mistake to correct, this is a working address that may simply deliver to
+ * spam. Callers must render it as a dismissible note, never as an error, and
+ * must never prefer it over a typo suggestion - "did you mean gmail.com" is
+ * actionable, "your provider sometimes filters us" is not.
+ */
+export function nonGmailDomain(rawEmail: string): string | null {
+  const parts = splitEmail(rawEmail);
+  if (!parts) return null;
+  if (RELIABLE_DOMAINS.has(parts.domain)) return null;
+  return parts.domain;
 }
 
 /**

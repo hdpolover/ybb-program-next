@@ -127,7 +127,12 @@ export default function LoginPage() {
     setSignupForm(prev => ({ ...prev, email }));
   }, []);
   const loginEmailHint = useEmailTypoHint(loginForm.email, acceptLoginEmail);
-  const signupEmailHint = useEmailTypoHint(signupForm.email, acceptSignupEmail);
+  // warnNonGmail on signup only: the login form runs the same hook, but telling
+  // someone their provider may spam-filter us, when they already have a working
+  // account, is noise.
+  const signupEmailHint = useEmailTypoHint(signupForm.email, acceptSignupEmail, {
+    warnNonGmail: true,
+  });
 
   const onChangeLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name } = e.target;
