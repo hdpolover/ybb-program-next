@@ -1078,9 +1078,15 @@ function SignedCopyUpload({
     try {
       const formData = new FormData();
       formData.append('file', file);
+      // Client-side deadline slightly longer than the proxy's, so a stalled
+      // upstream surfaces the server's specific message rather than this
+      // generic one. This exists for the case the proxy itself never answers:
+      // without it the button spins forever, which is what participants
+      // reported as "cannot upload".
       const res = await fetch(`/api/portal/documents/${templateId}/signed-copy`, {
         method: 'POST',
         body: formData,
+        signal: AbortSignal.timeout(130_000),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => null)) as unknown;
@@ -1088,7 +1094,14 @@ function SignedCopyUpload({
       }
       onUploaded();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      const timedOut = err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError');
+      setError(
+        timedOut
+          ? 'Upload timed out. Your file was not saved. Please check your connection and try again.'
+          : err instanceof Error
+            ? err.message
+            : 'Upload failed',
+      );
     } finally {
       setUploading(false);
     }
