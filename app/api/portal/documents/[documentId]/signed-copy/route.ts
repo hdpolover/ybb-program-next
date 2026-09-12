@@ -4,6 +4,20 @@ import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { isRecord, getEnvelopeData } from '@/lib/api/response';
 
+/**
+ * Without a deadline this proxy inherits fetch's default of waiting forever.
+ * The participant-facing symptom is the one thing an upload button must never
+ * do: spin indefinitely with no error and no way to tell whether the file
+ * landed. A stalled API upstream produced exactly that.
+ *
+ * Generous on purpose. Signed copies are scans and phone photos on hotel or
+ * campus wifi, and the API's own storage timeout is 300s, so this only has to
+ * be shorter than "forever", not tight. The file is fully buffered here before
+ * the upstream call, so this bounds the API hop only, not the participant's
+ * own upload to us.
+ */
+const UPLOAD_TIMEOUT_MS = 120_000;
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ documentId: string }> },
@@ -36,6 +50,7 @@ export async function POST(
         'x-brand-domain': brandDomain,
       },
       body: formData,
+      signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
     });
 
     const json: unknown = await res.json().catch(() => ({}));
@@ -57,6 +72,22 @@ export async function POST(
       data: getEnvelopeData(json) ?? null,
     });
   } catch (error) {
+    // AbortSignal.timeout rejects with a TimeoutError; an upstream socket that
+    // dies mid-transfer surfaces as a generic fetch failure. Both mean the same
+    // thing to the participant, and both used to reach them as a bare 500 with
+    // whatever internal text the error carried.
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      return NextResponse.json(
+        {
+          statusCode: 504,
+          message:
+            'Upload timed out before it finished. Your file was not saved. Please check your connection and try again.',
+          data: null,
+        },
+        { status: 504 },
+      );
+    }
+
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { statusCode: 500, message, data: null },
