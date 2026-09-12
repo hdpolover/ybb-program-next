@@ -23,6 +23,8 @@ import {
 } from '@/lib/dashboard/documents';
 import { BUSINESS_TIMEZONE } from '@/lib/format/deadline';
 import { useHydrated } from '@/hooks/useHydrated';
+import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
+import { mailNotice } from '@/lib/dashboard/mailNotice';
 
 const TABS = ['All', 'Upload Required', 'Can Generate', 'Reference'] as const;
 type TabKey = (typeof TABS)[number];
@@ -170,6 +172,9 @@ export default function DocumentsSection() {
   // false during SSR/first client render; true once hydrated. Gates the
   // "Updated" date's timezone — see hooks/useHydrated.ts.
   const hydrated = useHydrated();
+  // Only for naming the address the release email goes to. Absent while the
+  // profile request is in flight, which mailNotice handles.
+  const { me } = useDashboardData();
   const [activeTab, setActiveTab] = useState<TabKey>('All');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -838,7 +843,11 @@ export default function DocumentsSection() {
                        someone to submit is correct advice in both cases. */
                     <div className="mt-2 rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-2">
                       <p className="text-[11px] text-slate-500">
-                        Your Invitation Letter will be available once released.
+                        Your Invitation Letter will be available once released.{' '}
+                        {/* The release genuinely emails them (loa.batch.released ->
+                            sendLoaReadyEmail, 970 sends in production), so this is
+                            where "it never arrived" actually gets decided. */}
+                        {mailNotice('invitation-letter', me?.email)}
                       </p>
                       <p className="mt-1 text-[11px] text-slate-500">
                         Letters are only issued for submitted applications. If you have not

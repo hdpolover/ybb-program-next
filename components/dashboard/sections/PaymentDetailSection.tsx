@@ -33,6 +33,7 @@ import { parseApiDate } from '@/lib/utils';
 import { formatDeadlineLocal } from '@/lib/format/deadline';
 import { toRegistrationCategory, trackProgramFeePaid, trackPurchase } from '@/lib/analytics/pixels';
 import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
+import { mailNotice } from '@/lib/dashboard/mailNotice';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -483,7 +484,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
   // Self-funded vs fully-funded, the breakdown every ROAS layer is sliced by.
   // The payment payload has no funding category of its own, so it comes off
   // the dashboard summary's active application.
-  const { dashboardSummary } = useDashboardData();
+  const { dashboardSummary, me } = useDashboardData();
   const fundingCategory = toRegistrationCategory(dashboardSummary?.activeApplication?.category);
 
   // Conversion tracking: fires once per invoice when the payment settles to
@@ -831,6 +832,19 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
                       ? 'This payment is overdue. Please complete your payment as soon as possible.'
                       : 'This payment requires your attention. Please complete your payment before the due date.'}
                 </p>
+                {/* Both of these states send mail (sendPaymentSuccessEmail /
+                    sendReceiptEmail on success, confirmation once a pending
+                    payment settles), so name the address and say where to look.
+                    The unpaid/overdue states send nothing yet, so they stay
+                    silent rather than promising an email. */}
+                {effectiveStatus === 'paid' || effectiveStatus === 'processing' ? (
+                  <p className={`${paymentsTheme.detailIllustrationBody} mt-2`}>
+                    {mailNotice(
+                      effectiveStatus === 'paid' ? 'payment-receipt' : 'payment-pending',
+                      me?.email,
+                    )}
+                  </p>
+                ) : null}
               </div>
               {effectiveStatus === 'processing' && pendingGatewayActionUrl ? (
                 <a
