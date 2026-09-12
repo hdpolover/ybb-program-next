@@ -15,18 +15,19 @@ export type ValidityPeriod = RegistrationValidityPeriod;
  * category's CTA and payment option when no period covers "now". A single tier
  * therefore accumulates a chain of windows: in production, 10 to 22 of them.
  *
- * Only ONE window is shown: the one covering "now", so a participant sees the
- * dates that actually apply today rather than an accumulated span ending on the
- * final extension. Falls back to the next upcoming window, then to the last one
- * that ran, so the label never goes blank.
+ * Only the DEFAULT period is shown: the first one, the deadline published in
+ * the guideline. Extensions are operational and deliberately never advertised -
+ * an applicant who learns the date always slips stops treating the first
+ * deadline as real, which is exactly what the staged windows exist to prevent.
  *
  * DISPLAY ONLY. Eligibility and payment gating still use the per-period logic
- * elsewhere; a participant must not become eligible because a label looks open.
+ * elsewhere; a participant must not become ineligible because a label looks
+ * closed, nor eligible because one looks open.
  */
 // Windows come from lib/registration/isRegistrationOpen, the same parser the
-// open/closed gate uses, so "the window covering now" means the same thing in
-// a label as it does in a badge (including the WIB start-of-day widening on
-// the earliest window).
+// open/closed gate uses, so a label and a badge never disagree about what a
+// window IS (including the WIB start-of-day widening on the earliest window),
+// only about which one is worth printing.
 type ParsedPeriod = { period: ValidityPeriod; start: number; end: number };
 
 const byEarliestEnd = (a: { end: number }, b: { end: number }) => a.end - b.end;
@@ -44,48 +45,25 @@ function pickCurrentWindow<T extends { start: number; end: number }>(parsed: T[]
 }
 
 /**
- * The MAIN window of a tier: the longest one, ties broken by the earliest
- * start so the choice is deterministic.
+ * The DEFAULT period of a tier: its FIRST window, ties broken by the earliest
+ * end so the choice is deterministic.
  *
- * Staged registration ("bertahap") is run on purpose: a long main window
- * followed by short extension windows, often a ladder of one-day ones. CYS
- * 2026's self-funded tier has a 15 Apr - 10 Oct main window and seventeen
- * extensions after it, the last being 25 Oct - 2 Nov.
+ * Staged registration ("bertahap") is run on purpose: a main window followed by
+ * short extension windows, often a ladder of one-day ones. CYS 2026's
+ * self-funded tier has a 15 Apr - 10 Oct window and seventeen extensions after
+ * it, the last being 25 Oct - 2 Nov. Only the first is ever published.
  *
- * "Longest" rather than "first" because an early-bird window placed BEFORE the
- * main one would otherwise be mistaken for it, and length is what actually
- * distinguishes the advertised period from an operational extension.
+ * "First" means min(start_date). The table has no is_default column - the admin
+ * UI merely names the first row "Default period" and appends "Period 1..N"
+ * after it - so the date is the only trustworthy signal, and unlike created_at
+ * it survives an admin back-entering a row out of creation order.
+ *
+ * The earliest-end tie-break is load-bearing on real data: MEYS fully-funded
+ * carries 28 Jul - 31 Aug alongside 28 Jul - 1 Sep. The earlier end is the
+ * original published deadline, and understating it is the safe direction.
  */
-function pickMainWindow(parsed: ParsedPeriod[]): ParsedPeriod | undefined {
-  return [...parsed].sort((a, b) => {
-    const byLength = (b.end - b.start) - (a.end - a.start);
-    return byLength !== 0 ? byLength : a.start - b.start;
-  })[0];
-}
-
-/**
- * Pick the window a participant should be shown "right now": the one
- * covering `now`, falling back to the next upcoming one, then - once every
- * window has lapsed - the MAIN one, so a label never goes blank. Shared by the
- * period label and the per-card countdown so both describe the same window.
- *
- * The lapsed branch used to show the window that ran LAST, which on a finished
- * programme meant the tail of the extension ladder: CYS self-funded would have
- * read "25 Oct - 2 Nov" for a registration that opened in April. That both
- * contradicts the published guideline and advertises to next year's applicants
- * that extensions are routine, which is the opposite of what the ladder is for.
- *
- * It deliberately does NOT fall back to the programme's own registration dates.
- * A tier that genuinely ran for two days - CYS fully-funded, 20-21 Aug - would
- * then print the programme's 15 Apr - 2 Nov and state something untrue. The
- * tier's own longest window is the honest answer for both shapes.
- */
-function pickDisplayWindow(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
-  if (parsed.length === 0) return undefined;
-
-  const upcoming = parsed.filter((entry) => entry.start > nowTime).sort((a, b) => a.start - b.start)[0];
-
-  return pickCurrentWindow(parsed, nowTime) ?? upcoming ?? pickMainWindow(parsed);
+function pickDefaultWindow(parsed: ParsedPeriod[]): ParsedPeriod | undefined {
+  return [...parsed].sort((a, b) => a.start - b.start || a.end - b.end)[0];
 }
 
 /** A registration period boundary is a CALENDAR DAY the admin picked, not an
@@ -98,77 +76,34 @@ function formatPeriodDay(value: string): string {
 }
 
 /**
- * The start of the CONTINUOUS run of windows that reaches today: the day
- * registration opened and has been open ever since, without closing.
+ * The period a card shows, as a from/to pair: the tier's DEFAULT window, whole.
  *
- * Walking the already-started windows in order and restarting on a gap is what
- * keeps this honest. A tier open Apr-Jul, shut for a month, then reopened in
- * August has NOT been open since April, and saying so would invent a period it
- * never had. In that case the run containing today begins in August, which is
- * exactly the single-window behaviour this label had before.
+ * This label has now been reversed three times. The first two rounds argued
+ * over WHICH EXTENSION to print - "open since" the run start (b16f74f) against
+ * the current window's end (e99d01a) - and each was correct that the other was
+ * wrong. The premise they shared was the actual mistake: an extension is an
+ * operational date, never a published one, so none of them belongs on the card.
+ * The default period does, and it does not move, so there is nothing here for a
+ * fourth round to reverse.
  *
- * Extension chains hand over exactly (one window ends 23:59:59.999 WIB, the
- * next starts 00:00 the following day), so contiguity is `start <= coveredTo + 1`
- * rather than a strict overlap.
- */
-function openedOnContinuous(parsed: ParsedPeriod[], nowTime: number): ParsedPeriod | undefined {
-  const started = parsed
-    .filter((entry) => entry.start <= nowTime)
-    .sort((a, b) => a.start - b.start);
-  if (started.length === 0) return undefined;
-
-  let runStart = started[0];
-  let coveredTo = started[0].end;
-
-  for (const window of started.slice(1)) {
-    if (window.start > coveredTo + 1) {
-      // A real gap: registration closed and later reopened. The run restarts.
-      runStart = window;
-      coveredTo = window.end;
-    } else {
-      coveredTo = Math.max(coveredTo, window.end);
-    }
-  }
-
-  return runStart;
-}
-
-/**
- * The period a card shows, as a from/to pair.
+ * Consequence to expect, and it is intended: during an extension a card reads
+ * "Open" beside dates that have already passed. The badge answers "can I still
+ * apply", the label answers "what was the deadline". Both are true, and the
+ * gap between them is the point - it is what stops applicants from treating
+ * the published deadline as negotiable.
  *
- * This label has been reversed twice, because each fix corrected one end and
- * broke the other. Both ends now have a reason, and both are pinned by tests:
- *
- *   START - the day registration OPENED AND STAYED OPEN, not the start of
- *   whichever one-day extension happens to cover today. Showing the
- *   extension's start made a registration open since May read as
- *   "4 Sept - 5 Sept" (b16f74f's complaint, on MEYS). A tier that genuinely
- *   closed and reopened restarts the run, so this never claims a period the
- *   tier was not open.
- *
- *   END - the deadline that ACTUALLY APPLIES, i.e. the current window's end,
- *   never MAX(end) across the chain. Spanning to the latest end told a
- *   participant they had until November when the window closed that night
- *   (e99d01a's complaint, and the reason b16f74f was reverted).
- *
- * So: open since X, closes Y. Neither half may be "simplified" into the other.
+ * `now` is unused: the label is deliberately time-invariant. It stays in the
+ * signature because three call sites pass it and the countdown beside it is
+ * still very much time-dependent.
  */
 export function getRegistrationPeriodLabel(
   periods: ValidityPeriod[] | undefined,
-  now: Date = new Date(),
+  _now: Date = new Date(),
 ): string {
-  const parsed = parseRegistrationWindows(periods);
-  const nowTime = now.getTime();
-  const chosen = pickDisplayWindow(parsed, nowTime);
+  const chosen = pickDefaultWindow(parseRegistrationWindows(periods));
   if (!chosen) return "TBD";
 
-  // Only while a window is genuinely open does "opened on" mean anything. An
-  // upcoming window has not started, and a lapsed tier already shows its main
-  // window whole.
-  const isOpen = pickCurrentWindow(parsed, nowTime) !== undefined;
-  const startPeriod = (isOpen ? openedOnContinuous(parsed, nowTime) : undefined) ?? chosen;
-
-  const from = formatPeriodDay(startPeriod.period.start_date);
+  const from = formatPeriodDay(chosen.period.start_date);
   const to = formatPeriodDay(chosen.period.end_date);
   // A single-day window reads better unrepeated.
   return from === to ? from : `${from} - ${to}`;

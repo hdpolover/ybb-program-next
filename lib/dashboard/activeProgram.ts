@@ -4,7 +4,42 @@ export const ACTIVE_PROGRAM_CHANGED_EVENT = "ybb:active-program-changed";
 type ProgramReference = {
   id?: string | null;
   programId?: string | null;
+  applicationStatus?: string | null;
 };
+
+/**
+ * How much of a stake the participant actually has in an application.
+ *
+ * Every source of registeredPrograms orders by createdAt DESC, so array order
+ * means "newest application first". That is the wrong default the moment a
+ * brand runs two editions at once: a MEYS 2026 participant who had submitted
+ * and paid was landed on an untouched MEYS 2027 draft, where their invitation
+ * letter and documents simply do not exist. 1,040 participants were holding
+ * such a second application when this was reported.
+ *
+ * Ranking by stake instead of recency puts them back on the application they
+ * are actually invested in, and it needs no registration-window data - only
+ * the applicationStatus every caller already receives.
+ *
+ * Withdrawn and rejected rank BELOW a draft on purpose: a dead application is
+ * not somewhere to land someone when they have a live one elsewhere.
+ */
+const DEAD_STATUSES = new Set(["withdrawn", "rejected"]);
+const ENGAGED_STATUSES = new Set([
+  "submitted",
+  "under_review",
+  "interview_scheduled",
+  "waitlisted",
+  "accepted",
+]);
+
+function getEngagementRank(program: ProgramReference): number {
+  const status = (program.applicationStatus ?? "").trim().toLowerCase();
+  if (DEAD_STATUSES.has(status)) return 0;
+  if (ENGAGED_STATUSES.has(status)) return 2;
+  // draft, unknown, or absent: live but uninvested.
+  return 1;
+}
 
 export function readActiveProgramId(): string | null {
   if (typeof window === "undefined") return null;
@@ -44,7 +79,18 @@ export function resolveActiveProgramId<T extends ProgramReference>(
     return candidateProgramId;
   }
 
-  return availableIds[0] ?? null;
+  // No stored choice (or a stale one): pick the application the participant has
+  // the most stake in, NOT simply the newest. `>` rather than `>=` keeps the
+  // first of equals, so within one rank this still falls back to array order.
+  const best = programs
+    .filter((program) => getProgramReferenceId(program) !== null)
+    .reduce<T | null>(
+      (winner, program) =>
+        winner === null || getEngagementRank(program) > getEngagementRank(winner) ? program : winner,
+      null,
+    );
+
+  return (best && getProgramReferenceId(best)) ?? availableIds[0] ?? null;
 }
 
 export function appendProgramId(path: string, programId?: string | null): string {
