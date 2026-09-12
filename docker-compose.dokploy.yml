@@ -18,6 +18,10 @@ services:
         NEXT_PUBLIC_BRAND_DOMAIN: ${NEXT_PUBLIC_BRAND_DOMAIN}
     container_name: ybb-prod-program-next
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
     environment:
       - NODE_ENV=production
       - APP_BUILD_ID=${APP_BUILD_ID}
