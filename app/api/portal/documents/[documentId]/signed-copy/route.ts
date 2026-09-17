@@ -3,6 +3,12 @@ import { cookies } from 'next/headers';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { isRecord, getEnvelopeData } from '@/lib/api/response';
+import {
+  SIGNED_COPY_INCOMPLETE_MESSAGE,
+  SIGNED_COPY_MAX_BODY_BYTES,
+  SIGNED_COPY_MAX_FILE_BYTES,
+  SIGNED_COPY_TOO_LARGE_MESSAGE,
+} from '@/lib/dashboard/signedCopyUpload';
 
 /**
  * Without a deadline this proxy inherits fetch's default of waiting forever.
@@ -17,6 +23,10 @@ import { isRecord, getEnvelopeData } from '@/lib/api/response';
  * own upload to us.
  */
 const UPLOAD_TIMEOUT_MS = 120_000;
+
+function errorResponse(status: number, message: string) {
+  return NextResponse.json({ statusCode: status, message, data: null }, { status });
+}
 
 export async function POST(
   request: NextRequest,
@@ -36,7 +46,36 @@ export async function POST(
     const { documentId } = await params;
     const brandDomain = resolveBrandDomainFromRequest(request);
 
-    const formData = await request.formData();
+    // Refuse an oversized upload from its header, before reading a byte of it.
+    // Past the 10 MB limit the old path read the body anyway and the
+    // participant got a bare 500 from the parse below; the API would have said
+    // 413, but only after the whole file had crossed two hops to get there.
+    const contentLength = Number(request.headers.get('content-length'));
+    if (Number.isFinite(contentLength) && contentLength > SIGNED_COPY_MAX_BODY_BYTES) {
+      return errorResponse(413, SIGNED_COPY_TOO_LARGE_MESSAGE);
+    }
+
+    // formData() throws on a body that is not complete multipart: a connection
+    // dropped mid-upload (common on mobile data), or a body cut short upstream
+    // of this route. Next's middleware clones request bodies up to
+    // experimental.proxyClientMaxBodySize and truncates past it, which is how
+    // near-limit files used to fail here. That is a retryable transport
+    // failure, not a server fault, and it has to say the file was not saved.
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch {
+      return errorResponse(400, SIGNED_COPY_INCOMPLETE_MESSAGE);
+    }
+
+    const file = formData.get('file');
+    if (!file || typeof file === 'string') {
+      return errorResponse(400, 'No file was received. Please choose the signed letter and try again.');
+    }
+    // Content-Length is optional (chunked bodies), so check the parsed file too.
+    if (file.size > SIGNED_COPY_MAX_FILE_BYTES) {
+      return errorResponse(413, SIGNED_COPY_TOO_LARGE_MESSAGE);
+    }
 
     const apiUrl = new URL(
       `/v1/portal/documents/${documentId}/signed-copy`,
@@ -56,10 +95,19 @@ export async function POST(
     const json: unknown = await res.json().catch(() => ({}));
     if (!res.ok) {
       const j = isRecord(json) ? json : {};
+      // The API's own 413 is multer's terse "File too large"; say what the
+      // limit is and what to do instead. Every other upstream reason (a
+      // file-service type rejection, a missing application) is forwarded as is.
+      const upstreamMessage =
+        res.status === 413
+          ? SIGNED_COPY_TOO_LARGE_MESSAGE
+          : typeof j.message === 'string'
+            ? j.message
+            : 'Upload failed and your file was not saved. Please try again.';
       return NextResponse.json(
         {
           statusCode: typeof j.statusCode === 'number' ? j.statusCode : res.status,
-          message: typeof j.message === 'string' ? j.message : 'Upload failed',
+          message: upstreamMessage,
           data: 'data' in j ? (j.data ?? null) : null,
         },
         { status: res.status },

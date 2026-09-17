@@ -118,6 +118,18 @@ const nextConfig = {
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ['@/components', '@/lib'],
+    // Since middleware started matching /api (session refresh, 766f55d), Next
+    // clones every /api request body for it and silently TRUNCATES the clone
+    // at this limit, default 10 MB (next/dist/server/body-streams.js). The
+    // agreement-letter upload allows a 10 MB file, so a file near the limit
+    // plus its multipart envelope arrived at the route cut short and
+    // request.formData() threw: an opaque 500 for a legal upload. Raised
+    // rather than excluding upload routes from the matcher, because that would
+    // also skip the refresh, and an upload after an hour on the page would
+    // then fail as logged out. Must stay above SIGNED_COPY_MAX_BODY_BYTES in
+    // lib/dashboard/signedCopyUpload.ts (pinned by a test); the route itself
+    // refuses anything larger from Content-Length before reading it.
+    proxyClientMaxBodySize: '12mb',
   },
   // Add cache headers for static assets
   async headers() {

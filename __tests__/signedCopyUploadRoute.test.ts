@@ -101,4 +101,64 @@ describe('signed-copy upload BFF route', () => {
     expect(res.status).toBe(400);
     expect(body.message).toMatch(/application\/zip not allowed/);
   });
+
+  it('refuses an oversized upload from Content-Length with a readable 413, without reading the body', async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy as unknown as typeof fetch);
+    const formData = vi.fn(async () => new FormData());
+    // A stand-in rather than a real Request: undici computes Content-Length
+    // from the body, and the point here is a header that promises 25 MB.
+    const oversized = {
+      headers: new Headers({
+        'content-type': 'multipart/form-data; boundary=x',
+        'content-length': String(25 * 1024 * 1024),
+      }),
+      formData,
+    };
+
+    const res = await POST(oversized as never, { params });
+    const body = await res.json();
+
+    expect(res.status).toBe(413);
+    expect(body.message).toMatch(/larger than 10 MB/);
+    expect(formData).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('turns a broken or truncated multipart body into a 400 that says to retry, not a 500', async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy as unknown as typeof fetch);
+    // What arrives when the connection drops mid-upload, or when the body is
+    // cut short before the route: a multipart header with no closing boundary.
+    const truncated = new Request('http://localhost/api/portal/documents/doc-1/signed-copy', {
+      method: 'POST',
+      headers: { 'content-type': 'multipart/form-data; boundary=----abc' },
+      body: '------abc\r\nContent-Disposition: form-data; name="file"; filename="signed.pdf"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 partial',
+    });
+
+    const res = await POST(truncated as never, { params });
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body.message).toMatch(/did not arrive completely/i);
+    expect(body.message).toMatch(/not saved/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("replaces the API's terse multer 413 with the limit and what to do", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 413,
+        json: async () => ({ statusCode: 413, message: 'File too large' }),
+      })) as unknown as typeof fetch,
+    );
+
+    const res = await call();
+    const body = await res.json();
+
+    expect(res.status).toBe(413);
+    expect(body.message).toMatch(/larger than 10 MB/);
+  });
 });
