@@ -1,31 +1,34 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { headers } from 'next/headers';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { AnnouncementDateLabel } from '@/components/announcements/AnnouncementDateLabel';
-import { getAnnouncementsPageData } from '@/lib/api/announcements';
+import { getAnnouncementDetail } from '@/lib/api/announcements';
 import {
+  announcementPath,
   formatAnnouncementCategoryLabel,
   getAnnouncementActionHref,
+  getAnnouncementCanonicalRedirect,
   isExternalHref,
   toAnnouncementHtml,
 } from '@/lib/announcements';
 import { resolveBrandDomain } from '@/lib/server/envContext';
-import type { AnnouncementListSection } from '@/types/announcements';
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params;
+// [key] is a slug (/announcements/kwon-hae-suk-explores-ai) or, for links
+// shared before slugs existed and for system announcements, an id. The API
+// decides which; an id that belongs to an announcement with a slug is
+// permanently redirected to the slug URL below.
+type AnnouncementDetailPageProps = { params: Promise<{ key: string }> };
+
+export async function generateMetadata({ params }: AnnouncementDetailPageProps): Promise<Metadata> {
+  const { key } = await params;
   const host = await resolveBrandDomain();
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;
 
   try {
-    const pageData = await getAnnouncementsPageData(host);
-    const listSection = pageData.sections.find(
-      (section): section is AnnouncementListSection => section.type === 'announcement_list',
-    );
-    const item = listSection?.data.find((entry) => String(entry.id) === id);
+    const item = await getAnnouncementDetail(host, key);
 
     if (!item) {
       return {
@@ -41,19 +44,20 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       item.content?.trim()?.slice(0, 160) ||
       'Read the latest announcement from Youth Break the Boundaries.';
     const image = item.image?.trim() || '/img/announcementbackground.png';
+    const canonicalPath = announcementPath(item);
 
     return {
       metadataBase: new URL(baseUrl),
       title,
       description,
       alternates: {
-        canonical: `/announcements/${encodeURIComponent(String(item.id))}`,
+        canonical: canonicalPath,
       },
       openGraph: {
         title,
         description,
         type: 'article',
-        url: `/announcements/${encodeURIComponent(String(item.id))}`,
+        url: canonicalPath,
         images: [{ url: image }],
       },
       twitter: {
@@ -72,7 +76,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       metadataBase: new URL(baseUrl),
       title: 'Announcement',
       alternates: {
-        canonical: `/announcements/${encodeURIComponent(String(id))}`,
+        canonical: `/announcements/${encodeURIComponent(key)}`,
       },
       robots: {
         index: true,
@@ -82,16 +86,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 }
 
-export default async function AnnouncementDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function AnnouncementDetailPage({ params }: AnnouncementDetailPageProps) {
+  const { key } = await params;
   const host = (await headers()).get('host') || '';
-  const pageData = await getAnnouncementsPageData(host);
-  const listSection = pageData.sections.find(
-    (section): section is AnnouncementListSection => section.type === 'announcement_list',
-  );
-
-  const item = listSection?.data.find(entry => String(entry.id) === id);
+  const item = await getAnnouncementDetail(host, key);
   if (!item) notFound();
+
+  const canonicalRedirect = getAnnouncementCanonicalRedirect(key, item);
+  if (canonicalRedirect) permanentRedirect(canonicalRedirect);
 
   const title = item.title?.trim() || 'Announcement';
   const excerpt = item.excerpt?.trim() || 'No additional details available.';

@@ -13,6 +13,9 @@ export type AnnouncementsHeroSection = {
 // Backend shape isn't fully specified yet; keep flexible but strongly typed for known fields.
 export type AnnouncementApiItem = {
   id: string;
+  // URL key for /announcements/<slug>. Program announcements always have one;
+  // system announcements do not (null) and are linked by id instead.
+  slug?: string | null;
   title?: string | null;
   excerpt?: string | null;
   content?: string | null;
