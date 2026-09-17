@@ -113,6 +113,9 @@ describe('applyAuthProgramSelection', () => {
     applyAuthProgramSelection(undefined);
 
     expect(window.sessionStorage.getItem(EXPLICIT_PROGRAM_CHOICE_STORAGE_KEY)).toBeNull();
+  });
+});
+
 // The API creates the application under an OPEN category when the requested
 // one had closed (old Fully Funded ads/links, MEYS/CYS 2026) and reports it as
 // programRegistration.categoryFallback. Saying nothing left people believing
