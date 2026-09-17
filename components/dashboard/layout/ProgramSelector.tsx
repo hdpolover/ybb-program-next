@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { useSettings } from "@/components/providers/SettingsProvider";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ACTIVE_PROGRAM_STORAGE_KEY,
+  ACTIVE_PROGRAM_CHANGED_EVENT,
+  chooseActiveProgramId,
+  readActiveProgramId,
   resolveActiveProgramId,
   syncActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
@@ -41,16 +43,36 @@ export default function ProgramSelector({
   const [activeId, setActiveId] = useState<string>("");
   const ref = useRef<HTMLDivElement | null>(null);
 
-  const normalizedPrograms = (programs ?? [])
-    .filter(p => !!p?.programId)
-    .map(p => ({
-      id: p.programId,
-      programName: p.programName,
-      year: p.year,
-      applicationStatus: p.applicationStatus,
-      label: buildProgramLabel(p.programName, p.year),
-      logo: settings?.brand?.logo_url || settings?.active_program?.logo_url || "/img/ybb-logo.png",
-    }));
+  const brandLogo = settings?.brand?.logo_url;
+  const activeProgramLogo = settings?.active_program?.logo_url;
+
+  // Memoized because the resolve effect below depends on it. Rebuilt on every
+  // render, it re-ran that effect on every render, which re-read storage and
+  // reset activeId underneath a click: the old separate "write activeId to
+  // storage" effect then synced the clicked program, the resolve effect synced
+  // it back, and each bounce fired ACTIVE_PROGRAM_CHANGED_EVENT. Every listener
+  // refetched on every bounce - the 429s and flicker participants reported as
+  // "switching to 2026 errors".
+  const normalizedPrograms = useMemo(
+    () =>
+      (programs ?? [])
+        .filter(p => !!p?.programId)
+        .map(p => ({
+          id: p.programId,
+          programName: p.programName,
+          year: p.year,
+          applicationStatus: p.applicationStatus,
+          label: buildProgramLabel(p.programName, p.year),
+          logo: brandLogo || activeProgramLogo || "/img/ybb-logo.png",
+        })),
+    [programs, brandLogo, activeProgramLogo],
+  );
+
+  // Resolution depends only on which programs exist and their statuses, not on
+  // labels or logos, so a settings refresh must not re-run it.
+  const programsKey = normalizedPrograms
+    .map(p => `${p.id}:${p.applicationStatus ?? ''}`)
+    .join('|');
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -71,28 +93,39 @@ export default function ProgramSelector({
     };
   }, [open]);
 
+  const programsRef = useRef(normalizedPrograms);
   useEffect(() => {
-    if (normalizedPrograms.length === 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    programsRef.current = normalizedPrograms;
+  }, [normalizedPrograms]);
+
+  useEffect(() => {
+    const currentPrograms = programsRef.current;
+    if (currentPrograms.length === 0) {
       setActiveId('');
       return;
     }
 
-    let stored = '';
-    try {
-      stored = window.localStorage.getItem(ACTIVE_PROGRAM_STORAGE_KEY) || '';
-    } catch {
-      // ignore
-    }
-
-    const nextId = resolveActiveProgramId(normalizedPrograms, stored);
+    const nextId = resolveActiveProgramId(currentPrograms, readActiveProgramId());
     setActiveId(nextId ?? '');
-  }, [normalizedPrograms]);
+    // Persist the resolver's answer. When it overrode the stored id (a phantom
+    // draft pinned by a pre-fix login), this is what writes the correction back
+    // so every raw readActiveProgramId() caller fetches the same program. A
+    // no-op, with no event, when nothing changed.
+    if (nextId) syncActiveProgramId(nextId);
+  }, [programsKey]);
 
+  // Follow selections made elsewhere (another section syncing its program).
+  // State only: re-syncing from a listener is exactly the ping-pong above.
   useEffect(() => {
-    if (!activeId) return;
-    syncActiveProgramId(activeId);
-  }, [activeId]);
+    const handleChange = () => {
+      const currentPrograms = programsRef.current;
+      if (currentPrograms.length === 0) return;
+      setActiveId(resolveActiveProgramId(currentPrograms, readActiveProgramId()) ?? '');
+    };
+
+    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleChange);
+    return () => window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, handleChange);
+  }, []);
 
   const active = normalizedPrograms.find(p => p.id === activeId) ?? normalizedPrograms[0] ?? null;
   const defaultLabel = settings?.active_program?.name
@@ -124,6 +157,9 @@ export default function ProgramSelector({
               key={program.id}
               type="button"
               onClick={() => {
+                // Persist + announce here, once, rather than from an effect on
+                // activeId, so exactly one change event fires per click.
+                chooseActiveProgramId(program.id);
                 setActiveId(program.id);
                 setOpen(false);
               }}

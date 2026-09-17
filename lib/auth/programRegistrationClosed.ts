@@ -7,6 +7,7 @@
 // application was created for them. It is absent in the normal open case.
 
 import { toast } from 'sonner';
+import { clearExplicitProgramChoice, syncActiveProgramId } from '@/lib/dashboard/activeProgram';
 
 export type ProgramRegistrationClosedInfo = {
   status: 'closed';
@@ -103,4 +104,37 @@ export function extractProgramRegistrationId(value: unknown): string | null {
   return typeof candidate.programId === 'string' && candidate.programId.trim().length > 0
     ? candidate.programId
     : null;
+}
+
+/**
+ * The programId to pin the dashboard to after an auth response, or null to
+ * leave the participant's saved selection alone.
+ *
+ * Only 'created' qualifies. That is the one case where this login or signup
+ * genuinely attached the participant to a program they had no application for,
+ * and it is their only application in the brand (the API refuses to create one
+ * on login otherwise), so there is nothing else it could be competing with.
+ *
+ * 'existing' used to pin too, and that is the MEYS 6th/7th bug: the BFF sends
+ * the brand's currently-open edition on EVERY login, so 'existing' named
+ * whichever edition happened to be open - for anyone holding a phantom 2027
+ * draft, the draft - and overwrote their selection on every login. 'closed'
+ * names a program they have no application for at all.
+ */
+export function extractCreatedProgramRegistrationId(value: unknown): string | null {
+  if (!value || typeof value !== 'object') return null;
+  if ((value as { status?: unknown }).status !== 'created') return null;
+  return extractProgramRegistrationId(value);
+}
+
+/**
+ * Post-auth active-program handling shared by the login, signup and Google
+ * handlers. A fresh sign-in starts from the engagement ranking rather than a
+ * switcher choice some earlier session made in this tab, and the saved
+ * selection is only overwritten when this response created the application.
+ */
+export function applyAuthProgramSelection(programRegistration: unknown): void {
+  clearExplicitProgramChoice();
+  const createdProgramId = extractCreatedProgramRegistrationId(programRegistration);
+  if (createdProgramId) syncActiveProgramId(createdProgramId);
 }
