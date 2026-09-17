@@ -8,6 +8,11 @@
 
 import { toast } from 'sonner';
 import { clearExplicitProgramChoice, syncActiveProgramId } from '@/lib/dashboard/activeProgram';
+import {
+  normalizeRegistrationCategory,
+  registrationCategoryLabel,
+  type CategoryFallback,
+} from '@/lib/registration/categoryPhase';
 
 export type ProgramRegistrationClosedInfo = {
   status: 'closed';
@@ -82,10 +87,52 @@ export function readRegistrationClosedInfo(): ProgramRegistrationClosedInfo | nu
  */
 export function notifyIfRegistrationClosed(value: unknown): void {
   const info = parseProgramRegistrationClosed(value);
-  if (!info) return;
+  if (info) {
+    toast.warning(buildRegistrationClosedMessage(info));
+    persistRegistrationClosedInfo(info);
+    return;
+  }
 
-  toast.warning(buildRegistrationClosedMessage(info));
-  persistRegistrationClosedInfo(info);
+  // The other half of the per-category window: the account WAS created, but
+  // under a different category than the one asked for, because the requested
+  // one had closed (typically an old Fully Funded ad or link). Silence here
+  // would leave someone believing they applied Fully Funded.
+  const fallback = parseCategoryFallback(value);
+  if (fallback) {
+    toast.warning(buildCategoryFallbackMessage(fallback));
+  }
+}
+
+export type ProgramCategoryFallbackInfo = CategoryFallback & { programName?: string };
+
+/**
+ * Narrows `programRegistration.categoryFallback` (set by ybb-platform's
+ * ensureProgramApplication when the requested category's registration window
+ * was not open and the application was created under an open one). Null when
+ * absent, malformed, or a no-op (requested === assigned).
+ */
+export function parseCategoryFallback(value: unknown): ProgramCategoryFallbackInfo | null {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as { programName?: unknown; categoryFallback?: unknown };
+  const raw = candidate.categoryFallback;
+  if (!raw || typeof raw !== 'object') return null;
+
+  const requested = normalizeRegistrationCategory(String((raw as { requested?: unknown }).requested ?? ''));
+  const assigned = normalizeRegistrationCategory(String((raw as { assigned?: unknown }).assigned ?? ''));
+  if (!requested || !assigned || requested === assigned) return null;
+
+  const programName =
+    typeof candidate.programName === 'string' && candidate.programName.trim().length > 0
+      ? candidate.programName.trim()
+      : undefined;
+  return { requested, assigned, ...(programName ? { programName } : {}) };
+}
+
+export function buildCategoryFallbackMessage(info: ProgramCategoryFallbackInfo): string {
+  const requested = registrationCategoryLabel(info.requested);
+  const assigned = registrationCategoryLabel(info.assigned);
+  const where = info.programName ? ` for ${info.programName}` : '';
+  return `${requested} registration${where} has closed; your account was created as ${assigned}.`;
 }
 
 /**

@@ -85,6 +85,10 @@ export async function GET(request: Request) {
       dueDate?: string;
       paidAt?: string;
       canPay: boolean;
+      // Registration fee whose category registration window has closed (API
+      // flag). Not payable, not "required", not "overdue"; the UI offers the
+      // category switch instead of Pay.
+      windowClosed: boolean;
     };
 
     const getFeeTypePriority = (value: unknown): number => {
@@ -135,6 +139,7 @@ export async function GET(request: Request) {
       const fallbackSequenceOrder = getFeeTypePriority(rawType) * 1000;
       const paidAt = invRecord.paidAt ? parseApiDate(String(invRecord.paidAt)) : null;
       const explicitCanPay = typeof invRecord.canPay === 'boolean' ? invRecord.canPay : undefined;
+      const windowClosed = invRecord.windowClosed === true;
       const paidAtLabel =
         paidAt && !Number.isNaN(paidAt.getTime())
           ? formatDeadlineWib(paidAt, { withTime: false })
@@ -157,7 +162,8 @@ export async function GET(request: Request) {
         startDate: startDate?.toISOString(),
         dueDate: dueDate?.toISOString(),
         paidAt: paidAt && !Number.isNaN(paidAt.getTime()) ? paidAt.toISOString() : undefined,
-        canPay: explicitCanPay ?? ((status === 'unpaid' || status === 'failed') && amountValue > 0),
+        canPay: !windowClosed && (explicitCanPay ?? ((status === 'unpaid' || status === 'failed') && amountValue > 0)),
+        windowClosed,
       };
     };
 
@@ -174,6 +180,12 @@ export async function GET(request: Request) {
       const currency = String(methodRecord.currency ?? stats.currency ?? 'USD');
       const rawType = String(methodRecord.type ?? '').toLowerCase();
       const fallbackSequenceOrder = getFeeTypePriority(rawType) * 1000;
+      // The API marks a lapsed registration fee tier canPay:false /
+      // windowClosed:true. It used to be offered here as payable purely because
+      // it had started, which is how the Fully Funded fee kept being paid after
+      // Fully Funded registration closed.
+      const windowClosed = methodRecord.windowClosed === true;
+      const apiRefusesPayment = methodRecord.canPay === false;
 
       return {
         id: `tier:${methodRecord.id}`,
@@ -191,7 +203,8 @@ export async function GET(request: Request) {
         currency,
         startDate: startDate?.toISOString(),
         dueDate: dueDate?.toISOString(),
-        canPay: amountValue > 0 && (!startDate || startDate <= now),
+        canPay: !windowClosed && !apiRefusesPayment && amountValue > 0 && (!startDate || startDate <= now),
+        windowClosed,
       };
     });
 
@@ -217,7 +230,10 @@ export async function GET(request: Request) {
       }
     }
 
-    const outstandingItems = stagedItems.filter((item) => item.status !== 'paid' && item.amountValue > 0);
+    // A closed-window registration fee can never be paid, so it is not owed.
+    const outstandingItems = stagedItems.filter(
+      (item) => item.status !== 'paid' && item.amountValue > 0 && !item.windowClosed,
+    );
     const currencyForSummary =
       outstandingItems[0]?.currency ??
       stagedItems[0]?.currency ??
@@ -228,6 +244,7 @@ export async function GET(request: Request) {
     const overdue = stagedItems.filter(
       (item) =>
         item.status === 'unpaid' &&
+        !item.windowClosed &&
         item.dueDate &&
         (() => {
           const dayDiff = getCalendarDayDifference(now, parseApiDate(item.dueDate));
@@ -235,7 +252,7 @@ export async function GET(request: Request) {
         })(),
     ).length;
 
-    const items = stagedItems.map(({ id, label, status, paymentType, amount, syncDate, hasInvoice, startDate, dueDate, paidAt, canPay }) => ({
+    const items = stagedItems.map(({ id, label, status, paymentType, amount, syncDate, hasInvoice, startDate, dueDate, paidAt, canPay, windowClosed }) => ({
       id,
       label,
       status,
@@ -247,6 +264,7 @@ export async function GET(request: Request) {
       dueDate,
       paidAt,
       canPay,
+      windowClosed,
     }));
 
     const summary = {
