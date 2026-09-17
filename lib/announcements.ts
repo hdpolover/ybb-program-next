@@ -19,10 +19,41 @@ export function formatAnnouncementDateLabel(
   }).format(parsed);
 }
 
-export function resolveAnnouncementHref(id: string | number, href?: string | null): string {
-  const raw = (href || '').trim();
+type AnnouncementLinkable = {
+  id: string | number;
+  slug?: string | null;
+  href?: string | null;
+};
+
+/**
+ * The canonical public path for an announcement: its slug when it has one,
+ * otherwise its id (system announcements have no slug). Old id URLs still
+ * resolve and are permanently redirected here by app/announcements/[key].
+ */
+export function announcementPath(item: Pick<AnnouncementLinkable, 'id' | 'slug'>): string {
+  const slug = (item.slug || '').trim();
+  return `/announcements/${encodeURIComponent(slug || String(item.id))}`;
+}
+
+export function resolveAnnouncementHref(item: AnnouncementLinkable): string {
+  const raw = (item.href || '').trim();
   if (raw.startsWith('/announcements/')) return raw;
-  return `/announcements/${encodeURIComponent(String(id))}`;
+  return announcementPath(item);
+}
+
+/**
+ * Where /announcements/<requestedKey> should permanently redirect, or null to
+ * render in place. Only an item with a slug has a canonical URL to move to, so
+ * /announcements/<uuid> -> /announcements/<slug>, and a system announcement
+ * (no slug) is served at its id without a redirect.
+ */
+export function getAnnouncementCanonicalRedirect(
+  requestedKey: string,
+  item: Pick<AnnouncementLinkable, 'id' | 'slug'>,
+): string | null {
+  const slug = (item.slug || '').trim();
+  if (!slug || requestedKey === slug) return null;
+  return announcementPath(item);
 }
 
 export function isExternalHref(href: string): boolean {
