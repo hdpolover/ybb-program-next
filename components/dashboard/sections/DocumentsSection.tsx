@@ -12,6 +12,7 @@ import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
   readActiveProgramId,
+  resolveActiveProgramId,
 } from '@/lib/dashboard/activeProgram';
 import { getEnvelopeData, getErrorMessage, isRecord } from '@/lib/api/response';
 import {
@@ -173,8 +174,9 @@ export default function DocumentsSection() {
   // false during SSR/first client render; true once hydrated. Gates the
   // "Updated" date's timezone — see hooks/useHydrated.ts.
   const hydrated = useHydrated();
-  // Only for naming the address the release email goes to. Absent while the
-  // profile request is in flight, which mailNotice handles.
+  // For naming the address the release email goes to, and for resolving which
+  // program to fetch documents for. Absent while the profile request is in
+  // flight, which mailNotice and the resolver both handle.
   const { me } = useDashboardData();
   const [activeTab, setActiveTab] = useState<TabKey>('All');
   const [sortField, setSortField] = useState<SortField>('name');
@@ -194,6 +196,13 @@ export default function DocumentsSection() {
   // Held in state rather than read during render: readActiveProgramId touches
   // localStorage, which is not available server-side and would desync hydration.
   const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
+  // Read through a ref because fetchDocuments is captured once by the mount
+  // effect below; closing over `me` directly would freeze it at its first,
+  // usually still-loading, value.
+  const registeredProgramsRef = useRef(me?.registeredPrograms);
+  useEffect(() => {
+    registeredProgramsRef.current = me?.registeredPrograms;
+  }, [me?.registeredPrograms]);
 
   // Fetch program documents
   const fetchDocuments = async () => {
@@ -201,7 +210,10 @@ export default function DocumentsSection() {
       setLoadingDocs(true);
       setErrorDocs(null);
 
-      const programId = readActiveProgramId();
+      // Same resolution the submission sections use. The raw stored id could be
+      // a phantom 2027 draft pinned by a pre-fix login, which is exactly the
+      // program with no invitation letter on it.
+      const programId = resolveActiveProgramId(registeredProgramsRef.current ?? [], readActiveProgramId());
       setActiveProgramId(programId ?? null);
       const url = appendProgramId('/api/portal/documents', programId);
 

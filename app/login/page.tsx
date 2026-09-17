@@ -16,8 +16,7 @@ import { Alert } from '@/components/ui';
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
 import { resolveLoginMode } from '@/lib/auth/loginMode';
 import { readAdAttribution, toRegistrationCategory, trackLead } from '@/lib/analytics/pixels';
-import { notifyIfRegistrationClosed, extractProgramRegistrationId } from '@/lib/auth/programRegistrationClosed';
-import { syncActiveProgramId } from '@/lib/dashboard/activeProgram';
+import { notifyIfRegistrationClosed, applyAuthProgramSelection } from '@/lib/auth/programRegistrationClosed';
 import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
 import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 import SignupEditionChoice, { type SignupEdition } from '@/components/auth/SignupEditionChoice';
@@ -254,8 +253,7 @@ export default function LoginPage() {
         }
 
         notifyIfRegistrationClosed(json?.data?.programRegistration);
-        const loginProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
-        if (loginProgramId) syncActiveProgramId(loginProgramId);
+        applyAuthProgramSelection(json?.data?.programRegistration);
         router.push(json?.data?.redirectTo || '/onboarding');
       } catch (error) {
         const rawMessage = error instanceof Error ? error.message : 'Login failed';
@@ -335,8 +333,7 @@ export default function LoginPage() {
         toRegistrationCategory(applicationCategory),
       );
       notifyIfRegistrationClosed(json?.data?.programRegistration);
-      const registerProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
-      if (registerProgramId) syncActiveProgramId(registerProgramId);
+      applyAuthProgramSelection(json?.data?.programRegistration);
       if (needsEmailVerification) {
         // Lets /verify-email offer a resend without asking for the address again.
         rememberPendingVerificationEmail(signupForm.email);
@@ -448,12 +445,9 @@ export default function LoginPage() {
       }
 
       notifyIfRegistrationClosed(json?.data?.programRegistration);
-      // Pin the dashboard's active-program selector to whatever program this
-      // auth response actually attached the participant to, BEFORE any of the
-      // redirects below — otherwise a stale ybb_active_program_id from an
-      // earlier session on a different program wins by default (MEYS 6th/7th).
-      const firebaseProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
-      if (firebaseProgramId) syncActiveProgramId(firebaseProgramId);
+      // BEFORE any of the redirects below. Pins the selector only when this
+      // response created the application; see applyAuthProgramSelection.
+      applyAuthProgramSelection(json?.data?.programRegistration);
 
       if (typeof json?.data?.isOnboardingCompleted === 'boolean') {
         router.push(json.data.isOnboardingCompleted ? '/dashboard' : '/onboarding');
