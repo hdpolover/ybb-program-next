@@ -72,6 +72,10 @@ export default function OverviewRegistrationSection() {
   const switchTargetLabel = switchTarget === "fully_funded" ? "Fully Funded" : "Self Funded";
   const fullyFundedRegistrationClosed =
     activeApplication?.fullyFundedRegistrationClosed ?? false;
+  // The participant is currently Fully Funded and that window has closed:
+  // the switch text below needs to say why, not just that a switch exists.
+  const isStuckOnClosedFullyFunded =
+    currentCategory === "fully_funded" && fullyFundedRegistrationClosed;
   const shouldCollapseDescription = categoryUi.description.length > 150;
   const collapsedDescription = `${categoryUi.description.slice(0, 150).trimEnd()}...`;
 
@@ -172,18 +176,40 @@ export default function OverviewRegistrationSection() {
             {currentCategory === "self_funded" || currentCategory === "fully_funded" ? (
               <div className={overviewTheme.registrationFooterRow}>
                 <div className="flex items-start gap-2">
-                  <div className={overviewTheme.registrationSwitchIconCircle}>
+                  <div
+                    className={
+                      isStuckOnClosedFullyFunded
+                        ? `${overviewTheme.registrationSwitchIconCircle} bg-amber-100 text-amber-600`
+                        : overviewTheme.registrationSwitchIconCircle
+                    }
+                  >
                     <ArrowLeftRight className="h-3.5 w-3.5" />
                   </div>
-                  <p className={overviewTheme.registrationSwitchText}>
-                    {canSwitchCategory ? (
+                  <p
+                    className={
+                      isStuckOnClosedFullyFunded
+                        ? `${overviewTheme.registrationSwitchText} text-amber-700`
+                        : overviewTheme.registrationSwitchText
+                    }
+                  >
+                    {isStuckOnClosedFullyFunded && canSwitchCategory ? (
+                      <>
+                        <span className="font-semibold">Fully Funded registration has closed:</span>{" "}
+                        this fee can no longer be paid. Self Funded registration is still open, so
+                        switch to Self Funded to continue your application.
+                      </>
+                    ) : canSwitchCategory ? (
                       <>
                         <span className="font-semibold">Switch Available:</span> You can switch to {switchTargetLabel}
                         registration for guaranteed program participation with standard payment requirements.
                       </>
                     ) : (
                       <>
-                        <span className="font-semibold">Switch Unavailable:</span>{" "}
+                        <span className="font-semibold">
+                          {isStuckOnClosedFullyFunded
+                            ? "Fully Funded registration has closed:"
+                            : "Switch Unavailable:"}
+                        </span>{" "}
                         {switchCategoryMessage || "Category switching is currently locked."}
                         {switchCategoryBlockingInvoiceId ? (
                           <>
