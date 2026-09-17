@@ -12,6 +12,7 @@ import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
   readActiveProgramId,
+  resolveActiveProgramId,
 } from '@/lib/dashboard/activeProgram';
 import { getEnvelopeData, getErrorMessage, isRecord } from '@/lib/api/response';
 import {
@@ -25,6 +26,7 @@ import { BUSINESS_TIMEZONE } from '@/lib/format/deadline';
 import { useHydrated } from '@/hooks/useHydrated';
 import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
 import { mailNotice } from '@/lib/dashboard/mailNotice';
+import SignedCopyUpload from '@/components/dashboard/sections/documents/SignedCopyUpload';
 
 const TABS = ['All', 'Upload Required', 'Can Generate', 'Reference'] as const;
 type TabKey = (typeof TABS)[number];
@@ -172,8 +174,9 @@ export default function DocumentsSection() {
   // false during SSR/first client render; true once hydrated. Gates the
   // "Updated" date's timezone — see hooks/useHydrated.ts.
   const hydrated = useHydrated();
-  // Only for naming the address the release email goes to. Absent while the
-  // profile request is in flight, which mailNotice handles.
+  // For naming the address the release email goes to, and for resolving which
+  // program to fetch documents for. Absent while the profile request is in
+  // flight, which mailNotice and the resolver both handle.
   const { me } = useDashboardData();
   const [activeTab, setActiveTab] = useState<TabKey>('All');
   const [sortField, setSortField] = useState<SortField>('name');
@@ -193,6 +196,13 @@ export default function DocumentsSection() {
   // Held in state rather than read during render: readActiveProgramId touches
   // localStorage, which is not available server-side and would desync hydration.
   const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
+  // Read through a ref because fetchDocuments is captured once by the mount
+  // effect below; closing over `me` directly would freeze it at its first,
+  // usually still-loading, value.
+  const registeredProgramsRef = useRef(me?.registeredPrograms);
+  useEffect(() => {
+    registeredProgramsRef.current = me?.registeredPrograms;
+  }, [me?.registeredPrograms]);
 
   // Fetch program documents
   const fetchDocuments = async () => {
@@ -200,7 +210,10 @@ export default function DocumentsSection() {
       setLoadingDocs(true);
       setErrorDocs(null);
 
-      const programId = readActiveProgramId();
+      // Same resolution the submission sections use. The raw stored id could be
+      // a phantom 2027 draft pinned by a pre-fix login, which is exactly the
+      // program with no invitation letter on it.
+      const programId = resolveActiveProgramId(registeredProgramsRef.current ?? [], readActiveProgramId());
       setActiveProgramId(programId ?? null);
       const url = appendProgramId('/api/portal/documents', programId);
 
@@ -798,7 +811,6 @@ export default function DocumentsSection() {
                         <SignedCopyUpload
                           templateId={item.id}
                           submissionStatus={item.submissionStatus ?? 'pending_upload'}
-                          signedCopyUrl={item.signedCopyUrl}
                           onUploaded={fetchDocuments}
                         />
                       )}
@@ -1060,95 +1072,6 @@ export default function DocumentsSection() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function SignedCopyUpload({
-  templateId,
-  submissionStatus,
-  signedCopyUrl,
-  onUploaded,
-}: {
-  templateId: string;
-  submissionStatus: string;
-  signedCopyUrl?: string;
-  onUploaded: () => void;
-}) {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      // Client-side deadline slightly longer than the proxy's, so a stalled
-      // upstream surfaces the server's specific message rather than this
-      // generic one. This exists for the case the proxy itself never answers:
-      // without it the button spins forever, which is what participants
-      // reported as "cannot upload".
-      const res = await fetch(`/api/portal/documents/${templateId}/signed-copy`, {
-        method: 'POST',
-        body: formData,
-        signal: AbortSignal.timeout(130_000),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => null)) as unknown;
-        throw new Error(getErrorMessage(data, 'Upload failed'));
-      }
-      onUploaded();
-    } catch (err) {
-      const timedOut = err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError');
-      setError(
-        timedOut
-          ? 'Upload timed out. Your file was not saved. Please check your connection and try again.'
-          : err instanceof Error
-            ? err.message
-            : 'Upload failed',
-      );
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  return (
-    <div>
-      {submissionStatus === 'uploaded' && signedCopyUrl ? (
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="min-w-0 break-words text-[11px] font-medium text-amber-600">
-            Signed copy submitted, awaiting review
-          </span>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="shrink-0 text-[11px] text-zinc-500 underline hover:text-zinc-700"
-          >
-            Replace
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
-        >
-          {uploading ? 'Uploading…' : 'Upload Signed Copy'}
-        </button>
-      )}
-      {error && <p className="mt-1 text-[11px] text-red-600">{error}</p>}
-      <input
-        ref={fileRef}
-        type="file"
-        accept=".pdf,.doc,.docx"
-        className="hidden"
-        onChange={handleFileChange}
-      />
     </div>
   );
 }

@@ -45,6 +45,10 @@ export async function POST(
         {
           statusCode: typeof j.statusCode === 'number' ? j.statusCode : res.status,
           message: typeof j.message === 'string' ? j.message : 'Failed to confirm payment',
+          // The API's outcome code (e.g. REGISTRATION_WINDOW_CLOSED). The
+          // payments UI classifies on this, never on the message wording; see
+          // lib/dashboard/paymentOutcome.ts.
+          errorCode: typeof j.errorCode === 'string' ? j.errorCode : undefined,
           data: 'data' in j ? (j.data ?? null) : null,
         },
         { status: res.status },

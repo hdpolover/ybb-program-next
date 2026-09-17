@@ -133,7 +133,7 @@ export default async function AnnouncementsPage({ searchParams }: AnnouncementsP
     excerpt: item.excerpt || '',
     author: item.author || 'YBB',
     date: item.date || '',
-    href: resolveAnnouncementHref(item.id, item.href),
+    href: resolveAnnouncementHref(item),
     category: item.category || undefined,
     tags: item.tags ?? undefined,
   });

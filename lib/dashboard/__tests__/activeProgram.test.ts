@@ -1,7 +1,21 @@
 // lib/dashboard/__tests__/activeProgram.test.ts
 
-import { describe, it, expect } from 'vitest';
-import { resolveActiveProgramId } from '@/lib/dashboard/activeProgram';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import {
+  ACTIVE_PROGRAM_CHANGED_EVENT,
+  ACTIVE_PROGRAM_STORAGE_KEY,
+  EXPLICIT_PROGRAM_CHOICE_STORAGE_KEY,
+  chooseActiveProgramId,
+  clearExplicitProgramChoice,
+  readActiveProgramId,
+  resolveActiveProgramId,
+  syncActiveProgramId,
+} from '@/lib/dashboard/activeProgram';
+
+beforeEach(() => {
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+});
 
 describe('resolveActiveProgramId', () => {
   it('returns null when there are no programs and no candidate', () => {
@@ -38,13 +52,58 @@ describe('resolveActiveProgramId', () => {
     expect(resolveActiveProgramId(programs, null)).toBe('meys-2026');
   });
 
-  it('respects an explicit stored choice even when it ranks lower', () => {
+  it('respects an explicit choice even when it ranks lower', () => {
     // Switching to the new edition on purpose must stick.
     const programs = [
       { programId: 'meys-2027', applicationStatus: 'draft' },
       { programId: 'meys-2026', applicationStatus: 'submitted' },
     ];
+    expect(resolveActiveProgramId(programs, 'meys-2027', 'meys-2027')).toBe('meys-2027');
+  });
+
+  // The value the pre-fix login wrote: every login pinned the phantom 2027
+  // draft into localStorage, and localStorage outlives the fix. Nothing marks it
+  // as chosen, so the submitted application has to win.
+  it('drops a stored lower-ranked id that was never explicitly chosen', () => {
+    const programs = [
+      { programId: 'meys-2027', applicationStatus: 'draft' },
+      { programId: 'meys-2026', applicationStatus: 'submitted' },
+    ];
+    expect(resolveActiveProgramId(programs, 'meys-2027', null)).toBe('meys-2026');
+  });
+
+  it('reads the explicit choice from this tab session by default', () => {
+    const programs = [
+      { programId: 'meys-2027', applicationStatus: 'draft' },
+      { programId: 'meys-2026', applicationStatus: 'submitted' },
+    ];
+    expect(resolveActiveProgramId(programs, 'meys-2027')).toBe('meys-2026');
+    window.sessionStorage.setItem(EXPLICIT_PROGRAM_CHOICE_STORAGE_KEY, 'meys-2027');
     expect(resolveActiveProgramId(programs, 'meys-2027')).toBe('meys-2027');
+  });
+
+  it('keeps a stored id that ranks equal to the best', () => {
+    const programs = [
+      { programId: 'p-accepted', applicationStatus: 'accepted' },
+      { programId: 'p-submitted', applicationStatus: 'submitted' },
+    ];
+    expect(resolveActiveProgramId(programs, 'p-submitted', null)).toBe('p-submitted');
+  });
+
+  it('keeps a stored draft when every application is a draft', () => {
+    const programs = [
+      { programId: 'p-1', applicationStatus: 'draft' },
+      { programId: 'p-2', applicationStatus: 'draft' },
+    ];
+    expect(resolveActiveProgramId(programs, 'p-2', null)).toBe('p-2');
+  });
+
+  it('ignores an explicit choice that is no longer among the programs', () => {
+    const programs = [
+      { programId: 'meys-2027', applicationStatus: 'draft' },
+      { programId: 'meys-2026', applicationStatus: 'submitted' },
+    ];
+    expect(resolveActiveProgramId(programs, 'gone', 'gone')).toBe('meys-2026');
   });
 
   it('ranks a withdrawn application below a live draft', () => {
@@ -73,5 +132,75 @@ describe('resolveActiveProgramId', () => {
   it('ignores entries without a resolvable id', () => {
     const programs = [{ id: null, programId: null }, { programId: 'p-2' }];
     expect(resolveActiveProgramId(programs, null)).toBe('p-2');
+  });
+});
+
+describe('active program persistence', () => {
+  const events: string[] = [];
+  const listener = (event: Event) => {
+    events.push((event as CustomEvent<{ programId: string }>).detail.programId);
+  };
+
+  beforeEach(() => {
+    events.length = 0;
+    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, listener);
+  });
+  afterEach(() => {
+    window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, listener);
+    vi.restoreAllMocks();
+  });
+
+  it('syncActiveProgramId persists and announces only a real change', () => {
+    syncActiveProgramId('p-1');
+    syncActiveProgramId('p-1');
+    expect(window.localStorage.getItem(ACTIVE_PROGRAM_STORAGE_KEY)).toBe('p-1');
+    expect(events).toEqual(['p-1']);
+  });
+
+  it('chooseActiveProgramId marks the choice explicit and announces once', () => {
+    syncActiveProgramId('meys-2026');
+    events.length = 0;
+
+    chooseActiveProgramId('meys-2027');
+
+    expect(window.sessionStorage.getItem(EXPLICIT_PROGRAM_CHOICE_STORAGE_KEY)).toBe('meys-2027');
+    expect(window.localStorage.getItem(ACTIVE_PROGRAM_STORAGE_KEY)).toBe('meys-2027');
+    expect(readActiveProgramId()).toBe('meys-2027');
+    expect(events).toEqual(['meys-2027']);
+  });
+
+  it('does not announce when choosing the program already shown', () => {
+    syncActiveProgramId('meys-2026');
+    events.length = 0;
+
+    chooseActiveProgramId('meys-2026');
+
+    expect(events).toEqual([]);
+  });
+
+  // Another tab may re-resolve the shared localStorage value; the program this
+  // tab's participant picked has to keep driving this tab's fetches.
+  it('serves this tab its explicit choice over the shared stored value', () => {
+    chooseActiveProgramId('meys-2027');
+    window.localStorage.setItem(ACTIVE_PROGRAM_STORAGE_KEY, 'meys-2026');
+    expect(readActiveProgramId()).toBe('meys-2027');
+  });
+
+  it('an automatic sync to a different program retires the stale explicit choice', () => {
+    chooseActiveProgramId('meys-2027');
+    events.length = 0;
+
+    syncActiveProgramId('meys-2026');
+
+    expect(window.sessionStorage.getItem(EXPLICIT_PROGRAM_CHOICE_STORAGE_KEY)).toBeNull();
+    expect(readActiveProgramId()).toBe('meys-2026');
+    expect(events).toEqual(['meys-2026']);
+  });
+
+  it('clearExplicitProgramChoice falls back to the stored value', () => {
+    chooseActiveProgramId('meys-2027');
+    window.localStorage.setItem(ACTIVE_PROGRAM_STORAGE_KEY, 'meys-2026');
+    clearExplicitProgramChoice();
+    expect(readActiveProgramId()).toBe('meys-2026');
   });
 });

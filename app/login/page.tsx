@@ -16,8 +16,7 @@ import { Alert } from '@/components/ui';
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError';
 import { resolveLoginMode } from '@/lib/auth/loginMode';
 import { readAdAttribution, toRegistrationCategory, trackLead } from '@/lib/analytics/pixels';
-import { notifyIfRegistrationClosed, extractProgramRegistrationId } from '@/lib/auth/programRegistrationClosed';
-import { syncActiveProgramId } from '@/lib/dashboard/activeProgram';
+import { notifyIfRegistrationClosed, applyAuthProgramSelection } from '@/lib/auth/programRegistrationClosed';
 import { PASSWORD_MIN_LENGTH, PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
 import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 import SignupEditionChoice, { type SignupEdition } from '@/components/auth/SignupEditionChoice';
@@ -27,6 +26,7 @@ import { useEmailTypoHint } from '@/hooks/useEmailTypoHint';
 import { rememberPendingVerificationEmail } from '@/lib/auth/pendingVerificationEmail';
 import { resolveSignupEditionSlug } from '@/lib/registration/edition';
 import { sanitizeRichTextHtml } from '@/lib/content/richText';
+import { buildCategoryFallbackNotice, resolveSignupCategory } from '@/lib/registration/categoryPhase';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -98,6 +98,18 @@ export default function LoginPage() {
   // show which edition is being joined. Empty when the fetch failed, which
   // keeps today's behaviour (no selector, no line, the server picks).
   const [editions, setEditions] = useState<SignupEdition[]>([]);
+  // ?applicationCategory= comes from ads and links that outlive the window
+  // they advertised: MEYS/CYS 2026 kept creating Fully Funded accounts after
+  // Fully Funded registration closed. Check it against the chosen edition's
+  // own category window and submit the open category instead, telling the
+  // person before they submit. Derived, not stored: switching edition
+  // re-evaluates from the original request. With no editions loaded this is a
+  // no-op and the server applies the same rule.
+  const selectedEdition = editions.find(edition => edition.program_slug === programSlug) ?? null;
+  const signupCategory = resolveSignupCategory(applicationCategory, selectedEdition, new Date());
+  const signupCategoryNotice = signupCategory.fallback
+    ? buildCategoryFallbackNotice(signupCategory.fallback, selectedEdition?.program_name)
+    : '';
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string>('');
   const [legalModalOpen, setLegalModalOpen] = useState(false);
@@ -254,8 +266,7 @@ export default function LoginPage() {
         }
 
         notifyIfRegistrationClosed(json?.data?.programRegistration);
-        const loginProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
-        if (loginProgramId) syncActiveProgramId(loginProgramId);
+        applyAuthProgramSelection(json?.data?.programRegistration);
         router.push(json?.data?.redirectTo || '/onboarding');
       } catch (error) {
         const rawMessage = error instanceof Error ? error.message : 'Login failed';
@@ -294,7 +305,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           email: signupForm.email,
           password: signupForm.password,
-          ...(applicationCategory ? { applicationCategory } : {}),
+          ...(signupCategory.category ? { applicationCategory: signupCategory.category } : {}),
           ...(programSlug ? { programSlug } : {}),
           // See the Google signup path below: these click ids only exist in the
           // browser, and every later conversion for this person may be reported
@@ -332,11 +343,10 @@ export default function LoginPage() {
       trackLead(
         { content_name: 'account_signup' },
         { email: signupForm.email },
-        toRegistrationCategory(applicationCategory),
+        toRegistrationCategory(signupCategory.category),
       );
       notifyIfRegistrationClosed(json?.data?.programRegistration);
-      const registerProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
-      if (registerProgramId) syncActiveProgramId(registerProgramId);
+      applyAuthProgramSelection(json?.data?.programRegistration);
       if (needsEmailVerification) {
         // Lets /verify-email offer a resend without asking for the address again.
         rememberPendingVerificationEmail(signupForm.email);
@@ -426,7 +436,7 @@ export default function LoginPage() {
           // dropped it, so ensureProgramApplication fell through to its
           // self_funded default even for a participant who picked Fully
           // Funded on the edition-choice screen.
-          ...(mode === 'signup' && applicationCategory ? { applicationCategory } : {}),
+          ...(mode === 'signup' && signupCategory.category ? { applicationCategory: signupCategory.category } : {}),
           // Ad click ids, captured here because this is the last moment they
           // exist in a context we control — every later conversion for this
           // person may be reported by the API with no browser involved.
@@ -448,12 +458,9 @@ export default function LoginPage() {
       }
 
       notifyIfRegistrationClosed(json?.data?.programRegistration);
-      // Pin the dashboard's active-program selector to whatever program this
-      // auth response actually attached the participant to, BEFORE any of the
-      // redirects below — otherwise a stale ybb_active_program_id from an
-      // earlier session on a different program wins by default (MEYS 6th/7th).
-      const firebaseProgramId = extractProgramRegistrationId(json?.data?.programRegistration);
-      if (firebaseProgramId) syncActiveProgramId(firebaseProgramId);
+      // BEFORE any of the redirects below. Pins the selector only when this
+      // response created the application; see applyAuthProgramSelection.
+      applyAuthProgramSelection(json?.data?.programRegistration);
 
       if (typeof json?.data?.isOnboardingCompleted === 'boolean') {
         router.push(json.data.isOnboardingCompleted ? '/dashboard' : '/onboarding');
@@ -464,7 +471,7 @@ export default function LoginPage() {
         trackLead(
           { content_name: 'account_signup_google' },
           fbUser.email ? { email: fbUser.email } : undefined,
-          toRegistrationCategory(applicationCategory),
+          toRegistrationCategory(signupCategory.category),
         );
         router.push('/onboarding');
         return;
@@ -899,6 +906,9 @@ export default function LoginPage() {
                       value={programSlug}
                       onChange={setProgramSlug}
                     />
+                    {signupCategoryNotice ? (
+                      <Alert variant="warning">{signupCategoryNotice}</Alert>
+                    ) : null}
                     <div>
                       <label className={componentsTheme.login.fieldLabel}>
                         Email

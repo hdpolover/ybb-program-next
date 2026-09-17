@@ -1,8 +1,8 @@
 import type { MetadataRoute } from 'next';
 import { siteConfig } from '@/config/site';
-import { getAnnouncementsPageData } from '@/lib/api/announcements';
+import { listAllPublicAnnouncements } from '@/lib/api/announcements';
+import { announcementPath } from '@/lib/announcements';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
-import type { AnnouncementListSection } from '@/types/announcements';
 import { headers } from 'next/headers';
 
 const STATIC_PATHS = [
@@ -34,17 +34,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const pageData = await getAnnouncementsPageData(host);
-    const listSection = pageData.sections.find(
-      (section): section is AnnouncementListSection => section.type === 'announcement_list',
-    );
+    const announcements = await listAllPublicAnnouncements(host);
 
-    const announcementEntries: MetadataRoute.Sitemap = (listSection?.data ?? []).map((item) => {
+    const announcementEntries: MetadataRoute.Sitemap = announcements.map((item) => {
       const parsedDate = item.date ? new Date(item.date) : null;
       const lastModified = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : now;
 
       return {
-        url: `${siteUrl}/announcements/${encodeURIComponent(String(item.id))}`,
+        url: `${siteUrl}${announcementPath(item)}`,
         lastModified,
         changeFrequency: 'weekly',
         priority: 0.6,

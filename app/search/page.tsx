@@ -101,7 +101,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       : [];
   const announcementResults: SearchResult[] = announcementItems
     .map((item) => {
-      const href = resolveAnnouncementHref(item.id, item.href);
+      const href = resolveAnnouncementHref(item);
       return {
         id: `announcement-${item.id}`,
         title: item.title?.trim() || 'Announcement',

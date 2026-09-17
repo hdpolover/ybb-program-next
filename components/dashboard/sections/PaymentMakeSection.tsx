@@ -27,6 +27,7 @@ import {
 } from "@/lib/dashboard/activeProgram";
 import { upsertCachedPaymentPreview } from "@/lib/dashboard/payments-cache";
 import { sanitizeRichTextHtml } from "@/lib/content/richText";
+import { getPaymentErrorMessage } from "@/lib/dashboard/paymentOutcome";
 import EnglishTextInput from "@/components/ui/EnglishTextInput";
 import EnglishTextArea from "@/components/ui/EnglishTextArea";
 
@@ -561,7 +562,9 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
       const json = (await response.json().catch(() => null)) as unknown;
 
       if (!response.ok) {
-        throw new Error(getErrorMessage(json, "Payment submission failed"));
+        // Classified on the API outcome code: a registration fee whose
+        // category window closed gets an actionable message, not raw wording.
+        throw new Error(getPaymentErrorMessage(json, "Payment submission failed"));
       }
 
       const payload = getEnvelopeData(json);

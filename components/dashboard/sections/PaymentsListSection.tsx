@@ -40,6 +40,11 @@ import {
 import { toast } from 'sonner';
 import { getCalendarDayDifference, getInclusiveCalendarDaySpan, parseApiDate } from '@/lib/utils';
 import { formatDeadlineLocal } from '@/lib/format/deadline';
+import {
+  getPaymentErrorMessage,
+  REGISTRATION_WINDOW_CLOSED_ROW_MESSAGE,
+  resolvePaymentRowAction,
+} from '@/lib/dashboard/paymentOutcome';
 
 const paymentsTheme = componentsTheme.dashboardPayments;
 
@@ -60,6 +65,8 @@ interface PaymentItem {
   syncDate: string;
   hasInvoice?: boolean;
   canPay?: boolean;
+  /** Registration fee whose category registration window has closed. */
+  windowClosed?: boolean;
   startDate?: string;
   dueDate?: string;
   paidAt?: string;
@@ -174,6 +181,7 @@ function toPaymentItem(value: unknown): PaymentItem | null {
   const startDate = toDate(value.startDate);
   const dueDate = toDate(value.dueDate);
   const paidAt = toDate(value.paidAt) ?? toDate(value.syncDate);
+  const windowClosed = value.windowClosed === true;
 
   return {
     id,
@@ -181,7 +189,10 @@ function toPaymentItem(value: unknown): PaymentItem | null {
     status,
     paymentType: typeof value.paymentType === 'string' ? value.paymentType : 'General',
     period: toWindowLabel(startDate, dueDate),
-    deadline: toDeadlineLabel(dueDate, status, paidAt),
+    // "N days overdue" reads as "pay it now"; a closed window cannot be paid.
+    deadline: windowClosed && status !== 'paid' && status !== 'processing'
+      ? 'Registration closed'
+      : toDeadlineLabel(dueDate, status, paidAt),
     amount:
       typeof value.amount === 'string'
         ? value.amount
@@ -191,6 +202,7 @@ function toPaymentItem(value: unknown): PaymentItem | null {
     syncDate: paidAt ? formatLocalDate(paidAt) : 'Not paid yet',
     hasInvoice: typeof value.hasInvoice === 'boolean' ? value.hasInvoice : undefined,
     canPay: typeof value.canPay === 'boolean' ? value.canPay : undefined,
+    windowClosed: windowClosed || undefined,
     startDate: startDate?.toISOString(),
     dueDate: dueDate?.toISOString(),
     paidAt: paidAt?.toISOString(),
@@ -198,8 +210,40 @@ function toPaymentItem(value: unknown): PaymentItem | null {
 }
 
 function isPaymentPayable(payment: PaymentItem): boolean {
-  if (typeof payment.canPay === 'boolean') return payment.canPay;
-  return payment.status === 'unpaid' || payment.status === 'failed';
+  return resolvePaymentRowAction(payment) === 'pay';
+}
+
+/**
+ * Replaces Pay on a registration fee whose category window has closed. The
+ * participant's only way forward is the other category, so point at the
+ * switch flow (the category card above) rather than leaving a dead row.
+ */
+function RegistrationWindowClosedAction({
+  canSwitch,
+  switchTargetLabel,
+  onSwitch,
+}: {
+  canSwitch: boolean;
+  switchTargetLabel: string;
+  onSwitch: () => void;
+}) {
+  return (
+    <span className="max-w-[16rem] text-right text-xs font-medium text-amber-700">
+      {REGISTRATION_WINDOW_CLOSED_ROW_MESSAGE}
+      {canSwitch ? (
+        <>
+          {' '}
+          <button
+            type="button"
+            className="cursor-pointer underline decoration-amber-700/60 underline-offset-2 hover:decoration-amber-700"
+            onClick={onSwitch}
+          >
+            Switch to {switchTargetLabel} &rarr;
+          </button>
+        </>
+      ) : null}
+    </span>
+  );
 }
 
 function toPaymentsSummary(value: unknown): PaymentsSummary {
@@ -242,6 +286,7 @@ function summarizeByLocalTime(items: PaymentItem[], totalRequired: string): Paym
   const pending = items.filter((item) => item.status !== 'paid').length;
   const overdue = items.filter((item) => {
     if (item.status !== 'unpaid') return false;
+    if (item.windowClosed) return false;
     if (!item.dueDate) return false;
     const dueDate = parseApiDate(item.dueDate);
     if (Number.isNaN(dueDate.getTime())) return false;
@@ -313,7 +358,7 @@ export default function PaymentsListSection() {
 
     const json = (await response.json().catch(() => null)) as unknown;
     if (!response.ok) {
-      throw new Error(getMessage(json) ?? 'Failed to prepare payment invoice');
+      throw new Error(getPaymentErrorMessage(json, 'Failed to prepare payment invoice'));
     }
 
     const payload = getEnvelopeData(json);
@@ -800,6 +845,10 @@ export default function PaymentsListSection() {
                 const isFailed = payment.status === 'failed';
                 const isRowLoading = rowActionLoadingId === payment.id;
                 const canPayNow = isPaymentPayable(payment);
+                const windowClosed = resolvePaymentRowAction(payment) === 'window-closed';
+                // A closed-window fee with no invoice has nothing to show: the
+                // detail view would try to mint one and be refused.
+                const canViewDetail = !(windowClosed && payment.hasInvoice === false);
                 const canPrintInvoice = payment.hasInvoice !== false;
                 return (
                   <article key={`mobile-${payment.id}`} className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
@@ -832,6 +881,13 @@ export default function PaymentsListSection() {
                       <p className="text-right text-slate-700">{payment.syncDate}</p>
                     </div>
                     <div className="flex items-center justify-end gap-2 pt-1">
+                      {windowClosed ? (
+                        <RegistrationWindowClosedAction
+                          canSwitch={canSwitchCategory}
+                          switchTargetLabel={switchTargetLabel}
+                          onSwitch={() => setShowSwitchModal(true)}
+                        />
+                      ) : null}
                       {canPayNow ? (
                         <button
                           type="button"
@@ -843,15 +899,17 @@ export default function PaymentsListSection() {
                           <CreditCard className="h-3.5 w-3.5" />
                         </button>
                       ) : null}
-                      <button
-                        type="button"
-                        className={`${paymentsTheme.secondaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
-                        aria-label="See details"
-                        disabled={isRowLoading}
-                        onClick={() => handlePaymentAction(payment, 'detail')}
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                      </button>
+                      {canViewDetail ? (
+                        <button
+                          type="button"
+                          className={`${paymentsTheme.secondaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
+                          aria-label="See details"
+                          disabled={isRowLoading}
+                          onClick={() => handlePaymentAction(payment, 'detail')}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
                       {canPrintInvoice ? (
                         <button
                           type="button"
@@ -910,6 +968,10 @@ export default function PaymentsListSection() {
                 const isFailed = payment.status === 'failed';
                 const isRowLoading = rowActionLoadingId === payment.id;
                 const canPayNow = isPaymentPayable(payment);
+                const windowClosed = resolvePaymentRowAction(payment) === 'window-closed';
+                // A closed-window fee with no invoice has nothing to show: the
+                // detail view would try to mint one and be refused.
+                const canViewDetail = !(windowClosed && payment.hasInvoice === false);
                 const canPrintInvoice = payment.hasInvoice !== false;
                 return (
                   <tr key={payment.id} className={paymentsTheme.tableRow}>
@@ -958,6 +1020,13 @@ export default function PaymentsListSection() {
                     <td className={paymentsTheme.syncDateCell}>{payment.syncDate}</td>
                     <td className={paymentsTheme.actionsCell}>
                       <div className={paymentsTheme.actionsWrapper}>
+                        {windowClosed ? (
+                          <RegistrationWindowClosedAction
+                            canSwitch={canSwitchCategory}
+                            switchTargetLabel={switchTargetLabel}
+                            onSwitch={() => setShowSwitchModal(true)}
+                          />
+                        ) : null}
                         {canPayNow ? (
                           <button
                             type="button"
@@ -969,15 +1038,17 @@ export default function PaymentsListSection() {
                             <CreditCard className="h-3.5 w-3.5" />
                           </button>
                         ) : null}
-                        <button
-                          type="button"
-                          className={`${paymentsTheme.secondaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
-                          aria-label="See details"
-                          disabled={isRowLoading}
-                          onClick={() => handlePaymentAction(payment, 'detail')}
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                        </button>
+                        {canViewDetail ? (
+                          <button
+                            type="button"
+                            className={`${paymentsTheme.secondaryIconButton} ${isRowLoading ? 'cursor-wait opacity-70' : ''}`}
+                            aria-label="See details"
+                            disabled={isRowLoading}
+                            onClick={() => handlePaymentAction(payment, 'detail')}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
+                        ) : null}
                         {canPrintInvoice ? (
                           <button
                             type="button"

@@ -19,7 +19,12 @@ import UserMenuPopover from '@/components/dashboard/layout/UserMenuPopover';
 import { getEnvelopeData, isRecord } from '@/lib/api/response';
 import { toAmbassadorData } from '@/lib/dashboard/ambassador';
 import { shouldRedirectToOnboarding } from '@/lib/dashboard/shouldRedirectToOnboarding';
-import { appendProgramId, readActiveProgramId, resolveActiveProgramId } from '@/lib/dashboard/activeProgram';
+import {
+  ACTIVE_PROGRAM_CHANGED_EVENT,
+  appendProgramId,
+  readActiveProgramId,
+  resolveActiveProgramId,
+} from '@/lib/dashboard/activeProgram';
 import { componentsTheme } from '@/lib/theme/components';
 
 type DashboardSearchItem = {
@@ -365,6 +370,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       cancelled = true;
     };
   }, [router]);
+
+  // The summary above is fetched once, on mount, for whichever program was
+  // active then. Without this the overview card and progress numbers kept
+  // showing the previous edition after a switch in the top bar, so a
+  // participant moving from 2027 back to 2026 still saw 2027's status.
+  const registeredPrograms = me?.registeredPrograms;
+  useEffect(() => {
+    if (!registeredPrograms) return;
+
+    let disposed = false;
+    // Only the latest switch may write: a slow response for a program the
+    // participant already switched away from must not land on top.
+    let latestRequest = 0;
+
+    const refetchSummary = async () => {
+      const requestId = ++latestRequest;
+      const programId = resolveActiveProgramId(registeredPrograms, readActiveProgramId());
+
+      try {
+        const res = await fetch(appendProgramId('/api/portal/dashboard', programId), {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+        });
+        if (disposed || requestId !== latestRequest || !res.ok) return;
+
+        const json = (await res.json().catch(() => null)) as unknown;
+        if (disposed || requestId !== latestRequest) return;
+
+        setDashboardSummary(toPortalDashboardSummary(getEnvelopeData(json)));
+      } catch {
+        // Keep the summary already on screen; the next switch retries.
+      }
+    };
+
+    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, refetchSummary);
+    return () => {
+      disposed = true;
+      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, refetchSummary);
+    };
+  }, [registeredPrograms]);
 
   useEffect(() => {
     // Reset mobile sidebar when navigating to a new route
