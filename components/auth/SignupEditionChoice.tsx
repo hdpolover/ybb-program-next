@@ -13,12 +13,17 @@
 import { formatDeadlineForViewer } from '@/lib/format/deadline';
 import { SCHEDULE_DATE_META_OPTIONS, formatScheduleDate } from '@/lib/format/datetime';
 import { useHydrated } from '@/hooks/useHydrated';
+import type { CategoryTierLike } from '@/lib/registration/categoryPhase';
 
 export type SignupEdition = {
   program_name: string;
   program_slug: string;
   registration_dates?: { open: string | null; close: string | null };
   program_dates?: { start: string | null; end: string | null };
+  // The edition's fee tiers, as the home payload carries them. Read by the
+  // login page to check a requested category's own registration window
+  // (lib/registration/categoryPhase.ts); not rendered here.
+  registration_types?: CategoryTierLike[];
 };
 
 type Props = {
