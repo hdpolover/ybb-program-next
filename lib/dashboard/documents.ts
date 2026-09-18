@@ -15,6 +15,10 @@ export interface DocumentItem {
   submissionStatus?: string;
   signedCopyUrl?: string;
   rejectionReason?: string;
+  /** Reviewer's note, shown verbatim on `rejected` / `revision_requested`. */
+  submissionNote?: string;
+  /** When an admin last reviewed the signed copy. */
+  reviewedAt?: string;
   documentType: string;
   updatedAt?: string;
 }
@@ -50,6 +54,8 @@ export function toDocumentItem(value: unknown): DocumentItem | null {
       typeof value.submissionStatus === 'string' ? value.submissionStatus : undefined,
     signedCopyUrl: typeof value.signedCopyUrl === 'string' ? value.signedCopyUrl : undefined,
     rejectionReason: typeof value.rejectionReason === 'string' ? value.rejectionReason : undefined,
+    submissionNote: typeof value.submissionNote === 'string' ? value.submissionNote : undefined,
+    reviewedAt: typeof value.reviewedAt === 'string' ? value.reviewedAt : undefined,
     documentType: typeof value.documentType === 'string' ? value.documentType : 'document',
     updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : undefined,
   };

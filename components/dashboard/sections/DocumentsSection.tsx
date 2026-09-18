@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowUpRight, Download, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ArrowUpRight, Download, AlertTriangle } from 'lucide-react';
 import { componentsTheme } from '@/lib/theme/components';
 import DashboardPageSkeleton from '@/components/dashboard/ui/DashboardPageSkeleton';
 import EmptyState from '@/components/ui/EmptyState';
@@ -807,24 +807,21 @@ export default function DocumentsSection() {
                         </a>
                       )}
 
-                      {item.submissionStatus !== 'verified' && (
-                        <SignedCopyUpload
-                          templateId={item.id}
-                          submissionStatus={item.submissionStatus ?? 'pending_upload'}
-                          onUploaded={fetchDocuments}
-                        />
-                      )}
-
-                      {item.submissionStatus === 'verified' && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600">
-                          <CheckCircle className="h-3.5 w-3.5" />
-                          Signed copy verified
-                        </span>
-                      )}
-
-                      {item.submissionStatus === 'rejected' && item.rejectionReason && (
-                        <p className="text-[11px] text-red-600 break-words">Rejected: {item.rejectionReason}</p>
-                      )}
+                      <SignedCopyUpload
+                        templateId={item.id}
+                        submissionStatus={item.submissionStatus ?? 'pending_upload'}
+                        submissionNote={item.submissionNote}
+                        signedCopyUrl={item.signedCopyUrl}
+                        reviewedAtLabel={
+                          item.reviewedAt
+                            ? formatDocumentDateLabel(
+                                item.reviewedAt,
+                                hydrated ? undefined : { timeZone: BUSINESS_TIMEZONE },
+                              )
+                            : undefined
+                        }
+                        onUploaded={fetchDocuments}
+                      />
                     </div>
                   )}
 
