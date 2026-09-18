@@ -20,6 +20,7 @@ import {
   syncActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
 import { getEnvelopeData, getErrorMessage } from "@/lib/api/response";
+import { fieldLooksLikeReferral } from "@/lib/referral/fieldLooksLikeReferral";
 import { toRegistrationCategory, trackCompleteRegistration } from "@/lib/analytics/pixels";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import type {
@@ -934,26 +935,8 @@ export default function SubmissionEditSection() {
   const isPhoneTouched = (sectionId: string, fieldName: string) =>
     touchedPhoneKeys.has(phoneTouchKey(sectionId, fieldName));
 
-  // Dynamic fields are admin-defined in the DB, so a referral code field can
-  // arrive under any key. Detect it resiliently from the key, the visible
-  // label, or an explicit admin `fieldKind` flag, rather than a single rigid
-  // key pattern. Covers ref_code / ref-code / refCode / referralCode /
-  // "Referral Code" (UUID key) / ambassador_code, etc.
-  const fieldLooksLikeReferral = (field: {
-    name?: string;
-    label?: string;
-    validationRules?: Record<string, unknown> | null;
-  }): boolean => {
-    const kind = (field.validationRules as { fieldKind?: unknown } | null | undefined)?.fieldKind;
-    if (typeof kind === 'string' && /referral|ambassador/i.test(kind)) return true;
-    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
-    const looks = (s: string) =>
-      s.includes('referral') ||
-      s.includes('refcode') ||
-      s.includes('ambassadorcode') ||
-      s.includes('ambassadorreferral');
-    return looks(normalize(field.name ?? '')) || looks(normalize(field.label ?? ''));
-  };
+  // fieldLooksLikeReferral is imported from lib/referral/fieldLooksLikeReferral
+  // (lifted out so this pure predicate can be unit tested directly).
 
   // Resolve referral fields once from the full field definitions (which carry
   // label + validationRules), then key all the name-based checks off this set
