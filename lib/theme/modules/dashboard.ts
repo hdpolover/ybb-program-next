@@ -95,6 +95,14 @@ export const dashboardTheme = {
     statusApproved: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
     statusOngoing: 'bg-primary/5 text-primary ring-primary/20',
     statusDefault: 'bg-slate-50 text-slate-700 ring-slate-200',
+    // Signed-copy review status chip, distinct from the body copy beneath it
+    // (see SignedCopyUpload) rather than a plain inline sentence.
+    docStatusChipBase:
+      'inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1',
+    docStatusChipUnderReview: 'bg-amber-50 text-amber-700 ring-amber-200',
+    docStatusChipApproved: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    docStatusChipRejected: 'bg-rose-50 text-rose-700 ring-rose-200',
+    docStatusChipRevision: 'bg-orange-50 text-orange-700 ring-orange-200',
   },
   dashboardPayments: {
     sectionWrapper: 'space-y-6',

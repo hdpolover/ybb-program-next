@@ -98,6 +98,76 @@ describe('SignedCopyUpload', () => {
     await waitFor(() => expect(input.value).toBe(''));
   });
 
+  it('shows an Under review chip and no rejection/approval copy while uploaded', () => {
+    render(<SignedCopyUpload templateId="t1" submissionStatus="uploaded" onUploaded={() => {}} />);
+    expect(screen.getByText('Under review')).toBeInTheDocument();
+    expect(screen.queryByText(/approved/i)).not.toBeInTheDocument();
+  });
+
+  it('shows an Approved chip, hides the upload control, and shows the review date', () => {
+    render(
+      <SignedCopyUpload
+        templateId="t1"
+        submissionStatus="approved"
+        reviewedAtLabel="12 Sep 2026"
+        onUploaded={() => {}}
+      />,
+    );
+    expect(screen.getByText('Approved')).toBeInTheDocument();
+    expect(screen.getByText(/no further action is needed/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reviewed on 12 Sep 2026/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /upload signed copy/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Replace' })).not.toBeInTheDocument();
+  });
+
+  it('shows a Not accepted chip, the reviewer note, and an upload control that allows re-upload', () => {
+    render(
+      <SignedCopyUpload
+        templateId="t1"
+        submissionStatus="rejected"
+        submissionNote="The signature page is missing."
+        onUploaded={() => {}}
+      />,
+    );
+    expect(screen.getByText('Not accepted')).toBeInTheDocument();
+    expect(screen.getByText('The signature page is missing.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /upload signed copy/i })).toBeInTheDocument();
+  });
+
+  it('shows a Changes requested chip, the reviewer note, and an upload control', () => {
+    render(
+      <SignedCopyUpload
+        templateId="t1"
+        submissionStatus="revision_requested"
+        submissionNote="Please re-sign page 2."
+        onUploaded={() => {}}
+      />,
+    );
+    expect(screen.getByText('Changes requested')).toBeInTheDocument();
+    expect(screen.getByText('Please re-sign page 2.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /upload signed copy/i })).toBeInTheDocument();
+  });
+
+  it('lets the participant open the file they uploaded via signedCopyUrl', () => {
+    render(
+      <SignedCopyUpload
+        templateId="t1"
+        submissionStatus="uploaded"
+        signedCopyUrl="https://files.example.com/signed.pdf"
+        onUploaded={() => {}}
+      />,
+    );
+    const link = screen.getByRole('link', { name: /view the file you uploaded/i });
+    expect(link).toHaveAttribute('href', 'https://files.example.com/signed.pdf');
+  });
+
+  it('shows no status chip before anything has been uploaded', () => {
+    render(<SignedCopyUpload templateId="t1" submissionStatus="pending_upload" onUploaded={() => {}} />);
+    expect(screen.queryByText('Under review')).not.toBeInTheDocument();
+    expect(screen.queryByText('Approved')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /upload signed copy/i })).toBeInTheDocument();
+  });
+
   it('resets the input after a failed upload too, so re-selecting the same file fires again', async () => {
     const fetchSpy = vi
       .fn()
