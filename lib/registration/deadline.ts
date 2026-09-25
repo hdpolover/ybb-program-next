@@ -231,3 +231,66 @@ export function resolveRegistrationCountdown(
 
   return null;
 }
+
+/**
+ * The `/login?mode=signup` link for a given category + programSlug pair. One
+ * formatter so the brand-wide CTA (app/layout.tsx) and each edition's own
+ * per-tab CTA (see EditionCountdown below) can never drift in query-param
+ * order or encoding.
+ */
+export function buildRegisterUrl(category: RegistrationCategory | null, programSlug: string | null): string {
+  let url = category ? `/login?mode=signup&applicationCategory=${category}` : '/login?mode=signup';
+  if (programSlug) {
+    url += `${url.includes('?') ? '&' : '?'}programSlug=${encodeURIComponent(programSlug)}`;
+  }
+  return url;
+}
+
+/** One edition's own countdown, keyed by its stable `program_id` rather than
+ * its position in the array (see components/sections/SelectedEditionContext,
+ * whose selection this feeds). `phase` reuses RegistrationPhase's 'closed'
+ * value to mean "no open or upcoming window on THIS edition" -- distinct from
+ * resolveRegistrationCountdown's own 'open' | 'upcoming' union, which never
+ * had to represent "nothing to show" because the brand-wide resolver falls
+ * back to the programme's own close date instead. */
+export type EditionCountdown = {
+  programId: string;
+  deadline: string | null;
+  phase: RegistrationPhase;
+  programName: string | null;
+  registerUrl: string;
+};
+
+/**
+ * Per-edition countdowns for every tab HomeRegistrationStrip renders, so the
+ * countdown gates in app/layout.tsx can follow whichever tab a visitor picks
+ * instead of always showing the brand-wide winner across every edition.
+ *
+ * Each edition is resolved on ITS OWN window only -- no cross-edition and no
+ * programme-level (`programFallback`) fallback. Selecting MEYS 2027 while
+ * MEYS 2026 is the one currently open must go quiet on that tab, not borrow
+ * 2026's clock: that is exactly the never-blank guarantee inverted, and it is
+ * deliberate here (see resolveRegistrationCountdown's docblock for why that
+ * guarantee exists for the BRAND-wide value this does not replace).
+ */
+export function resolveEditionCountdowns(
+  editions: Array<CountdownProgramEdition & { program_id: string; program_slug: string }> | null | undefined,
+  now: Date,
+): EditionCountdown[] {
+  if (!editions) return [];
+  return editions.map((edition) => {
+    const winner = resolveRegistrationCountdown([edition], now);
+    const programName = winner
+      ? winner.categoryLabel
+        ? `${winner.programName} ${winner.categoryLabel}`
+        : winner.programName
+      : null;
+    return {
+      programId: edition.program_id,
+      deadline: winner?.deadline ?? null,
+      phase: winner?.phase ?? 'closed',
+      programName,
+      registerUrl: buildRegisterUrl(winner?.category ?? null, edition.program_slug),
+    };
+  });
+}

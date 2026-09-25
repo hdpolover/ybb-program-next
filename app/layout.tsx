@@ -22,10 +22,15 @@ import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton';
 import { getProgramDetail } from '@/lib/api/programs';
 import {
   resolveRegistrationCountdown,
+  resolveEditionCountdowns,
+  buildRegisterUrl,
   type CountdownProgramFallback,
   type RegistrationCategory,
+  type EditionCountdown,
 } from '@/lib/registration/deadline';
+import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import { getRegistrationPhase, resolveChromePhase, type RegistrationPhase } from '@/lib/registration/status';
+import { SelectedEditionProvider } from '@/components/sections/SelectedEditionContext';
 import type { RegistrationOverviewSection } from '@/types/home';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -159,6 +164,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let settingsData = null;
   let registrationCloseDate: string | null = null;
   let countdownProgramName: string | null = null;
+  // One entry per HomeRegistrationStrip tab, so the countdown gates can
+  // follow whichever edition a visitor selects instead of always showing the
+  // brand-wide winner computed below. Empty on a single-program brand.
+  let editionCountdowns: EditionCountdown[] = [];
+  // The edition HomeRegistrationStrip selects by default (see
+  // pickDefaultEditionIndex) -- SAME function, SAME `editions` array app/page.tsx
+  // feeds the strip, so the countdown this layout shows on first paint can
+  // never disagree with the tab the strip highlights as selected.
+  let defaultEditionProgramId: string | null = null;
+  let defaultEditionIndex = 0;
   // What registrationCloseDate MEANS. 'upcoming' = it is an OPEN date, so the
   // prompts must count down to an opening and must not offer a register CTA.
   // Tri-state, deliberately: 'closed' has to be representable or the
@@ -265,10 +280,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         : null;
       // The signup link's applicationCategory now comes from the SAME window
       // that won the countdown, so the CTA cannot preselect a category whose
-      // window is not the one the clock is describing.
+      // window is not the one the clock is describing. registerUrl itself is
+      // built once, below, after activeProgramSlug is final.
       activeCategory = winner?.category ?? null;
-      if (activeCategory) {
-        registerUrl = `/login?mode=signup&applicationCategory=${activeCategory}`;
+
+      // Per-tab countdowns (MEYS 2026/2027 fix): computed from the SAME
+      // `editions` array app/page.tsx passes to HomeRegistrationStrip
+      // (getHomePageData is per-request memoized, see lib/api/home.ts), so
+      // the default tab picked here is guaranteed to be the same tab the
+      // strip highlights -- no first-paint mismatch between banner and tabs.
+      if (editions && editions.length > 0) {
+        editionCountdowns = resolveEditionCountdowns(editions, new Date());
+        defaultEditionIndex = pickDefaultEditionIndex(editions);
+        defaultEditionProgramId = editions[defaultEditionIndex]?.program_id ?? null;
       }
     } catch (error) {
       console.error('[Layout] Failed to resolve multi-program countdown:', error);
@@ -280,10 +304,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Without this, a returning user's signup CTA created no application at
   // all (auth-program-linking.util.ts falls back to "latest open program"
   // only when no programSlug/programId is given, which can silently pick the
-  // wrong edition for a multi-program brand).
-  if (activeProgramSlug) {
-    registerUrl += `${registerUrl.includes('?') ? '&' : '?'}programSlug=${encodeURIComponent(activeProgramSlug)}`;
-  }
+  // wrong edition for a multi-program brand). One formatter (buildRegisterUrl)
+  // so this brand-wide link and each edition's own registerUrl above cannot
+  // drift in query-param order or encoding.
+  registerUrl = buildRegisterUrl(activeCategory, activeProgramSlug);
 
   if (!brandAccent) {
     brandAccent = normalizeHex(process.env.NEXT_PUBLIC_DEFAULT_BRAND_COLOR) || '#1c57b3';
@@ -322,24 +346,38 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }
         >
           <PromoCTAProvider>
-            <ClientNavbarGate />
-            <RegistrationCountdownGate
-              registrationDeadline={registrationCloseDate}
-              activeProgramSlug={activeProgramSlug}
-              countdownProgramName={countdownProgramName}
-              phase={countdownPhase}
-            />
-            {children}
-            <ClientCTAGate />
-            <BackToHome />
-            <BackToTop />
-            <ClientFooterGate />
-            <StickyBottomBarGate
-              deadline={registrationCloseDate}
-              registerUrl={registerUrl}
-              phase={countdownPhase}
-              activeProgramSlug={activeProgramSlug}
-            />
+            {/* Wraps the countdown gates AND {children} (which includes
+                HomeRegistrationStrip on the home page) so a tab click reaches
+                both -- moved here from a narrow mount inside app/page.tsx,
+                which could never be seen by these two gates since they render
+                outside {children}. Single provider instance: see
+                SelectedEditionContext's docblock for why a second, nested one
+                would have let the two halves of the page disagree again. */}
+            <SelectedEditionProvider
+              defaultIndex={defaultEditionIndex}
+              defaultProgramId={defaultEditionProgramId}
+            >
+              <ClientNavbarGate />
+              <RegistrationCountdownGate
+                registrationDeadline={registrationCloseDate}
+                activeProgramSlug={activeProgramSlug}
+                countdownProgramName={countdownProgramName}
+                phase={countdownPhase}
+                editionCountdowns={editionCountdowns}
+              />
+              {children}
+              <ClientCTAGate />
+              <BackToHome />
+              <BackToTop />
+              <ClientFooterGate />
+              <StickyBottomBarGate
+                deadline={registrationCloseDate}
+                registerUrl={registerUrl}
+                phase={countdownPhase}
+                activeProgramSlug={activeProgramSlug}
+                editionCountdowns={editionCountdowns}
+              />
+            </SelectedEditionProvider>
           </PromoCTAProvider>
         </SettingsProvider>
 

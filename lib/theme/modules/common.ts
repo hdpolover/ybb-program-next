@@ -171,7 +171,13 @@ export const commonTheme = {
   },
   stickyBottomBar: {
     wrapper: 'fixed bottom-0 left-0 right-0 z-50 bg-white shadow-2xl border-t border-slate-200 transition-transform duration-300',
-    container: 'mx-auto flex items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8 max-w-7xl',
+    // Centered, not `justify-between`: the countdown used to pin to one edge
+    // and the register button to the other, which put the countdown directly
+    // over the bottom-left/bottom-center activity toast (ActivityToast) on
+    // every breakpoint. Grouping both in the middle is the layout half of
+    // that collision fix; TOAST_BOTTOM_CLEARANCE_PX (SettingsProvider's
+    // Toaster) lifts the toast the rest of the way clear of this bar.
+    container: 'mx-auto flex items-center justify-center gap-4 px-4 py-3 sm:px-6 lg:px-8 max-w-7xl',
     countdownSection: 'flex items-center gap-3',
     icon: 'h-5 w-5 text-primary',
     timeGrid: 'flex items-center gap-2',

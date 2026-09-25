@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect } from 'react';
 import { Toaster } from 'sonner';
 import type { SettingsData } from '@/types/settings';
 import { getSettingsLsKey, SETTINGS_LS_LEGACY_KEY, SETTINGS_LS_TTL_MS } from '@/lib/constants/cache';
+import { TOAST_BOTTOM_CLEARANCE_PX } from '@/components/marketing/activityToastUtils';
 
 export type RegistrationPhase = 'open' | 'upcoming' | 'closed';
 
@@ -81,7 +82,18 @@ export function SettingsProvider({
   return (
     <SettingsContext.Provider value={{ settings: initialSettings, isLoading: false, registrationPhase, registrationOpensLabel }}>
       {children}
-      <Toaster position="top-center" richColors />
+      {/* position="top-center" is only the default position: ActivityToast
+          calls toast.custom() with its own bottom-left/bottom-center
+          position, and both live on this single Toaster instance. `offset`
+          only moves bottom-anchored toasts clear of StickyBottomBar -- a
+          top-anchored toast ignores its `bottom` value, so this cannot shift
+          anything already using the default position. */}
+      <Toaster
+        position="top-center"
+        richColors
+        offset={{ bottom: TOAST_BOTTOM_CLEARANCE_PX }}
+        mobileOffset={{ bottom: TOAST_BOTTOM_CLEARANCE_PX }}
+      />
     </SettingsContext.Provider>
   );
 }

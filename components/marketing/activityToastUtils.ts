@@ -9,6 +9,17 @@ export const TOAST_DURATION_MS = 6_000;
 export const MOBILE_BREAKPOINT_PX = 640;
 export const SESSION_DISMISS_KEY = 'ybb:activity-toast:dismissed';
 
+// Lifts this toast clear of components/ui/StickyBottomBar, which is `fixed
+// bottom-0` at z-50 and sits directly under a bottom-left/bottom-center
+// toast otherwise (componentsTheme.stickyBottomBar.wrapper). Sized off that
+// bar's own layout: ~24px vertical padding (py-3 twice) + a ~44px content
+// row (its taller element is the register button, px-6 py-2.5 text-sm) +
+// spacing so the toast never touches it. Bump this if that bar's padding or
+// content height changes. Read by SettingsProvider's global <Toaster>, whose
+// `offset`/`mobileOffset` only affect bottom-anchored toasts -- the
+// top-center default Toaster position ignores a bottom offset entirely.
+export const TOAST_BOTTOM_CLEARANCE_PX = 96;
+
 const REGIONAL_INDICATOR_BASE = 0x1f1e6;
 const LETTER_A = 65;
 
