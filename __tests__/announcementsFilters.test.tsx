@@ -2,8 +2,8 @@
 //
 // AnnouncementsFilters must submit by navigating to a new URL (GET form /
 // real links), never by mutating local state only.
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import AnnouncementsFilters from '@/components/announcements/AnnouncementsFilters';
 import type { AnnouncementsSearchParams } from '@/lib/announcements';
 import type { AnnouncementsFilterValues } from '@/types/announcements';
@@ -83,5 +83,79 @@ describe('AnnouncementsFilters', () => {
     expect(screen.queryByLabelText('Tag')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Edition')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Year')).not.toBeInTheDocument();
+  });
+
+  it('renders an always-visible Apply filters submit button (not gated behind noscript/JS)', () => {
+    render(<AnnouncementsFilters current={EMPTY} filters={FILTERS} basePath="/announcements" />);
+    const applyButton = screen.getByRole('button', { name: 'Apply filters' });
+    expect(applyButton).toHaveAttribute('type', 'submit');
+    expect(applyButton.closest('noscript')).toBeNull();
+  });
+
+  it('has no hidden "page" field, so a GET submit (JS-triggered or native) always drops any stale page number', () => {
+    render(<AnnouncementsFilters current={{ page: 3, category: 'News' }} filters={FILTERS} basePath="/announcements" />);
+    expect(document.querySelector('input[name="page"]')).toBeNull();
+  });
+
+  describe('year control', () => {
+    let requestSubmit: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      requestSubmit = vi.fn();
+      HTMLFormElement.prototype.requestSubmit = requestSubmit;
+    });
+
+    it('falls back to a number input when filters.years is absent (older API responses mid-rollout)', () => {
+      render(<AnnouncementsFilters current={EMPTY} filters={FILTERS} basePath="/announcements" />);
+      const yearField = screen.getByLabelText('Year');
+      expect(yearField.tagName).toBe('INPUT');
+      expect(yearField).toHaveAttribute('type', 'number');
+    });
+
+    it('submits on blur (not on every keystroke) for the number-input fallback', () => {
+      render(<AnnouncementsFilters current={EMPTY} filters={FILTERS} basePath="/announcements" />);
+      const yearField = screen.getByLabelText('Year');
+      fireEvent.change(yearField, { target: { value: '2025' } });
+      expect(requestSubmit).not.toHaveBeenCalled();
+      fireEvent.blur(yearField);
+      expect(requestSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders a <select> with "All years" plus one option per year when filters.years is present', () => {
+      const withYears: AnnouncementsFilterValues = { ...FILTERS, years: [2026, 2024, 2025] };
+      render(<AnnouncementsFilters current={EMPTY} filters={withYears} basePath="/announcements" />);
+      const yearField = screen.getByLabelText('Year');
+      expect(yearField.tagName).toBe('SELECT');
+      expect(screen.getAllByRole('option', { name: /^(All years|20\d{2})$/ }).map((o) => o.textContent)).toEqual([
+        'All years',
+        '2026',
+        '2025',
+        '2024',
+      ]);
+    });
+
+    it('submits on change for the year <select>', () => {
+      const withYears: AnnouncementsFilterValues = { ...FILTERS, years: [2026, 2025] };
+      render(<AnnouncementsFilters current={EMPTY} filters={withYears} basePath="/announcements" />);
+      fireEvent.change(screen.getByLabelText('Year'), { target: { value: '2025' } });
+      expect(requestSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps a ?year=XXXX not in filters.years visibly selected instead of discarding it', () => {
+      const withYears: AnnouncementsFilterValues = { ...FILTERS, years: [2026, 2025] };
+      render(
+        <AnnouncementsFilters current={{ page: 1, year: 2019 }} filters={withYears} basePath="/announcements" />,
+      );
+      const yearField = screen.getByLabelText('Year') as HTMLSelectElement;
+      expect(yearField).toHaveValue('2019');
+      expect(screen.getByRole('option', { name: '2019' })).toBeInTheDocument();
+    });
+
+    it('submits on change for the tag/edition selects too', () => {
+      render(<AnnouncementsFilters current={EMPTY} filters={FILTERS} basePath="/announcements" />);
+      fireEvent.change(screen.getByLabelText('Tag'), { target: { value: 'visa' } });
+      fireEvent.change(screen.getByLabelText('Edition'), { target: { value: 'prog-1' } });
+      expect(requestSubmit).toHaveBeenCalledTimes(2);
+    });
   });
 });
