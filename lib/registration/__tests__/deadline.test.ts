@@ -16,6 +16,8 @@
 import {
   resolveRegistrationCountdown,
   resolveUpcomingWindowCountdown,
+  resolveEditionCountdowns,
+  buildRegisterUrl,
   type CountdownProgramFallback,
 } from '../deadline';
 
@@ -410,5 +412,104 @@ describe('the Register CTA category follows the winning window', () => {
       now,
     );
     expect(result?.category).toBeNull();
+  });
+});
+
+/**
+ * Per-tab countdowns (resolveEditionCountdowns), the fix for MEYS having two
+ * editions open at once: clicking the MEYS 2027 tab used to leave the banner
+ * and sticky bar pinned to whatever won brand-wide. Each edition is resolved
+ * on ITS OWN window only -- no cross-edition fallback -- so switching tabs
+ * can never show a sibling edition's clock.
+ */
+describe('resolveEditionCountdowns', () => {
+  const now = new Date('2026-09-03T00:00:00.000Z');
+
+  it('MEYS: each tab gets its OWN window, not the brand-wide winner', () => {
+    const editions = [
+      {
+        program_id: 'meys-2026',
+        program_slug: 'meys-2026',
+        program_name: 'Middle East Youth Summit 2026',
+        registration_dates: { open: '2026-07-01T00:00:00.000Z', close: '2026-12-05T16:59:00.000Z' },
+        registration_types: [
+          feeTier(['fully_funded'], [
+            { startDate: '2026-07-01T00:00:00.000Z', endDate: '2026-09-30T16:59:00.000Z' },
+          ]),
+        ],
+      },
+      {
+        program_id: 'meys-2027',
+        program_slug: 'meys-2027',
+        program_name: 'Middle East Youth Summit 2027',
+        registration_dates: { open: '2026-11-01T00:00:00.000Z', close: '2027-03-05T16:59:00.000Z' },
+        registration_types: [
+          feeTier(['self_funded'], [
+            { startDate: '2026-11-01T00:00:00.000Z', endDate: '2027-03-05T16:59:00.000Z' },
+          ]),
+        ],
+      },
+    ];
+
+    const result = resolveEditionCountdowns(editions, now);
+    expect(result).toHaveLength(2);
+
+    const y2026 = result.find((e) => e.programId === 'meys-2026');
+    expect(y2026?.phase).toBe('open');
+    expect(y2026?.deadline).toBe('2026-09-30T16:59:59.999Z');
+    expect(y2026?.registerUrl).toBe('/login?mode=signup&applicationCategory=fully_funded&programSlug=meys-2026');
+
+    // Selecting the 2027 tab must NOT show 2026's close date, even though
+    // 2026 is the one currently open brand-wide.
+    const y2027 = result.find((e) => e.programId === 'meys-2027');
+    expect(y2027?.phase).toBe('upcoming');
+    // WIB start-of-day widening (see lib/registration/isRegistrationOpen):
+    // 2026-11-01T00:00 WIB is 2026-10-31T17:00 UTC.
+    expect(y2027?.deadline).toBe('2026-10-31T17:00:00.000Z');
+    expect(y2027?.registerUrl).toBe('/login?mode=signup&applicationCategory=self_funded&programSlug=meys-2027');
+  });
+
+  it('a selected edition with no window goes quiet on ITS tab, not another edition\'s deadline', () => {
+    const editions = [
+      {
+        program_id: 'open-edition',
+        program_slug: 'open-edition',
+        program_name: 'Open Edition',
+        registration_dates: { open: '2026-07-01T00:00:00.000Z', close: '2026-12-05T16:59:00.000Z' },
+        registration_types: [
+          feeTier(['fully_funded'], [
+            { startDate: '2026-07-01T00:00:00.000Z', endDate: '2026-09-30T16:59:00.000Z' },
+          ]),
+        ],
+      },
+      {
+        program_id: 'closed-edition',
+        program_slug: 'closed-edition',
+        program_name: 'Closed Edition',
+        registration_dates: { open: null, close: null },
+        registration_types: [],
+      },
+    ];
+
+    const result = resolveEditionCountdowns(editions, now);
+    const closed = result.find((e) => e.programId === 'closed-edition');
+    expect(closed?.deadline).toBeNull();
+    expect(closed?.phase).toBe('closed');
+  });
+});
+
+describe('buildRegisterUrl', () => {
+  it('is the base signup link with neither category nor slug', () => {
+    expect(buildRegisterUrl(null, null)).toBe('/login?mode=signup');
+  });
+
+  it('appends applicationCategory then programSlug, in that order', () => {
+    expect(buildRegisterUrl('fully_funded', 'meys-2026')).toBe(
+      '/login?mode=signup&applicationCategory=fully_funded&programSlug=meys-2026',
+    );
+  });
+
+  it('appends programSlug alone when there is no category', () => {
+    expect(buildRegisterUrl(null, 'meys-2026')).toBe('/login?mode=signup&programSlug=meys-2026');
   });
 });

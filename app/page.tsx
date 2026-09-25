@@ -1,7 +1,6 @@
 import Hero from '@/components/sections/Hero';
 import HomeRegistrationStrip from '@/components/sections/HomeRegistrationStrip';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
-import { SelectedEditionProvider } from '@/components/sections/SelectedEditionContext';
 import AboutProgram from '@/components/sections/AboutProgram';
 import HomeImportantPayment from '@/components/sections/HomeImportantPayment';
 import ProgramHighlights from '@/components/sections/ProgramHighlights';
@@ -251,7 +250,6 @@ export default async function Home() {
           registrationEvents={calendarRegistrationEvents}
         />
       )}
-      <SelectedEditionProvider defaultIndex={defaultEditionIndex}>
       <HomeRegistrationStrip
         igFeed={registrationOverviewSection?.content.ig_feed}
         registrationTypes={registrationOverviewSection?.content.registration_types}
@@ -309,7 +307,10 @@ export default async function Home() {
         guidebookEditions={guidebookEditions}
         textColorScheme={furtherInformationSection?.content.text_color_scheme ?? 'dark'}
       />
-      </SelectedEditionProvider>
+      {/* SelectedEditionProvider (shared with HomeRegistrationStrip above and
+          the countdown gates in app/layout.tsx) now wraps the whole body,
+          not just this stretch of the page -- see SelectedEditionContext's
+          docblock. */}
       <WhatMakesUsSpecialSection section={programFeaturesSection} />
       <ProgramBenefitsSection section={programBenefitsSection} />
       <AlumniStoriesSection

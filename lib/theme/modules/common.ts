@@ -171,17 +171,27 @@ export const commonTheme = {
   },
   stickyBottomBar: {
     wrapper: 'fixed bottom-0 left-0 right-0 z-50 bg-white shadow-2xl border-t border-slate-200 transition-transform duration-300',
-    container: 'mx-auto flex items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8 max-w-7xl',
-    countdownSection: 'flex items-center gap-3',
-    icon: 'h-5 w-5 text-primary',
-    timeGrid: 'flex items-center gap-2',
-    timeCard: 'flex flex-col items-center rounded-lg bg-slate-100 px-2 py-1 min-w-[45px]',
+    // Centered, not `justify-between`: the countdown used to pin to one edge
+    // and the register button to the other, which put the countdown directly
+    // over the bottom-left/bottom-center activity toast (ActivityToast) on
+    // every breakpoint. Grouping both in the middle is the layout half of
+    // that collision fix; TOAST_BOTTOM_CLEARANCE_PX (SettingsProvider's
+    // Toaster) lifts the toast the rest of the way clear of this bar.
+    // Below `sm` the countdown + button (~420px at default spacing) is wider
+    // than a 375px phone, so centered content spilled off the left edge and
+    // the old justify-between spilled the button off the right. Tighter gaps,
+    // no clock icon and a slimmer button keep it inside the viewport there.
+    container: 'mx-auto flex items-center justify-center gap-2 px-3 py-3 sm:gap-4 sm:px-6 lg:px-8 max-w-7xl',
+    countdownSection: 'flex items-center gap-2 sm:gap-3',
+    icon: 'hidden h-5 w-5 text-primary sm:block',
+    timeGrid: 'flex items-center gap-1 sm:gap-2',
+    timeCard: 'flex flex-col items-center rounded-lg bg-slate-100 px-1.5 py-1 min-w-[40px] sm:px-2 sm:min-w-[45px]',
     timeValue: 'text-sm font-bold text-slate-900',
     timeLabel: 'text-[10px] font-medium uppercase tracking-wider text-slate-600',
-    registerButton: 'flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors whitespace-nowrap',
+    registerButton: 'flex items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm sm:px-6 font-semibold text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors whitespace-nowrap',
     // Registration has not opened yet: informational, deliberately not a link
     // and deliberately without a hover affordance (if it hovers, it clicks).
-    registerButtonPending: 'flex items-center justify-center rounded-full bg-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-700 whitespace-nowrap',
+    registerButtonPending: 'flex items-center justify-center rounded-full bg-slate-200 px-4 py-2.5 text-sm sm:px-6 font-semibold text-slate-700 whitespace-nowrap',
   },
 heroSectionBadges: {
     wrapper: 'absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 flex-col md:flex-row gap-1.5 px-2 sm:bottom-6 sm:gap-2 items-center',

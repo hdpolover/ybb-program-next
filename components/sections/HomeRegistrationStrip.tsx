@@ -683,13 +683,20 @@ export default function HomeRegistrationStrip({
     pickDefaultEditionIndex(groups),
   );
 
-  // Publish the selected edition to FurtherInformation (a sibling client
-  // component under app/page.tsx) via context, when a provider wraps us.
-  // Falls back to local state so this component still works standalone
-  // (tests, or any page that doesn't wrap it in the provider).
+  // Publish the selected edition to FurtherInformation AND, now that the
+  // provider wraps the whole body (app/layout.tsx), to the countdown gates
+  // above the navbar and above the footer -- via context, when a provider
+  // wraps us. Falls back to local state so this component still works
+  // standalone (tests, or any page that doesn't wrap it in the provider).
   const editionContext = useSelectedEdition();
   const selectedIndex = editionContext ? editionContext.selectedIndex : localSelectedIndex;
-  const setSelectedIndex = editionContext ? editionContext.setSelectedIndex : setLocalSelectedIndex;
+  const setSelectedIndex = (index: number) => {
+    if (editionContext) {
+      editionContext.selectEdition(index, groups[index]?.program_id ?? null);
+    } else {
+      setLocalSelectedIndex(index);
+    }
+  };
 
   const selectedGroup = groups[selectedIndex] ?? groups[0];
 
