@@ -143,7 +143,11 @@ export default function AnnouncementsFilters({
                   // digit would reload the page mid-type. onBlur submits once the
                   // visitor is done (tabs or clicks away), which also covers mobile
                   // number keypads that have no Enter key.
-                  onBlur={submitForm}
+                  // Only when the value actually changed, so focusing and leaving the
+                  // field doesn't reload the page for nothing.
+                  onBlur={(event) => {
+                    if (event.currentTarget.value !== event.currentTarget.defaultValue) submitForm();
+                  }}
                   className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-primary/60"
                 />
               )}
