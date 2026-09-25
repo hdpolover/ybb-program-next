@@ -50,6 +50,13 @@ export async function getAnnouncementDetail(host: string, key: string): Promise<
   }
 }
 
+/**
+ * `sections[].content.filters` (typed as `AnnouncementsFilterValues`, incl. the
+ * optional `years` picklist) is returned by the API as-is and JSON-parsed by
+ * `apiGetWithEnvelope` with no reshaping here — `years` passes through
+ * untouched when the backend sends it, and stays `undefined` on older
+ * responses that don't have it yet.
+ */
 export async function getAnnouncementsPageData(
   host: string,
   params: AnnouncementsQueryParams = {},

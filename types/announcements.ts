@@ -43,6 +43,11 @@ export type AnnouncementsFilterValues = {
   categories: string[];
   tags: string[];
   programs: AnnouncementsFilterProgramOption[];
+  // Distinct years with at least one announcement, descending. Optional: the
+  // backend is rolling this out separately, so older API responses omit it
+  // entirely — callers must fall back (e.g. a free-text year input) when absent,
+  // not assume it exists.
+  years?: number[];
 };
 
 export type AnnouncementListSection = {

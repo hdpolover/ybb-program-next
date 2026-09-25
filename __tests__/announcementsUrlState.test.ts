@@ -5,6 +5,7 @@
 // shareable hrefs, and computing numbered-pagination truncation.
 import { describe, it, expect } from 'vitest';
 import {
+  buildAnnouncementYearOptions,
   buildAnnouncementsHref,
   getPaginationRange,
   parseAnnouncementsSearchParams,
@@ -128,5 +129,32 @@ describe('getPaginationRange', () => {
   it('clamps an out-of-range current page into [1, total] instead of producing garbage', () => {
     expect(getPaginationRange(999, 20)).toEqual(getPaginationRange(20, 20));
     expect(getPaginationRange(-5, 20)).toEqual(getPaginationRange(1, 20));
+  });
+});
+
+describe('buildAnnouncementYearOptions', () => {
+  it('returns nothing when there is no picklist and no current year', () => {
+    expect(buildAnnouncementYearOptions(undefined, undefined)).toEqual([]);
+    expect(buildAnnouncementYearOptions([], undefined)).toEqual([]);
+  });
+
+  it('sorts the picklist descending regardless of input order', () => {
+    expect(buildAnnouncementYearOptions([2023, 2025, 2024], undefined)).toEqual([2025, 2024, 2023]);
+  });
+
+  it('dedupes repeated years', () => {
+    expect(buildAnnouncementYearOptions([2025, 2025, 2024], undefined)).toEqual([2025, 2024]);
+  });
+
+  it('folds in a current year missing from the picklist (manually typed or an old bookmark) so it stays selectable', () => {
+    expect(buildAnnouncementYearOptions([2025, 2024], 2019)).toEqual([2025, 2024, 2019]);
+  });
+
+  it('does not duplicate the current year when it is already in the picklist', () => {
+    expect(buildAnnouncementYearOptions([2025, 2024], 2025)).toEqual([2025, 2024]);
+  });
+
+  it('ignores non-finite values from a malformed picklist', () => {
+    expect(buildAnnouncementYearOptions([2025, Number.NaN, Number.POSITIVE_INFINITY], undefined)).toEqual([2025]);
   });
 });

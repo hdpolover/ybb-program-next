@@ -206,6 +206,22 @@ export function getPaginationRange(
   return tokens;
 }
 
+/**
+ * Options for the year filter's `<select>`, descending. `filters.years` is the
+ * brand's known picklist, but a URL can carry a year outside it (manually
+ * typed, or an old bookmark from before that year was known) — that value is
+ * folded in so the select still shows it as selected instead of silently
+ * discarding it.
+ */
+export function buildAnnouncementYearOptions(
+  years: number[] | undefined,
+  currentYear: number | undefined,
+): number[] {
+  const values = new Set<number>((years ?? []).filter((year) => Number.isFinite(year)));
+  if (currentYear !== undefined) values.add(currentYear);
+  return [...values].sort((a, b) => b - a);
+}
+
 export function formatAnnouncementCategoryLabel(value?: string | null): string {
   const normalized = (value || '').trim();
   if (!normalized) return 'General';
