@@ -36,6 +36,11 @@ export type PortalDashboardSummary = {
     daysUntilDeadline?: number;
     /** ISO date: FF registration window end while open, else the SF one. */
     submissionDeadline?: string;
+    /** Close date of the OTHER category while its window is open (switch still possible), else null. */
+    alternateCategoryDeadline?: {
+      category: 'fully_funded' | 'self_funded';
+      deadline: string;
+    } | null;
     guidebooks?: PortalDashboardGuidebook[];
   };
   alerts?: Array<{

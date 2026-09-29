@@ -10,6 +10,11 @@ import { formatDate } from "@/lib/utils";
 
 const SEEN_KEY_PREFIX = "submit_reminder_seen_";
 
+const CATEGORY_LABEL = {
+  fully_funded: "Fully funded",
+  self_funded: "Self funded",
+} as const;
+
 /**
  * Post-login reminder telling participants to submit their application form
  * before the deadline. Shown once per browser session, and only while the
@@ -23,6 +28,7 @@ export default function SubmitReminderPopup() {
   const { dashboardSummary } = useDashboardData();
   const application = dashboardSummary?.activeApplication ?? null;
   const deadline = application?.submissionDeadline;
+  const alternate = application?.alternateCategoryDeadline ?? null;
   const shouldRemind = Boolean(deadline) && application?.status === "draft";
   const seenKey = `${SEEN_KEY_PREFIX}${application?.id ?? ""}`;
 
@@ -65,6 +71,14 @@ export default function SubmitReminderPopup() {
           <span className="font-semibold text-slate-900">{formatDate(deadline)}</span> so your
           registration can be processed.
         </p>
+
+        {alternate && (
+          <p className="mb-3 text-sm text-slate-600">
+            {CATEGORY_LABEL[alternate.category]} registration closes{" "}
+            <span className="font-semibold text-slate-900">{formatDate(alternate.deadline)}</span>. Switch
+            before then if you want to apply as {CATEGORY_LABEL[alternate.category].toLowerCase()}.
+          </p>
+        )}
 
         <div className="mb-5 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
           Applications that are not submitted by the deadline will not be reviewed.
