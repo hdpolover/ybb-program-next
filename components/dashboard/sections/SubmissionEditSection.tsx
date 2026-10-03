@@ -516,6 +516,29 @@ export function clearDirtyAfterSectionSave(
   return { dirtySectionFields: nextSectionFields, dirtyEssayIds: nextEssayIds };
 }
 
+// Best-effort re-read of the submission detail. Used after a section save and
+// after a rejected submit, where the caller has already told the user what
+// happened - so a failed refresh is logged, never surfaced or thrown.
+export async function fetchLatestSubmissionDetail(
+  programId: string | null,
+): Promise<PortalSubmissionDetail | null> {
+  try {
+    const res = await fetch(appendProgramId("/api/portal/submissions/detail", programId), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+
+    const json = (await res.json().catch(() => null)) as unknown;
+    if (!res.ok) return null;
+
+    return toPortalSubmissionDetail(getEnvelopeData(json));
+  } catch (refreshError) {
+    console.error("Failed to refresh submission detail:", refreshError);
+    return null;
+  }
+}
+
 // Server values are the baseline; a fresh draft may only override fields it
 // actually tracked as dirty. A stale (or absent) draft contributes nothing.
 export function mergeServerWithFreshDraft(
@@ -1120,24 +1143,9 @@ export default function SubmissionEditSection() {
       setDirtySectionFields(clearedDirty.dirtySectionFields);
       setDirtyEssayIds(clearedDirty.dirtyEssayIds);
 
-      try {
-        const res = await fetch(appendProgramId("/api/portal/submissions/detail", selectedProgramId), {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-        });
-
-        const json = (await res.json().catch(() => null)) as unknown;
-        if (res.ok) {
-          const nextDetail = toPortalSubmissionDetail(getEnvelopeData(json));
-          if (nextDetail) {
-            setDetail(nextDetail);
-          }
-        }
-      } catch (refreshError) {
-        // Don't show error for refresh failure, save was successful
-        console.error("Failed to refresh submission detail:", refreshError);
-      }
+      // Don't show an error for a refresh failure, the save was successful.
+      const nextDetail = await fetchLatestSubmissionDetail(selectedProgramId);
+      if (nextDetail) setDetail(nextDetail);
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : "Failed to save submission section";
       setError(message);
@@ -1623,6 +1631,12 @@ export default function SubmissionEditSection() {
                 const message = submitError instanceof Error ? submitError.message : "Failed to submit application";
                 setError(message);
                 toast.error(message);
+                // The server rejects a submit this page still believed was
+                // allowed (e.g. a required field left blank), so the detail
+                // on screen is stale. Re-read it so the Submit button and the
+                // pending items reflect what the server will actually accept.
+                const nextDetail = await fetchLatestSubmissionDetail(selectedProgramId);
+                if (nextDetail) setDetail(nextDetail);
               } finally {
                 setSubmitting(false);
               }
