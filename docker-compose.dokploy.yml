@@ -85,6 +85,14 @@ services:
       - traefik.http.routers.ybb-program-next-korea-http.rule=Host(`koreayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-korea-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-korea-http.middlewares=redirect-to-https@file
+      # japanyouthsummit.com
+      - traefik.http.routers.ybb-program-next-japan.rule=Host(`japanyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-japan.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-japan.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-japan.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-japan-http.rule=Host(`japanyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-japan-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-japan-http.middlewares=redirect-to-https@file
       # youthacademicforum.com
       - traefik.http.routers.ybb-program-next-yaf.rule=Host(`youthacademicforum.com`)
       - traefik.http.routers.ybb-program-next-yaf.entrypoints=websecure
@@ -125,6 +133,14 @@ services:
       - traefik.http.routers.ybb-program-next-wwwkorea-http.rule=Host(`www.koreayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwkorea-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-wwwkorea-http.middlewares=redirect-to-https@file
+      # www.japanyouthsummit.com
+      - traefik.http.routers.ybb-program-next-wwwjapan.rule=Host(`www.japanyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwjapan.entrypoints=websecure
+      - traefik.http.routers.ybb-program-next-wwwjapan.tls.certresolver=letsencrypt
+      - traefik.http.routers.ybb-program-next-wwwjapan.service=ybb-program-next
+      - traefik.http.routers.ybb-program-next-wwwjapan-http.rule=Host(`www.japanyouthsummit.com`)
+      - traefik.http.routers.ybb-program-next-wwwjapan-http.entrypoints=web
+      - traefik.http.routers.ybb-program-next-wwwjapan-http.middlewares=redirect-to-https@file
     networks:
       - dokploy-network
 
