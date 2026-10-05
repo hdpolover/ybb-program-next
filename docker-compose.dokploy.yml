@@ -54,6 +54,7 @@ services:
       - traefik.http.routers.ybb-program-next-meys-http.rule=Host(`middleeastyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-meys-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-meys-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-meys-http.service=ybb-program-next
       # chinayouthsummit.com
       - traefik.http.routers.ybb-program-next-china.rule=Host(`chinayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-china.entrypoints=websecure
@@ -62,6 +63,7 @@ services:
       - traefik.http.routers.ybb-program-next-china-http.rule=Host(`chinayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-china-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-china-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-china-http.service=ybb-program-next
       # Every domain this app serves is declared here, not only the two it
       # started with. Dokploy also injects its own routers from the domains
       # configured in its UI, so these were redundant in a Dokploy deploy and
@@ -77,6 +79,7 @@ services:
       - traefik.http.routers.ybb-program-next-istanbul-http.rule=Host(`istanbulyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-istanbul-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-istanbul-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-istanbul-http.service=ybb-program-next
       # koreayouthsummit.com
       - traefik.http.routers.ybb-program-next-korea.rule=Host(`koreayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-korea.entrypoints=websecure
@@ -85,6 +88,7 @@ services:
       - traefik.http.routers.ybb-program-next-korea-http.rule=Host(`koreayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-korea-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-korea-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-korea-http.service=ybb-program-next
       # japanyouthsummit.com
       - traefik.http.routers.ybb-program-next-japan.rule=Host(`japanyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-japan.entrypoints=websecure
@@ -93,6 +97,7 @@ services:
       - traefik.http.routers.ybb-program-next-japan-http.rule=Host(`japanyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-japan-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-japan-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-japan-http.service=ybb-program-next
       # youthacademicforum.com
       - traefik.http.routers.ybb-program-next-yaf.rule=Host(`youthacademicforum.com`)
       - traefik.http.routers.ybb-program-next-yaf.entrypoints=websecure
@@ -101,6 +106,7 @@ services:
       - traefik.http.routers.ybb-program-next-yaf-http.rule=Host(`youthacademicforum.com`)
       - traefik.http.routers.ybb-program-next-yaf-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-yaf-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-yaf-http.service=ybb-program-next
       # www.middleeastyouthsummit.com
       - traefik.http.routers.ybb-program-next-wwwmeys.rule=Host(`www.middleeastyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwmeys.entrypoints=websecure
@@ -109,6 +115,7 @@ services:
       - traefik.http.routers.ybb-program-next-wwwmeys-http.rule=Host(`www.middleeastyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwmeys-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-wwwmeys-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-wwwmeys-http.service=ybb-program-next
       # www.chinayouthsummit.com
       - traefik.http.routers.ybb-program-next-wwwchina.rule=Host(`www.chinayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwchina.entrypoints=websecure
@@ -117,6 +124,7 @@ services:
       - traefik.http.routers.ybb-program-next-wwwchina-http.rule=Host(`www.chinayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwchina-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-wwwchina-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-wwwchina-http.service=ybb-program-next
       # www.istanbulyouthsummit.com
       - traefik.http.routers.ybb-program-next-wwwistanbul.rule=Host(`www.istanbulyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwistanbul.entrypoints=websecure
@@ -125,6 +133,7 @@ services:
       - traefik.http.routers.ybb-program-next-wwwistanbul-http.rule=Host(`www.istanbulyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwistanbul-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-wwwistanbul-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-wwwistanbul-http.service=ybb-program-next
       # www.koreayouthsummit.com
       - traefik.http.routers.ybb-program-next-wwwkorea.rule=Host(`www.koreayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwkorea.entrypoints=websecure
@@ -133,6 +142,7 @@ services:
       - traefik.http.routers.ybb-program-next-wwwkorea-http.rule=Host(`www.koreayouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwkorea-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-wwwkorea-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-wwwkorea-http.service=ybb-program-next
       # www.japanyouthsummit.com
       - traefik.http.routers.ybb-program-next-wwwjapan.rule=Host(`www.japanyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwjapan.entrypoints=websecure
@@ -141,6 +151,7 @@ services:
       - traefik.http.routers.ybb-program-next-wwwjapan-http.rule=Host(`www.japanyouthsummit.com`)
       - traefik.http.routers.ybb-program-next-wwwjapan-http.entrypoints=web
       - traefik.http.routers.ybb-program-next-wwwjapan-http.middlewares=redirect-to-https@file
+      - traefik.http.routers.ybb-program-next-wwwjapan-http.service=ybb-program-next
     networks:
       - dokploy-network
 
