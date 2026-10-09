@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { isRecord } from '@/lib/api/response';
+import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +16,9 @@ const noStoreHeaders = {
 
 export async function POST(request: Request) {
   try {
+    const csrfRejection = getCsrfGuardRejection(request);
+    if (csrfRejection) return csrfRejection;
+
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('accessToken')?.value;
 

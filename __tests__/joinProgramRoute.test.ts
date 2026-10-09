@@ -36,6 +36,22 @@ describe('join-program BFF route', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('blocks a cross-origin request before reading the session or calling the backend', async () => {
+    vi.stubEnv('ENABLE_CSRF_GUARD', 'true');
+    const fetchMock = mockBackend(200, {});
+    const crossOrigin = new Request('http://localhost/api/portal/join-program', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', host: 'localhost', origin: 'https://evil.example' },
+      body: JSON.stringify({ programId: 'p1' }),
+    });
+
+    const res = await POST(crossOrigin);
+
+    vi.unstubAllEnvs();
+    expect(res.status).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it.each([{}, { programId: '' }, { programId: '   ' }, { programId: 5 }])('rejects invalid body %j', async (body) => {
     const fetchMock = mockBackend(200, {});
     expect((await POST(req(body))).status).toBe(400);
