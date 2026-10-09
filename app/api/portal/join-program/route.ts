@@ -1,0 +1,75 @@
+// app/api/portal/join-program/route.ts
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
+import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
+import { isRecord } from '@/lib/api/response';
+import { getCsrfGuardRejection } from '@/lib/server/bffSecurity';
+
+export const dynamic = 'force-dynamic';
+
+const noStoreHeaders = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  Pragma: 'no-cache',
+  Expires: '0',
+};
+
+export async function POST(request: Request) {
+  try {
+    const csrfRejection = getCsrfGuardRejection(request);
+    if (csrfRejection) return csrfRejection;
+
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
+
+    if (!accessToken) {
+      return NextResponse.json({ statusCode: 401, message: 'Unauthorized', data: null }, { status: 401, headers: noStoreHeaders });
+    }
+
+    const brandDomain = resolveBrandDomainFromRequest(request);
+    const body = await request.json().catch(() => ({}));
+    const programId = isRecord(body) && typeof body.programId === 'string' ? body.programId.trim() : '';
+
+    if (!programId) {
+      return NextResponse.json(
+        { statusCode: 400, message: 'programId is required', data: null },
+        { status: 400, headers: noStoreHeaders },
+      );
+    }
+
+    const apiUrl = new URL('/v1/portal/programs/join', getServerApiBaseUrl());
+
+    const res = await fetch(apiUrl.toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        'x-brand-domain': brandDomain,
+      },
+      body: JSON.stringify({ programId }),
+      cache: 'no-store',
+    });
+
+    const json: unknown = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const j = isRecord(json) ? json : {};
+      return NextResponse.json(
+        {
+          statusCode: typeof j.statusCode === 'number' ? j.statusCode : res.status,
+          message: typeof j.message === 'string' ? j.message : 'Failed to join program',
+          data: 'data' in j ? j.data ?? null : null,
+          ...(typeof j.errorCode === 'string' ? { errorCode: j.errorCode } : {}),
+        },
+        { status: res.status, headers: noStoreHeaders },
+      );
+    }
+
+    // The global transform interceptor may or may not have wrapped the payload.
+    const j = isRecord(json) ? json : {};
+    return NextResponse.json({ statusCode: 200, message: 'Success', data: 'data' in j ? j.data ?? null : json ?? null }, { headers: noStoreHeaders });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ statusCode: 500, message, data: null }, { status: 500, headers: noStoreHeaders });
+  }
+}

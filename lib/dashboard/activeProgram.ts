@@ -11,6 +11,9 @@ type ProgramReference = {
   id?: string | null;
   programId?: string | null;
   applicationStatus?: string | null;
+  // The EDITION's lifecycle status (published, completed, cancelled, ...), not
+  // the application's. Absent until the API exposes it; absent ranks as before.
+  programStatus?: string | null;
 };
 
 /**
@@ -29,7 +32,13 @@ type ProgramReference = {
  *
  * Withdrawn and rejected rank BELOW a draft on purpose: a dead application is
  * not somewhere to land someone when they have a live one elsewhere.
+ *
+ * The same goes for an application on a FINISHED edition (completed or
+ * cancelled), whatever its own status. Alumni of a closed edition hold a
+ * submitted application there, which used to outrank the fresh draft on the
+ * newly opened edition and landed them on the dead one at every login.
  */
+const DEAD_PROGRAM_STATUSES = new Set(["completed", "cancelled"]);
 const DEAD_STATUSES = new Set(["withdrawn", "rejected"]);
 const ENGAGED_STATUSES = new Set([
   "submitted",
@@ -40,6 +49,7 @@ const ENGAGED_STATUSES = new Set([
 ]);
 
 function getEngagementRank(program: ProgramReference): number {
+  if (DEAD_PROGRAM_STATUSES.has((program.programStatus ?? "").trim().toLowerCase())) return 0;
   const status = (program.applicationStatus ?? "").trim().toLowerCase();
   if (DEAD_STATUSES.has(status)) return 0;
   if (ENGAGED_STATUSES.has(status)) return 2;

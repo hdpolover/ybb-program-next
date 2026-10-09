@@ -21,6 +21,7 @@ type RegisteredProgram = {
   // it does for the sibling fetches. Dropping it made the header show one
   // edition while the data calls used another.
   applicationStatus?: string;
+  programStatus?: string;
 };
 
 function buildProgramLabel(programName: string, year?: number): string {
@@ -62,6 +63,7 @@ export default function ProgramSelector({
           programName: p.programName,
           year: p.year,
           applicationStatus: p.applicationStatus,
+          programStatus: p.programStatus,
           label: buildProgramLabel(p.programName, p.year),
           logo: brandLogo || activeProgramLogo || "/img/ybb-logo.png",
         })),
@@ -71,7 +73,7 @@ export default function ProgramSelector({
   // Resolution depends only on which programs exist and their statuses, not on
   // labels or logos, so a settings refresh must not re-run it.
   const programsKey = normalizedPrograms
-    .map(p => `${p.id}:${p.applicationStatus ?? ''}`)
+    .map(p => `${p.id}:${p.applicationStatus ?? ''}:${p.programStatus ?? ''}`)
     .join('|');
 
   useEffect(() => {

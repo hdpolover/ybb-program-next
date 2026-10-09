@@ -129,6 +129,39 @@ describe('resolveActiveProgramId', () => {
     ];
     expect(resolveActiveProgramId(programs, null)).toBe('p-2');
   });
+  // JYS alumni: a submitted application on a finished edition used to outrank
+  // the fresh draft on the newly opened one.
+  it.each(['completed', 'cancelled', ' Completed '])(
+    'ranks a submitted application on a %s edition below a live draft',
+    (programStatus) => {
+      const programs = [
+        { programId: 'jys-batch-2', applicationStatus: 'submitted', programStatus },
+        { programId: 'jys-5th', applicationStatus: 'draft', programStatus: 'published' },
+      ];
+      expect(resolveActiveProgramId(programs, null)).toBe('jys-5th');
+    },
+  );
+  it('ranks unchanged when programStatus is absent or not finished', () => {
+    const programs = [
+      { programId: 'jys-5th', applicationStatus: 'draft' },
+      { programId: 'jys-batch-2', applicationStatus: 'submitted', programStatus: 'published' },
+    ];
+    expect(resolveActiveProgramId(programs, null)).toBe('jys-batch-2');
+  });
+  it('keeps array order when every edition is finished', () => {
+    const programs = [
+      { programId: 'a', applicationStatus: 'draft', programStatus: 'completed' },
+      { programId: 'b', applicationStatus: 'submitted', programStatus: 'cancelled' },
+    ];
+    expect(resolveActiveProgramId(programs, null)).toBe('a');
+  });
+  it('still honours an explicit choice of a finished edition', () => {
+    const programs = [
+      { programId: 'jys-5th', applicationStatus: 'draft', programStatus: 'published' },
+      { programId: 'jys-batch-2', applicationStatus: 'submitted', programStatus: 'completed' },
+    ];
+    expect(resolveActiveProgramId(programs, 'jys-batch-2', 'jys-batch-2')).toBe('jys-batch-2');
+  });
   it('ignores entries without a resolvable id', () => {
     const programs = [{ id: null, programId: null }, { programId: 'p-2' }];
     expect(resolveActiveProgramId(programs, null)).toBe('p-2');
