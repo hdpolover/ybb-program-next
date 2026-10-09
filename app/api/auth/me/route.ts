@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { isRecord } from '@/lib/api/response';
+import { resolveJoinableProgram } from '@/lib/server/joinableProgram';
 import {
   pickScopedProgramId,
   resolveReferralActive,
@@ -18,6 +19,7 @@ type RegisteredProgram = {
   year?: number;
   applicationId?: string;
   applicationStatus?: string;
+  programStatus?: string;
 };
 
 type AuthMeResponse = {
@@ -101,6 +103,9 @@ export async function GET(request: Request) {
     const includeReferral =
       new URL(request.url).searchParams.get('includeReferral') === '1';
 
+    const includeJoinable =
+      new URL(request.url).searchParams.get('includeJoinable') === '1';
+
     const brandDomain = resolveBrandDomainFromRequest(request);
 
     if (!accessToken) {
@@ -150,8 +155,22 @@ export async function GET(request: Request) {
         })
       : undefined;
 
+    // Same opt-in reasoning as referral: two extra backend calls, only the
+    // dashboard layout renders the result.
+    const joinableProgram = includeJoinable
+      ? await resolveJoinableProgram(
+          brandDomain,
+          (json.data?.registeredPrograms ?? []).map((p) => p.programId),
+        )
+      : undefined;
+
     const data = json.data
-      ? { ...json.data, ...(activeRole ? { activeRole } : {}), ...(referral ? { referral } : {}) }
+      ? {
+          ...json.data,
+          ...(activeRole ? { activeRole } : {}),
+          ...(referral ? { referral } : {}),
+          ...(includeJoinable ? { joinableProgram } : {}),
+        }
       : null;
     return NextResponse.json({ statusCode: 200, message: 'Success', data });
   } catch (error) {

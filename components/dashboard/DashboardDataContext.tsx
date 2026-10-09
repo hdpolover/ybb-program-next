@@ -76,7 +76,11 @@ export type AuthMeData = {
     year?: number;
     applicationId?: string;
     applicationStatus?: string;
+    // Edition lifecycle (published, completed, cancelled, ...); absent on older API builds.
+    programStatus?: string;
   }>;
+  // The brand's open edition the participant has no application on, if any.
+  joinableProgram?: { id: string; name: string } | null;
   isProfileCompleted?: boolean;
   activeRole?: ActiveRole;
 };

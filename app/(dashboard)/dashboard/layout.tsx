@@ -2,7 +2,8 @@
 
 import { FileText, Menu, Search, SearchX, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { flushSync } from 'react-dom';
 import Sidebar from '@/components/dashboard/layout/Sidebar';
 import ProgramSelector from '@/components/dashboard/layout/ProgramSelector';
 import GreetingWithClock from '@/components/dashboard/GreetingWithClock';
@@ -16,12 +17,14 @@ import {
 } from '@/components/dashboard/DashboardDataContext';
 import NotificationsPopover from '@/components/dashboard/layout/NotificationsPopover';
 import UserMenuPopover from '@/components/dashboard/layout/UserMenuPopover';
+import JoinEditionNotice from '@/components/dashboard/layout/JoinEditionNotice';
 import { getEnvelopeData, isRecord } from '@/lib/api/response';
 import { toAmbassadorData } from '@/lib/dashboard/ambassador';
 import { shouldRedirectToOnboarding } from '@/lib/dashboard/shouldRedirectToOnboarding';
 import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
+  chooseActiveProgramId,
   readActiveProgramId,
   resolveActiveProgramId,
 } from '@/lib/dashboard/activeProgram';
@@ -157,6 +160,9 @@ function toPortalDashboardSummary(payload: unknown): PortalDashboardSummary | nu
   };
 }
 
+// includeJoinable opts into the open-edition lookup that drives JoinEditionNotice.
+const ME_URL = '/api/auth/me?includeJoinable=1';
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -237,7 +243,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
 
       try {
-        const res = await fetch('/api/auth/me', {
+        const res = await fetch(ME_URL, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -412,6 +418,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, [registeredPrograms]);
 
+  // Refresh `me`, then select the new edition. The order matters: the summary
+  // refetch listener above closes over registeredPrograms, so it only resolves
+  // the new program once that render (and its effects) has been committed.
+  const handleJoined = useCallback(async (programId: string) => {
+    const res = await fetch(ME_URL, { method: 'GET', cache: 'no-store' });
+    const json = (await res.json().catch(() => null)) as { data?: AuthMeData | null } | null;
+    if (res.ok && json?.data) {
+      flushSync(() => setMe(json.data ?? null));
+    }
+    chooseActiveProgramId(programId);
+  }, []);
+
   useEffect(() => {
     // Reset mobile sidebar when navigating to a new route
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -566,6 +584,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Konten utama dashboard */}
           <section className="flex-1 px-6 py-6 lg:px-8">
             <div className={isAmbassadorContentRoute ? "w-full space-y-4" : "mx-auto max-w-6xl space-y-4"}>
+              {!isAmbassador && me?.joinableProgram && (
+                <JoinEditionNotice program={me.joinableProgram} onJoined={handleJoined} />
+              )}
+
               {/* Header halaman (disembunyiin kalau lagi di halaman payments atau saat sedang mencari) */}
                {!pathname?.startsWith('/dashboard/payments') && !pathname?.startsWith('/dashboard/submission') && !pathname?.startsWith('/dashboard/settings') && searchQuery.trim().length < 2 && (
                  <div className="space-y-1">
