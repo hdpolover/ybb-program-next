@@ -86,3 +86,38 @@ export function clearPayIntent(): void {
     // Nothing stored that we could clear.
   }
 }
+
+type RegisteredProgramRef = { programId: string; programSlug: string };
+type JoinableProgramRef = { id: string; name: string; slug?: string } | null | undefined;
+
+export type PayTarget =
+  | { kind: 'pay'; programId: string }
+  // Returning participant of the brand, not yet on this edition: keep the intent
+  // and let the dashboard's "Apply for <program>" join CTA run; the effect
+  // re-evaluates once registeredPrograms includes the new application.
+  | { kind: 'join'; programName: string }
+  // No application and nothing to join: the intent cannot be honoured.
+  | { kind: 'abort'; slug: string }
+  // Intent named no edition; the caller may use its own active-program resolver.
+  | { kind: 'resolver' };
+
+/**
+ * Which program an intent may be paid on. A named edition is never substituted:
+ * minting an invoice on a different edition than the one the visitor picked is
+ * wrong, so an unregistered slug joins or aborts, it does not fall back.
+ */
+export function decidePayTarget(
+  intent: PayIntent,
+  registeredPrograms: readonly RegisteredProgramRef[],
+  joinableProgram: JoinableProgramRef,
+): PayTarget {
+  if (!intent.programSlug) return { kind: 'resolver' };
+
+  const registered = registeredPrograms.find((p) => p.programSlug === intent.programSlug);
+  if (registered) return { kind: 'pay', programId: registered.programId };
+
+  if (joinableProgram && joinableProgram.slug === intent.programSlug) {
+    return { kind: 'join', programName: joinableProgram.name };
+  }
+  return { kind: 'abort', slug: intent.programSlug };
+}

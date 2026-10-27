@@ -5,6 +5,7 @@ import {
   PAY_INTENT_TTL_MS,
   buildPayIntentSignupHref,
   clearPayIntent,
+  decidePayTarget,
   parsePayIntent,
   readPayIntent,
   savePayIntent,
@@ -93,5 +94,36 @@ describe('storage', () => {
       JSON.stringify({ tierId: '<b>', programSlug: null, savedAt: Date.now() }),
     );
     expect(readPayIntent()).toBeNull();
+  });
+});
+
+describe('decidePayTarget', () => {
+  const registered = [
+    { programId: 'p-6', programSlug: 'meys-6th' },
+    { programId: 'p-7', programSlug: 'meys-7th' },
+  ];
+  const intent = (programSlug: string | null) => ({ tierId: TIER, programSlug });
+
+  it('pays on the named edition when the participant is registered on it', () => {
+    expect(decidePayTarget(intent('meys-7th'), registered, null)).toEqual({ kind: 'pay', programId: 'p-7' });
+  });
+
+  it('joins when the slug is the joinable edition, never falling back to another', () => {
+    const joinable = { id: 'p-8', name: 'MEYS 8th', slug: 'meys-8th' };
+    expect(decidePayTarget(intent('meys-8th'), registered, joinable)).toEqual({
+      kind: 'join',
+      programName: 'MEYS 8th',
+    });
+  });
+
+  it('aborts when the slug is neither registered nor joinable', () => {
+    const joinable = { id: 'p-8', name: 'MEYS 8th', slug: 'meys-8th' };
+    expect(decidePayTarget(intent('kys-3rd'), registered, joinable)).toEqual({ kind: 'abort', slug: 'kys-3rd' });
+    expect(decidePayTarget(intent('kys-3rd'), registered, null)).toEqual({ kind: 'abort', slug: 'kys-3rd' });
+    expect(decidePayTarget(intent('kys-3rd'), [], undefined)).toEqual({ kind: 'abort', slug: 'kys-3rd' });
+  });
+
+  it('defers to the resolver only when the intent names no edition', () => {
+    expect(decidePayTarget(intent(null), registered, null)).toEqual({ kind: 'resolver' });
   });
 });

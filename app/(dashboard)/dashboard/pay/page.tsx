@@ -18,12 +18,13 @@ import {
   resolveActiveProgramId,
 } from "@/lib/dashboard/activeProgram";
 import { getPaymentErrorMessage } from "@/lib/dashboard/paymentOutcome";
-import { clearPayIntent, readPayIntent } from "@/lib/checkout/payIntent";
+import { clearPayIntent, decidePayTarget, readPayIntent } from "@/lib/checkout/payIntent";
 
 export default function PayLandingPage() {
   const router = useRouter();
   const { me } = useDashboardData();
   const [error, setError] = useState<string | null>(null);
+  const [joinProgramName, setJoinProgramName] = useState<string | null>(null);
 
   useEffect(() => {
     // `me` loads with the dashboard layout; the program cannot be resolved before it.
@@ -35,18 +36,31 @@ export default function PayLandingPage() {
       return;
     }
 
+    const programs = me.registeredPrograms ?? [];
+    const target = decidePayTarget(intent, programs, me.joinableProgram);
+
+    if (target.kind === 'join') {
+      // Intent is kept: the layout's "Apply for <program>" button joins, which
+      // refreshes `me` and re-runs this effect on the new registration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setJoinProgramName(target.programName);
+      return;
+    }
+    if (target.kind === 'abort') {
+      clearPayIntent();
+      setError("That program isn't on your account yet, so we can't open its payment. Pick it from the program list, or start again from the Apply page.");
+      return;
+    }
+
+    setJoinProgramName(null);
+    const programId =
+      target.kind === 'pay' ? target.programId : resolveActiveProgramId(programs, readActiveProgramId());
+    // The tier belongs to one edition; a participant holding several must be
+    // pointed at that one or the API answers "Payment option not found".
+    if (target.kind === 'pay') chooseActiveProgramId(target.programId);
+
     let cancelled = false;
     (async () => {
-      const programs = me.registeredPrograms ?? [];
-      const bySlug = intent.programSlug
-        ? programs.find((program) => program.programSlug === intent.programSlug)
-        : undefined;
-      // The tier belongs to one edition; a participant holding several must be
-      // pointed at that one or the API answers "Payment option not found".
-      const programId =
-        bySlug?.programId ?? resolveActiveProgramId(programs, readActiveProgramId());
-      if (bySlug) chooseActiveProgramId(bySlug.programId);
-
       try {
         const response = await fetch(
           `/api/portal/payments/tiers/${encodeURIComponent(intent.tierId)}/ensure-invoice`,
@@ -84,6 +98,17 @@ export default function PayLandingPage() {
       cancelled = true;
     };
   }, [me, router]);
+
+  if (joinProgramName) {
+    return (
+      <section className="mx-auto max-w-xl space-y-2 p-6 text-center">
+        <h1 className="text-lg font-semibold text-slate-900">Join {joinProgramName} first</h1>
+        <p className="text-sm text-slate-600">
+          Use the &quot;Apply for {joinProgramName}&quot; button above. Your registration fee invoice opens right after.
+        </p>
+      </section>
+    );
+  }
 
   if (error) {
     return (

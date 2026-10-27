@@ -80,7 +80,7 @@ export type AuthMeData = {
     programStatus?: string;
   }>;
   // The brand's open edition the participant has no application on, if any.
-  joinableProgram?: { id: string; name: string } | null;
+  joinableProgram?: { id: string; name: string; slug?: string } | null;
   isProfileCompleted?: boolean;
   activeRole?: ActiveRole;
 };
