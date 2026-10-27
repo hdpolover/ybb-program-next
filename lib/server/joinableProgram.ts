@@ -3,7 +3,7 @@ import { fetchAuthContext } from '@/lib/api/authContext';
 import { getProgramDetail } from '@/lib/api/programs';
 import { getRegistrationPhase } from '@/lib/registration/status';
 
-export type JoinableProgram = { id: string; name: string };
+export type JoinableProgram = { id: string; name: string; slug: string };
 
 /**
  * The brand's open edition, if the participant has no application on it.
@@ -26,7 +26,7 @@ export async function resolveJoinableProgram(
     if (!program || program.id !== ctx.programId) return null;
     if (getRegistrationPhase(program) !== 'open') return null;
 
-    return { id: program.id, name: program.name };
+    return { id: program.id, name: program.name, slug: ctx.programSlug };
   } catch {
     return null;
   }

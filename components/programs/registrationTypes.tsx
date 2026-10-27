@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { buildPayIntentSignupHref } from '@/lib/checkout/payIntent';
 import SectionHeader from '@/components/ui/SectionHeader';
 import {
   Calendar,
@@ -156,6 +157,27 @@ function normalizeDisplayValue(value: unknown): string {
   return text === '[object Object]' ? '' : text;
 }
 
+function OpenCardCtas({ detailsHref, payHref }: { detailsHref: string; payHref: string | null }) {
+  const theme = componentsTheme.applyRegistrationTypes;
+  if (!payHref) {
+    return (
+      <a href={detailsHref} className={`${theme.ctaButton} ${theme.ctaButtonWide}`}>
+        See Details
+      </a>
+    );
+  }
+  return (
+    <div className="flex w-full flex-col items-center gap-3">
+      <a href={payHref} className={`${theme.ctaButton} ${theme.ctaButtonWide}`}>
+        Choose &amp; pay registration fee
+      </a>
+      <a href={detailsHref} className="text-xs font-semibold text-primary hover:underline">
+        See Details
+      </a>
+    </div>
+  );
+}
+
 export default function RegistrationTypePrograms({
   pricingTiers,
   instructions,
@@ -273,6 +295,16 @@ export default function RegistrationTypePrograms({
   }, [selfFundedRequirements, fullyFundedRequirements, primaryBenefits, secondaryBenefits]);
 
   if (!hasData) return null;
+
+  // Cart-style entry: the fee tier travels with the signup (lib/checkout/payIntent).
+  const payHref = (tier: { id: string } | undefined, applicationCategory: 'self_funded' | 'fully_funded') =>
+    tier
+      ? buildPayIntentSignupHref({
+          tierId: tier.id,
+          programSlug: selectedGroup.program_slug,
+          applicationCategory,
+        })
+      : null;
 
   const formatTierPrice = (currency: string | undefined, price: unknown): string => {
     const normalizedCurrency = normalizeDisplayValue(currency ?? '');
@@ -471,14 +503,10 @@ export default function RegistrationTypePrograms({
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {primaryOpen ? (
-                    <a
-                      href="/apply/self-funded"
-                      className={`${
-                        componentsTheme.applyRegistrationTypes.ctaButton
-                      } ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
-                    >
-                      See Details
-                    </a>
+                    <OpenCardCtas
+                      detailsHref="/apply/self-funded"
+                      payHref={payHref(primaryType, 'self_funded')}
+                    />
                   ) : (
                     <button
                       type="button"
@@ -602,14 +630,10 @@ export default function RegistrationTypePrograms({
               <div className={componentsTheme.applyRegistrationTypes.cardFooter}>
                 <div className={componentsTheme.applyRegistrationTypes.ctaWrapper}>
                   {secondaryOpen ? (
-                    <a
-                      href="/apply/fully-funded"
-                      className={`${
-                        componentsTheme.applyRegistrationTypes.ctaButton
-                      } ${componentsTheme.applyRegistrationTypes.ctaButtonWide}`}
-                    >
-                      See Details
-                    </a>
+                    <OpenCardCtas
+                      detailsHref="/apply/fully-funded"
+                      payHref={payHref(secondaryType, 'fully_funded')}
+                    />
                   ) : (
                     <button
                       type="button"

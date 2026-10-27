@@ -11,7 +11,7 @@ import {
   parseCategoryFallback,
 } from "@/lib/auth/programRegistrationClosed";
 
-export type JoinableProgram = { id: string; name: string };
+export type JoinableProgram = { id: string; name: string; slug?: string };
 
 type JoinResult = {
   status: "created" | "existing" | "closed";
