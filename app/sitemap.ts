@@ -15,6 +15,7 @@ const STATIC_PATHS = [
   '/about',
   '/program',
   '/faq',
+  '/fees',
   '/contact',
 ];
 
