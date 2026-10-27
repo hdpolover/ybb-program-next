@@ -1,9 +1,11 @@
 // components/consent/ConsentGatedTrackers.tsx
 'use client';
 
+import { useEffect } from 'react';
 import Script from 'next/script';
 import PixelBootstrap from '@/components/analytics/PixelBootstrap';
 import { useCanTrack } from '@/lib/consent/useConsent';
+import { clearTrackerCookies, readConsent } from '@/lib/consent/consent';
 
 interface ConsentGatedTrackersProps {
   gaId?: string | null;
@@ -17,6 +19,13 @@ interface ConsentGatedTrackersProps {
  */
 export default function ConsentGatedTrackers({ gaId, pixelId, tiktokPixelId }: ConsentGatedTrackersProps) {
   const allowed = useCanTrack();
+
+  // GA4 rewrites _ga_<id> on pagehide, i.e. after the withdrawal sweep and
+  // during the reload, so sweep again on every load while consent is denied.
+  useEffect(() => {
+    if (allowed === false && readConsent() === 'denied') clearTrackerCookies();
+  }, [allowed]);
+
   if (!allowed) return null;
 
   return (
