@@ -2,51 +2,19 @@ import { NextResponse } from 'next/server';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { forwardedForHeader } from '@/lib/server/forwardedFor';
+import {
+  extractData,
+  getCandidateSlugs,
+  matchBrand,
+  pickDocumentFromList,
+  type LegalDocument,
+  type LegalDocumentType,
+} from '@/lib/legal/legalDocuments';
 
-type SupportedType = 'terms' | 'privacy';
-
-type BrandItem = {
-  id: string;
-  slug: string;
-  websiteUrl?: string | null;
-};
-
-type LegalDocument = {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  version: string;
-  publishedAt?: string | null;
-};
+type SupportedType = LegalDocumentType;
 
 function getApiBaseUrl(): string {
   return getServerApiBaseUrl();
-}
-
-function extractData<T>(payload: unknown): T {
-  if (payload && typeof payload === 'object' && 'data' in payload) {
-    return (payload as { data: T }).data;
-  }
-  return payload as T;
-}
-
-function getCandidateSlugs(type: SupportedType): string[] {
-  if (type === 'terms') {
-    return ['terms-of-service', 'terms-and-conditions', 'terms'];
-  }
-  return ['privacy-policy', 'privacy'];
-}
-
-function pickDocumentFromList(type: SupportedType, docs: LegalDocument[]): LegalDocument | null {
-  const needles = type === 'terms' ? ['terms', 'conditions'] : ['privacy'];
-  return (
-    docs.find(doc => {
-      const slug = (doc.slug || '').toLowerCase();
-      const title = (doc.title || '').toLowerCase();
-      return needles.some(needle => slug.includes(needle) || title.includes(needle));
-    }) || null
-  );
 }
 
 export async function GET(request: Request) {
@@ -87,12 +55,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const brands = extractData<BrandItem[]>(brandsJson) || [];
-    const needle = (brandDomain || '').toLowerCase();
-    const brand =
-      brands.find(item => (item.websiteUrl || '').toLowerCase().includes(needle)) ||
-      brands.find(item => (item.websiteUrl || '').toLowerCase().includes(needle.replace(/^www\./, ''))) ||
-      null;
+    const brands = extractData<Parameters<typeof matchBrand>[0]>(brandsJson) || [];
+    const brand = matchBrand(brands, brandDomain);
 
     if (!brand?.slug) {
       return NextResponse.json(

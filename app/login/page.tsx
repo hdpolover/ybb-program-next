@@ -25,7 +25,7 @@ import { ResendVerificationEmail } from '@/components/auth/ResendVerificationEma
 import { useEmailTypoHint } from '@/hooks/useEmailTypoHint';
 import { rememberPendingVerificationEmail } from '@/lib/auth/pendingVerificationEmail';
 import { resolveSignupEditionSlug } from '@/lib/registration/edition';
-import { sanitizeRichTextHtml } from '@/lib/content/richText';
+import LegalDocumentContent from '@/components/legal/LegalDocumentContent';
 import { buildCategoryFallbackNotice, resolveSignupCategory } from '@/lib/registration/categoryPhase';
 import { PAY_INTENT_LANDING_PATH, parsePayIntent, savePayIntent } from '@/lib/checkout/payIntent';
 
@@ -641,8 +641,6 @@ export default function LoginPage() {
   const activeLegalDoc = legalModalType ? legalDocs[legalModalType] : null;
   const legalModalTitle =
     activeLegalDoc?.title || (legalModalType === 'terms' ? 'Terms of Service' : 'Privacy Policy');
-  const legalDocLooksLikeHtml =
-    !!activeLegalDoc?.content && /<\/?[a-z][\s\S]*>/i.test(activeLegalDoc.content);
 
   return (
     <section className={`fixed inset-0 overflow-hidden ${componentsTheme.login.pageBackground}`}>
@@ -1120,16 +1118,7 @@ export default function LoginPage() {
               {!legalLoading && legalError ? <Alert variant="error">{legalError}</Alert> : null}
 
               {!legalLoading && !legalError && activeLegalDoc?.content ? (
-                legalDocLooksLikeHtml ? (
-                  <div
-                    className="prose prose-slate max-w-none text-sm"
-                    dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(activeLegalDoc.content) }}
-                  />
-                ) : (
-                  <div className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
-                    {activeLegalDoc.content}
-                  </div>
-                )
+                <LegalDocumentContent content={activeLegalDoc.content} />
               ) : null}
             </div>
           </div>

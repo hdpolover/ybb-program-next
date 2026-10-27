@@ -19,6 +19,9 @@ const FOOTER_DEFAULT_NAV = [
 // Always shown: payment info must be reachable before login, regardless of CMS footer config.
 const FEES_LINK = { label: 'Fees & Payment', href: '/fees' };
 const REFUND_LINK = { label: 'Refund Policy', href: '/refund-policy' };
+const TERMS_LINK = { label: 'Terms of Service', href: '/terms' };
+const PRIVACY_LINK = { label: 'Privacy Policy', href: '/privacy' };
+const FIXED_LEGAL_LINKS = [FEES_LINK, REFUND_LINK, TERMS_LINK, PRIVACY_LINK];
 
 export default function Footer() {
   const { settings } = useSettings();
@@ -55,10 +58,10 @@ export default function Footer() {
   const menuLinks: { label: string; href: string }[] = apiMenuLinks.length > 0 ? apiMenuLinks : FOOTER_DEFAULT_NAV;
 
   const legalLinks: { label: string; href: string }[] = [
-    FEES_LINK,
-    REFUND_LINK,
+    ...FIXED_LEGAL_LINKS,
     ...(legalSection?.links ?? [])
-      .filter(link => link.label.trim().toLowerCase() !== REFUND_LINK.label.toLowerCase())
+      // CMS-supplied duplicates of our fixed links (e.g. a Terms link pointing at a dead URL) lose to ours.
+      .filter(link => !FIXED_LEGAL_LINKS.some(fixed => fixed.label.toLowerCase() === link.label.trim().toLowerCase()))
       .map(link => ({ label: link.label, href: link.url })),
   ];
 

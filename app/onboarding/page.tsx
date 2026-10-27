@@ -909,6 +909,12 @@ export default function OnboardingPage() {
                 })}
               </div>
 
+              {searchParams.get('checkout') === 'return' ? (
+                <Alert variant="success" className="mb-4">
+                  Payment received. Finish your profile to continue to your dashboard.
+                </Alert>
+              ) : null}
+
               <p className={onboardingTheme.stepLine}>
                 <span className={onboardingTheme.stepLineEmphasis}>{`Step ${currentIndex + 1} of ${steps.length}`}</span>
                 {' — '}
