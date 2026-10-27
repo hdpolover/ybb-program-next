@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImagePlus, Loader2, Paperclip, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useSettings } from '@/components/providers/SettingsProvider';
+import { useDashboardData } from '@/components/dashboard/DashboardDataContext';
+import { readActiveProgramId, resolveActiveProgramId } from '@/lib/dashboard/activeProgram';
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
 import { useHydrated } from '@/hooks/useHydrated';
 import { sanitizeRichTextHtml } from '@/lib/content/richText';
@@ -416,7 +418,11 @@ function CompactAttachmentGrid({
 
 export default function SupportTicketsPage() {
   const { settings } = useSettings();
-  const programId = settings?.active_program?.id ?? '';
+  const { me } = useDashboardData();
+  // The brand default (newest open edition) is only a fallback: a participant on
+  // MEYS 6th must not have tickets filed under 7th. Resolved at submit time so a
+  // program switch is always honoured.
+  const fallbackProgramId = settings?.active_program?.id ?? '';
   const hydrated = useHydrated();
 
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
@@ -603,6 +609,8 @@ export default function SupportTicketsPage() {
     }
     setSubmitting(true);
     setError(null);
+    const programId =
+      resolveActiveProgramId(me?.registeredPrograms ?? [], readActiveProgramId()) || fallbackProgramId;
     try {
       const res = await fetch('/api/support/tickets', {
         method: 'POST',
