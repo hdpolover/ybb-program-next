@@ -1120,7 +1120,7 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
                           <dd className={paymentsTheme.bankDetailsValue}>
                             {hasHtmlMarkup(selectedManualMethodObj.instructions) ? (
                               <div
-                                className="prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary"
+                                className="prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-a:text-primary prose-img:mx-auto prose-img:h-auto prose-img:w-full prose-img:max-w-[280px]"
                                 dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(selectedManualMethodObj.instructions) }}
                               />
                             ) : (
