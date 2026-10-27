@@ -17,7 +17,6 @@ type CheckoutBody = {
   password?: string;
   fullName?: string;
   consent?: boolean;
-  acceptTerms?: boolean;
   turnstileToken?: string;
 };
 
@@ -41,8 +40,7 @@ export async function POST(request: Request) {
     typeof body.email !== 'string' ||
     typeof body.password !== 'string' ||
     typeof body.fullName !== 'string' ||
-    body.consent !== true ||
-    body.acceptTerms !== true
+    body.consent !== true
   ) {
     return NextResponse.json({ statusCode: 400, message: 'Invalid checkout request', data: null }, { status: 400 });
   }
@@ -57,7 +55,6 @@ export async function POST(request: Request) {
       password: body.password,
       fullName: body.fullName,
       consent: true,
-      acceptTerms: true,
       turnstileToken: typeof body.turnstileToken === 'string' ? body.turnstileToken : '',
     },
   });

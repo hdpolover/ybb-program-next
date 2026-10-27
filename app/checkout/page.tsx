@@ -97,7 +97,6 @@ export default function CheckoutPage() {
           fullName: form.fullName.trim(),
           password: form.password,
           consent: true,
-          acceptTerms: true,
           turnstileToken: turnstileToken ?? '',
         }),
       });
