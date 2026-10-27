@@ -18,6 +18,7 @@ const FOOTER_DEFAULT_NAV = [
 
 // Always shown: payment info must be reachable before login, regardless of CMS footer config.
 const FEES_LINK = { label: 'Fees & Payment', href: '/fees' };
+const REFUND_LINK = { label: 'Refund Policy', href: '/refund-policy' };
 
 export default function Footer() {
   const { settings } = useSettings();
@@ -55,7 +56,10 @@ export default function Footer() {
 
   const legalLinks: { label: string; href: string }[] = [
     FEES_LINK,
-    ...(legalSection?.links ?? []).map(link => ({ label: link.label, href: link.url })),
+    REFUND_LINK,
+    ...(legalSection?.links ?? [])
+      .filter(link => link.label.trim().toLowerCase() !== REFUND_LINK.label.toLowerCase())
+      .map(link => ({ label: link.label, href: link.url })),
   ];
 
   // Social links (Connect) normalized from brand.social_media with fallback to FOOTER_COPY.socials

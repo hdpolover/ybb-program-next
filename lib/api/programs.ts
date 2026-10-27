@@ -4,6 +4,7 @@ import { apiGetWithEnvelope } from '@/lib/api/httpClient';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 import { getHomeCacheTag, HOME_CACHE_TAG, PROGRAM_CACHE_TTL } from '@/lib/constants/cache';
 import { dedupeInFlight } from '@/lib/server/stampede';
+import type { PublicPaymentMethodsData } from '@/lib/payments/publicMethods';
 
 const DEFAULT_BRAND_URL = normalizeBrandUrl(getEnvBrandDomain() ?? '');
 
@@ -17,6 +18,16 @@ export async function getProgramsPageData(host: string, edition?: string): Promi
   const brandUrl = resolveBrand(host);
   return apiGetWithEnvelope<ProgramsPageData>('/v1/landing/programs', {
     query: edition ? { url: brandUrl, edition } : { url: brandUrl },
+    headers: {
+      'x-brand-domain': brandUrl,
+    },
+  });
+}
+
+export async function getPublicPaymentMethods(host: string): Promise<PublicPaymentMethodsData> {
+  const brandUrl = resolveBrand(host);
+  return apiGetWithEnvelope<PublicPaymentMethodsData>('/v1/landing/payment-methods', {
+    query: { url: brandUrl },
     headers: {
       'x-brand-domain': brandUrl,
     },
