@@ -17,6 +17,7 @@ import CheckoutPicker from '@/components/checkout/CheckoutPicker';
 import { useCheckoutSelection } from '@/hooks/useCheckoutSelection';
 import { clearCart, type CartLine } from '@/lib/checkout/cart';
 import { formatAmount } from '@/lib/checkout/checkoutConfig';
+import { clearPayIntent } from '@/lib/checkout/payIntent';
 import { getErrorMessage, getEnvelopeData, isRecord } from '@/lib/api/response';
 import { normalizeEmailInput } from '@/lib/utils';
 
@@ -82,7 +83,7 @@ export default function CheckoutPage() {
     setAccountExists(false);
     if (!isPasswordValid(form.password)) return setError(PASSWORD_RULES_MESSAGE);
     if (form.password !== form.confirmPassword) return setError('Password and confirm password do not match');
-    if (!consent) return setError('You must agree to the Refund Policy to continue');
+    if (!consent) return setError('You must agree to the Terms of Service, Privacy Policy and Refund Policy to continue');
     if (needsTurnstile && !turnstileToken) return setError('Please complete the verification check');
 
     setSubmitting(true);
@@ -96,6 +97,7 @@ export default function CheckoutPage() {
           fullName: form.fullName.trim(),
           password: form.password,
           consent: true,
+          acceptTerms: true,
           turnstileToken: turnstileToken ?? '',
         }),
       });
@@ -111,6 +113,8 @@ export default function CheckoutPage() {
       const redirectUrl = isRecord(data) && typeof data.redirectUrl === 'string' ? data.redirectUrl : '';
       if (!redirectUrl) throw new Error('Checkout failed. Please try again.');
       clearCart();
+      // A leftover pay intent would divert onboarding to /dashboard/pay instead of the dashboard.
+      clearPayIntent();
       window.location.assign(redirectUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Checkout failed. Please try again.');
@@ -224,7 +228,15 @@ export default function CheckoutPage() {
               className="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/40"
             />
             <span>
-              I have read and agree to the{' '}
+              I agree to the{' '}
+              <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline">
+                Terms of Service
+              </Link>
+              ,{' '}
+              <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline">
+                Privacy Policy
+              </Link>{' '}
+              and{' '}
               <Link href="/refund-policy" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline">
                 Refund Policy
               </Link>
