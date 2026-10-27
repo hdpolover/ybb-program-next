@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { canTrack, writeConsent, type ConsentStatus } from '@/lib/consent/consent';
+import { canTrack, clearTrackerCookies, writeConsent, type ConsentStatus } from '@/lib/consent/consent';
 import { useConsentPrompt } from '@/lib/consent/useConsent';
 import { clearStoredClickIds } from '@/lib/analytics/pixels';
 
@@ -11,6 +11,7 @@ function choose(status: ConsentStatus): void {
   writeConsent(status);
   if (status === 'denied') {
     clearStoredClickIds();
+    clearTrackerCookies();
     // Loaded scripts can't be unloaded; only a reload gets rid of them.
     if (wasTracking) window.location.reload();
   }

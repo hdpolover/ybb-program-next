@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CONSENT_KEY,
   canTrack,
+  clearTrackerCookies,
   getConsentPrompt,
   isOptInRegion,
   openConsentPrompt,
@@ -171,5 +172,16 @@ describe('gating of the dispatcher and click ids', () => {
     expect(readAdAttribution()).toBeUndefined();
     writeConsent('granted');
     expect(readAdAttribution()).toEqual({ ttclid: 'ttc123' });
+  });
+});
+
+describe('clearTrackerCookies', () => {
+  it('expires tracker cookies and keeps essential ones', () => {
+    document.cookie = '_fbp=fb.1.123; path=/';
+    document.cookie = '_ga=GA1.1.1; path=/';
+    document.cookie = 'accessToken=keep; path=/';
+    clearTrackerCookies();
+    expect(document.cookie).not.toMatch(/_fbp|_ga=/);
+    expect(document.cookie).toContain('accessToken=keep');
   });
 });

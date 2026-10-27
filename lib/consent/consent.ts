@@ -118,3 +118,25 @@ export function getConsentPrompt(): ConsentPrompt | null {
   if (readConsent() && !reopenRequested) return null;
   return isOptInRegion(getTimeZone()) ? 'banner' : 'notice';
 }
+
+// GA (_ga, _ga_<id>, _gid), Meta (_fbp, _fbc) and TikTok (_ttp, _tt_*) cookies.
+const TRACKER_COOKIE = /^(_ga|_gid|_gat|_fbp|_fbc|_ttp|_tt_)/;
+
+/**
+ * Expires tracker cookies on withdrawal. They are set on the registrable
+ * domain (e.g. .koreayouthsummit.com), so try every parent of the host.
+ */
+export function clearTrackerCookies(): void {
+  const names = document.cookie
+    .split(';')
+    .map((part) => part.split('=')[0].trim())
+    .filter((name) => TRACKER_COOKIE.test(name));
+  const labels = window.location.hostname.split('.');
+  const domains = labels.slice(0, -1).map((_, i) => labels.slice(i).join('.'));
+  for (const name of names) {
+    document.cookie = `${name}=; Max-Age=0; path=/`;
+    for (const domain of domains) {
+      document.cookie = `${name}=; Max-Age=0; path=/; domain=.${domain}`;
+    }
+  }
+}
