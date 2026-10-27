@@ -16,6 +16,8 @@
 //   L2b program fee paid      -> ProgramFeePaid (custom)
 //   L3  application submitted -> CompleteRegistration
 
+import { canTrack } from '@/lib/consent/consent';
+
 type PixelParams = Record<string, unknown>;
 
 export type RegistrationCategory = 'self_funded' | 'fully_funded';
@@ -97,13 +99,22 @@ function readCookie(name: string): string | null {
 const TTCLID_KEY = 'ybb_ttclid';
 
 export function captureTiktokClickId(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || !canTrack()) return;
   const ttclid = new URLSearchParams(window.location.search).get('ttclid');
   if (!ttclid) return;
   try {
     window.localStorage.setItem(TTCLID_KEY, ttclid);
   } catch {
     // Private mode / storage disabled — the event still sends, just unattributed.
+  }
+}
+
+/** Drops the stored click id when the visitor withdraws consent. */
+export function clearStoredClickIds(): void {
+  try {
+    window.localStorage.removeItem(TTCLID_KEY);
+  } catch {
+    // Storage unavailable: nothing was stored.
   }
 }
 
@@ -126,7 +137,7 @@ function readTtclid(): string | null {
  * be attributed instead of merely counted.
  */
 export function readAdAttribution(): Record<string, string> | undefined {
-  if (typeof window === 'undefined') return undefined;
+  if (typeof window === 'undefined' || !canTrack()) return undefined;
   const entries: Record<string, string | null> = {
     fbp: readCookie('_fbp'),
     fbc: readCookie('_fbc'),
@@ -179,6 +190,9 @@ function fireRelay(params: {
 }
 
 function track(event: string, params?: PixelParams, userData?: TrackUserData, eventId?: string): void {
+  // One gate for all three channels, including the server relay: a denied (or
+  // not-yet-granted, in opt-in regions) visitor must not be reported anywhere.
+  if (!canTrack()) return;
   const id = eventId || generateEventId();
   fireFbq(event, params, id);
   fireTtq(event, params, id);
