@@ -13,6 +13,14 @@ import {
   isExternalHref,
   toAnnouncementHtml,
 } from '@/lib/announcements';
+import {
+  buildAnnouncementDescription,
+  buildNewsArticleJsonLd,
+  serializeJsonLd,
+  toIsoDate,
+} from '@/lib/announcementSeo';
+import { getSettingsForBrandDomain } from '@/lib/api/settings';
+import { pickBrandIconUrl } from '@/lib/branding/icon';
 import { resolveBrandDomain } from '@/lib/server/envContext';
 
 // [key] is a slug (/announcements/kwon-hae-suk-explores-ai) or, for links
@@ -39,10 +47,7 @@ export async function generateMetadata({ params }: AnnouncementDetailPageProps):
     }
 
     const title = item.title?.trim() || 'Announcement';
-    const description =
-      item.excerpt?.trim() ||
-      item.content?.trim()?.slice(0, 160) ||
-      'Read the latest announcement from Youth Break the Boundaries.';
+    const description = buildAnnouncementDescription(item);
     const image = item.image?.trim() || '/img/announcementbackground.png';
     const canonicalPath = announcementPath(item);
 
@@ -59,6 +64,7 @@ export async function generateMetadata({ params }: AnnouncementDetailPageProps):
         type: 'article',
         url: canonicalPath,
         images: [{ url: image }],
+        publishedTime: toIsoDate(item.date),
       },
       twitter: {
         card: 'summary_large_image',
@@ -103,8 +109,24 @@ export default async function AnnouncementDetailPage({ params }: AnnouncementDet
   const actionHref = getAnnouncementActionHref(item.href);
   const tags = (item.tags ?? []).filter((tag) => tag.trim().length > 0);
 
+  const brandHost = await resolveBrandDomain();
+  const baseUrl = `${process.env.NODE_ENV === 'development' ? 'http' : 'https'}://${brandHost}`;
+  // Branding is optional for the page itself; without it the JSON-LD falls back to the host name.
+  const settings = await getSettingsForBrandDomain(brandHost).catch(() => null);
+  const jsonLd = buildNewsArticleJsonLd({
+    item,
+    title,
+    description: buildAnnouncementDescription(item),
+    image,
+    canonicalUrl: new URL(announcementPath(item), baseUrl).toString(),
+    baseUrl,
+    brandName: settings?.brand?.name?.trim() || brandHost,
+    brandLogo: settings?.brand?.logo_url?.trim() || pickBrandIconUrl(settings),
+  });
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <div className="mb-6">
         <Link href="/announcements" className="text-sm font-semibold text-primary hover:underline">
           Back to announcements

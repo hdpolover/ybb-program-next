@@ -191,6 +191,8 @@ describe('announcement detail page', () => {
   it('uses the slug for canonical and Open Graph URLs', async () => {
     getAnnouncementDetail.mockResolvedValue({ id: UUID, slug: SLUG, title: 'T' });
     vi.doMock('@/lib/server/envContext', () => ({ resolveBrandDomain: async () => 'koreayouthsummit.com' }));
+    // page.tsx now imports settings, which reads envContext helpers at module load.
+    vi.doMock('@/lib/api/settings', () => ({ getSettingsForBrandDomain: async () => null }));
 
     const { generateMetadata } = await import('@/app/announcements/[key]/page');
     const metadata = await generateMetadata({ params: Promise.resolve({ key: UUID }) });
@@ -198,5 +200,6 @@ describe('announcement detail page', () => {
     expect(metadata.alternates?.canonical).toBe(`/announcements/${SLUG}`);
     expect((metadata.openGraph as { url?: string } | undefined)?.url).toBe(`/announcements/${SLUG}`);
     vi.doUnmock('@/lib/server/envContext');
+    vi.doUnmock('@/lib/api/settings');
   });
 });
