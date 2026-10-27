@@ -21,6 +21,7 @@ import {
 } from "@/lib/dashboard/activeProgram";
 import { getEnvelopeData, getErrorMessage } from "@/lib/api/response";
 import { fieldLooksLikeReferral } from "@/lib/referral/fieldLooksLikeReferral";
+import { getHiddenFieldNames } from "@/lib/forms/fieldVisibility";
 import { toRegistrationCategory, trackCompleteRegistration } from "@/lib/analytics/pixels";
 import { useDashboardData } from "@/components/dashboard/DashboardDataContext";
 import type {
@@ -423,8 +424,14 @@ function shouldRenderField(section: PortalSubmissionSection, field: PortalSubmis
   return true;
 }
 
-function calculateSectionStatus(section: PortalSubmissionSection, sectionValues: Record<string, string>): 'pending' | 'in_progress' | 'completed' {
-  const relevant = section.fields.filter(f => f.type !== 'header' && f.type !== 'divider' && f.isRequired);
+function calculateSectionStatus(
+  section: PortalSubmissionSection,
+  sectionValues: Record<string, string>,
+  hiddenFieldNames: Set<string>,
+): 'pending' | 'in_progress' | 'completed' {
+  const relevant = section.fields.filter(
+    f => f.type !== 'header' && f.type !== 'divider' && f.isRequired && !hiddenFieldNames.has(f.name),
+  );
   if (relevant.length === 0) return 'completed';
 
   const filled = relevant.filter(f => {
@@ -849,6 +856,14 @@ export default function SubmissionEditSection() {
     }
   }, [activeSectionId]);
 
+  // Fields hidden by validationRules.visibleWhen. The controlling field may sit
+  // in another section, so evaluate against every section's current answers.
+  const hiddenFieldNames = useMemo(() => {
+    const allFields = (detail?.sections ?? []).flatMap(section => section.fields);
+    const allValues = Object.assign({}, ...Object.values(sectionValues)) as Record<string, string>;
+    return getHiddenFieldNames(allFields, allValues);
+  }, [detail?.sections, sectionValues]);
+
   const stepperItems = useMemo(() => {
     if (!detail) return [] as Array<{ id: string; title: string; status: string | null | undefined }>;
     // Use only the monotonic previewVisited flag here. Depending on the live
@@ -864,12 +879,12 @@ export default function SubmissionEditSection() {
     return [
       ...detail.sections.map(s => {
         const currentValues = sectionValues[s.id] || {};
-        const calculatedStatus = calculateSectionStatus(s, currentValues);
+        const calculatedStatus = calculateSectionStatus(s, currentValues, hiddenFieldNames);
         return { id: s.id, title: s.title, status: calculatedStatus };
       }),
       { id: PREVIEW_STEP_ID, title: "Preview", status: previewStatus },
     ];
-  }, [detail, sectionValues, previewVisited]);
+  }, [detail, sectionValues, previewVisited, hiddenFieldNames]);
 
   const activeSectionIndex = useMemo(() => {
     return stepperItems.findIndex(step => step.id === activeSectionId);
@@ -1686,7 +1701,7 @@ export default function SubmissionEditSection() {
                             </div>
                             <dl className={submissionTheme.previewDefinitionList}>
                               {section.fields
-                                .filter(field => shouldRenderField(section, field))
+                                .filter(field => shouldRenderField(section, field) && !hiddenFieldNames.has(field.name))
                                 .map(field => {
                                   const rawValue = sectionValues[section.id]?.[field.name] ?? "";
                                   const displayValue = getPreviewDisplayValue(section, field, rawValue, sectionValues[section.id] ?? {});
@@ -1880,7 +1895,7 @@ export default function SubmissionEditSection() {
                 ) : null}
 
                 <div className={`${submissionTheme.formGrid} items-start`}>
-                  {activeSection.fields.filter(field => shouldRenderField(activeSection, field)).map(field => {
+                  {activeSection.fields.filter(field => shouldRenderField(activeSection, field) && !hiddenFieldNames.has(field.name)).map(field => {
                     const currentValue = sectionValues[activeSection.id]?.[field.name] ?? "";
                     const selectedDescription = getSelectedOptionDescription(field, currentValue);
 
