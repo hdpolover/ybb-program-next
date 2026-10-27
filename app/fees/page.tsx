@@ -9,6 +9,7 @@ import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { resolveBrandDomain } from '@/lib/server/envContext';
 import { toRichTextHtml } from '@/lib/content/richText';
+import AddToCartButton from '@/components/checkout/AddToCartButton';
 import { componentsTheme } from '@/lib/theme/components';
 import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import { getRegistrationDatesDisplay, getRegistrationPeriodLabel } from '@/lib/format/registration-period';
@@ -105,7 +106,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function TierRow({ tier, dates }: { tier: RegistrationType; dates: EditionView['dates'] }) {
+function TierRow({
+  tier,
+  dates,
+  cartSlug,
+}: {
+  tier: RegistrationType;
+  dates: EditionView['dates'];
+  cartSlug?: string | null;
+}) {
+  const cartCategories = (tier.allowed_categories ?? []).filter(
+    (c): c is 'self_funded' | 'fully_funded' => c === 'self_funded' || c === 'fully_funded',
+  );
   const periodLabel = getRegistrationPeriodLabel(normalizeValidityPeriods(tier, dates));
   const descriptionHtml = toRichTextHtml(tier.description);
   const categories = (tier.allowed_categories ?? []).map((c) => CATEGORY_LABELS[c] ?? c);
@@ -137,18 +149,41 @@ function TierRow({ tier, dates }: { tier: RegistrationType; dates: EditionView['
           ))}
         </ul>
       ) : null}
+      {cartSlug && cartCategories.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {cartCategories.map((category) => (
+            <AddToCartButton
+              key={category}
+              programSlug={cartSlug}
+              tierId={tier.id}
+              category={category}
+              label={cartCategories.length > 1 ? `Add to cart (${CATEGORY_LABELS[category]})` : undefined}
+            />
+          ))}
+        </div>
+      ) : null}
     </li>
   );
 }
 
-function TierGroup({ title, tiers, dates }: { title: string; tiers: RegistrationType[]; dates: EditionView['dates'] }) {
+function TierGroup({
+  title,
+  tiers,
+  dates,
+  cartSlug,
+}: {
+  title: string;
+  tiers: RegistrationType[];
+  dates: EditionView['dates'];
+  cartSlug?: string | null;
+}) {
   if (tiers.length === 0) return null;
   return (
     <div className="mt-6">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
       <ul className="mt-3 space-y-3">
         {tiers.map((tier) => (
-          <TierRow key={tier.id} tier={tier} dates={dates} />
+          <TierRow key={tier.id} tier={tier} dates={dates} cartSlug={cartSlug} />
         ))}
       </ul>
     </div>
@@ -266,7 +301,12 @@ export default async function FeesPage() {
                   </p>
                 ) : null}
 
-                <TierGroup title="Registration fee" tiers={registrationTiers} dates={edition.dates} />
+                <TierGroup
+                  title="Registration fee"
+                  tiers={registrationTiers}
+                  dates={edition.dates}
+                  cartSlug={phase === 'open' ? edition.slug : null}
+                />
                 <TierGroup title="Program fee" tiers={programTiers} dates={edition.dates} />
 
                 {edition.tiers.length === 0 ? (

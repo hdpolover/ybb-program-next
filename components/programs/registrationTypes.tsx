@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { buildPayIntentSignupHref } from '@/lib/checkout/payIntent';
+import AddToCartButton from '@/components/checkout/AddToCartButton';
+import type { CartCategory } from '@/lib/checkout/cart';
 import SectionHeader from '@/components/ui/SectionHeader';
 import {
   Calendar,
@@ -157,7 +159,17 @@ function normalizeDisplayValue(value: unknown): string {
   return text === '[object Object]' ? '' : text;
 }
 
-function OpenCardCtas({ detailsHref, payHref }: { detailsHref: string; payHref: string | null }) {
+type CartTarget = { programSlug?: string; tierId?: string; category: CartCategory };
+
+function OpenCardCtas({
+  detailsHref,
+  payHref,
+  cart,
+}: {
+  detailsHref: string;
+  payHref: string | null;
+  cart?: CartTarget;
+}) {
   const theme = componentsTheme.applyRegistrationTypes;
   if (!payHref) {
     return (
@@ -171,6 +183,14 @@ function OpenCardCtas({ detailsHref, payHref }: { detailsHref: string; payHref: 
       <a href={payHref} className={`${theme.ctaButton} ${theme.ctaButtonWide}`}>
         Choose &amp; pay registration fee
       </a>
+      {cart ? (
+        <AddToCartButton
+          programSlug={cart.programSlug}
+          tierId={cart.tierId}
+          category={cart.category}
+          className={`inline-flex items-center justify-center rounded-md border border-primary bg-white text-xs font-semibold text-primary transition hover:bg-primary/5 ${theme.ctaButtonWide}`}
+        />
+      ) : null}
       <a href={detailsHref} className="text-xs font-semibold text-primary hover:underline">
         See Details
       </a>
@@ -506,6 +526,7 @@ export default function RegistrationTypePrograms({
                     <OpenCardCtas
                       detailsHref="/apply/self-funded"
                       payHref={payHref(primaryType, 'self_funded')}
+                      cart={{ programSlug: selectedGroup.program_slug, tierId: primaryType?.id, category: 'self_funded' }}
                     />
                   ) : (
                     <button
@@ -633,6 +654,7 @@ export default function RegistrationTypePrograms({
                     <OpenCardCtas
                       detailsHref="/apply/fully-funded"
                       payHref={payHref(secondaryType, 'fully_funded')}
+                      cart={{ programSlug: selectedGroup.program_slug, tierId: secondaryType?.id, category: 'fully_funded' }}
                     />
                   ) : (
                     <button
