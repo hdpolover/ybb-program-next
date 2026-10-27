@@ -27,6 +27,7 @@ import { rememberPendingVerificationEmail } from '@/lib/auth/pendingVerification
 import { resolveSignupEditionSlug } from '@/lib/registration/edition';
 import { sanitizeRichTextHtml } from '@/lib/content/richText';
 import { buildCategoryFallbackNotice, resolveSignupCategory } from '@/lib/registration/categoryPhase';
+import { PAY_INTENT_LANDING_PATH, parsePayIntent, savePayIntent } from '@/lib/checkout/payIntent';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -183,6 +184,26 @@ export default function LoginPage() {
 
     return () => clearTimeout(timer);
   }, [searchParams]);
+
+  // "Pick a fee and pay" (from /apply): remember the intent for after
+  // onboarding, and send someone who is already signed in straight to it.
+  useEffect(() => {
+    const intent = parsePayIntent(searchParams);
+    if (!intent) return;
+
+    savePayIntent(intent);
+    let cancelled = false;
+    fetch('/api/auth/me', { cache: 'no-store' })
+      .then(res => {
+        if (res.ok && !cancelled) router.replace(PAY_INTENT_LANDING_PATH);
+      })
+      .catch(() => {
+        // Not signed in or offline: stay on the form.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, router]);
 
   // MEYS 6th/7th incident: signup silently assigned everyone to whichever
   // edition was newest and open. Load the editions so the person sees (or

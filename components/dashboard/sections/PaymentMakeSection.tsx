@@ -35,6 +35,8 @@ const paymentsTheme = componentsTheme.dashboardPayments;
 
 interface PaymentMakeSectionProps {
   paymentId: string;
+  /** Arrived from the "pick a fee and pay" flow: show the two-step banner. */
+  checkoutStep?: boolean;
 }
 
 interface PaymentMethodData {
@@ -183,7 +185,7 @@ function getPendingPaymentData(payload: unknown): PendingPaymentData | null {
   };
 }
 
-export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProps) {
+export default function PaymentMakeSection({ paymentId, checkoutStep = false }: PaymentMakeSectionProps) {
   const { settings } = useSettings();
   const router = useRouter();
 
@@ -728,6 +730,17 @@ export default function PaymentMakeSection({ paymentId }: PaymentMakeSectionProp
 
   return (
     <section className={paymentsTheme.sectionWrapper}>
+      {checkoutStep && (
+        <div
+          role="status"
+          className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-slate-800"
+        >
+          <p className="font-semibold">Step 1 of 2: pay your registration fee</p>
+          <p className="mt-0.5 text-slate-600">
+            Your invoice is ready. Once it is paid, step 2 is completing and submitting your application.
+          </p>
+        </div>
+      )}
       {/* Breadcrumb + heading */}
       <nav className={paymentsTheme.breadcrumbNav}>
         <Link href="/dashboard/payments" className={paymentsTheme.breadcrumbLink}>

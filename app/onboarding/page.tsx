@@ -25,6 +25,7 @@ import {
 } from '@/lib/onboarding/draft';
 import { isRecord } from '@/lib/api/response';
 import { nameRuleError, textRuleError } from '@/lib/onboarding/fieldRules';
+import { PAY_INTENT_LANDING_PATH, readPayIntent } from '@/lib/checkout/payIntent';
 import { asciiFold, hasDisallowed, toSubmittableAscii } from '@/lib/text/restricted-input';
 import { BirthDatePicker, isValidBirthDate } from './components/BirthDatePicker';
 
@@ -692,7 +693,8 @@ export default function OnboardingPage() {
       // submit-attempt would lose the user's work on the 4xx path, which is
       // exactly when they most need it still typed in.
       clearOnboardingDraft();
-      router.push('/dashboard');
+      // Arrived via "pick a fee and pay": carry on to the invoice, not the dashboard home.
+      router.push(readPayIntent() ? PAY_INTENT_LANDING_PATH : '/dashboard');
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : 'Onboarding failed';
       setSubmitError(friendlyOnboardingError(lastStatus, rawMessage));
