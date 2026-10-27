@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { siteConfig } from '@/config/site';
 import { listAllPublicAnnouncements } from '@/lib/api/announcements';
 import { announcementPath } from '@/lib/announcements';
+import { toIsoDate } from '@/lib/announcementSeo';
 import { getEnvBrandDomain, normalizeBrandUrl } from '@/lib/server/envContext';
 import { headers } from 'next/headers';
 
@@ -37,12 +38,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const announcements = await listAllPublicAnnouncements(host);
 
     const announcementEntries: MetadataRoute.Sitemap = announcements.map((item) => {
-      const parsedDate = item.date ? new Date(item.date) : null;
-      const lastModified = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : now;
+      // No date, no lastmod: "now" would claim every undated item changed on each crawl.
+      const lastModified = toIsoDate(item.date);
 
       return {
         url: `${siteUrl}${announcementPath(item)}`,
-        lastModified,
+        ...(lastModified ? { lastModified } : {}),
         changeFrequency: 'weekly',
         priority: 0.6,
       };
