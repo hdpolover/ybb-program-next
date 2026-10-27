@@ -16,6 +16,9 @@ const FOOTER_DEFAULT_NAV = [
   { label: 'FAQ', href: '/faq' },
 ];
 
+// Always shown: payment info must be reachable before login, regardless of CMS footer config.
+const FEES_LINK = { label: 'Fees & Payment', href: '/fees' };
+
 export default function Footer() {
   const { settings } = useSettings();
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -50,10 +53,10 @@ export default function Footer() {
 
   const menuLinks: { label: string; href: string }[] = apiMenuLinks.length > 0 ? apiMenuLinks : FOOTER_DEFAULT_NAV;
 
-  const legalLinks: { label: string; href: string }[] = (legalSection?.links ?? []).map(link => ({
-    label: link.label,
-    href: link.url,
-  }));
+  const legalLinks: { label: string; href: string }[] = [
+    FEES_LINK,
+    ...(legalSection?.links ?? []).map(link => ({ label: link.label, href: link.url })),
+  ];
 
   // Social links (Connect) normalized from brand.social_media with fallback to FOOTER_COPY.socials
   const apiSocials: { id: string; label: string; href: string }[] = [];

@@ -3,6 +3,7 @@ import RegistrationTypePrograms from '@/components/programs/registrationTypes';
 import ProgramsFurtherInformationSection from '@/components/programs/ProgramsFurtherInformation';
 import { getProgramsPageData } from '@/lib/api/programs';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
+import Link from 'next/link';
 import { headers } from 'next/headers';
 import type { RegistrationInfoSection } from '@/types/programs';
 
@@ -40,6 +41,12 @@ export default async function ApplyPage() {
         status={registrationInfoSection?.content.status}
         registrationDates={registrationInfoSection?.content.registration_dates}
       />
+      <p className="px-6 pb-8 text-center text-sm text-slate-600">
+        Want the full breakdown of fees and how payment works?{' '}
+        <Link href="/fees" className="font-semibold text-primary hover:underline">
+          See Fees &amp; Payment
+        </Link>
+      </p>
       <ProgramsFurtherInformationSection />
     </main>
   );
