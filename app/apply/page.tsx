@@ -40,6 +40,7 @@ export default async function ApplyPage() {
         description={registrationInfoSection?.content.description}
         status={registrationInfoSection?.content.status}
         registrationDates={registrationInfoSection?.content.registration_dates}
+        programs={registrationInfoSection?.content.programs}
       />
       <p className="px-6 pb-8 text-center text-sm text-slate-600">
         Want the full breakdown of fees and how payment works?{' '}
