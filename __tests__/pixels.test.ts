@@ -7,6 +7,7 @@ import {
   trackProgramFeePaid,
   trackPurchase,
 } from '@/lib/analytics/pixels';
+import { resetConsent, writeConsent } from '@/lib/consent/consent';
 
 type FbqCall = [string, string, Record<string, unknown> | undefined, { eventID?: string } | undefined];
 type TtqCall = [string, Record<string, unknown> | undefined, { event_id?: string } | undefined];
@@ -15,6 +16,8 @@ const fbq = vi.fn();
 const ttqTrack = vi.fn();
 
 beforeEach(() => {
+  resetConsent();
+  writeConsent('granted');
   fbq.mockClear();
   ttqTrack.mockClear();
   window.fbq = fbq as unknown as Window['fbq'];

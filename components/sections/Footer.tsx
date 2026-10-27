@@ -7,6 +7,7 @@ import { componentsTheme } from "@/lib/theme/components";
 import { useSettings } from "@/components/providers/SettingsProvider";
 import type { SettingsFooterNavSection } from "@/types/settings";
 import { normalizeEmailInput } from "@/lib/utils";
+import { openConsentPrompt } from "@/lib/consent/consent";
 
 const FOOTER_DEFAULT_NAV = [
   { label: 'Home', href: '/' },
@@ -281,6 +282,13 @@ export default function Footer() {
                     {link.label}
                   </a>
                 ))}
+                <button
+                  type="button"
+                  onClick={openConsentPrompt}
+                  className="transition hover:text-primary/20"
+                >
+                  Cookie settings
+                </button>
               </div>
             ) : null}
           </div>
