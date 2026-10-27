@@ -1,8 +1,10 @@
 // app/fees/page.tsx
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import HeroSection from '@/components/ui/HeroSection';
-import { getProgramsPageData } from '@/lib/api/programs';
+import { getProgramsPageData, getPublicPaymentMethods } from '@/lib/api/programs';
+import { collectPaymentMethods, formatPaymentMethodType } from '@/lib/payments/publicMethods';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { getLandingHeroMedia } from '@/lib/landing/hero';
 import { resolveBrandDomain } from '@/lib/server/envContext';
@@ -23,6 +25,7 @@ import type { SettingsData } from '@/types/settings';
 export const dynamic = 'force-dynamic';
 
 const DEFAULT_BRAND_NAME = 'Youth Break the Boundaries';
+const REFUND_POLICY_LABEL = 'Refund Policy';
 const SIGNUP_HREF = '/login?mode=signup';
 const CATEGORY_LABELS: Record<string, string> = {
   self_funded: 'Self funded',
@@ -159,13 +162,15 @@ function pickLegalLinks(settings: SettingsData | null) {
 
 export default async function FeesPage() {
   const host = await resolveBrandDomain();
-  const [programsResult, settingsResult, heroResult] = await Promise.allSettled([
+  const [programsResult, settingsResult, heroResult, methodsResult] = await Promise.allSettled([
     getProgramsPageData(host),
     getSettingsForBrandDomain(host),
     getLandingHeroMedia(host, 'programs', { preferredImages: [], fallbackImage: '/img/programsbackground.png' }),
+    getPublicPaymentMethods(host),
   ]);
 
   if (programsResult.status === 'rejected') console.error('fees: programs fetch failed', programsResult.reason);
+  if (methodsResult.status === 'rejected') console.error('fees: payment methods fetch failed', methodsResult.reason);
   const settings = settingsResult.status === 'fulfilled' ? settingsResult.value : null;
   const heroMedia = heroResult.status === 'fulfilled' ? heroResult.value : {};
 
@@ -175,6 +180,10 @@ export default async function FeesPage() {
       : undefined;
   const editions = toEditionViews(section);
   const instructions = section?.content.instructions ?? [];
+  const paymentMethods = collectPaymentMethods(
+    methodsResult.status === 'fulfilled' ? methodsResult.value : null,
+    editions.map((e) => e.key),
+  );
 
   const brandName = text(settings?.brand?.name) ?? DEFAULT_BRAND_NAME;
   const email = text(settings?.brand?.support_email);
@@ -295,32 +304,63 @@ export default async function FeesPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold text-slate-900">Accepted payment methods</h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Payments are made online from your participant dashboard. The payment methods available for your program are
-            listed at checkout once you are logged in, and are confirmed on the invoice before you pay.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-slate-900">Refunds, terms and support</h2>
-          {legalLinks.length > 0 ? (
+          {paymentMethods.length > 0 ? (
             <>
-              <p className="mt-2 text-sm text-slate-600">Refund and payment conditions are set out in our policies.</p>
-              <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-                {legalLinks.map((link) => (
-                  <li key={link.label}>
-                    <a href={link.url} className="font-medium text-primary hover:underline">
-                      {link.label}
-                    </a>
+              <p className="mt-2 text-sm text-slate-600">
+                Payments are made online from your participant dashboard. These methods are accepted for current
+                programs; the ones available to you are confirmed on the invoice before you pay.
+              </p>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                {paymentMethods.map((method) => (
+                  <li
+                    key={`${method.name}|${method.type}`}
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3"
+                  >
+                    {method.logo_url ? (
+                      <Image
+                        src={method.logo_url}
+                        alt=""
+                        width={40}
+                        height={40}
+                        unoptimized
+                        className="h-10 w-10 shrink-0 rounded-md bg-white object-contain"
+                      />
+                    ) : null}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-900">{method.name}</p>
+                      <p className="text-xs text-slate-500">{formatPaymentMethodType(method.type)}</p>
+                    </div>
                   </li>
                 ))}
               </ul>
             </>
           ) : (
             <p className="mt-2 text-sm text-slate-600">
-              For questions about refunds or reimbursement, please contact us before making a payment.
+              Payments are made online from your participant dashboard. The payment methods available for your program are
+              shown on your invoice before you pay.
             </p>
           )}
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-slate-900">Refunds, terms and support</h2>
+          <p className="mt-2 text-sm text-slate-600">Refund and payment conditions are set out in our policies.</p>
+          <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <li>
+              <Link href="/refund-policy" className="font-medium text-primary hover:underline">
+                {REFUND_POLICY_LABEL}
+              </Link>
+            </li>
+            {legalLinks
+              .filter((link) => link.label.trim().toLowerCase() !== REFUND_POLICY_LABEL.toLowerCase())
+              .map((link) => (
+                <li key={link.label}>
+                  <a href={link.url} className="font-medium text-primary hover:underline">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+          </ul>
           <p className="mt-3 text-sm text-slate-600">
             {email ? (
               <>
