@@ -6,6 +6,11 @@ export const ACTIVE_PROGRAM_STORAGE_KEY = "ybb_active_program_id";
  */
 export const EXPLICIT_PROGRAM_CHOICE_STORAGE_KEY = "ybb_active_program_explicit";
 export const ACTIVE_PROGRAM_CHANGED_EVENT = "ybb:active-program-changed";
+/**
+ * Dispatched after a client-side mutation (payment cancel/confirm, ...) so the
+ * dashboard layout re-fetches the summary it otherwise only loads on mount.
+ */
+export const DASHBOARD_SUMMARY_STALE_EVENT = "ybb:dashboard-summary-stale";
 
 type ProgramReference = {
   id?: string | null;

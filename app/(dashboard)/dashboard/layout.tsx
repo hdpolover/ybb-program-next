@@ -22,13 +22,13 @@ import { getEnvelopeData, isRecord } from '@/lib/api/response';
 import { toAmbassadorData } from '@/lib/dashboard/ambassador';
 import { shouldRedirectToOnboarding } from '@/lib/dashboard/shouldRedirectToOnboarding';
 import {
-  ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
   chooseActiveProgramId,
   readActiveProgramId,
   resolveActiveProgramId,
 } from '@/lib/dashboard/activeProgram';
 import { componentsTheme } from '@/lib/theme/components';
+import { useDashboardSummaryRefetch } from '@/hooks/useDashboardSummaryRefetch';
 
 type DashboardSearchItem = {
   id: string;
@@ -377,49 +377,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, [router]);
 
-  // The summary above is fetched once, on mount, for whichever program was
-  // active then. Without this the overview card and progress numbers kept
-  // showing the previous edition after a switch in the top bar, so a
-  // participant moving from 2027 back to 2026 still saw 2027's status.
-  const registeredPrograms = me?.registeredPrograms;
-  useEffect(() => {
-    if (!registeredPrograms) return;
-
-    let disposed = false;
-    // Only the latest switch may write: a slow response for a program the
-    // participant already switched away from must not land on top.
-    let latestRequest = 0;
-
-    const refetchSummary = async () => {
-      const requestId = ++latestRequest;
-      const programId = resolveActiveProgramId(registeredPrograms, readActiveProgramId());
-
-      try {
-        const res = await fetch(appendProgramId('/api/portal/dashboard', programId), {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          cache: 'no-store',
-        });
-        if (disposed || requestId !== latestRequest || !res.ok) return;
-
-        const json = (await res.json().catch(() => null)) as unknown;
-        if (disposed || requestId !== latestRequest) return;
-
-        setDashboardSummary(toPortalDashboardSummary(getEnvelopeData(json)));
-      } catch {
-        // Keep the summary already on screen; the next switch retries.
-      }
-    };
-
-    window.addEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, refetchSummary);
-    return () => {
-      disposed = true;
-      window.removeEventListener(ACTIVE_PROGRAM_CHANGED_EVENT, refetchSummary);
-    };
-  }, [registeredPrograms]);
+  // The summary above is fetched once, on mount. This keeps it fresh after a
+  // program switch, a payment mutation, navigation or returning to the tab.
+  useDashboardSummaryRefetch({
+    registeredPrograms: me?.registeredPrograms,
+    pathname,
+    onSummary: payload => setDashboardSummary(toPortalDashboardSummary(payload)),
+  });
 
   // Refresh `me`, then select the new edition. The order matters: the summary
-  // refetch listener above closes over registeredPrograms, so it only resolves
+  // refetch hook above closes over registeredPrograms, so it only resolves
   // the new program once that render (and its effects) has been committed.
   const handleJoined = useCallback(async (programId: string) => {
     const res = await fetch(ME_URL, { method: 'GET', cache: 'no-store' });

@@ -23,7 +23,11 @@ import HistoryPanel from '@/components/dashboard/payments/HistoryPanel';
 import PaymentPageSkeleton from '@/components/dashboard/payments/PaymentPageSkeleton';
 import { componentsTheme } from '@/lib/theme/components';
 import { getEnvelopeData, getErrorMessage, isRecord } from '@/lib/api/response';
-import { appendProgramId, readActiveProgramId } from '@/lib/dashboard/activeProgram';
+import {
+  DASHBOARD_SUMMARY_STALE_EVENT,
+  appendProgramId,
+  readActiveProgramId,
+} from '@/lib/dashboard/activeProgram';
 import {
   readCachedPaymentPreview,
   upsertCachedPaymentPreview,
@@ -685,6 +689,7 @@ export default function PaymentDetailSection({ paymentId }: PaymentDetailSection
       if (!response.ok) {
         throw new Error(getErrorMessage(json, 'Failed to cancel pending payment'));
       }
+      window.dispatchEvent(new Event(DASHBOARD_SUMMARY_STALE_EVENT));
       const programId = readActiveProgramId();
       const updatedPreview: CachedPaymentPreview = {
         id: invoice?.id ?? paymentId,
