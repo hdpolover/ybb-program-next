@@ -24,6 +24,7 @@ import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   appendProgramId,
   readActiveProgramId,
+  DASHBOARD_SUMMARY_STALE_EVENT,
 } from "@/lib/dashboard/activeProgram";
 import { upsertCachedPaymentPreview } from "@/lib/dashboard/payments-cache";
 import { sanitizeRichTextHtml } from "@/lib/content/richText";
@@ -470,6 +471,7 @@ export default function PaymentMakeSection({ paymentId, checkoutStep = false }: 
       if (!response.ok) {
         throw new Error(getErrorMessage(json, "Failed to cancel pending payment"));
       }
+      window.dispatchEvent(new Event(DASHBOARD_SUMMARY_STALE_EVENT));
 
       const currentInvoice = invoice;
       if (!currentInvoice) {
@@ -569,6 +571,7 @@ export default function PaymentMakeSection({ paymentId, checkoutStep = false }: 
         throw new Error(getPaymentErrorMessage(json, "Payment submission failed"));
       }
 
+      window.dispatchEvent(new Event(DASHBOARD_SUMMARY_STALE_EVENT));
       const payload = getEnvelopeData(json);
       const actionUrl = getActionUrl(payload);
 
