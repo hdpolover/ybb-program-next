@@ -17,6 +17,7 @@ type CheckoutBody = {
   password?: string;
   fullName?: string;
   consent?: boolean;
+  marketingOptIn?: boolean;
   turnstileToken?: string;
 };
 
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
       password: body.password,
       fullName: body.fullName,
       consent: true,
+      ...(body.marketingOptIn === true ? { marketingOptIn: true } : {}),
       turnstileToken: typeof body.turnstileToken === 'string' ? body.turnstileToken : '',
     },
   });

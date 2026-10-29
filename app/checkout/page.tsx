@@ -18,6 +18,7 @@ import { useCheckoutSelection } from '@/hooks/useCheckoutSelection';
 import { clearCart, type CartLine } from '@/lib/checkout/cart';
 import { formatAmount } from '@/lib/checkout/checkoutConfig';
 import { clearPayIntent } from '@/lib/checkout/payIntent';
+import { MARKETING_OPT_IN_LABEL, marketingOptInField } from '@/lib/marketing/optIn';
 import { getErrorMessage, getEnvelopeData, isRecord } from '@/lib/api/response';
 import { normalizeEmailInput } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ export default function CheckoutPage() {
   const [resetKey, setResetKey] = useState(0);
   const [form, setForm] = useState({ email: '', fullName: '', password: '', confirmPassword: '' });
   const [consent, setConsent] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -97,6 +99,7 @@ export default function CheckoutPage() {
           fullName: form.fullName.trim(),
           password: form.password,
           consent: true,
+          ...marketingOptInField(marketingOptIn),
           turnstileToken: turnstileToken ?? '',
         }),
       });
@@ -241,6 +244,16 @@ export default function CheckoutPage() {
               </Link>
               .
             </span>
+          </label>
+
+          <label className="flex items-start gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={marketingOptIn}
+              onChange={(e) => setMarketingOptIn(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/40"
+            />
+            <span>{MARKETING_OPT_IN_LABEL} (optional)</span>
           </label>
 
           {config.turnstileSiteKey ? (

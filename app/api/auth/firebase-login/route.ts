@@ -15,6 +15,8 @@ type FirebaseLoginBody = {
   applicationCategory?: string;
   /** Ad click ids (_fbp/_fbc/_ttp/ttclid) captured in the browser at signup. */
   adAttribution?: Record<string, string>;
+  /** Explicit, unticked-by-default opt-in to marketing emails (new accounts only, enforced by the API). */
+  marketingOptIn?: boolean;
 };
 
 type ProgramRegistrationClosed = {
@@ -110,6 +112,7 @@ export async function POST(request: Request) {
         // to ensureProgramApplication's default category.
         ...(body.applicationCategory ? { applicationCategory: body.applicationCategory } : {}),
         ...(body.adAttribution ? { adAttribution: body.adAttribution } : {}),
+        ...(body.marketingOptIn === true ? { marketingOptIn: true } : {}),
       }),
     });
 
