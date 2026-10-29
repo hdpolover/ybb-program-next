@@ -16,6 +16,8 @@ type RegisterBody = {
    *  server-reported conversions can still be attributed. Passed straight
    *  through; the API validates and stores it. */
   adAttribution?: Record<string, string>;
+  /** Explicit, unticked-by-default opt-in to marketing emails. */
+  marketingOptIn?: boolean;
 };
 
 type ProgramRegistrationClosed = {
@@ -169,6 +171,7 @@ export async function POST(request: Request) {
         ...(resolvedReferralCode ? { referralCode: resolvedReferralCode } : {}),
         ...(body.applicationCategory ? { applicationCategory: body.applicationCategory } : {}),
         ...(body.adAttribution ? { adAttribution: body.adAttribution } : {}),
+        ...(body.marketingOptIn === true ? { marketingOptIn: true } : {}),
       }),
     });
 

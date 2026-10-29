@@ -21,6 +21,7 @@ import { auth, googleProvider } from "@/lib/firebase";
 import { useHydrated } from "@/hooks/useHydrated";
 import { BUSINESS_TIMEZONE } from "@/lib/format/deadline";
 import DeleteAccountSection from "@/components/dashboard/sections/settings/DeleteAccountSection";
+import MarketingEmailsPreference from "@/components/dashboard/sections/settings/MarketingEmailsPreference";
 
 /**
  * Formats without an explicit timeZone, so before hydration (server render and
@@ -558,10 +559,7 @@ export default function SettingsSection() {
             </div>
           </div>
           <div className="px-4 py-5 sm:px-6">
-            <div className="flex items-center gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-400">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>Notification preferences are coming soon.</span>
-            </div>
+            <MarketingEmailsPreference />
           </div>
         </section>
 

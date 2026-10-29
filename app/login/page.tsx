@@ -28,6 +28,7 @@ import { resolveSignupEditionSlug } from '@/lib/registration/edition';
 import LegalDocumentContent from '@/components/legal/LegalDocumentContent';
 import { buildCategoryFallbackNotice, resolveSignupCategory } from '@/lib/registration/categoryPhase';
 import { PAY_INTENT_LANDING_PATH, parsePayIntent, savePayIntent } from '@/lib/checkout/payIntent';
+import { MARKETING_OPT_IN_LABEL, marketingOptInField } from '@/lib/marketing/optIn';
 
 // Fallback images if API fails
 const FALLBACK_IMAGES = [
@@ -78,6 +79,7 @@ export default function LoginPage() {
   const [signupPasswordTouched, setSignupPasswordTouched] = useState(false);
   const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [loginImages, setLoginImages] = useState<string[]>(FALLBACK_IMAGES);
     const [oauthLoading, setOauthLoading] = useState<string>('');
@@ -332,6 +334,7 @@ export default function LoginPage() {
           // browser, and every later conversion for this person may be reported
           // by the API with no browser involved.
           adAttribution: readAdAttribution(),
+          ...marketingOptInField(marketingOptIn),
         }),
       });
 
@@ -462,6 +465,8 @@ export default function LoginPage() {
           // exist in a context we control — every later conversion for this
           // person may be reported by the API with no browser involved.
           ...(mode === 'signup' ? { adAttribution: readAdAttribution() } : {}),
+          // Only the signup card shows the checkbox; the API applies it to brand-new accounts only.
+          ...(mode === 'signup' ? marketingOptInField(marketingOptIn) : {}),
         }),
       });
 
@@ -1034,6 +1039,15 @@ export default function LoginPage() {
                           Privacy Policy
                         </button>
                       </span>
+                    </div>
+                    <div className={componentsTheme.login.termsLabel}>
+                      <input
+                        type="checkbox"
+                        className={componentsTheme.login.checkbox}
+                        checked={marketingOptIn}
+                        onChange={e => setMarketingOptIn(e.target.checked)}
+                      />
+                      <span>{MARKETING_OPT_IN_LABEL} (optional)</span>
                     </div>
                     {registerError ? <Alert variant="error">{registerError}</Alert> : null}
                     <div className="pt-2">
