@@ -34,6 +34,7 @@ import type {
 import Breadcrumb from "@/components/dashboard/ui/Breadcrumb";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 import EnglishTextInput from "@/components/ui/EnglishTextInput";
+import { isPersonNameField } from "@/lib/text/restricted-input";
 import EnglishTextArea from "@/components/ui/EnglishTextArea";
 import { CountryField } from "@/components/dashboard/fields/CountryField";
 import { PhoneField } from "@/components/dashboard/fields/PhoneField";
@@ -1350,7 +1351,7 @@ export default function SubmissionEditSection() {
 
     const inputType = field.type === "date" || field.type === "url" ? field.type : "text";
     if (inputType === "text") {
-      const isNameField = /name/i.test(field.name) || /name/i.test(field.label);
+      const isNameField = isPersonNameField(field.name, field.label);
 
       if (isReferralField(field.name)) {
         const status = referralFieldStatuses[field.name] ?? 'idle';
