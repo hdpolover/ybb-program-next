@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sanitize, hasDisallowed, asciiFold, toSubmittableAscii } from '@/lib/text/restricted-input';
+import { sanitize, hasDisallowed, asciiFold, toSubmittableAscii, isPersonNameField } from '@/lib/text/restricted-input';
 
 describe('sanitize name mode', () => {
   it('keeps English letters, space, hyphen, apostrophe, period', () => {
@@ -73,5 +73,22 @@ describe('toSubmittableAscii', () => {
   });
   it('falls back to the original rather than emptying the field', () => {
     expect(toSubmittableAscii('\u041c\u043e\u0441\u043a\u0432\u0430')).toBe('\u041c\u043e\u0441\u043a\u0432\u0430');
+  });
+});
+
+describe('isPersonNameField', () => {
+  it('treats a username label as a handle, not a person name', () => {
+    expect(isPersonNameField('instagram_account', 'Instagram Username')).toBe(false);
+    expect(isPersonNameField('tiktok_user_name', 'TikTok User Name')).toBe(false);
+  });
+
+  it('still restricts real person-name fields', () => {
+    expect(isPersonNameField('full_name', 'Full Name')).toBe(true);
+    expect(isPersonNameField('nickname', 'ID Card Name')).toBe(true);
+    expect(isPersonNameField('emergency_contact_name', 'Emergency Contact Name')).toBe(true);
+  });
+
+  it('ignores fields with no name in them', () => {
+    expect(isPersonNameField('occupation', 'Occupation')).toBe(false);
   });
 });

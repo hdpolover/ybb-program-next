@@ -12,6 +12,14 @@ function patternFor(mode: RestrictMode): RegExp {
     : new RegExp(GENERAL_DISALLOWED.source, 'g');
 }
 
+// A "username" is a handle, not a person's name: digits and underscores are legal
+// in it. Avoids a lookbehind regex, which throws at parse time on Safari < 16.4.
+export function isPersonNameField(fieldName: string, label: string): boolean {
+  return [fieldName, label].some(
+    (text) => /name/i.test(text) && !/user[\s_-]?name/i.test(text),
+  );
+}
+
 export function sanitize(
   value: string,
   mode: RestrictMode,
