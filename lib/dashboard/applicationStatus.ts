@@ -101,7 +101,7 @@ export function deriveApplicationStatus(
     return {
       tone: 'info',
       title: 'In Fully Funded selection',
-      body: "Your application is complete. We'll email your result — no action needed right now.",
+      body: 'Your application is complete and in the selection. Results are sent by email, so if results for your program have already been announced, check your inbox and spam folder.',
     };
   }
   if (announced.getTime() <= now.getTime()) {

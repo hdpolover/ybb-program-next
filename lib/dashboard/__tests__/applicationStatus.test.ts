@@ -100,7 +100,7 @@ describe('deriveApplicationStatus', () => {
   it.each([[undefined], [null], ['not-a-date']])('7: no usable announcement date (%s)', (value) => {
     const v = derive({ fundingResultsAnnouncedAt: value });
     expect(v?.title).toBe('In Fully Funded selection');
-    expect(v?.body).toMatch(/no action needed/);
+    expect(v?.body).toMatch(/check your inbox and spam folder/);
   });
 
   it('8: submitted self funded ignores any funding decision', () => {
