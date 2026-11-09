@@ -11,6 +11,7 @@ import {
   queueSwitchCategoryFeedback,
 } from "@/lib/dashboard/switchCategoryFeedback";
 import { componentsTheme } from "@/lib/theme/components";
+import ApplicationStatusCard from "./ApplicationStatusCard";
 import DashboardPageSkeleton from "@/components/dashboard/ui/DashboardPageSkeleton";
 import { toast } from "sonner";
 
@@ -141,6 +142,7 @@ export default function OverviewRegistrationSection() {
 
   return (
     <>
+      <ApplicationStatusCard onSwitch={() => setShowModal(true)} />
       <div className={overviewTheme.registrationCard}>
         <div className="flex flex-wrap items-start gap-4">
           <div className={overviewTheme.registrationIconCircle}>

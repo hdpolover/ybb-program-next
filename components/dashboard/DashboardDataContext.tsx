@@ -42,6 +42,17 @@ export type PortalDashboardSummary = {
       deadline: string;
     } | null;
     guidebooks?: PortalDashboardGuidebook[];
+    // The four fields below are absent on older API builds; consumers must not assume them.
+    submissionChecklist?: {
+      formComplete: boolean;
+      registrationFeePaid: boolean;
+      submitted: boolean;
+    };
+    /** Draft whose deadline for its current category has passed. */
+    isSubmissionClosed?: boolean;
+    fundingDecision?: 'awarded' | 'not_awarded' | null;
+    /** ISO, program-level. */
+    fundingResultsAnnouncedAt?: string | null;
   };
   alerts?: Array<{
     id?: string;
