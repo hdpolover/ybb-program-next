@@ -21,6 +21,8 @@ services:
     deploy:
       resources:
         limits:
+          # The VPS (8 cores) is shared with other apps; an image-optimizer CPU runaway here starved them (2026-11-10).
+          cpus: '3'
           memory: 2G
     environment:
       - NODE_ENV=production
