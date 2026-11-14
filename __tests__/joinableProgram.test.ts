@@ -25,7 +25,7 @@ describe('resolveJoinableProgram', () => {
   });
 
   it('returns the open edition the participant has no application on', async () => {
-    expect(await resolveJoinableProgram('d', ['old'])).toEqual({ id: 'p5', name: 'Japan Youth Summit 5th' });
+    expect(await resolveJoinableProgram('d', ['old'])).toEqual({ id: 'p5', name: 'Japan Youth Summit 5th', slug: 'jys-5th' });
   });
 
   it('returns null when the participant already has an application on it', async () => {
