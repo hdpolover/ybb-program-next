@@ -67,3 +67,23 @@ describe('resendVerificationEmail', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe('resendVerificationEmail turnstile header', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('sends the supplied turnstile header to the BFF', async () => {
+    const fetchMock = mockFetch(200, { message: 'ok' });
+    vi.stubGlobal('fetch', fetchMock);
+    await resendVerificationEmail('ada@gmail.com', { 'x-turnstile-token': 'tok-1' });
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
+    expect(init.headers['x-turnstile-token']).toBe('tok-1');
+  });
+
+  it('sends no turnstile header by default', async () => {
+    const fetchMock = mockFetch(200, { message: 'ok' });
+    vi.stubGlobal('fetch', fetchMock);
+    await resendVerificationEmail('ada@gmail.com');
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
+    expect(init.headers).not.toHaveProperty('x-turnstile-token');
+  });
+});

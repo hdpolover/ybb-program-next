@@ -7,6 +7,8 @@ export type BackendAuthContext = {
   programId: string | null;
   programSlug: string | null;
   localProviderId: string | null;
+  /** Cloudflare Turnstile public site key; null/absent = feature off. */
+  turnstileSiteKey?: string | null;
   providers: Array<{
     id: string;
     name: string;

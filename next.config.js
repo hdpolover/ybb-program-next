@@ -132,9 +132,28 @@ const nextConfig = {
     // refuses anything larger from Content-Length before reading it.
     proxyClientMaxBodySize: '12mb',
   },
-  // Add cache headers for static assets
   async headers() {
     return [
+      {
+        // Baseline hardening for every route. Next merges all matching rules, so
+        // the cache and COOP rules below still apply on top of these.
+        source: '/:path*',
+        headers: [
+          // No includeSubDomains/preload: VYS lives on a shared parent domain
+          // that must not be pinned to HTTPS-only by this app.
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // X-Frame-Options for old browsers, frame-ancestors for current ones.
+          // Deliberately NOT a full CSP (no script-src etc.): that needs its own rollout.
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=(self)',
+          },
+        ],
+      },
       {
         // Allow Firebase signInWithPopup to poll window.closed on the login page.
         // COOP: same-origin (set by some hosts/proxies) breaks the opener reference.

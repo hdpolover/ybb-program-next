@@ -30,7 +30,10 @@ const NOT_FOUND_MESSAGE =
  * Requests a new verification email. Resolves to an explicit outcome for every
  * path — a failure is never reported as a success, and never swallowed.
  */
-export async function resendVerificationEmail(rawEmail: string): Promise<ResendVerificationResult> {
+export async function resendVerificationEmail(
+  rawEmail: string,
+  turnstileHeaders: Record<string, string> = {},
+): Promise<ResendVerificationResult> {
   const email = (rawEmail ?? '').trim();
   if (!email) {
     return { status: 'error', message: 'Please enter your email address first.' };
@@ -41,6 +44,7 @@ export async function resendVerificationEmail(rawEmail: string): Promise<ResendV
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...turnstileHeaders,
       },
       body: JSON.stringify({ email }),
     });

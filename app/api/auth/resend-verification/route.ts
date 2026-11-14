@@ -3,6 +3,7 @@ import { resolveBrandDomainFromRequest } from '@/lib/server/envContext';
 import { fetchAuthContext } from '@/lib/api/authContext';
 import { getServerApiBaseUrl } from '@/lib/server/apiBaseUrl';
 import { forwardedForHeader } from '@/lib/server/forwardedFor';
+import { turnstileTokenHeader } from '@/lib/server/turnstile';
 
 type ResendVerificationBody = {
   email: string;
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
         'x-brand-domain': brandDomain,
         ...forwardedForHeader(request),
+        ...turnstileTokenHeader(request),
       },
       body: JSON.stringify({
         email: body.email,

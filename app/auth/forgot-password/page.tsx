@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import { EmailTypoHint } from '@/components/auth/EmailTypoHint';
 import { useEmailTypoHint } from '@/hooks/useEmailTypoHint';
+import { TURNSTILE_VERIFYING_MESSAGE, useTurnstile } from '@/hooks/useTurnstile';
 
 type RequestState = 'idle' | 'success' | 'error';
 
@@ -29,6 +30,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [state, setState] = useState<RequestState>('idle');
   const [message, setMessage] = useState('');
+  const turnstile = useTurnstile();
   const [imageIndex, setImageIndex] = useState(0);
   const [loginImages, setLoginImages] = useState<string[]>(FALLBACK_IMAGES);
   // A reset link sent to a mistyped domain is as silent a failure as a
@@ -79,15 +81,21 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    setLoading(true);
     setState('idle');
     setMessage('');
+    if (turnstile.enabled && !turnstile.token) {
+      setState('error');
+      setMessage(TURNSTILE_VERIFYING_MESSAGE);
+      return;
+    }
+    setLoading(true);
 
     try {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...turnstile.headers,
         },
         body: JSON.stringify({ email }),
       });
@@ -103,6 +111,7 @@ export default function ForgotPasswordPage() {
       setState('error');
       setMessage(error instanceof Error ? error.message : 'Failed to request password reset');
     } finally {
+      turnstile.reset();
       setLoading(false);
     }
   };
@@ -194,6 +203,8 @@ export default function ForgotPasswordPage() {
                   </div>
                   <EmailTypoHint hint={emailHint} />
                 </div>
+
+                {turnstile.widget}
 
                 {state === 'success' ? (
                   <p className="text-xs font-medium text-primary">{message}</p>

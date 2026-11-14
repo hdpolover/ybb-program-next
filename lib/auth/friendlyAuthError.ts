@@ -55,6 +55,12 @@ export function friendlyAuthError(raw: string): FriendlyAuthError {
     };
   }
 
+  if (/turnstile|captcha|security check|verify you are human/i.test(message)) {
+    return {
+      message: "We couldn't verify that you are human. Please try again.",
+    };
+  }
+
   if (OPS_LEAK_PATTERN.test(message)) {
     return {
       message: 'Something went wrong on our end. Please try again in a moment.',

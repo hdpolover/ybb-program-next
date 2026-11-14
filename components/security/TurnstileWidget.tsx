@@ -1,13 +1,14 @@
-// components/checkout/TurnstileWidget.tsx
+// components/security/TurnstileWidget.tsx
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 type TurnstileApi = {
   render: (el: HTMLElement, opts: Record<string, unknown>) => string;
   remove: (id: string) => void;
+  reset: (id: string) => void;
 };
 
 declare global {
@@ -34,27 +35,45 @@ function loadScript(): Promise<void> {
   return scriptPromise;
 }
 
-type Props = {
-  siteKey: string;
-  /** Called with the token, or null when it expires / errors. */
-  onToken: (token: string | null) => void;
+export type TurnstileHandle = {
+  /** Tokens are single-use: call after every submit, success or failure. */
+  reset: () => void;
 };
 
-export default function TurnstileWidget({ siteKey, onToken }: Props) {
+type Props = {
+  siteKey: string;
+  /** Called with the token, or null when it expires / errors / is reset. */
+  onToken: (token: string | null) => void;
+  /** 'interaction-only' stays invisible unless Cloudflare decides to challenge. */
+  appearance?: 'always' | 'execute' | 'interaction-only';
+};
+
+const TurnstileWidget = forwardRef<TurnstileHandle, Props>(function TurnstileWidget(
+  { siteKey, onToken, appearance },
+  ref,
+) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
   useEffect(() => {
     onTokenRef.current = onToken;
   });
 
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      onTokenRef.current(null);
+      if (widgetIdRef.current && window.turnstile) window.turnstile.reset(widgetIdRef.current);
+    },
+  }));
+
   useEffect(() => {
-    let widgetId: string | null = null;
     let cancelled = false;
     loadScript()
       .then(() => {
         if (cancelled || !containerRef.current || !window.turnstile) return;
-        widgetId = window.turnstile.render(containerRef.current, {
+        widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
+          ...(appearance ? { appearance } : {}),
           callback: (token: string) => onTokenRef.current(token),
           'expired-callback': () => onTokenRef.current(null),
           'error-callback': () => onTokenRef.current(null),
@@ -63,9 +82,13 @@ export default function TurnstileWidget({ siteKey, onToken }: Props) {
       .catch(() => onTokenRef.current(null));
     return () => {
       cancelled = true;
-      if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
+      if (widgetIdRef.current && window.turnstile) window.turnstile.remove(widgetIdRef.current);
+      widgetIdRef.current = null;
+      onTokenRef.current(null); // a remounted widget must not inherit a stale token
     };
-  }, [siteKey]);
+  }, [siteKey, appearance]);
 
   return <div ref={containerRef} />;
-}
+});
+
+export default TurnstileWidget;
