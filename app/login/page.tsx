@@ -22,6 +22,7 @@ import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 import SignupEditionChoice, { type SignupEdition } from '@/components/auth/SignupEditionChoice';
 import { EmailTypoHint } from '@/components/auth/EmailTypoHint';
 import { ResendVerificationEmail } from '@/components/auth/ResendVerificationEmail';
+import { TURNSTILE_VERIFYING_MESSAGE, useTurnstile } from '@/hooks/useTurnstile';
 import { useEmailTypoHint } from '@/hooks/useEmailTypoHint';
 import { rememberPendingVerificationEmail } from '@/lib/auth/pendingVerificationEmail';
 import { resolveSignupEditionSlug } from '@/lib/registration/edition';
@@ -88,6 +89,7 @@ export default function LoginPage() {
   const [localError, setLocalError] = useState<string>('');
   const [localErrorAction, setLocalErrorAction] = useState<'use-google' | undefined>(undefined);
   const [showResendVerification, setShowResendVerification] = useState(false);
+  const turnstile = useTurnstile();
   const [ambassadorMode, setAmbassadorMode] = useState(() => {
     return searchParams.get('role') === 'ambassador';
   });
@@ -241,10 +243,14 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (mode === 'login') {
-      setLocalLoading(true);
       setLocalError('');
       setLocalErrorAction(undefined);
       setShowResendVerification(false);
+      if (!ambassadorMode && turnstile.pending) {
+        setLocalError(TURNSTILE_VERIFYING_MESSAGE);
+        return;
+      }
+      setLocalLoading(true);
       try {
         if (ambassadorMode) {
           const res = await fetch('/api/auth/ambassador-login', {
@@ -271,6 +277,7 @@ export default function LoginPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...turnstile.headers,
           },
           body: JSON.stringify({
             email: loginForm.email,
@@ -300,6 +307,7 @@ export default function LoginPage() {
           setShowResendVerification(true);
         }
       } finally {
+        if (!ambassadorMode) turnstile.reset();
         setLocalLoading(false);
       }
 
@@ -307,8 +315,12 @@ export default function LoginPage() {
     }
 
     // signup
-    setRegisterLoading(true);
     setRegisterError('');
+    if (turnstile.pending) {
+      setRegisterError(TURNSTILE_VERIFYING_MESSAGE);
+      return;
+    }
+    setRegisterLoading(true);
     try {
       if (!isPasswordValid(signupForm.password)) {
         throw new Error(PASSWORD_RULES_MESSAGE);
@@ -324,6 +336,7 @@ export default function LoginPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...turnstile.headers,
         },
         body: JSON.stringify({
           email: signupForm.email,
@@ -384,6 +397,7 @@ export default function LoginPage() {
           : friendlyAuthError(rawMessage).message,
       );
     } finally {
+      turnstile.reset();
       setRegisterLoading(false);
     }
   };
@@ -1096,6 +1110,7 @@ export default function LoginPage() {
                   </p>
                 </>
               )}
+              {!ambassadorMode ? turnstile.widget : null}
             </form>
           </div>
           </div>

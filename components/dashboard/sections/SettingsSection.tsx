@@ -19,6 +19,7 @@ import {
 import { parseApiDate } from "@/lib/utils";
 import { auth, googleProvider } from "@/lib/firebase";
 import { useHydrated } from "@/hooks/useHydrated";
+import { TURNSTILE_VERIFYING_MESSAGE, useTurnstile } from "@/hooks/useTurnstile";
 import { BUSINESS_TIMEZONE } from "@/lib/format/deadline";
 import DeleteAccountSection from "@/components/dashboard/sections/settings/DeleteAccountSection";
 import MarketingEmailsPreference from "@/components/dashboard/sections/settings/MarketingEmailsPreference";
@@ -157,6 +158,7 @@ export default function SettingsSection() {
   const [resetState, setResetState] = useState<
     "idle" | "sending" | "sent" | "error"
   >("idle");
+  const turnstile = useTurnstile();
   const [googleLinking, setGoogleLinking] = useState(false);
   const [linkState, setLinkState] = useState<"idle" | "linking" | "linked" | "error">("idle");
   const [linkError, setLinkError] = useState("");
@@ -193,11 +195,15 @@ export default function SettingsSection() {
   const handleResetPassword = async () => {
     if (!authMe?.email || resetState === "sending" || resetState === "sent")
       return;
+    if (turnstile.pending) {
+      toast.error(TURNSTILE_VERIFYING_MESSAGE);
+      return;
+    }
     setResetState("sending");
     try {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...turnstile.headers },
         body: JSON.stringify({ email: authMe.email }),
       });
       const json = (await res.json()) as ApiResponse<unknown>;
@@ -211,6 +217,8 @@ export default function SettingsSection() {
     } catch {
       setResetState("error");
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      turnstile.reset();
     }
   };
 
@@ -419,6 +427,7 @@ export default function SettingsSection() {
 
           <div className="px-4 py-5 sm:px-6">
             {hasLocalIdentity ? (
+              <>
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-700">
@@ -451,6 +460,8 @@ export default function SettingsSection() {
                   {resetState === "error" && "Try again"}
                 </button>
               </div>
+              {turnstile.widget}
+              </>
             ) : (
               <div className="space-y-3">
                 <p className="text-sm font-medium text-slate-700">

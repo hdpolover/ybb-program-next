@@ -19,6 +19,7 @@ type BackendAuthContext = {
   programId: string | null;
   programSlug: string | null;
   localProviderId: string | null;
+  turnstileSiteKey?: string | null;
   providers: AuthProvider[];
 };
 
@@ -49,6 +50,7 @@ export async function GET() {
         programId: envProgramId || ctx.programId,
         programSlug: envProgramSlug || ctx.programSlug,
         providers: ctx.providers,
+        turnstileSiteKey: ctx.turnstileSiteKey ?? null,
         localProviderId: envLocalProviderId || ctx.localProviderId || '',
       },
     });

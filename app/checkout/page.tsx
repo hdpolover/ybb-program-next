@@ -10,7 +10,7 @@ import { Alert } from '@/components/ui';
 import EnglishTextInput from '@/components/ui/EnglishTextInput';
 import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 import { EmailTypoHint } from '@/components/auth/EmailTypoHint';
-import TurnstileWidget from '@/components/checkout/TurnstileWidget';
+import TurnstileWidget from '@/components/security/TurnstileWidget';
 import { useEmailTypoHint } from '@/hooks/useEmailTypoHint';
 import { PASSWORD_RULES_MESSAGE, isPasswordValid } from '@/lib/auth/passwordRules';
 import CheckoutPicker from '@/components/checkout/CheckoutPicker';

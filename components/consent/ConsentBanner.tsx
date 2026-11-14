@@ -44,15 +44,15 @@ export default function ConsentBanner() {
     >
       <p className="text-sm text-slate-700">
         {isBanner
-          ? <>We would like to use cookies for analytics and ads. Nothing is tracked unless you accept. See our {privacyLink}.</>
-          : <>We use cookies for analytics and ads. {privacyLink}.</>}
+          ? <>We&apos;d like to use cookies to understand how people find and use our site, and to show our programs to more young people. Nothing is tracked unless you say yes. {privacyLink}.</>
+          : <>We use cookies to understand how people find and use our site, and to show our programs to more young people. You can say no anytime. {privacyLink}.</>}
       </p>
       <div className="mt-3 flex gap-2">
         <Button variant="outline" size="sm" className={CHOICE} onClick={() => choose('granted')}>
-          {isBanner ? 'Accept' : 'OK'}
+          Sounds good
         </Button>
         <Button variant="outline" size="sm" className={CHOICE} onClick={() => choose('denied')}>
-          {isBanner ? 'Reject' : 'Decline'}
+          No thanks
         </Button>
       </div>
     </div>

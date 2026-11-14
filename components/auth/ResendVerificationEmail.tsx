@@ -6,6 +6,7 @@ import { Mail } from 'lucide-react';
 import { Alert } from '@/components/ui';
 import { EmailTypoHint } from '@/components/auth/EmailTypoHint';
 import { useEmailTypoHint } from '@/hooks/useEmailTypoHint';
+import { TURNSTILE_VERIFYING_MESSAGE, useTurnstile } from '@/hooks/useTurnstile';
 import {
   resendVerificationEmail,
   type ResendVerificationResult,
@@ -39,6 +40,7 @@ export function ResendVerificationEmail({
 }: ResendVerificationEmailProps) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResendVerificationResult | null>(null);
+  const turnstile = useTurnstile();
 
   const acceptSuggestion = useCallback(
     (next: string) => {
@@ -51,11 +53,16 @@ export function ResendVerificationEmail({
   const onResend = async () => {
     if (loading) return;
 
-    setLoading(true);
     setResult(null);
+    if (turnstile.pending) {
+      setResult({ status: 'error', message: TURNSTILE_VERIFYING_MESSAGE });
+      return;
+    }
+    setLoading(true);
     try {
-      setResult(await resendVerificationEmail(email));
+      setResult(await resendVerificationEmail(email, turnstile.headers));
     } finally {
+      turnstile.reset();
       setLoading(false);
     }
   };
@@ -95,6 +102,8 @@ export function ResendVerificationEmail({
       >
         {loading ? 'Sending verification email...' : 'Resend verification email'}
       </button>
+
+      {turnstile.widget}
 
       {result ? <Alert variant={RESULT_VARIANT[result.status]}>{result.message}</Alert> : null}
     </div>
