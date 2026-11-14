@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
 
     setState('idle');
     setMessage('');
-    if (turnstile.enabled && !turnstile.token) {
+    if (turnstile.pending) {
       setState('error');
       setMessage(TURNSTILE_VERIFYING_MESSAGE);
       return;

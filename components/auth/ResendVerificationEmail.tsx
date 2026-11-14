@@ -54,7 +54,7 @@ export function ResendVerificationEmail({
     if (loading) return;
 
     setResult(null);
-    if (turnstile.enabled && !turnstile.token) {
+    if (turnstile.pending) {
       setResult({ status: 'error', message: TURNSTILE_VERIFYING_MESSAGE });
       return;
     }

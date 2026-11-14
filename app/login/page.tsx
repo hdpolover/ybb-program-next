@@ -246,7 +246,7 @@ export default function LoginPage() {
       setLocalError('');
       setLocalErrorAction(undefined);
       setShowResendVerification(false);
-      if (!ambassadorMode && turnstile.enabled && !turnstile.token) {
+      if (!ambassadorMode && turnstile.pending) {
         setLocalError(TURNSTILE_VERIFYING_MESSAGE);
         return;
       }
@@ -316,7 +316,7 @@ export default function LoginPage() {
 
     // signup
     setRegisterError('');
-    if (turnstile.enabled && !turnstile.token) {
+    if (turnstile.pending) {
       setRegisterError(TURNSTILE_VERIFYING_MESSAGE);
       return;
     }

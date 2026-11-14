@@ -4,7 +4,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, waitFor, act } from '@testing-library/react';
 import TurnstileWidget, { type TurnstileHandle } from '../TurnstileWidget';
 
-type RenderOpts = { sitekey: string; appearance?: string; callback: (t: string) => void };
+type RenderOpts = {
+  sitekey: string;
+  appearance?: string;
+  callback: (t: string) => void;
+  'error-callback': () => void;
+};
 
 describe('TurnstileWidget', () => {
   const api = { render: vi.fn(), remove: vi.fn(), reset: vi.fn() };
@@ -48,6 +53,16 @@ describe('TurnstileWidget', () => {
     await waitFor(() => expect(api.render).toHaveBeenCalled());
     unmount();
     expect(api.remove).toHaveBeenCalledWith('w1');
+    expect(onToken).toHaveBeenLastCalledWith(null);
+  });
+
+  it('reports failure when the widget errors, so forms can submit without a token', async () => {
+    const onToken = vi.fn();
+    const onFailed = vi.fn();
+    render(<TurnstileWidget siteKey="k" onToken={onToken} onFailed={onFailed} />);
+    await waitFor(() => expect(api.render).toHaveBeenCalled());
+    act(() => opts['error-callback']());
+    expect(onFailed).toHaveBeenCalledTimes(1);
     expect(onToken).toHaveBeenLastCalledWith(null);
   });
 });

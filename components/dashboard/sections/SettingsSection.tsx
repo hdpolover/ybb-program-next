@@ -195,7 +195,7 @@ export default function SettingsSection() {
   const handleResetPassword = async () => {
     if (!authMe?.email || resetState === "sending" || resetState === "sent")
       return;
-    if (turnstile.enabled && !turnstile.token) {
+    if (turnstile.pending) {
       toast.error(TURNSTILE_VERIFYING_MESSAGE);
       return;
     }

@@ -4,6 +4,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+// A script that never arrives (blocked or very slow network) must not hold forms hostage.
+const SCRIPT_TIMEOUT_MS = 8000;
 
 type TurnstileApi = {
   render: (el: HTMLElement, opts: Record<string, unknown>) => string;
@@ -32,7 +34,10 @@ function loadScript(): Promise<void> {
     };
     document.head.appendChild(script);
   });
-  return scriptPromise;
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('turnstile script timed out')), SCRIPT_TIMEOUT_MS),
+  );
+  return Promise.race([scriptPromise, timeout]);
 }
 
 export type TurnstileHandle = {
@@ -44,19 +49,23 @@ type Props = {
   siteKey: string;
   /** Called with the token, or null when it expires / errors / is reset. */
   onToken: (token: string | null) => void;
+  /** The challenge could not run (script blocked/timed out, widget error). */
+  onFailed?: () => void;
   /** 'interaction-only' stays invisible unless Cloudflare decides to challenge. */
   appearance?: 'always' | 'execute' | 'interaction-only';
 };
 
 const TurnstileWidget = forwardRef<TurnstileHandle, Props>(function TurnstileWidget(
-  { siteKey, onToken, appearance },
+  { siteKey, onToken, onFailed, appearance },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
+  const onFailedRef = useRef(onFailed);
   useEffect(() => {
     onTokenRef.current = onToken;
+    onFailedRef.current = onFailed;
   });
 
   useImperativeHandle(ref, () => ({
@@ -76,10 +85,16 @@ const TurnstileWidget = forwardRef<TurnstileHandle, Props>(function TurnstileWid
           ...(appearance ? { appearance } : {}),
           callback: (token: string) => onTokenRef.current(token),
           'expired-callback': () => onTokenRef.current(null),
-          'error-callback': () => onTokenRef.current(null),
+          'error-callback': () => {
+            onTokenRef.current(null);
+            onFailedRef.current?.();
+          },
         });
       })
-      .catch(() => onTokenRef.current(null));
+      .catch(() => {
+        onTokenRef.current(null);
+        onFailedRef.current?.();
+      });
     return () => {
       cancelled = true;
       if (widgetIdRef.current && window.turnstile) window.turnstile.remove(widgetIdRef.current);
