@@ -5,6 +5,12 @@ export const ACTIVE_PROGRAM_STORAGE_KEY = "ybb_active_program_id";
  * automatically. See resolveActiveProgramId for why the difference matters.
  */
 export const EXPLICIT_PROGRAM_CHOICE_STORAGE_KEY = "ybb_active_program_explicit";
+/**
+ * Holds a ?programId= deep link across the login hop. Deliberately separate from
+ * the explicit-choice key: it has not been validated against the participant's
+ * applications yet, so nothing may read it as the active program.
+ */
+export const PENDING_LINK_PROGRAM_STORAGE_KEY = "ybb_pending_link_program_id";
 export const ACTIVE_PROGRAM_CHANGED_EVENT = "ybb:active-program-changed";
 /**
  * Dispatched after a client-side mutation (payment cancel/confirm, ...) so the
@@ -251,4 +257,58 @@ export function announceActiveProgramChange(programId: string): void {
       detail: { programId },
     }),
   );
+}
+
+function readProgramIdParam(search: string): string | null {
+  return new URLSearchParams(search).get("programId")?.trim() || null;
+}
+
+/**
+ * Remember a deep link's program across a redirect to /login (same tab, so
+ * sessionStorage). Emails link to /dashboard/documents?programId=..., and the
+ * login flow drops the original URL.
+ */
+export function stashLinkedProgramId(search: string): void {
+  const programId = readProgramIdParam(search);
+  if (!programId || typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.setItem(PENDING_LINK_PROGRAM_STORAGE_KEY, programId);
+  } catch {
+    // Storage unavailable: the link just falls back to the default program.
+  }
+}
+
+function takePendingLinkProgramId(): string | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const pending = window.sessionStorage.getItem(PENDING_LINK_PROGRAM_STORAGE_KEY);
+    window.sessionStorage.removeItem(PENDING_LINK_PROGRAM_STORAGE_KEY);
+    return pending || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Honour a ?programId= deep link (or one stashed before login). The id is only
+ * used when it is one of the participant's own applications; anything else is
+ * ignored so the normal resolver picks the program and nothing about other
+ * editions is revealed. Returns the selected id, or null when the link was
+ * absent or not theirs.
+ */
+export function selectProgramFromLink(
+  programs: ProgramReference[],
+  search: string,
+): string | null {
+  const pending = takePendingLinkProgramId();
+  const linked = readProgramIdParam(search) ?? pending;
+  if (!linked) return null;
+
+  const isOwn = programs.some((program) => getProgramReferenceId(program) === linked);
+  if (!isOwn) return null;
+
+  chooseActiveProgramId(linked);
+  return linked;
 }
