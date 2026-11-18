@@ -5,10 +5,13 @@ import {
   ACTIVE_PROGRAM_CHANGED_EVENT,
   ACTIVE_PROGRAM_STORAGE_KEY,
   EXPLICIT_PROGRAM_CHOICE_STORAGE_KEY,
+  PENDING_LINK_PROGRAM_STORAGE_KEY,
   chooseActiveProgramId,
   clearExplicitProgramChoice,
   readActiveProgramId,
   resolveActiveProgramId,
+  selectProgramFromLink,
+  stashLinkedProgramId,
   syncActiveProgramId,
 } from '@/lib/dashboard/activeProgram';
 
@@ -235,5 +238,37 @@ describe('active program persistence', () => {
     window.localStorage.setItem(ACTIVE_PROGRAM_STORAGE_KEY, 'meys-2026');
     clearExplicitProgramChoice();
     expect(readActiveProgramId()).toBe('meys-2026');
+  });
+});
+
+describe('selectProgramFromLink', () => {
+  const programs = [{ programId: 'p-6' }, { programId: 'p-7' }];
+
+  it('selects a linked program the participant owns and marks it explicit', () => {
+    expect(selectProgramFromLink(programs, '?programId=p-7')).toBe('p-7');
+    expect(readActiveProgramId()).toBe('p-7');
+    expect(window.sessionStorage.getItem(EXPLICIT_PROGRAM_CHOICE_STORAGE_KEY)).toBe('p-7');
+  });
+  it('ignores a program the participant does not own', () => {
+    expect(selectProgramFromLink(programs, '?programId=someone-else')).toBeNull();
+    expect(readActiveProgramId()).toBeNull();
+  });
+  it('does nothing without a link param', () => {
+    expect(selectProgramFromLink(programs, '')).toBeNull();
+    expect(selectProgramFromLink(programs, '?programId=%20')).toBeNull();
+  });
+  it('restores a link stashed before the login redirect', () => {
+    stashLinkedProgramId('?programId=p-6');
+    expect(selectProgramFromLink(programs, '')).toBe('p-6');
+    expect(window.sessionStorage.getItem(PENDING_LINK_PROGRAM_STORAGE_KEY)).toBeNull();
+  });
+  it('drops a stashed id that is not theirs and still clears it', () => {
+    stashLinkedProgramId('?programId=other');
+    expect(selectProgramFromLink(programs, '')).toBeNull();
+    expect(window.sessionStorage.getItem(PENDING_LINK_PROGRAM_STORAGE_KEY)).toBeNull();
+  });
+  it('prefers the URL param over a stashed one', () => {
+    stashLinkedProgramId('?programId=p-6');
+    expect(selectProgramFromLink(programs, '?programId=p-7')).toBe('p-7');
   });
 });

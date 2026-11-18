@@ -205,7 +205,11 @@ export default function DocumentsSection() {
   }, [me?.registeredPrograms]);
 
   // Fetch program documents
+  const latestFetchRef = useRef(0);
   const fetchDocuments = async () => {
+    // Only the latest call may write: the first fetch can start before the
+    // layout applies a ?programId= link, and a slow response must not land on top.
+    const fetchId = ++latestFetchRef.current;
     try {
       setLoadingDocs(true);
       setErrorDocs(null);
@@ -227,6 +231,8 @@ export default function DocumentsSection() {
       if (!response.ok) {
         throw new Error(getErrorMessage(json, 'Failed to load documents'));
       }
+
+      if (fetchId !== latestFetchRef.current) return;
 
       const payload = getEnvelopeData(json);
       const payloadRecord = isRecord(payload) ? payload : null;
@@ -254,9 +260,10 @@ export default function DocumentsSection() {
           : []
       );
     } catch (err) {
+      if (fetchId !== latestFetchRef.current) return;
       setErrorDocs(err instanceof Error ? err.message : 'Failed to load documents');
     } finally {
-      setLoadingDocs(false);
+      if (fetchId === latestFetchRef.current) setLoadingDocs(false);
     }
   };
 

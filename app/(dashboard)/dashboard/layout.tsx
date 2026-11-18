@@ -26,6 +26,8 @@ import {
   chooseActiveProgramId,
   readActiveProgramId,
   resolveActiveProgramId,
+  selectProgramFromLink,
+  stashLinkedProgramId,
 } from '@/lib/dashboard/activeProgram';
 import { componentsTheme } from '@/lib/theme/components';
 import { useDashboardSummaryRefetch } from '@/hooks/useDashboardSummaryRefetch';
@@ -256,6 +258,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           if (!cancelled) {
             setIsDashboardSummaryLoading(false);
           }
+          // The login flow does not carry the URL back, so keep a ?programId= link.
+          stashLinkedProgramId(window.location.search);
           router.push('/login');
           return;
         }
@@ -268,6 +272,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         const data = json?.data ?? null;
         setMe(data);
+
+        // Deep links (e.g. the invitation-letter email) name the edition they are about.
+        // Applied before the summary fetch below so it already uses that edition.
+        selectProgramFromLink(data?.registeredPrograms ?? [], window.location.search);
 
         // These three are independent of each other and only depend on /me.
         // They used to be awaited one after another, so their latency stacked
