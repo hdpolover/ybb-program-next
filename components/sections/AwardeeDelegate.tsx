@@ -2,6 +2,7 @@
 
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
+import { awardAccentColor, awardIconUrl, prefersLightText } from '@/lib/awards/awardVisual';
 import { Award, Trophy, Medal, Users, Crown, Camera, Star } from 'lucide-react';
 
 type ApiAwardItem = {
@@ -10,7 +11,7 @@ type ApiAwardItem = {
   description: string;
   winner_count: number;
   tags: string[];
-  color: string;
+  color: string | null;
   icon_url: string | null;
 };
 
@@ -23,6 +24,8 @@ type AwardItem = {
   chips?: string[];
   accent: string;
   ring: string;
+  /** Validated admin hex; set as the icon circle background when present. */
+  accentColor?: string;
 };
 
 interface RecognitionAwardsProps {
@@ -55,7 +58,30 @@ const buildHighlights = (name: string, winnerCount: number): string[] => {
 	return [`${winnerCount} Winners`];
 };
 
+// Admin-set color/icon win; the keyword styling below stays the fallback when either is unset or invalid.
 const mapApiToAwardItem = (api: ApiAwardItem): AwardItem => {
+  const item = mapKeywordAward(api);
+  const color = awardAccentColor(api.color);
+  const iconUrl = awardIconUrl(api.icon_url);
+  return {
+    ...item,
+    // Plain <img>: icon URLs are admin free text, so the host is often outside next/image remotePatterns.
+    // Decorative (alt=""): the award title sits right next to it.
+    ...(iconUrl
+      ? {
+          icon: (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={iconUrl} alt="" width={20} height={20} loading="lazy" className="h-5 w-5 object-contain" />
+          ),
+        }
+      : {}),
+    ...(color
+      ? { accentColor: color, accent: prefersLightText(color) ? 'text-white' : 'text-slate-900', ring: 'ring-slate-200' }
+      : {}),
+  };
+};
+
+const mapKeywordAward = (api: ApiAwardItem): AwardItem => {
   const base: Pick<AwardItem, 'id' | 'title' | 'desc' | 'highlights' | 'chips'> = {
     id: api.id,
     title: api.name,
@@ -149,7 +175,10 @@ export default function RecognitionAwards({
             >
               <div className={componentsTheme.awards.cardInner}>
                 <div className={componentsTheme.awards.cardHeader}>
-                  <span className={`${componentsTheme.awards.iconCircleBase} ${it.accent}`}>
+                  <span
+                    className={`${componentsTheme.awards.iconCircleBase} ${it.accent}`}
+                    style={it.accentColor ? { backgroundColor: it.accentColor } : undefined}
+                  >
                     {it.icon}
                   </span>
                   <h3 className={componentsTheme.awards.title}>{it.title}</h3>
