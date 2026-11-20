@@ -60,7 +60,8 @@ export async function POST(request: Request) {
     const refreshToken = data.refreshToken;
     const redirectTo = data.redirectTo ?? '/dashboard';
 
-    if (!accessToken || !refreshToken) {
+    // A read-only support view is issued without a refresh token by design.
+    if (!accessToken) {
       return NextResponse.json(
         { statusCode: 500, message: 'Invalid token exchange response', data: null },
         { status: 500 },
@@ -79,12 +80,18 @@ export async function POST(request: Request) {
       sameSite: 'lax',
       path: '/',
     });
-    response.cookies.set('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-    });
+    if (refreshToken) {
+      response.cookies.set('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+    } else {
+      // Drop any refresh token from a previous session in this browser, or it
+      // would renew into that other account once the 30-minute view expires.
+      response.cookies.delete('refreshToken');
+    }
 
     return response;
   } catch (error) {
