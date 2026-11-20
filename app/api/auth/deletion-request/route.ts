@@ -12,6 +12,22 @@ import { isRecord } from '@/lib/api/response';
 // on the API — see ybb-platform PR #176). The account is deactivated immediately on
 // success, so the caller must sign out right after this resolves — see
 // DeleteAccountSection.tsx, which is the only place this is called from.
+
+const MAX_REASON_LENGTH = 500;
+
+// Forwards only the two optional reason fields. The API validates the category
+// against its own list (400 if unknown); anything else in the body is dropped.
+async function readReasonBody(request: Request): Promise<{ reasonCategory?: string; reason?: string }> {
+  const body: unknown = await request.json().catch(() => ({}));
+  if (!isRecord(body)) return {};
+  const reasonCategory = typeof body.reasonCategory === 'string' ? body.reasonCategory.trim() : '';
+  const reason = typeof body.reason === 'string' ? body.reason.trim().slice(0, MAX_REASON_LENGTH) : '';
+  return {
+    ...(reasonCategory ? { reasonCategory } : {}),
+    ...(reason ? { reason } : {}),
+  };
+}
+
 export async function POST(request: Request) {
   try {
     const csrfRejection = getCsrfGuardRejection(request);
@@ -24,6 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ statusCode: 401, message: 'Unauthorized', data: null }, { status: 401 });
     }
 
+    const reasonBody = await readReasonBody(request);
     const brandDomain = resolveBrandDomainFromRequest(request);
     const apiUrl = new URL('/v1/users/me/deletion-request', getServerApiBaseUrl());
 
@@ -35,8 +52,7 @@ export async function POST(request: Request) {
         'x-brand-domain': brandDomain,
         ...forwardedForHeader(request),
       },
-      // No reason/reasonCategory collected by this UI — both are optional on the DTO.
-      body: JSON.stringify({}),
+      body: JSON.stringify(reasonBody),
       cache: 'no-store',
     });
 

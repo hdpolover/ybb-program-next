@@ -7,6 +7,19 @@ import { toast } from 'sonner';
 import { AlertTriangle, Loader2, Trash2 } from 'lucide-react';
 
 const CONFIRMATION_PHRASE = 'DELETE';
+const MAX_REASON_LENGTH = 500;
+
+// Keys must match the API's allowed reasonCategory values (ybb-platform CreateDeletionRequestDto).
+const REASON_OPTIONS = [
+  { value: 'no_longer_interested', label: 'I am no longer interested' },
+  { value: 'not_accepted_or_cannot_attend', label: 'I was not accepted or cannot attend' },
+  { value: 'too_many_emails', label: 'Too many emails' },
+  { value: 'privacy_concern', label: 'Privacy concern' },
+  { value: 'duplicate_account', label: 'I have a duplicate account' },
+  { value: 'cost', label: 'Cost' },
+  { value: 'bad_experience', label: 'Bad experience' },
+  { value: 'other', label: 'Other' },
+] as const;
 
 type DeletionConsequences = {
   hasPaidInvoice: boolean;
@@ -52,12 +65,16 @@ export default function DeleteAccountSection() {
   const [state, setState] = useState<SectionState>('idle');
   const [confirmText, setConfirmText] = useState('');
   const [error, setError] = useState('');
+  const [reasonCategory, setReasonCategory] = useState('');
+  const [reason, setReason] = useState('');
 
   const canConfirm = confirmText === CONFIRMATION_PHRASE;
 
   const handleOpenConfirm = () => {
     setState('confirming');
     setConfirmText('');
+    setReasonCategory('');
+    setReason('');
     setError('');
   };
 
@@ -74,7 +91,12 @@ export default function DeleteAccountSection() {
     setError('');
 
     try {
-      const res = await fetch('/api/auth/deletion-request', { method: 'POST' });
+      const res = await fetch('/api/auth/deletion-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // Both optional: skipping the reason sends an empty body.
+        body: JSON.stringify({ reasonCategory, reason }),
+      });
       const json = (await res.json().catch(() => ({}))) as ApiResponse<DeletionRequestData>;
 
       if (!res.ok) {
@@ -139,6 +161,38 @@ export default function DeleteAccountSection() {
           </button>
         ) : (
           <div className="space-y-3 rounded-xl border border-red-200 bg-white p-4">
+            <div className="space-y-2">
+              <label htmlFor="deletion-reason-category" className="block text-sm font-medium text-slate-800">
+                Why are you leaving? <span className="font-normal text-slate-500">(optional)</span>
+              </label>
+              <select
+                id="deletion-reason-category"
+                value={reasonCategory}
+                onChange={(event) => setReasonCategory(event.target.value)}
+                disabled={state === 'submitting'}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200"
+              >
+                <option value="">Prefer not to say</option>
+                {REASON_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <textarea
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                disabled={state === 'submitting'}
+                maxLength={MAX_REASON_LENGTH}
+                rows={3}
+                placeholder="Anything else you'd like us to know? Please don't include personal details."
+                aria-label="Additional feedback (optional)"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200"
+              />
+              <p className="text-right text-xs text-slate-400">
+                {reason.length}/{MAX_REASON_LENGTH}
+              </p>
+            </div>
             <p className="text-sm font-medium text-slate-800">
               This can&apos;t be undone after 30 days. To confirm, type{' '}
               <span className="font-mono font-semibold text-red-700">{CONFIRMATION_PHRASE}</span> below.
