@@ -1,5 +1,6 @@
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { getHomePageData } from '@/lib/api/home';
 import { getSettingsForBrandDomain } from '@/lib/api/settings';
 import { resolveBrandDomain } from '@/lib/server/envContext';
@@ -32,6 +33,8 @@ import { pickDefaultEditionIndex } from '@/lib/registration/edition';
 import { getRegistrationPhase, resolveChromePhase, type RegistrationPhase } from '@/lib/registration/status';
 import { SelectedEditionProvider } from '@/components/sections/SelectedEditionContext';
 import type { RegistrationOverviewSection } from '@/types/home';
+import { isReadOnlySupportToken } from '@/lib/auth/supportView';
+import ReadOnlySupportBanner from '@/components/layout/ReadOnlySupportBanner';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -158,6 +161,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const host = await resolveBrandDomain();
+  const isReadOnlySupportView = isReadOnlySupportToken((await cookies()).get('accessToken')?.value);
   const appVersion = process.env.NEXT_PUBLIC_APP_BUILD_ID || 'development';
 
   let brandAccent: string | null = null;
@@ -338,6 +342,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" suppressHydrationWarning>
       <body className={plusJakarta.className} data-program={programSlug} style={themeStyle}>
         <AppVersionWatcher currentVersion={appVersion} />
+        {isReadOnlySupportView ? <ReadOnlySupportBanner /> : null}
         <SettingsProvider
           initialSettings={settingsData}
           registrationPhase={countdownPhase}
