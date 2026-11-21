@@ -32,6 +32,8 @@ function extractYouTubeId(videoUrl: string | null): string | null {
 		const url = new URL(videoUrl);
 		// youtu.be/ID
 		if (url.hostname === 'youtu.be') return url.pathname.slice(1).split('?')[0];
+		// facebook.com/watch?v= would otherwise pass as a YouTube id below
+		if (url.hostname !== 'youtube.com' && !url.hostname.endsWith('.youtube.com')) return null;
 		// youtube.com/shorts/ID
 		const shortsMatch = url.pathname.match(/\/shorts\/([^/?&]+)/);
 		if (shortsMatch) return shortsMatch[1];
@@ -55,6 +57,7 @@ function extractTikTokId(videoUrl: string | null): string | null {
 	if (!videoUrl) return null;
 	try {
 		const url = new URL(videoUrl);
+		if (url.hostname !== 'tiktok.com' && !url.hostname.endsWith('.tiktok.com')) return null;
 		// tiktok.com/@username/video/ID
 		const videoMatch = url.pathname.match(/\/video\/(\d+)/);
 		if (videoMatch) return videoMatch[1];
@@ -79,26 +82,45 @@ function extractInstagramId(videoUrl: string | null): string | null {
 	if (!videoUrl) return null;
 	try {
 		const url = new URL(videoUrl);
+		if (url.hostname !== 'instagram.com' && !url.hostname.endsWith('.instagram.com')) return null;
 		// instagram.com/p/ID or instagram.com/reel/ID
-		const postMatch = url.pathname.match(/\/(p|reel)\/([^/?&]+)/);
+		const postMatch = url.pathname.match(/\/(p|reel|reels|tv)\/([^/?&]+)/);
 		if (postMatch) return postMatch[2];
 	} catch {
 		// plain string fallback
-		const postMatch = videoUrl.match(/\/(p|reel)\/([^/?&]+)/);
+		const postMatch = videoUrl.match(/\/(p|reel|reels|tv)\/([^/?&]+)/);
 		if (postMatch) return postMatch[2];
 	}
 	return null;
 }
 
-function detectPlatform(videoUrl: string | null): 'youtube' | 'tiktok' | 'instagram' | null {
+// Admin (video-platform.ts in the dashboard) only accepts facebook.com reel,
+// videos and watch?v= links; fb.watch and /share/ redirects do not embed.
+function facebookVideoHref(videoUrl: string | null): string | null {
+	if (!videoUrl) return null;
+	try {
+		const url = new URL(videoUrl);
+		if (url.hostname !== 'facebook.com' && !url.hostname.endsWith('.facebook.com')) return null;
+		if (/\/(?:reel|videos)\/\d+/.test(url.pathname)) return `https://www.facebook.com${url.pathname}`;
+		if (url.pathname.startsWith('/watch') && url.searchParams.has('v')) {
+			return `https://www.facebook.com${url.pathname}?v=${url.searchParams.get('v')}`;
+		}
+	} catch {
+		// not a URL
+	}
+	return null;
+}
+
+function detectPlatform(videoUrl: string | null): 'youtube' | 'tiktok' | 'instagram' | 'facebook' | null {
 	if (!videoUrl) return null;
 	if (extractYouTubeId(videoUrl)) return 'youtube';
 	if (extractTikTokId(videoUrl)) return 'tiktok';
 	if (extractInstagramId(videoUrl)) return 'instagram';
+	if (facebookVideoHref(videoUrl)) return 'facebook';
 	return null;
 }
 
-const toEmbedUrl = (videoUrl: string | null): string | null => {
+export const toEmbedUrl = (videoUrl: string | null): string | null => {
 	const platform = detectPlatform(videoUrl);
 	if (!platform) return null;
 
@@ -115,6 +137,11 @@ const toEmbedUrl = (videoUrl: string | null): string | null => {
 	if (platform === 'instagram') {
 		const id = extractInstagramId(videoUrl);
 		if (id) return `https://www.instagram.com/p/${id}/embed`;
+	}
+
+	if (platform === 'facebook') {
+		const href = facebookVideoHref(videoUrl);
+		if (href) return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(href)}&show_text=false`;
 	}
 
 	return null;
