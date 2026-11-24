@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import SectionHeader from '@/components/ui/SectionHeader';
 import { componentsTheme } from '@/lib/theme/components';
 
@@ -25,6 +25,13 @@ type AlumniStoriesProps = {
 };
 
 const REELS_PAGE_SIZE = 4;
+
+const PLATFORM_LABEL = {
+	youtube: 'YouTube',
+	tiktok: 'TikTok',
+	instagram: 'Instagram',
+	facebook: 'Facebook',
+} as const;
 
 function extractYouTubeId(videoUrl: string | null): string | null {
 	if (!videoUrl) return null;
@@ -341,6 +348,7 @@ export default function AlumniStoriesSection({
 									: getThumbnailCandidates(item.video_url);
 								const variantIndex = thumbVariantIndex[item.id] ?? 0;
 								const currentThumbnail = thumbnailVariants[variantIndex] ?? null;
+								const platform = detectPlatform(item.video_url);
 
 								return (
 									<button
@@ -371,10 +379,16 @@ export default function AlumniStoriesSection({
 													}}
 												/>
 											) : (
-												<div className={componentsTheme.alumniStories.reelVideo}>
-													<div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-														No preview
-													</div>
+												// Cover is optional: alumni often have no photo from the shoot itself.
+												<div className={componentsTheme.alumniStories.reelPlaceholder}>
+													<span className={componentsTheme.alumniStories.reelPlaceholderIcon}>
+														<Play className="h-5 w-5 translate-x-px fill-current" aria-hidden />
+													</span>
+													{platform && (
+														<span className={componentsTheme.alumniStories.reelPlaceholderLabel}>
+															{PLATFORM_LABEL[platform]}
+														</span>
+													)}
 												</div>
 											)}
 										</div>

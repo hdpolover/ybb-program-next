@@ -122,6 +122,11 @@ export const homeTheme = {
       'relative aspect-[9/16] w-full overflow-hidden rounded-xl',
     reelVideo: 'h-full w-full object-cover',
     reelSkeleton: 'absolute inset-0 animate-pulse bg-slate-200',
+    reelPlaceholder:
+      'flex h-full w-full flex-col items-center justify-center gap-3 bg-[var(--brand-accent-soft)] ring-1 ring-inset ring-[var(--brand-border)]',
+    reelPlaceholderIcon:
+      'grid h-12 w-12 place-items-center rounded-full bg-[var(--brand-accent)] text-white shadow-md',
+    reelPlaceholderLabel: 'text-[11px] font-semibold uppercase tracking-wide text-[var(--brand-accent)]',
   },
   globalImpact: {
     sectionWrapper: 'relative w-full bg-[#ffffff72] py-16 sm:py-20',
